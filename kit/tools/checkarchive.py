@@ -225,8 +225,8 @@ def main():
     for url, src in pages.items():
         for m in re.finditer(r'<span[^>]*\bvc-n\b[^>]*>.*?</span>(\s*)<span[^>]*\bvc-l\b', src):
             if m.group(1) == "":
-                has_gap = re.search(r'\.vc-l\s*\{[^}]*margin-left', src) or \
-                          re.search(r'\.vc-l[^{]*\{[^}]*padding-left', src)
+                has_gap = re.search(r'\.vc-l[^{,]*\{[^}]*(?:margin-left|padding-left|gap)\s*:',
+                                    src) is not None
                 if not has_gap:
                     F("counter", url,
                       "the count and its label are adjacent spans with no whitespace and no CSS "
