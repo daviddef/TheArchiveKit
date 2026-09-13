@@ -11,7 +11,7 @@
  *
  * Rows come from the archive's own trees.json.
  */
-const { rows = [], note, close } = Astro.props;
+const { rows = [], note, close, doors = [] } = Astro.props;
 
 const STATE = {
   drawn:    ["Drawn as a line",     "var(--accent)"],
@@ -45,6 +45,21 @@ const STATE = {
 
 {close && <p class="prose note" style="margin-top:24px">{close}</p>}
 
+{doors.length > 0 && (
+  <div class="tl-doors">
+    <h3>Where to start</h3>
+    <div class="tl-door-grid">
+      {doors.map(([href, name, blurb]) => (
+        <a class="tl-door" href={href}>
+          <span class="tl-dn">{name}</span>
+          <span class="tl-dd">{blurb}</span>
+          <span class="tl-go2">Open →</span>
+        </a>
+      ))}
+    </div>
+  </div>
+)}
+
 <style>
   .tl { display: flex; flex-direction: column; gap: 16px; margin-top: 18px; }
   .tl-row { border-left: 3px solid var(--c); background: var(--panel); padding: 15px 17px; border-radius: 2px; }
@@ -66,5 +81,16 @@ const STATE = {
           border-left: 2px solid var(--rule-strong); padding-left: 11px; }
   .tl-go { display: inline-block; margin-top: 11px; font-size: 13px; color: var(--accent); text-decoration: none; }
   .tl-go:hover { text-decoration: underline; }
+  .tl-doors { margin-top: 34px; border-top: 1px solid var(--rule); padding-top: 22px; }
+  .tl-doors h3 { font-family: var(--sans); font-size: 11px; font-weight: 600;
+                 letter-spacing: .12em; text-transform: uppercase; color: var(--ink-3); }
+  .tl-door-grid { display: grid; gap: 12px; margin-top: 14px;
+                  grid-template-columns: repeat(auto-fit, minmax(232px, 1fr)); }
+  .tl-door { display: block; border: 1px solid var(--rule); border-radius: 3px;
+             padding: 14px 16px; text-decoration: none; background: var(--panel); }
+  .tl-door:hover { border-color: var(--accent); }
+  .tl-dn { display: block; font-family: var(--serif); font-size: 18px; color: var(--ink); }
+  .tl-dd { display: block; font-size: 13.5px; line-height: 1.55; color: var(--ink-2); margin-top: 6px; }
+  .tl-go2 { display: block; font-size: 12.5px; color: var(--accent); margin-top: 10px; }
   @media (max-width: 620px) { .tl-s { margin-left: 0; } }
 </style>
