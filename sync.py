@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
-"""Copy the kit into all seven archives, or just report where they have drifted.
+"""Check the seven archives against the kit.
+
+Most of the kit is now installed rather than copied: each site depends on
+@daviddef/archive-kit and imports the components and archives.json from it.
+Two things still live inside each repo and are checked here — tools/sitemap.py,
+which runs from tools/ and reads ../site/dist, and the CSS blocks, because each
+archive's stylesheet is its own.
 
     python3 sync.py --check     say what differs, change nothing
     python3 sync.py             copy the kit out to every archive
@@ -16,11 +22,11 @@ ROOT = os.path.dirname(os.path.abspath(__file__))
 PROJECTS = os.path.dirname(ROOT)
 
 # kit file -> where it lands inside each archive
+# Components and archives.json are no longer copied: the seven sites install
+# this package and import them. What is left here is the one file that has to
+# live inside each repo, because it runs from tools/ and reads ../site/dist.
 FILES = {
-    "kit/components/Evidence.astro":        "site/src/components/Evidence.astro",
-    "kit/components/SiblingArchives.astro": "site/src/components/SiblingArchives.astro",
-    "kit/data/archives.json":               "site/src/data/archives.json",
-    "kit/tools/sitemap.py":                 "tools/sitemap.py",
+    "kit/tools/sitemap.py": "tools/sitemap.py",
 }
 
 ARCHIVES = ["Defranceski Family", "Falco Family", "Booyzen Family", "D'arcy Family",
@@ -28,7 +34,7 @@ ARCHIVES = ["Defranceski Family", "Falco Family", "Booyzen Family", "D'arcy Fami
 
 # CSS is not copied — each archive's stylesheet is its own. These markers say
 # whether the kit's blocks are present, so a missing one is visible.
-CSS_MARKERS = [".ev-documented", ".ladder{", ".ring{", "--ev-inferred"]
+CSS_MARKERS = [".ev-documented", ".ladder{", ".ring{", "--ev-inferred", ".ksearch input"]
 
 
 def digest(p):

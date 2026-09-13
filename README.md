@@ -24,18 +24,40 @@ checks that the blocks it needs are present (`.ev-documented`, `.ladder`,
     python3 sync.py --check     # say what has drifted, change nothing
     python3 sync.py             # copy the kit out to all seven
 
-## Why a copier and not a package
+## The search contract
 
-A shared npm dependency is the tidier answer and the wrong one here. These are
-seven static sites that deploy straight from a push, worked on by several
-people at once. A dependency means one bad publish can take all seven offline
-in the same minute, and a resolution failure in CI is an outage rather than a
-warning. A copy that is checked costs one command, fails loudly, and never
-fails everywhere at once.
+Every archive builds its own index — only an archive knows its own data
+shapes — but all seven emit the same rows, because one component reads them
+all:
 
-If that trade stops being worth it — if the kit grows to the point where
-copying is the bottleneck — `sync.py` is the file to replace, and nothing else
-has to change.
+| field | meaning |
+|---|---|
+| `k` | kind — the group a hit belongs in: Person, Place, Record, Page… |
+| `t` | title, what to show |
+| `s` | subtitle: dates, a place, a reference. May be empty |
+| `h` | href, site-relative, beginning with `/` |
+| `q` | haystack: title + subtitle + body, lowercased and accent-folded |
+
+A generator that emits anything else should normalise on the way out rather
+than at read time, so the fix cannot drift back. Four of the seven already
+emitted this; the other three now convert in their own build scripts.
+
+## Why it was a copier, and is not any more
+
+It started as a copier, on the argument that one bad publish should not be able
+to reach seven live sites in the same minute. That argument has not gone away.
+
+What changed the balance is that the copies began to matter. The evidence
+ladder, the ring of sibling links and the search contract are things that have
+to *agree* across archives to mean anything at all — a ladder that says
+something different on the Falco site than on the Booyzen one is worse than no
+ladder. Agreement by convention lasts until somebody edits one copy.
+
+So the components are installed now, and the risk is real: `npm install`
+reaching GitHub is a dependency all seven builds share. The mitigation is that
+the kit is small, has no dependencies of its own, and is pinned by
+`package-lock.json` in each site — a bad publish does not reach a site until
+that site reinstalls.
 
 ## What belongs in here next
 
