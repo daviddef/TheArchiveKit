@@ -1,0 +1,70 @@
+---
+/* Every line an archive follows, each stated in the form its own evidence
+ * supports. Taken from the Defranceschi archive, which worked it out: the
+ * point is not the chart, it is refusing to draw a spine you cannot prove.
+ *
+ *   drawn     a pedigree — generation on generation, the joins proved
+ *   web       households whose joins are not proved. Drawn as what it is
+ *   drawable  the evidence would support a chart and nobody has made one
+ *   route     places in order, the people between them unknown
+ *   closed    followed, tested, and shown not to belong here
+ *
+ * Rows come from the archive's own trees.json.
+ */
+const { rows = [], note, close } = Astro.props;
+
+const STATE = {
+  drawn:    ["Drawn as a line",     "var(--accent)"],
+  web:      ["Drawn as a web",      "var(--terra)"],
+  drawable: ["Could be drawn",      "var(--ochre)"],
+  route:    ["A route, not a line", "var(--ink-3)"],
+  closed:   ["Followed and closed", "var(--rule-strong)"],
+};
+---
+{note && <p class="prose" style="margin-bottom:6px">{note}</p>}
+
+<div class="tl">
+  {rows.map(r => {
+    const [label, colour] = STATE[r.state] || STATE.route;
+    return (
+      <section class="tl-row" style={`--c:${colour}`}>
+        <div class="tl-head">
+          <div>
+            <div class="tl-n">{r.name}{r.ours && <span class="tl-ours">ours</span>}</div>
+            <div class="tl-d">{r.depth}</div>
+          </div>
+          <span class="tl-s">{label}</span>
+        </div>
+        <p class="tl-w">{r.what}</p>
+        {r.gap && <p class="tl-g">{r.gap}</p>}
+        {r.href && <a class="tl-go" href={r.href}>{r.cta || "Open it →"}</a>}
+      </section>
+    );
+  })}
+</div>
+
+{close && <p class="prose note" style="margin-top:24px">{close}</p>}
+
+<style>
+  .tl { display: flex; flex-direction: column; gap: 16px; margin-top: 18px; }
+  .tl-row { border-left: 3px solid var(--c); background: var(--panel); padding: 15px 17px; border-radius: 2px; }
+  .tl-head { display: flex; gap: 14px; align-items: baseline; flex-wrap: wrap; }
+  .tl-n { font-family: var(--serif); font-size: 20px; }
+  .tl-ours {
+    margin-left: 9px; font-family: var(--sans); font-size: 9.5px; letter-spacing: .12em;
+    text-transform: uppercase; color: var(--accent); border: 1px solid var(--accent);
+    padding: 1px 6px; border-radius: 2px; vertical-align: middle;
+  }
+  .tl-d { font-family: var(--mono); font-size: 12px; color: var(--ink-2); margin-top: 3px; }
+  .tl-s {
+    margin-left: auto; font-family: var(--sans); font-size: 10px; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--c); border: 1px solid var(--c);
+    padding: 2px 8px; border-radius: 2px; white-space: nowrap;
+  }
+  .tl-w { margin-top: 11px; font-size: 14.5px; line-height: 1.62; color: var(--ink-2); }
+  .tl-g { margin-top: 9px; font-size: 13.5px; line-height: 1.6; color: var(--ink-3);
+          border-left: 2px solid var(--rule-strong); padding-left: 11px; }
+  .tl-go { display: inline-block; margin-top: 11px; font-size: 13px; color: var(--accent); text-decoration: none; }
+  .tl-go:hover { text-decoration: underline; }
+  @media (max-width: 620px) { .tl-s { margin-left: 0; } }
+</style>
