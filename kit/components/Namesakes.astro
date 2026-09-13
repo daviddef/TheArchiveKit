@@ -1,0 +1,52 @@
+---
+/* One page per NAME, listing everyone who bore it.
+ *
+ * Four of the seven archives already had something like this; three did not,
+ * and one of those holds fourteen different men called Ivan Blažević. A reader
+ * who arrives with a name rather than a person needs the page that says how
+ * many of them there are and how to tell them apart.
+ *
+ * This is deliberately NOT the person page. /people/<person> is one human;
+ * /who/<name> is everyone of that name, and each links to the other.
+ */
+const { name, people = [], base = "" } = Astro.props;
+const many = people.length > 1;
+---
+<div class="nsk">
+  <p class="nsk-lede">
+    {many
+      ? <><strong>{people.length} different people</strong> in this archive were called {name}.
+          They are not the same person, and telling them apart is what this page is for.</>
+      : <>One person in this archive was called {name}.</>}
+  </p>
+
+  <ol class="nsk-list">
+    {people.map(p => (
+      <li>
+        <a href={`${base.replace(/\/$/, "")}/people/${p.slug}/`}>{p.name}</a>
+        <span class="nsk-life">{p.life || "no dates recorded"}</span>
+        {p.where && <span class="nsk-where">{p.where}</span>}
+        {p.note && <span class="nsk-note">{p.note}</span>}
+      </li>
+    ))}
+  </ol>
+
+  {many && (
+    <p class="nsk-warn">Where two of these have no dates, this archive cannot presently tell you
+    which is which either. That is a gap, not a tidy answer.</p>
+  )}
+</div>
+
+<style>
+  .nsk-lede { font-size: 17px; line-height: 1.6; color: var(--ink-2); }
+  .nsk-list { list-style: none; margin: 20px 0 0; padding: 0;
+              display: flex; flex-direction: column; gap: 10px; }
+  .nsk-list li { border-left: 3px solid var(--rule-strong); padding: 8px 0 8px 14px; }
+  .nsk-list a { font-family: var(--serif); font-size: 19px; text-decoration: none; color: var(--accent); }
+  .nsk-list a:hover { text-decoration: underline; }
+  .nsk-life { display: block; font-family: var(--mono); font-size: 12px; color: var(--ink-2); margin-top: 3px; }
+  .nsk-where { display: block; font-size: 13.5px; color: var(--ink-3); margin-top: 2px; }
+  .nsk-note { display: block; font-size: 13px; color: var(--ink-3); margin-top: 4px; font-style: italic; }
+  .nsk-warn { margin-top: 18px; font-size: 14px; color: var(--ink-3);
+              border-left: 2px solid var(--ochre); padding-left: 12px; }
+</style>
