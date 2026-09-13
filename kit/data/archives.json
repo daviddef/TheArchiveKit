@@ -16,7 +16,7 @@
         "Defrančeski"
       ],
       "accentDark": "#6FB6C6",
-      "counter": ""
+      "counter": "thedefranceski"
     },
     {
       "key": "falco",
@@ -37,7 +37,7 @@
         "Annecchino"
       ],
       "accentDark": "#E0836A",
-      "counter": ""
+      "counter": "thefalco"
     },
     {
       "key": "blazevic",
@@ -55,7 +55,7 @@
         "Kalanj"
       ],
       "accentDark": "#E886B0",
-      "counter": ""
+      "counter": "theblazevic"
     },
     {
       "key": "booyzen",
@@ -75,7 +75,7 @@
         "Schoeman"
       ],
       "accentDark": "#86C39A",
-      "counter": ""
+      "counter": "thebooyzen"
     },
     {
       "key": "lerena",
@@ -90,7 +90,7 @@
         "Taylor"
       ],
       "accentDark": "#B49AE8",
-      "counter": ""
+      "counter": "thelerena"
     },
     {
       "key": "darcy",
@@ -127,7 +127,7 @@
         "Polistena"
       ],
       "accentDark": "#E0A85F",
-      "counter": ""
+      "counter": "themazza"
     }
   ],
   "children": {
