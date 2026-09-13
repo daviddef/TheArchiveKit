@@ -170,14 +170,21 @@ def main():
                 if not rows:
                     F("searchindex", "/searchindex.json", "published but empty")
                 else:
-                    bad = 0
+                    bad, sample = 0, None
                     for r in rows:
                         h = (r.get("h") or r.get("href") or "") if isinstance(r, dict) else ""
-                        if h.startswith("/") and not exists(h[len(base):] if h.startswith(base) else h):
+                        # /register/?q=Aaron+Wakefield is the register page with a
+                        # filter, not a page of its own. Strip the query first.
+                        h = h.partition("#")[0].partition("?")[0]
+                        if not h.startswith("/"):
+                            continue
+                        if not exists(h[len(base):] if h.startswith(base) else h):
                             bad += 1
+                            sample = sample or (r.get("h") or h)
                     if bad:
                         F("searchindex", "/searchindex.json",
-                          f"{bad} of {len(rows)} rows point at pages that were not built")
+                          f"{bad} of {len(rows)} rows point at pages that were not built, "
+                          f"e.g. {sample}")
             except Exception as e:
                 F("searchindex", "/searchindex.json", f"not valid JSON — {e}")
 
