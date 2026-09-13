@@ -38,7 +38,13 @@ const full = title && title !== NAME ? `${title} — ${NAME}` : NAME;
    does not exist. So take the path as given and only fix the join. */
 const here = (Astro.url ? Astro.url.pathname : "/") || "/";
 const ORIGIN_ROOT = ORIGIN.replace(/(https?:\/\/[^/]+).*/, "$1");
-const canonical = ORIGIN_ROOT ? ORIGIN_ROOT + (here.startsWith("/") ? here : "/" + here) : null;
+/* These sites build with format: 'directory', so every real address ends in a
+   slash. Without this the home page's canonical points at /TheX, which
+   redirects to /TheX/ — a canonical aimed at a redirect, which is the one
+   thing a canonical must not be. */
+const _p = (here.startsWith("/") ? here : "/" + here).replace(/\/+$/, "");
+const _slashed = /\.[a-z0-9]{2,5}$/i.test(_p) ? _p : _p + "/";
+const canonical = ORIGIN_ROOT ? ORIGIN_ROOT + _slashed : null;
 
 /* Only claim an asset that exists. public/ is resolved from the site root. */
 const pub = path.join(process.cwd(), "public");
