@@ -56,11 +56,36 @@ const {
         idx = null, timer;
 
     /* Fold accents both ways, so Blazevic finds Blažević and Gracisce finds
-       Gračišće. These archives are spelled nine ways between them. */
+       Gračišće. These archives are spelled nine ways between them.
+
+       This MUST stay identical to fold() in the kit's searchkit.py, which
+       builds the haystack this reads. When the two drifted, the index folded
+       æ to ae and the box did not, so a reader typing the accented form of a
+       name the index held could not find it. Two live examples when this was
+       written: Franciscæ Papić on Blazevic, født stuart on D'Arcy.
+
+       These are the letters NFD cannot reach, because they are distinct
+       letters rather than a base plus a combining mark. */
+    var FOLD_PAIRS = [
+      ["đ","d"],["Đ","D"],["ð","d"],["Ð","D"],
+      ["ø","o"],["Ø","O"],["œ","oe"],["Œ","OE"],
+      ["æ","ae"],["Æ","AE"],["ß","ss"],
+      ["ł","l"],["Ł","L"],["ħ","h"],["Ħ","H"],
+      ["ı","i"],["İ","I"],["ŧ","t"],["Ŧ","T"],
+      ["þ","th"],["Þ","TH"],["ĸ","k"],["ŉ","n"],
+      ["\u2019","'"],["\u2018","'"],["\u201C",'"'],["\u201D",'"'],
+      ["\u2013","-"],["\u2014","-"],["\u2212","-"],["\u00AD",""],
+      ["\u00A0"," "],["\u200B",""]
+    ];
     function fold(s) {
-      return s.normalize("NFD").replace(/[̀-ͯ]/g, "")
-              .replace(/đ/g, "d").replace(/Đ/g, "D").toLowerCase();
+      s = String(s == null ? "" : s);
+      for (var i = 0; i < FOLD_PAIRS.length; i++) {
+        s = s.split(FOLD_PAIRS[i][0]).join(FOLD_PAIRS[i][1]);
+      }
+      return s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
     }
+    /* What a reader types with no punctuation at all: darcy for D'Arcy. */
+    function squash(s) { return fold(s).replace(/[^a-z0-9]+/g, ""); }
     function load() {
       if (idx) return Promise.resolve(idx);
       return fetch(BASE.replace(/\/$/, "") + "/searchindex.json")
@@ -79,10 +104,11 @@ const {
         count.textContent = "Type to search."; return;
       }
       load().then(function (rows) {
-        var lower = v.toLowerCase(), folded = fold(v), hits = [];
+        var lower = v.toLowerCase(), folded = fold(v), tight = squash(v), hits = [];
         for (var i = 0; i < rows.length; i++) {
           var r = rows[i], hay = r.q || "";
-          if (hay.indexOf(lower) === -1 && hay.indexOf(folded) === -1) continue;
+          if (hay.indexOf(lower) === -1 && hay.indexOf(folded) === -1 &&
+              (tight.length < 2 || hay.indexOf(tight) === -1)) continue;
           /* a match at the front of the title beats one buried in the body */
           var t = fold(String(r.t || "").toLowerCase());
           hits.push([t.indexOf(folded) === 0 ? 0 : t.indexOf(folded) > -1 ? 1 : 2, r]);
