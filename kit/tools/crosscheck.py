@@ -166,6 +166,22 @@ def survey(root, key, folder, base):
                          if re.search(r"check|drift|regen|consist", f)) if os.path.isdir(tools) else []
     r["living_decl"] = os.path.exists(os.path.join(site, "src", "data", "living.json"))
 
+    # Tracked private exports. A GEDCOM or a tree export carries every living
+    # person in full — names, birth dates, birth places — and these repositories
+    # are public. Two of them were tracking exactly that while their own build
+    # guarded the rendered pages. Reported, never failed: whether a research
+    # note counts is a judgement, and a judgement does not belong in a gate.
+    try:
+        import subprocess
+        out = subprocess.run(["git", "ls-files"], cwd=d, capture_output=True,
+                             text=True, timeout=30).stdout.splitlines()
+        r["exports"] = [f for f in out
+                        if re.search(r"\.(ged|gedcom)$", f, re.I)
+                        or re.search(r"myheritage|ancestry-|tree-export", f, re.I)
+                        and not f.startswith("tools/")]
+    except Exception:
+        r["exports"] = []
+
     # data files, for schema comparison
     dd = os.path.join(site, "src", "data")
     r["data_files"] = sorted(f for f in os.listdir(dd)) if os.path.isdir(dd) else []
@@ -238,6 +254,7 @@ def main():
     line("links to siblings", lambda r: len(r["ring"]))
     line("visit counter", lambda r: "yes" if r["counter"] else "NO")
     line("living declared", lambda r: "yes" if r["living_decl"] else "—")
+    line("tracked exports", lambda r: len(r.get("exports") or []) or "—")
 
     print("\n  ── identity")
     line("accent", lambda r: (r["accent"] or "—").strip())
