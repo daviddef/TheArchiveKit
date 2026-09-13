@@ -1,0 +1,32 @@
+---
+/* The ring. Seven archives that were, until now, almost unaware of each other:
+   two of them linked to nobody at all. This renders every archive except the
+   one you are standing in, from a file that is identical in all seven, so the
+   list cannot drift apart. */
+import ring from "../data/archives.json";
+
+const here = (import.meta.env.BASE_URL || "/").replace(/\/$/, "");
+const others = ring.archives.filter(a => a.base !== here);
+const mine = ring.archives.find(a => a.base === here);
+---
+<section class="ring" aria-label="The other family archives">
+  <h2>The other archives</h2>
+  <p>{mine ? mine.name : "This archive"} is one of seven, each following a different line of the
+  same family. They use the same method and the same five words for how sure a thing is.</p>
+
+  <ul>
+    {others.map(a => (
+      <li style={`--ring-l:${a.accent};--ring-d:${a.accentDark}`}>
+        <a href={a.url}>
+          <span class="rn">{a.name}</span>
+          <span class="rw">{a.where}</span>
+          <span class="rl">{a.line}</span>
+          <span class="rs">{a.surnames.join(" · ")}</span>
+        </a>
+      </li>
+    ))}
+  </ul>
+
+  <p class="rkids">And for children: <a href={ring.children.url}>{ring.children.name}</a> —
+  {ring.children.line}</p>
+</section>

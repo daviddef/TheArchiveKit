@@ -1,0 +1,131 @@
+{
+  "note": "The seven family archives, and the children's index that fronts them. One copy of this file lives in each site so the ring can never disagree with itself. Edit it once, copy it everywhere.",
+  "archives": [
+    {
+      "key": "defranceski",
+      "base": "/TheDefranceski",
+      "name": "The Defranceschi Archive",
+      "url": "https://daviddef.github.io/TheDefranceski/",
+      "accent": "#1F5C6B",
+      "where": "Istria · Kvarner · Carnia",
+      "line": "A family written down under eight sovereigns, in four languages, and spelled at least nine different ways.",
+      "surnames": [
+        "Defranceschi",
+        "De Franceschi",
+        "Defranceski",
+        "Defrančeski"
+      ],
+      "accentDark": "#6FB6C6"
+    },
+    {
+      "key": "falco",
+      "base": "/TheFalco",
+      "name": "The Falco Archive",
+      "url": "https://daviddef.github.io/TheFalco/",
+      "accent": "#8A2B16",
+      "where": "Arienzo, near Naples",
+      "line": "Nine documented generations born, married and buried in one valley, and then a migrant ship to Brisbane.",
+      "surnames": [
+        "Falco",
+        "Zampiello",
+        "Morgillo",
+        "Crisci",
+        "Liguori",
+        "Maione",
+        "Rivetti",
+        "Annecchino"
+      ],
+      "accentDark": "#E0836A"
+    },
+    {
+      "key": "blazevic",
+      "base": "/TheBlazevic",
+      "name": "The Blažević Archive",
+      "url": "https://daviddef.github.io/TheBlazevic/",
+      "accent": "#8E2456",
+      "where": "Senj and the Krmpotska mountains",
+      "line": "An evidence-first archive for the family of Hedviga Blažević of Senj — carriers, a tobacco factory, and a wall grave.",
+      "surnames": [
+        "Blažević",
+        "Papić",
+        "Vukelić",
+        "Žubrinić",
+        "Kalanj"
+      ],
+      "accentDark": "#E886B0"
+    },
+    {
+      "key": "booyzen",
+      "base": "/TheBooyzen",
+      "name": "The Booyzen Archive",
+      "url": "https://daviddef.github.io/TheBooyzen/",
+      "accent": "#3E6B4A",
+      "where": "Graaff-Reinet · Cradock · Johannesburg",
+      "line": "A Cape Dutch family that kept marrying British women, changed one letter of its name in a war, and came off the train at Johannesburg with nothing.",
+      "surnames": [
+        "Booyzen",
+        "Booysen",
+        "Kolbe",
+        "Barry",
+        "Downing",
+        "van Jaarsveld",
+        "Schoeman"
+      ],
+      "accentDark": "#86C39A"
+    },
+    {
+      "key": "lerena",
+      "base": "/TheLerena",
+      "name": "The Lerena Archive",
+      "url": "https://daviddef.github.io/TheLerena/",
+      "accent": "#5B3A96",
+      "where": "Rosario · the Cape · the Rand",
+      "line": "A horse-dealer out of Argentina, a stable under Table Mountain, and four family traditions tested against the record rather than repeated.",
+      "surnames": [
+        "Lerena",
+        "Taylor"
+      ],
+      "accentDark": "#B49AE8"
+    },
+    {
+      "key": "darcy",
+      "base": "/TheDArcy",
+      "name": "The D'Arcy Archive",
+      "url": "https://daviddef.github.io/TheDArcy/",
+      "accent": "#23507D",
+      "where": "England and Ireland · Parramatta · Brisbane",
+      "line": "Out with the 39th Regiment in 1825, and four generations afterwards in two Brisbane cemeteries.",
+      "surnames": [
+        "D'Arcy",
+        "Saniger",
+        "Sneyd",
+        "Hornby",
+        "Wakefield",
+        "Atkinson",
+        "Murdoch"
+      ],
+      "accentDark": "#78B0DC"
+    },
+    {
+      "key": "mazza",
+      "base": "/TheMazza",
+      "name": "The Mazza Archive",
+      "url": "https://daviddef.github.io/TheMazza/",
+      "accent": "#975A1B",
+      "where": "Sicily and Calabria · Brisbane",
+      "line": "Four Italian quarters — Mazza of Piedimonte Etneo, and Prostamo, Arena and Polistena of Calabria — ending in four graves in a row at Nudgee.",
+      "surnames": [
+        "Mazza",
+        "Prostamo",
+        "Arena",
+        "Polistena"
+      ],
+      "accentDark": "#E0A85F"
+    }
+  ],
+  "children": {
+    "name": "Our Family",
+    "url": "https://daviddef.github.io/Our-Family/",
+    "line": "The same ten families, told for a six-year-old."
+  }
+}

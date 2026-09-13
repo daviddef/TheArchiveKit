@@ -1,0 +1,29 @@
+---
+/* The five words this family of archives grades a claim with, and the one
+   construct that refuses to grade it at all. Identical in all seven archives,
+   so that a level means the same thing wherever a reader meets it.
+
+   documented  a record was read, and it says this
+   probable    the evidence points one way and nothing points the other
+   inferred    reasoned from what is known, not witnessed in a record
+   family      told, remembered, or written on a family chart — not sourced
+   disputed    two sources disagree and neither has been ruled out
+
+   Older labels used by individual archives are folded in rather than broken. */
+const { level, children } = Astro.props;
+
+const ALIAS = {
+  documented: "documented", doc: "documented", yes: "documented", proven: "documented",
+  probable: "probable", likely: "probable",
+  inferred: "inferred", inf: "inferred", unproven: "inferred", untested: "inferred",
+  family: "family", lore: "family", tradition: "family", asserted: "family",
+  no: "family", open: "family",
+  disputed: "disputed", contested: "disputed", conflict: "disputed",
+};
+const LABEL = {
+  documented: "Documented", probable: "Probable", inferred: "Inferred",
+  family: "Family", disputed: "Disputed",
+};
+const key = ALIAS[String(level ?? "").toLowerCase()] ?? "family";
+---
+<span class={`ev ev-${key}`} title={LABEL[key]}>{children ?? LABEL[key]}</span>
