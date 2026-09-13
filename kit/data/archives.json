@@ -1,5 +1,5 @@
 {
-  "note": "The seven family archives, and the children's index that fronts them. One copy of this file lives in each site so the ring can never disagree with itself. Edit it once, copy it everywhere.",
+  "note": "The seven family archives, and the children's index that fronts them. One copy of this file lives in each site so the ring can never disagree with itself. Edit it once, copy it everywhere. The `counter` field is each archive's GoatCounter site code — the subdomain, not a key. Empty means no counter is shown at all.",
   "archives": [
     {
       "key": "defranceski",
@@ -15,7 +15,8 @@
         "Defranceski",
         "Defrančeski"
       ],
-      "accentDark": "#6FB6C6"
+      "accentDark": "#6FB6C6",
+      "counter": ""
     },
     {
       "key": "falco",
@@ -35,7 +36,8 @@
         "Rivetti",
         "Annecchino"
       ],
-      "accentDark": "#E0836A"
+      "accentDark": "#E0836A",
+      "counter": ""
     },
     {
       "key": "blazevic",
@@ -52,7 +54,8 @@
         "Žubrinić",
         "Kalanj"
       ],
-      "accentDark": "#E886B0"
+      "accentDark": "#E886B0",
+      "counter": ""
     },
     {
       "key": "booyzen",
@@ -71,7 +74,8 @@
         "van Jaarsveld",
         "Schoeman"
       ],
-      "accentDark": "#86C39A"
+      "accentDark": "#86C39A",
+      "counter": ""
     },
     {
       "key": "lerena",
@@ -85,7 +89,8 @@
         "Lerena",
         "Taylor"
       ],
-      "accentDark": "#B49AE8"
+      "accentDark": "#B49AE8",
+      "counter": ""
     },
     {
       "key": "darcy",
@@ -104,7 +109,8 @@
         "Atkinson",
         "Murdoch"
       ],
-      "accentDark": "#78B0DC"
+      "accentDark": "#78B0DC",
+      "counter": ""
     },
     {
       "key": "mazza",
@@ -120,7 +126,8 @@
         "Arena",
         "Polistena"
       ],
-      "accentDark": "#E0A85F"
+      "accentDark": "#E0A85F",
+      "counter": ""
     }
   ],
   "children": {

@@ -1,0 +1,58 @@
+---
+/* A public count of how many times an archive has been read.
+ *
+ * GoatCounter: no cookies, no personal data retained, open source, and it
+ * publishes a count you can show. That last part is why it is here rather than
+ * Cloudflare or Plausible — the number is meant to be on the page, not in a
+ * dashboard.
+ *
+ * Two halves. The script counts the visit. The <span> fetches the running
+ * total from the public counter endpoint, which has to be switched on in the
+ * site's own settings ("Allow adding visitor counts on your website" — it is
+ * off by default, deliberately).
+ *
+ * If the archive has no code configured, this renders nothing at all: no
+ * script, no request, no placeholder. An archive without a counter should look
+ * like an archive without a counter.
+ */
+const { code, label = "read" } = Astro.props;
+const endpoint = code ? `https://${code}.goatcounter.com/counter/TOTAL.json` : null;
+---
+{code && (
+  <>
+    <p class="vc" data-vc>
+      <span class="vc-n" data-vc-n>—</span> <span class="vc-l">times {label}</span>
+      <span class="vc-note">counted without cookies, by
+        <a href="https://www.goatcounter.com/" rel="noopener">GoatCounter</a></span>
+    </p>
+
+    <script is:inline data-goatcounter={`https://${code}.goatcounter.com/count`}
+            async src="//gc.zgo.at/count.js"></script>
+
+    <script is:inline define:vars={{ endpoint }}>
+      (function () {
+        var box = document.querySelector("[data-vc]");
+        var n = document.querySelector("[data-vc-n]");
+        if (!box || !n) return;
+        fetch(endpoint)
+          .then(function (r) { return r.ok ? r.json() : Promise.reject(r.status); })
+          .then(function (d) {
+            if (d && d.count) { n.textContent = d.count; box.removeAttribute("hidden"); }
+            else box.remove();
+          })
+          /* an archive that cannot reach its counter says nothing, rather than
+             showing a nought that is not true */
+          .catch(function () { box.remove(); });
+      })();
+    </script>
+  </>
+)}
+
+<style>
+  .vc { margin-top: 14px; font-family: var(--sans); font-size: 13px; color: var(--ink-3); }
+  .vc-n { font-family: var(--mono); font-size: 15px; color: var(--ink-2); }
+  .vc-l { }
+  .vc-note { display: block; font-size: 11.5px; margin-top: 3px; }
+  .vc-note a { color: var(--ink-3); }
+  .vc-note a:hover { color: var(--accent); }
+</style>
