@@ -1,0 +1,60 @@
+---
+/* The head tags that decide what an archive looks like when somebody shares it.
+
+   Six of the eight sites had none of these: paste the URL into a message and it
+   showed the bare address, no title, no description, no image. Blažević and the
+   children's site had done it properly all along, which is the whole argument —
+   the implementation existed, in the estate, working, and six archives never
+   got it.
+
+   Everything is derived from archives.json via BASE_URL, so an archive cannot
+   put another archive's colour in its theme-color. One of them had: Blažević
+   was shipping Defranceschi's teal, left over from the accent split, because
+   the value was typed rather than looked up.
+
+   The favicon and the share image are emitted only when the file is actually
+   there, so this never invents a link to something that does not exist — which
+   the shared end-to-end test would fail the build over, correctly. */
+import fs from "node:fs";
+import path from "node:path";
+import ring from "../data/archives.json";
+
+const { title, description = "", site, image } = Astro.props;
+
+const base = (import.meta.env.BASE_URL || "/").replace(/\/$/, "");
+const me = ring.archives.find((a) => a.base === base);
+const isKids = !me && /our-family/i.test(base);
+
+const NAME = site || me?.name || ring.children?.name || "";
+const LINE = description || me?.line || ring.children?.line || "";
+const ORIGIN = (me?.url || ring.children?.url || "").replace(/\/$/, "");
+const ACCENT = me?.accent || "#1F5C6B";
+
+const full = title && title !== NAME ? `${title} — ${NAME}` : NAME;
+const here = Astro.url ? Astro.url.pathname : "/";
+const canonical = ORIGIN ? new URL(here.replace(base, ""), ORIGIN + "/").href : null;
+
+/* Only claim an asset that exists. public/ is resolved from the site root. */
+const pub = path.join(process.cwd(), "public");
+const has = (f) => { try { return fs.existsSync(path.join(pub, f)); } catch { return false; } };
+const icon = ["favicon.svg", "favicon.png", "favicon.ico"].find(has) || null;
+const shareFile = image || ["og.jpg", "og.png", "share.jpg"].find(has) || null;
+const shareUrl = shareFile && ORIGIN
+  ? (/^https?:/.test(shareFile) ? shareFile : `${ORIGIN}/${shareFile.replace(/^\//, "")}`)
+  : null;
+---
+{icon && <link rel="icon" href={`${base}/${icon}`} type={icon.endsWith(".svg") ? "image/svg+xml" : undefined} />}
+<meta name="theme-color" content={ACCENT} />
+{canonical && <link rel="canonical" href={canonical} />}
+
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content={NAME} />
+<meta property="og:title" content={full} />
+<meta property="og:description" content={LINE} />
+{canonical && <meta property="og:url" content={canonical} />}
+{shareUrl && <meta property="og:image" content={shareUrl} />}
+
+<meta name="twitter:card" content={shareUrl ? "summary_large_image" : "summary"} />
+<meta name="twitter:title" content={full} />
+<meta name="twitter:description" content={LINE} />
+{shareUrl && <meta name="twitter:image" content={shareUrl} />}
