@@ -31,8 +31,14 @@ const ORIGIN = (me?.url || ring.children?.url || "").replace(/\/$/, "");
 const ACCENT = me?.accent || "#1F5C6B";
 
 const full = title && title !== NAME ? `${title} — ${NAME}` : NAME;
-const here = Astro.url ? Astro.url.pathname : "/";
-const canonical = ORIGIN ? new URL(here.replace(base, ""), ORIGIN + "/").href : null;
+/* Astro.url.pathname already carries the base — /TheMazza/register/ — and the
+   origin in archives.json carries it too. Naively joining them with new URL()
+   and a leading slash throws the base away and yields
+   https://daviddef.github.io/register/, a canonical pointing at a page that
+   does not exist. So take the path as given and only fix the join. */
+const here = (Astro.url ? Astro.url.pathname : "/") || "/";
+const ORIGIN_ROOT = ORIGIN.replace(/(https?:\/\/[^/]+).*/, "$1");
+const canonical = ORIGIN_ROOT ? ORIGIN_ROOT + (here.startsWith("/") ? here : "/" + here) : null;
 
 /* Only claim an asset that exists. public/ is resolved from the site root. */
 const pub = path.join(process.cwd(), "public");
