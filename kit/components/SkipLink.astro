@@ -1,0 +1,44 @@
+---
+/* Skip to the content.
+
+   These archives put a nav of five to nine collapsible groups between the top
+   of the page and the first word of the reading. Someone arriving by keyboard
+   or with a screen reader meets all of it on every page, and none of the eight
+   sites offered a way past — which is a small thing to add and a tiresome one
+   to live without.
+
+   It is the first focusable thing in the document and invisible until it is
+   focused, which is the point: it costs a sighted mouse user nothing and saves
+   everybody else the whole menu.
+
+   The target needs tabindex="-1" or the browser moves the focus ring but not
+   the keyboard, and the next Tab starts from the top again. */
+const { target = "#main", label = "Skip to the content" } = Astro.props;
+---
+<a class="skiplink" href={target}>{label}</a>
+
+<style>
+  .skiplink {
+    position: absolute;
+    left: -9999px;
+    top: 0;
+    z-index: 999;
+    padding: 10px 16px;
+    background: var(--panel, #fff);
+    color: var(--accent, #1F5C6B);
+    border: 1px solid var(--accent, #1F5C6B);
+    border-radius: 0 0 4px 0;
+    font-family: var(--sans, system-ui), sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    line-height: 1;
+  }
+  /* Only :focus-visible would hide it from browsers that focus it on click,
+     and :focus alone is what every assistive path actually produces. */
+  .skiplink:focus {
+    left: 0;
+    outline: 2px solid var(--accent, #1F5C6B);
+    outline-offset: 2px;
+  }
+</style>
