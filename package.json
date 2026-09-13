@@ -1,0 +1,14 @@
+{
+  "name": "@daviddef/archive-kit",
+  "version": "1.0.0",
+  "description": "The parts that are identical in all seven family archives.",
+  "type": "module",
+  "files": ["kit"],
+  "exports": {
+    "./components/*": "./kit/components/*",
+    "./data/*": "./kit/data/*",
+    "./styles/*": "./kit/styles/*",
+    "./tools/*": "./kit/tools/*"
+  },
+  "license": "UNLICENSED"
+}

@@ -1,0 +1,126 @@
+---
+/* One search box for seven archives.
+ *
+ * Until now each archive had its own — 91, 107, 107, 126 and 142 lines of the
+ * same idea, so every improvement had to be made five times or it silently
+ * applied to one site. This is that idea once.
+ *
+ * It reads /searchindex.json, whose rows are the contract every archive's
+ * indexer now emits:
+ *
+ *   k  kind        the group a hit belongs in — Person, Place, Record, Page…
+ *   t  title       what to show
+ *   s  subtitle    dates, a place, a reference — may be empty
+ *   h  href        site-relative, beginning with /
+ *   q  haystack    title + subtitle + body, lowercased and accent-folded
+ *
+ * The index is built per archive, because only that archive knows its own data
+ * shapes. The schema, the ranking and the box are shared.
+ */
+const {
+  base,                       // u("/") from the host site
+  hints = [],                 // [[query, gloss], …]
+  order = ["Page", "Person", "Record", "Place", "Document", "Correction"],
+  placeholder = "",
+  nothing = "Nothing found. That may mean it has not been read yet.",
+  footnote,
+} = Astro.props;
+---
+<div class="ksearch">
+  <label class="lab" for="ksq">Search the archive</label>
+  <input id="ksq" type="search" autocomplete="off" autofocus
+         placeholder={placeholder} aria-describedby="kscount" />
+  <p class="dek" id="kscount" role="status" aria-live="polite">Type to search.</p>
+</div>
+
+<div id="ksresults" style="margin-top:1.4rem"></div>
+
+{hints.length > 0 && (
+  <div class="qa" id="kshints" style="margin-top:1.6rem">
+    <h3>Things worth trying</h3>
+    <ul class="cols">
+      {hints.map(([q, gloss]) => (
+        <li><a class="kstry" href="#" data-q={q}>{q}</a>{gloss ? <> — {gloss}</> : null}</li>
+      ))}
+    </ul>
+    {footnote && <p class="dek" style="margin-top:.8rem"><slot name="footnote" /></p>}
+  </div>
+)}
+
+<script is:inline define:vars={{ BASE: base, ORDER: order, NOTHING: nothing }}>
+  (function () {
+    var box = document.getElementById("ksq"),
+        out = document.getElementById("ksresults"),
+        count = document.getElementById("kscount"),
+        hints = document.getElementById("kshints"),
+        idx = null, timer;
+
+    /* Fold accents both ways, so Blazevic finds Blažević and Gracisce finds
+       Gračišće. These archives are spelled nine ways between them. */
+    function fold(s) {
+      return s.normalize("NFD").replace(/[̀-ͯ]/g, "")
+              .replace(/đ/g, "d").replace(/Đ/g, "D").toLowerCase();
+    }
+    function load() {
+      if (idx) return Promise.resolve(idx);
+      return fetch(BASE.replace(/\/$/, "") + "/searchindex.json")
+        .then(function (r) { return r.json(); })
+        .then(function (d) { idx = d; return d; });
+    }
+    function esc(s) {
+      return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) {
+        return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c];
+      });
+    }
+    function run() {
+      var v = box.value.trim();
+      if (v.length < 2) {
+        out.innerHTML = ""; if (hints) hints.hidden = false;
+        count.textContent = "Type to search."; return;
+      }
+      load().then(function (rows) {
+        var lower = v.toLowerCase(), folded = fold(v), hits = [];
+        for (var i = 0; i < rows.length; i++) {
+          var r = rows[i], hay = r.q || "";
+          if (hay.indexOf(lower) === -1 && hay.indexOf(folded) === -1) continue;
+          /* a match at the front of the title beats one buried in the body */
+          var t = fold(String(r.t || "").toLowerCase());
+          hits.push([t.indexOf(folded) === 0 ? 0 : t.indexOf(folded) > -1 ? 1 : 2, r]);
+        }
+        hits.sort(function (a, b) {
+          return a[0] - b[0] || String(a[1].t).localeCompare(String(b[1].t));
+        });
+        if (hints) hints.hidden = hits.length > 0;
+        count.textContent = hits.length
+          ? hits.length.toLocaleString() + (hits.length === 1 ? " result" : " results") +
+            (hits.length > 300 ? " — showing the first 300" : "")
+          : NOTHING;
+
+        var by = {};
+        hits.slice(0, 300).forEach(function (h) { (by[h[1].k] = by[h[1].k] || []).push(h[1]); });
+        var groups = ORDER.filter(function (k) { return by[k]; })
+          .concat(Object.keys(by).filter(function (k) { return ORDER.indexOf(k) === -1; }).sort());
+        var html = "";
+        groups.forEach(function (k) {
+          html += '<section class="blk"><h2>' + esc(k) +
+                  ' <span class="dim mono">' + by[k].length + "</span></h2>" +
+                  '<table class="reg"><tbody>';
+          by[k].forEach(function (r) {
+            html += '<tr><td><a href="' + BASE.replace(/\/$/, "") + esc(r.h) + '">' +
+                    esc(r.t) + "</a></td><td class=\"dim\">" + esc(r.s) + "</td></tr>";
+          });
+          html += "</tbody></table></section>";
+        });
+        out.innerHTML = html;
+      });
+    }
+    box.addEventListener("input", function () { clearTimeout(timer); timer = setTimeout(run, 140); });
+    document.querySelectorAll("a.kstry").forEach(function (a) {
+      a.addEventListener("click", function (e) {
+        e.preventDefault(); box.value = a.getAttribute("data-q"); box.focus(); run();
+      });
+    });
+    var pre = new URLSearchParams(location.search).get("q");
+    if (pre) { box.value = pre; run(); }
+  })();
+</script>

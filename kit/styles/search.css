@@ -1,0 +1,9 @@
+
+/* ---- the shared search box -------------------------------------------- */
+.ksearch input{
+  width:100%;font-family:var(--sans);font-size:19px;padding:12px 14px;
+  border:2px solid var(--rule-strong);border-radius:4px;background:var(--panel);
+  color:var(--ink);
+}
+.ksearch input:focus{outline:none;border-color:var(--accent)}
+.ksearch input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
