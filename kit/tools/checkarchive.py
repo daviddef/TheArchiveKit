@@ -217,9 +217,21 @@ def main():
           ", ".join(f"{w}×{n}" for w, n in sorted(off.items(), key=lambda x: -x[1])[:8]))
 
     # ---- the visit counter -------------------------------------------------
+    # This check was wrong the first time and could never have fired: it looked
+    # for a NUMBER welded to its label, and at build time the number is still a
+    # placeholder — the real one arrives over fetch. So it passed on all seven
+    # while every one of them shipped "—times read". Check the MARKUP instead:
+    # two adjacent spans with no whitespace and no CSS gap between them.
     for url, src in pages.items():
-        for m in re.finditer(r'(\d[\d,]*)</span><span[^>]*>(times|reads?|visits?)', src):
-            F("counter", url, f'"{m.group(1)}{m.group(2)}" — no space between the count and its label')
+        for m in re.finditer(r'<span[^>]*\bvc-n\b[^>]*>.*?</span>(\s*)<span[^>]*\bvc-l\b', src):
+            if m.group(1) == "":
+                has_gap = re.search(r'\.vc-l\s*\{[^}]*margin-left', src) or \
+                          re.search(r'\.vc-l[^{]*\{[^}]*padding-left', src)
+                if not has_gap:
+                    F("counter", url,
+                      "the count and its label are adjacent spans with no whitespace and no CSS "
+                      "gap — this renders as \"1,234times read\"")
+            break
 
     # ---- titles ------------------------------------------------------------
     for url, src in pages.items():

@@ -21,7 +21,7 @@ const endpoint = code ? `https://${code}.goatcounter.com/counter/TOTAL.json` : n
 {code && (
   <>
     <p class="vc" data-vc>
-      <span class="vc-n" data-vc-n>—</span> <span class="vc-l">times {label}</span>
+      <span class="vc-n" data-vc-n>—</span><span class="vc-l">times {label}</span>
       <span class="vc-note">counted without cookies, by
         <a href="https://www.goatcounter.com/" rel="noopener">GoatCounter</a></span>
     </p>
@@ -49,9 +49,13 @@ const endpoint = code ? `https://${code}.goatcounter.com/counter/TOTAL.json` : n
 )}
 
 <style>
+  /* The space between the number and its label has to come from CSS. Written as
+     whitespace in the markup, Astro strips it and the counter reads "1,234times
+     read" — which shipped, and is the kind of fault that is invisible in the
+     source and obvious on the page. */
   .vc { margin-top: 14px; font-family: var(--sans); font-size: 13px; color: var(--ink-3); }
   .vc-n { font-family: var(--mono); font-size: 15px; color: var(--ink-2); }
-  .vc-l { }
+  .vc-l { margin-left: .32em; }
   .vc-note { display: block; font-size: 11.5px; margin-top: 3px; }
   .vc-note a { color: var(--ink-3); }
   .vc-note a:hover { color: var(--accent); }
