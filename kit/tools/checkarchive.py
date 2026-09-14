@@ -113,6 +113,60 @@ def main():
         fs = os.path.join(a.dist, path.lstrip("/"))
         return os.path.exists(fs) or os.path.exists(fs.rstrip("/") + "/index.html")
 
+    # ---- reachability -----------------------------------------------------
+    # Every link resolving is not the same as every page being findable. A page
+    # can be built, valid, indexed, and linked from nowhere at all — which is
+    # exactly how the blood-relatives chart shipped green with no menu entry and
+    # had to be reported by a reader. So walk out from the home page the way a
+    # reader does, and say what is never arrived at.
+    #
+    # This is a crawl, not a menu check: a person page reached only from an
+    # index is properly reachable, and counting menu entries would call all
+    # 1,058 of them orphans.
+    # page keys are relative to dist and carry no base; hrefs carry it
+    seen, queue = set(), ["/"]
+    while queue:
+        u = queue.pop()
+        if u in seen or u not in pages:
+            continue
+        seen.add(u)
+        body = re.sub(r"<script.*?</script>", " ", pages[u], flags=re.S | re.I)
+        for href in re.findall(r'href="([^"]*)"', body):
+            if not href or href[0] in "#?" or not href.startswith("/"):
+                continue
+            p = href.partition("#")[0].partition("?")[0]
+            if base:
+                if not (p == base or p.startswith(base + "/")):
+                    continue
+                p = p[len(base):] or "/"
+            p = (p.rstrip("/") or "/")
+            if p in pages:
+                queue.append(p)
+    orphans = sorted(set(pages) - seen)
+    # 404 is reached by a wrong URL, never by a link, and that is correct
+    orphans = [o for o in orphans
+               if o.rstrip("/").rsplit("/", 1)[-1] not in ("404", "404.html")]
+    # Report the root of an orphaned tree, not every leaf of it. When Falco's
+    # /names index lost its last inbound link it took 4,785 name pages with it,
+    # and printing all 4,786 tells you far less than printing one.
+    groups = collections.defaultdict(list)
+    for o in orphans:
+        groups["/" + o.strip("/").split("/")[0]].append(o)
+    for top, members in sorted(groups.items()):
+        if len(members) == 1:
+            W("reach", members[0], "built, but nothing links to it")
+        elif top in orphans:
+            # the index itself is unreachable and took its children with it
+            W("reach", top,
+              f"built, but nothing links to it — and {len(members) - 1} page(s) "
+              f"under it are reachable only through it")
+        else:
+            # the index is reachable and simply does not link to its own pages,
+            # which is the more common and much easier mistake
+            W("reach", top + "/*",
+              f"{len(members)} page(s) built under {top}, and {top} does not "
+              f"link to any of them")
+
     # ---- links, anchors, images -------------------------------------------
     for url, src in pages.items():
         body = re.sub(r"<script.*?</script>", " ", src, flags=re.S | re.I)
