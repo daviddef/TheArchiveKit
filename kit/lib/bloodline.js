@@ -153,6 +153,24 @@ export function fromAhnentafel(rows, opts = {}) {
     }
     out.push({ slug: key(r), name: r.name, dt: r.life || "", parents,
                spouses: (r.spouses || []).map((x) => (typeof x === "string" ? { name: x } : x)) });
+
+    /* An ahnentafel is ancestors only, so a chart built from one has no aunts
+       or uncles in it at all — every person on it is somebody's direct
+       forebear. Where the archive also records who a person's brothers and
+       sisters were, they come in here as children of the same parents.
+       
+       They arrive as names without ids, so each gets a key built from its
+       own position — the ancestor it sits beside, and the name. Nothing is
+       matched: two sisters called Mary in different families stay two people,
+       and the same woman recorded under two ancestors stays two nodes rather
+       than being merged on a name she happens to share. */
+    for (const sib of r.siblings || []) {
+      const nm = typeof sib === "string" ? sib : sib && sib.name;
+      if (!nm) continue;
+      out.push({ slug: "sib:" + n + ":" + nm.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+                 name: nm, dt: "", parents: parents.slice(),
+                 via: opts.via || "line" });
+    }
   }
   return out;
 }
