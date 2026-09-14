@@ -19,6 +19,7 @@
    Nothing else is required, so an archive with a line and no person pages
    still gets the drawing. */
 import arch from "../data/archives.json";
+import { md } from "../lib/md.js";
 const { root, personHref = () => null } = Astro.props;
 const A = Object.fromEntries(arch.archives.map(a => [a.key, a]));
 
@@ -59,7 +60,6 @@ const Y = r => r * ROWH;
 const KIND = { candidate: "var(--ochre)", unknown: "var(--terra)", unworked: "var(--ink-3)",
                "other-archive": "var(--accent)", living: "var(--ink-3)" };
 const CONF = { doc: "var(--accent)", lore: "var(--ochre)", living: "var(--ink-3)" };
-const md = (x) => String(x ?? "").replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>").replace(/«(.+?)»/g, "<em>«$1»</em>");
 const GENLAB = ["Self", "Gen 1", "Gen 2", "Gen 3", "Gen 4", "Gen 5", "Gen 6", "Gen 7", "Gen 8"];
 ---
 <div class="ac-scroll">
