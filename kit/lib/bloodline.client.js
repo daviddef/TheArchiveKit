@@ -55,9 +55,20 @@
       });
   }
 
-  var kids = function (s) { return (P[s].children || []).filter(function (c) { return c.slug; }); };
-  var pars = function (s) { return (P[s].parents || []).filter(function (c) { return c.slug; }); };
-  var sibs = function (s) { return (P[s].siblings || []).filter(function (c) { return c.slug; }); };
+  /* An edge is only followed when the person at the other end is actually IN
+     the graph. A record can name somebody the graph does not carry — the page
+     hands over only people who have an edge of their own, and an archive whose
+     data is not symmetric (A names B as a child, B names nobody) leaves an edge
+     pointing at a node that was never drawn. Walking into one of those read
+     .parents off undefined and killed the whole chart rather than dropping one
+     line from it. */
+  var link = function (s, k) {
+    var p = P[s];
+    return ((p && p[k]) || []).filter(function (c) { return c.slug && P[c.slug]; });
+  };
+  var kids = function (s) { return link(s, "children"); };
+  var pars = function (s) { return link(s, "parents"); };
+  var sibs = function (s) { return link(s, "siblings"); };
 
   /* everyone reachable by blood, with their generation relative to the root */
   function household(root) {
