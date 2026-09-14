@@ -97,6 +97,18 @@ const base = import.meta.env.BASE_URL || "/";
           return "<em>" + esc(x) + "</em>"; }).join(" · ") + "</p>");
       if (p.when || p.what)
         h.push('<p class="at-what">' + (p.when ? "<b>" + esc(p.when) + "</b> — " : "") + esc(p.what) + "</p>");
+      /* Dated events, where an archive keeps them per place. Booyzen does, and
+         they are the best thing on its atlas: a place stops being a dot and
+         becomes a list of things that happened there, in order. */
+      if (p.events && p.events.length) {
+        h.push('<div class="at-sec"><div class="lab">What happened here</div><ul class="at-ev">');
+        p.events.forEach(function (e) {
+          var when = Array.isArray(e) ? e[0] : e.when, what = Array.isArray(e) ? e[1] : e.what;
+          h.push('<li><span class="at-ed">' + esc(when) + "</span>" + esc(what) + "</li>");
+        });
+        h.push("</ul></div>");
+      }
+
       if (p.href)
         h.push('<p class="at-go"><a href="' + base + esc(p.href) + '">The page that proves it &rarr;</a></p>');
 
@@ -255,6 +267,9 @@ const base = import.meta.env.BASE_URL || "/";
   .at-n { font: 400 11px/1 var(--mono); color: var(--accent); white-space: nowrap; }
   .at-also { font: 400 11.5px/1.5 var(--mono); color: var(--ink-3); margin: 8px 0 0; }
   .at-what { font-size: 13.5px; line-height: 1.65; margin: 12px 0 0; }
+  .at-ev { margin: 6px 0 0; padding: 0; list-style: none; }
+  .at-ev li { font-size: 12.5px; line-height: 1.5; margin-bottom: 5px; color: var(--ink-2); }
+  .at-ed { display: block; font-family: var(--mono); font-size: 11px; color: var(--ink-3); }
   .at-go { margin: 10px 0 0; font-size: 13px; }
   .at-sec { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--rule); }
   .at-sub { font: 400 11.5px/1.5 var(--mono); color: var(--ink-3); margin: 6px 0 8px; }
