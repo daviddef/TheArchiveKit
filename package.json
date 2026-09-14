@@ -3,12 +3,15 @@
   "version": "1.0.0",
   "description": "The parts that are identical in all seven family archives.",
   "type": "module",
-  "files": ["kit"],
+  "files": [
+    "kit"
+  ],
   "exports": {
     "./components/*": "./kit/components/*",
     "./data/*": "./kit/data/*",
     "./styles/*": "./kit/styles/*",
-    "./tools/*": "./kit/tools/*"
+    "./tools/*": "./kit/tools/*",
+    "./lib/*": "./kit/lib/*"
   },
   "license": "UNLICENSED"
 }
