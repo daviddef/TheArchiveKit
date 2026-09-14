@@ -116,6 +116,17 @@ def load(path=None):
                 gaz[fold(k)] = v
     return gaz
 
+# Abbreviations the archives actually use in a place field. Expanded rather
+# than guessed at: each one appeared in a place that failed to resolve.
+_ABBR = {
+    r"\bSom\b": "Somerset", r"\bEng\b": "England", r"\bSctl\b": "Scotland",
+    r"\bWuertt\b": "W\u00fcrttemberg", r"\bGerm\b": "Germany",
+    r"\bQ'?ld\b": "Queensland", r"\bNSW\b": "New South Wales",
+    r"\bHants\b": "Hampshire", r"\bGlos\b": "Gloucestershire",
+    r"\bYorks\b": "Yorkshire", r"\bLancs\b": "Lancashire",
+}
+
+
 def tidy(name):
     """Strip what an archive writes around a place name but a gazetteer cannot use.
 
@@ -125,6 +136,17 @@ def tidy(name):
     the place, and each one is enough to turn a hit into a miss.
     """
     s = str(name or "")
+    # Some place fields arrive HTML-escaped, brackets and all: "&lt;Ehrstaedt…&gt;"
+    s = (s.replace("&lt;", " ").replace("&gt;", " ").replace("&amp;", "&")
+          .replace("&quot;", " ").replace("&#39;", "'"))
+    # "Rosario, then Montevideo" / "Portsmouth … or West Indies" / "Buenos Aires
+    # and Mendoza" are two answers in one field. The first is the place.
+    s = re.split(r"\s+(?:or|and|then|later)\s+", s, 1)[0]
+    s = re.sub(r"^\s*of\s+", "", s, flags=re.I)
+    # "Deinschwang, near Amberg" — the qualifier is not part of either name
+    s = re.sub(r",?\s*\bnear\s+", ", ", s, flags=re.I)
+    for pat, full in _ABBR.items():
+        s = re.sub(pat, full, s)
     s = re.sub(r"\s*[\u2014\u2013-]{1,2}\s+[a-z].*$", "", s)   # trailing " — arrivals"
     s = re.sub(r"\s*[\(\[][^)\]]*[\)\]]", " ", s)              # (about), [Senj]
     s = re.sub(r"^\s*(about|near|probably|possibly)\s+", "", s, flags=re.I)
@@ -142,7 +164,12 @@ def find(name, gaz):
     """
     if not name:
         return None
-    for candidate in (str(name), tidy(name)):
+    # "Skanderborg Castle", "St James Palace", "Nudgee Cemetery": the building
+    # is inside the place, and no gazetteer of settlements carries it. Trying
+    # the name with the building word removed finds the town it stands in.
+    stripped = re.sub(r"\s+\b(Castle|Palace|Hall|House|Church|Chapel|Cathedral|"
+                      r"Cemetery|Abbey|Priory|Manor|Farm)\b", "", tidy(name), flags=re.I)
+    for candidate in (str(name), tidy(name), stripped):
         parts = [x.strip() for x in candidate.split(",") if x.strip()]
         if not parts:
             continue

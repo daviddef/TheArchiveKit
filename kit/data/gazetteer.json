@@ -37,6 +37,25 @@
 "matched": "City Beach, Riverlink Bus Interchange, North Ipswich, Ipswich, Brisbane, Queensland, 4305, Australia",
 "via": "North Brisbane, Queensland, Australia"
 },
+"airola": {
+"asked": "airola",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 41.06102,
+"lon": 14.55843,
+"matched": "Airola, Benevento, Campania, 82011, Italy",
+"via": "Airola, Benevento, Italy",
+"why": "Bare name resolved to a different Italian town; corrected to the one this archive's records name."
+},
+"airola benevento italy": {
+"asked": "Airola, Benevento, Italy",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 41.06102,
+"lon": 14.55843,
+"matched": "Airola, Benevento, Campania, 82011, Italy",
+"via": "Airola, Benevento, Italy"
+},
 "aller somerset england": {
 "asked": "Aller, Somerset, England",
 "conf": "exact",
@@ -45,6 +64,15 @@
 "lon": -2.85716,
 "matched": "Aller, Somerset, England, TA10 0QZ, United Kingdom",
 "via": "Aller, Somerset, England"
+},
+"amberg bavaria germany": {
+"asked": "Amberg, Bavaria, Germany",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 49.45437,
+"lon": 11.8474,
+"matched": "Amberg, Bavaria, 92224, Germany",
+"via": "Amberg, Bavaria, Germany"
 },
 "america": {
 "asked": "America",
@@ -225,6 +253,24 @@
 "lon": 8.3406,
 "matched": "Christine-Darmstadt-Straße, Nackenheim, Bodenheim, Landkreis Mainz-Bingen, Rhineland-Palatinate, 55299, Germany",
 "via": "Darmstadt, Rhineland-Palatinate, Germany"
+},
+"backwell": {
+"asked": "Backwell",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 51.41298,
+"lon": -2.73937,
+"matched": "Backwell, North Somerset, England, United Kingdom",
+"via": "Backwell"
+},
+"backwell somerset england": {
+"asked": "Backwell, Somerset, England",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 51.41298,
+"lon": -2.73937,
+"matched": "Backwell, North Somerset, England, United Kingdom",
+"via": "Backwell, Somerset, England"
 },
 "baden wuerttemberg germany": {
 "asked": "Baden-Wuerttemberg, Germany",
@@ -471,7 +517,25 @@
 "matched": "Buenos Aires, Comuna 1, Autonomous City of Buenos Aires, Argentina",
 "via": "Buenos Aires, Argentina"
 },
+"butcombe": {
+"asked": "Butcombe",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 51.34972,
+"lon": -2.69881,
+"matched": "Butcombe, North Somerset, England, United Kingdom",
+"via": "Butcombe"
+},
 "butcombe som eng": null,
+"butcombe somerset england": {
+"asked": "Butcombe, Somerset, England",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 51.34972,
+"lon": -2.69881,
+"matched": "Butcombe, North Somerset, England, United Kingdom",
+"via": "Butcombe, Somerset, England"
+},
 "canelones": {
 "asked": "Canelones",
 "conf": "exact",
@@ -561,6 +625,44 @@
 "lon": -60.15963,
 "matched": "Municipio de Cayastá, Departamento Garay, Santa Fe, Argentina",
 "via": "Cayasta, Garay, Santa Fe"
+},
+"cervinara": {
+"asked": "cervinara",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 41.02193,
+"lon": 14.61329,
+"matched": "Cervinara, Avellino, Campania, 83012, Italy",
+"via": "Cervinara, Avellino, Italy",
+"why": "Bare name resolved to a different Italian town; corrected to the one this archive's records name."
+},
+"cervinara avellino italy": {
+"asked": "Cervinara, Avellino, Italy",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 41.02193,
+"lon": 14.61329,
+"matched": "Cervinara, Avellino, Campania, 83012, Italy",
+"via": "Cervinara, Avellino, Italy"
+},
+"cervino": {
+"asked": "cervino",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 41.04001,
+"lon": 14.42403,
+"matched": "Cervino, Caserta, Campania, Italy",
+"via": "Cervino, Caserta, Italy",
+"why": "Bare name resolved to a different Italian town; corrected to the one this archive's records name."
+},
+"cervino caserta italy": {
+"asked": "Cervino, Caserta, Italy",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 41.04001,
+"lon": 14.42403,
+"matched": "Cervino, Caserta, Campania, Italy",
+"via": "Cervino, Caserta, Italy"
 },
 "chatham medway england": {
 "asked": "Chatham, Medway, England",
@@ -707,6 +809,24 @@
 "matched": "Davenham, Cheshire West and Chester, England, CW9 8NP, United Kingdom",
 "via": "Davenham, Chester, Eng."
 },
+"deinschwang": {
+"asked": "Deinschwang",
+"conf": "exact",
+"kind": "place/village",
+"lat": 49.38816,
+"lon": 11.49333,
+"matched": "Deinschwang, Lauterhofen, Landkreis Neumarkt in der Oberpfalz, Bavaria, 92283, Germany",
+"via": "Deinschwang"
+},
+"deinschwang bavaria germany": {
+"asked": "Deinschwang, Bavaria, Germany",
+"conf": "exact",
+"kind": "place/village",
+"lat": 49.38816,
+"lon": 11.49333,
+"matched": "Deinschwang, Lauterhofen, Landkreis Neumarkt in der Oberpfalz, Bavaria, 92283, Germany",
+"via": "Deinschwang, Bavaria, Germany"
+},
 "deinschwang near amberg upper palatinate": null,
 "douglas lanarkshire scotland": {
 "asked": "Douglas, Lanarkshire, Scotland",
@@ -725,6 +845,25 @@
 "lon": -6.35242,
 "matched": "Drogheda, County Louth, Leinster, Ireland",
 "via": "Drogheda, County Louth, Ireland"
+},
+"durazzano": {
+"asked": "durazzano",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 41.06248,
+"lon": 14.44748,
+"matched": "Durazzano, Benevento, Campania, 82015, Italy",
+"via": "Durazzano, Benevento, Italy",
+"why": "Bare name resolved to a different Italian town; corrected to the one this archive's records name."
+},
+"durazzano benevento italy": {
+"asked": "Durazzano, Benevento, Italy",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 41.06248,
+"lon": 14.44748,
+"matched": "Durazzano, Benevento, Campania, 82015, Italy",
+"via": "Durazzano, Benevento, Italy"
 },
 "durnau biberach bw": {
 "asked": "Dürnau/Biberach/BW",
@@ -1324,6 +1463,15 @@
 "matched": "Krmpote, Primorje-Gorski Kotar County, 51252, Croatia",
 "via": "Krmpote"
 },
+"krmpote croatia": {
+"asked": "Krmpote, Croatia",
+"conf": "exact",
+"kind": "place/region",
+"lat": 45.08895,
+"lon": 14.93371,
+"matched": "Krmpote, Primorje-Gorski Kotar County, 51252, Croatia",
+"via": "Krmpote, Croatia"
+},
 "krmpote novi vinodolski croatia": {
 "asked": "Krmpote, Novi Vinodolski, Croatia",
 "conf": "approx",
@@ -1635,6 +1783,25 @@
 "matched": "Milan, Rodano, Milan, Lombardy, Italy",
 "via": "Milan, Lombardy"
 },
+"moiano": {
+"asked": "moiano",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 41.07951,
+"lon": 14.54292,
+"matched": "Moiano, Benevento, Campania, 82010, Italy",
+"via": "Moiano, Benevento, Italy",
+"why": "Bare name resolved to a different Italian town; corrected to the one this archive's records name."
+},
+"moiano benevento italy": {
+"asked": "Moiano, Benevento, Italy",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 41.07951,
+"lon": 14.54292,
+"matched": "Moiano, Benevento, Campania, 82010, Italy",
+"via": "Moiano, Benevento, Italy"
+},
 "montevideo": {
 "asked": "Montevideo",
 "conf": "exact",
@@ -1734,6 +1901,33 @@
 "lon": -1.37625,
 "matched": "Darfield, Barnsley, South Yorkshire, England, S73 9AB, United Kingdom",
 "via": "Darfield, Yorkshire"
+},
+"neuhaus am neckar": {
+"asked": "Neuhaus am Neckar",
+"conf": "approx",
+"kind": "landuse/farmyard",
+"lat": 48.4137,
+"lon": 8.82054,
+"matched": "Hofgut Neuhaus, Wachendorf, Starzach, VVG der Stadt Rottenburg am Neckar, Landkreis Tübingen, Baden-Württemberg, Germany",
+"via": "Neuhaus am Neckar"
+},
+"neuhaus baden wurttemberg germany": {
+"asked": "Neuhaus, Baden-Wurttemberg, Germany",
+"conf": "exact",
+"kind": "place/hamlet",
+"lat": 49.12088,
+"lon": 10.15235,
+"matched": "Neuhaus, Waldtann, Kreßberg, GVV Fichtenau, Landkreis Schwäbisch Hall, Baden-Württemberg, 74594, Germany",
+"via": "Neuhaus, Baden-Wurttemberg, Germany"
+},
+"neuhaus neckar germany": {
+"asked": "Neuhaus, Neckar, Germany",
+"conf": "exact",
+"kind": "place/isolated_dwelling",
+"lat": 49.23008,
+"lon": 8.96028,
+"matched": "Neuhaus, Ehrstädt, Sinsheim, VVG der Stadt Sinsheim, Rhein-Neckar-Kreis, Baden-Württemberg, 74889, Germany",
+"via": "Neuhaus, Neckar, Germany"
 },
 "neuhaus neckar wuertt": null,
 "new orleans louisiana": {
@@ -1898,6 +2092,25 @@
 "lon": 13.35244,
 "matched": "Palermo, Sicily, Italy",
 "via": "Palermo, Sicily"
+},
+"paolisi": {
+"asked": "paolisi",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 41.03708,
+"lon": 14.57815,
+"matched": "Paolisi, Benevento, Campania, Italy",
+"via": "Paolisi, Benevento, Italy",
+"why": "Bare name resolved to a different Italian town; corrected to the one this archive's records name."
+},
+"paolisi benevento italy": {
+"asked": "Paolisi, Benevento, Italy",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 41.03708,
+"lon": 14.57815,
+"matched": "Paolisi, Benevento, Campania, Italy",
+"via": "Paolisi, Benevento, Italy"
 },
 "parish of elmore": {
 "asked": "Parish of Elmore",
@@ -2098,6 +2311,15 @@
 "matched": "Rockhampton, Queensland, 4700, Australia",
 "via": "Rockhampton, Queensland, Australia"
 },
+"rosario argentina": {
+"asked": "Rosario Argentina",
+"conf": "approx",
+"kind": "boundary/administrative",
+"lat": -32.95936,
+"lon": -60.6617,
+"matched": "Rosario, Municipio de Rosario, Gran Rosario, Departamento Rosario, Santa Fe, S2000, Argentina",
+"via": "Rosario Argentina"
+},
 "rosario colonia uruguay": {
 "asked": "Rosario, Colonia, Uruguay",
 "conf": "exact",
@@ -2115,6 +2337,15 @@
 "lon": -60.6617,
 "matched": "Rosario, Municipio de Rosario, Gran Rosario, Departamento Rosario, Santa Fe, S2000, Argentina",
 "via": "Rosario, Santa Fe"
+},
+"rosario santa fe argentina": {
+"asked": "Rosario, Santa Fe, Argentina",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": -32.95936,
+"lon": -60.6617,
+"matched": "Rosario, Municipio de Rosario, Gran Rosario, Departamento Rosario, Santa Fe, S2000, Argentina",
+"via": "Rosario, Santa Fe, Argentina"
 },
 "rosario then montevideo": null,
 "royal women s hospital parkville vic australia": {
@@ -2190,6 +2421,15 @@
 "matched": "Sandgate, Brisbane, Queensland, 4017, Australia",
 "via": "Sandgate, Queensland, Australia"
 },
+"santa maria a vico": {
+"asked": "Santa Maria a Vico",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 41.02686,
+"lon": 14.46519,
+"matched": "Santa Maria a Vico, Caserta, Campania, Italy",
+"via": "Santa Maria a Vico"
+},
 "santa maria a vico caserta campania italia": {
 "asked": "Santa Maria a Vico, Caserta, Campania, Italia",
 "conf": "exact",
@@ -2198,6 +2438,15 @@
 "lon": 14.46519,
 "matched": "Santa Maria a Vico, Caserta, Campania, Italy",
 "via": "Santa Maria a Vico, Caserta, Campania, Italia"
+},
+"santa maria a vico caserta italy": {
+"asked": "Santa Maria a Vico, Caserta, Italy",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 41.02686,
+"lon": 14.46519,
+"matched": "Santa Maria a Vico, Caserta, Campania, Italy",
+"via": "Santa Maria a Vico, Caserta, Italy"
 },
 "santa maria a vico nola terra di lavoro": null,
 "schloss friedrichsburg mannheim germ": null,
@@ -2301,7 +2550,25 @@
 "matched": "Sicily, Italy",
 "via": "Sicily"
 },
+"skanderborg": {
+"asked": "Skanderborg",
+"conf": "exact",
+"kind": "place/town",
+"lat": 56.03519,
+"lon": 9.93179,
+"matched": "Skanderborg, Skanderborg Municipality, Central Denmark Region, 8660, Denmark",
+"via": "Skanderborg"
+},
 "skanderborg castle kingdom of denmark": null,
+"skanderborg denmark": {
+"asked": "Skanderborg, Denmark",
+"conf": "exact",
+"kind": "place/town",
+"lat": 56.03519,
+"lon": 9.93179,
+"matched": "Skanderborg, Skanderborg Municipality, Central Denmark Region, 8660, Denmark",
+"via": "Skanderborg, Denmark"
+},
 "smokvica krmpotska": {
 "asked": "Smokvica Krmpotska",
 "conf": "exact",
@@ -2339,6 +2606,25 @@
 "via": "SOLIHULL West Midlands England"
 },
 "sorianno calabro": null,
+"soriano calabro": {
+"asked": "soriano calabro",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 38.59693,
+"lon": 16.23036,
+"matched": "Soriano Calabro, Vibo Valentia, Calabria, 89831, Italy",
+"via": "Soriano Calabro, Vibo Valentia, Italy",
+"why": "Bare name resolved to a different Italian town; corrected to the one this archive's records name."
+},
+"soriano calabro vibo valentia italy": {
+"asked": "Soriano Calabro, Vibo Valentia, Italy",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 38.59693,
+"lon": 16.23036,
+"matched": "Soriano Calabro, Vibo Valentia, Calabria, 89831, Italy",
+"via": "Soriano Calabro, Vibo Valentia, Italy"
+},
 "south africa": {
 "asked": "South Africa",
 "conf": "exact",
@@ -2485,6 +2771,15 @@
 "lon": 151.95335,
 "matched": "Toowoomba, Queensland, 4350, Australia",
 "via": "Toowoomba, Queensland"
+},
+"toowoomba queensland australia": {
+"asked": "Toowoomba, Queensland, Australia",
+"conf": "exact",
+"kind": "place/city",
+"lat": -27.56102,
+"lon": 151.95335,
+"matched": "Toowoomba, Queensland, 4350, Australia",
+"via": "Toowoomba, Queensland, Australia"
 },
 "township of washington new jersey": {
 "asked": "Township of Washington, New Jersey",
