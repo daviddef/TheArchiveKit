@@ -117,8 +117,11 @@ const base = import.meta.env.BASE_URL || "/";
         h.push('<p class="at-sub">' + p.nfilms + " volume" + (p.nfilms === 1 ? "" : "s") +
                " photographed for this parish. None of it is name-indexed.</p><ul class=\"at-films\">");
         p.films.forEach(function (f) {
-          h.push('<li><a href="https://www.familysearch.org/ark:/61903/' + esc(f.ark) +
-                 "?cc=" + esc(f.cc) + "&wc=" + encodeURIComponent(f.wc) +
+          /* The waypoint puts the reader on the right page of the right book.
+             Not every archive records one — a bare ark still resolves, and
+             appending "?cc=&wc=" to it would be worse than leaving it off. */
+          var q = f.cc ? "?cc=" + esc(f.cc) + (f.wc ? "&wc=" + encodeURIComponent(f.wc) : "") : "";
+          h.push('<li><a href="https://www.familysearch.org/ark:/61903/' + esc(f.ark) + q +
                  '" target="_blank" rel="noopener">' + esc(f.t) + " &#8599;</a></li>");
         });
         h.push("</ul></div>");
