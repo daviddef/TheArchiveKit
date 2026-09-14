@@ -43,9 +43,11 @@ def fold(s):
     s = unicodedata.normalize("NFD", str(s or "")).encode("ascii", "ignore").decode()
     return re.sub(r"\s+", " ", re.sub(r"[^a-z0-9 ]", " ", s.lower())).strip()
 
-def _get(q):
-    url = ENDPOINT + "?" + urllib.parse.urlencode(
-        {"q": q, "format": "jsonv2", "limit": 5, "addressdetails": 0})
+def _get(q, countries=None):
+    params = {"q": q, "format": "jsonv2", "limit": 5, "addressdetails": 0}
+    if countries:
+        params["countrycodes"] = ",".join(countries)
+    url = ENDPOINT + "?" + urllib.parse.urlencode(params)
     req = urllib.request.Request(url, headers={"User-Agent": UA, "Accept-Language": "en"})
     with urllib.request.urlopen(req, timeout=30) as r:
         return json.load(r)
@@ -60,7 +62,7 @@ def _rank(hits, want):
         return (tier, named, -float(h.get("importance") or 0))
     return sorted(hits, key=key)
 
-def geocode(name, cache, sleeper=time.sleep):
+def geocode(name, cache, sleeper=time.sleep, countries=None):
     key = fold(name)
     if key in cache:
         return cache[key]
@@ -70,7 +72,7 @@ def geocode(name, cache, sleeper=time.sleep):
     attempts = [", ".join(parts[i:]) for i in range(0, max(1, len(parts) - 1))]
     for i, q in enumerate(attempts):
         try:
-            hits = _get(q)
+            hits = _get(q, countries)
         except Exception as e:
             sys.stderr.write(f"  ! {q}: {type(e).__name__} {e}\n")
             hits = []
@@ -103,7 +105,16 @@ def load(path=None):
     if path is None:
         path = os.environ.get("ARCHIVE_KIT_GAZETTEER") or os.path.join(
             os.path.dirname(os.path.abspath(__file__)), "..", "data", "gazetteer.json")
-    return json.load(open(path, encoding="utf-8")) if os.path.exists(path) else {}
+    gaz = json.load(open(path, encoding="utf-8")) if os.path.exists(path) else {}
+    # Hand corrections win. A gazetteer is confidently wrong about ambiguous
+    # names — Senj, Transvaal, Cape Colony — and the override file says so in
+    # each case rather than quietly swapping a number.
+    over = os.path.join(os.path.dirname(path), "gazetteer-overrides.json")
+    if os.path.exists(over):
+        for k, v in json.load(open(over, encoding="utf-8")).items():
+            if not k.startswith("_"):
+                gaz[fold(k)] = v
+    return gaz
 
 def tidy(name):
     """Strip what an archive writes around a place name but a gazetteer cannot use.
@@ -147,16 +158,25 @@ def main():
     ap.add_argument("--names", required=True, help="JSON file: a list of place names")
     ap.add_argument("--cache", required=True, help="the shared gazetteer, read and written")
     ap.add_argument("--limit", type=int, default=0)
+    ap.add_argument("--countries", default="",
+                    help="ISO codes to restrict to, e.g. hr or za,gb — a bare "
+                         "town name is ambiguous across borders and Rijeka "
+                         "resolved to Bosnia without this")
+    ap.add_argument("--refresh", action="store_true",
+                    help="ask again even if the name is already cached")
     a = ap.parse_args()
 
     cache = json.load(open(a.cache, encoding="utf-8")) if os.path.exists(a.cache) else {}
     names = json.load(open(a.names, encoding="utf-8"))
-    todo = [n for n in names if fold(n) not in cache]
+    todo = names if a.refresh else [n for n in names if fold(n) not in cache]
+    if a.refresh:
+        for n in todo:
+            cache.pop(fold(n), None)
     if a.limit:
         todo = todo[:a.limit]
     print(f"geocode: {len(names)} names, {len(names)-len(todo)} already cached, {len(todo)} to ask")
     for i, n in enumerate(todo, 1):
-        r = geocode(n, cache)
+        r = geocode(n, cache, countries=[c for c in a.countries.split(",") if c])
         print(f"  [{i}/{len(todo)}] {n[:48]:<48} {'MISS' if not r else r['conf']+' '+str(r['lat'])+','+str(r['lon'])}")
         if i % 25 == 0:
             json.dump(cache, open(a.cache, "w", encoding="utf-8"), ensure_ascii=False, indent=0, sort_keys=True)

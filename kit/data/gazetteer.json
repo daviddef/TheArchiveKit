@@ -1,0 +1,2570 @@
+{
+"": null,
+"1 north quay brisbane queensland australia": {
+"asked": "1 North Quay, Brisbane, Queensland, Australia",
+"conf": "approx",
+"kind": "highway/primary",
+"lat": -27.46731,
+"lon": 153.01672,
+"matched": "North Quay, Brisbane City, Brisbane, Queensland, 4000, Australia",
+"via": "1 North Quay, Brisbane, Queensland, Australia"
+},
+"6 mrzli dol": {
+"asked": "#6 Mrzli dol",
+"conf": "approx",
+"kind": "boundary/administrative",
+"lat": 45.03371,
+"lon": 14.9891,
+"matched": "Mrzli Dol, Grad Senj, Lika-Senj County, Croatia",
+"via": "#6 Mrzli dol"
+},
+"6 mrzli dol lika senj croatia": {
+"asked": "6 Mrzli Dol, Lika-Senj, Croatia",
+"conf": "approx",
+"kind": "boundary/administrative",
+"lat": 45.03371,
+"lon": 14.9891,
+"matched": "Mrzli Dol, Grad Senj, Lika-Senj County, Croatia",
+"via": "6 Mrzli Dol, Lika-Senj, Croatia"
+},
+"about limerick city ireland": null,
+"adelaide st north brisbane queensland australia": {
+"asked": "Adelaide St, North Brisbane, Queensland, Australia",
+"conf": "approx",
+"kind": "shop/clothes",
+"lat": -27.60896,
+"lon": 152.75896,
+"matched": "City Beach, Riverlink Bus Interchange, North Ipswich, Ipswich, Brisbane, Queensland, 4305, Australia",
+"via": "North Brisbane, Queensland, Australia"
+},
+"aller somerset england": {
+"asked": "Aller, Somerset, England",
+"conf": "exact",
+"kind": "place/village",
+"lat": 51.05934,
+"lon": -2.85716,
+"matched": "Aller, Somerset, England, TA10 0QZ, United Kingdom",
+"via": "Aller, Somerset, England"
+},
+"america": {
+"asked": "America",
+"conf": "approx",
+"kind": "boundary/administrative",
+"lat": 39.78373,
+"lon": -100.44588,
+"matched": "United States",
+"via": "America"
+},
+"aram england": {
+"asked": "Aram, England",
+"conf": "approx",
+"kind": "shop/furniture",
+"lat": 51.51346,
+"lon": -0.11875,
+"matched": "Aram, Kean Street, St Clement Danes, Covent Garden, City of Westminster, Greater London, England, WC2B 5SG, United Kingdom",
+"via": "Aram, England"
+},
+"argentina": {
+"asked": "Argentina",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": -34.9965,
+"lon": -64.96728,
+"matched": "Argentina",
+"via": "Argentina"
+},
+"arienzo": {
+"asked": "Arienzo",
+"conf": "exact",
+"kind": "place/village",
+"lat": 40.62663,
+"lon": 14.49754,
+"matched": "Arienzo, Positano, Salerno, Campania, 84017, Italy",
+"via": "Arienzo"
+},
+"arienzo caserta campania italia": {
+"asked": "Arienzo, Caserta, Campania, Italia",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 41.02426,
+"lon": 14.49705,
+"matched": "Arienzo, Caserta, Campania, 81021, Italy",
+"via": "Arienzo, Caserta, Campania, Italia"
+},
+"arienzo caserta campania italy": {
+"asked": "Arienzo, Caserta, Campania, Italy",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 41.02426,
+"lon": 14.49705,
+"matched": "Arienzo, Caserta, Campania, 81021, Italy",
+"via": "Arienzo, Caserta, Campania, Italy"
+},
+"arneytown burlington county new jersey": {
+"asked": "Arneytown, Burlington County, New Jersey",
+"conf": "approx",
+"kind": "highway/tertiary",
+"lat": 40.10197,
+"lon": -74.57006,
+"matched": "Chesterfield-Arneytown Road, North Hanover Township, Burlington County, New Jersey, 08562, United States",
+"via": "Arneytown, Burlington County, New Jersey"
+},
+"arpaia": {
+"asked": "Arpaia",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 41.03613,
+"lon": 14.54697,
+"matched": "Arpaia, Benevento, Campania, Italy",
+"via": "Arpaia"
+},
+"arpaia provincia di benevento campania italy": {
+"asked": "Arpaia, Provincia di Benevento, Campania, Italy",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 41.03613,
+"lon": 14.54697,
+"matched": "Arpaia, Benevento, Campania, Italy",
+"via": "Arpaia, Provincia di Benevento, Campania, Italy"
+},
+"ashton under hill gloucestershire england": {
+"asked": "Ashton Under Hill, Gloucestershire, England",
+"conf": "approx",
+"kind": "boundary/administrative",
+"lat": 51.83333,
+"lon": -2.16667,
+"matched": "Gloucestershire, England, United Kingdom",
+"via": "Gloucestershire, England"
+},
+"ashton underhill gloucester england": {
+"asked": "Ashton Underhill, Gloucester, England",
+"conf": "approx",
+"kind": "place/city",
+"lat": 51.86537,
+"lon": -2.24582,
+"matched": "Gloucester, Gloucestershire, England, GL1 2AP, United Kingdom",
+"via": "Gloucester, England"
+},
+"ashton underhill gloucestershire england": {
+"asked": "Ashton, Underhill, Gloucestershire, England",
+"conf": "approx",
+"kind": "landuse/farmyard",
+"lat": 51.79986,
+"lon": -2.45355,
+"matched": "Underhill Farm, Ruddle, Newnham, Newnham on Severn, Forest of Dean, Gloucestershire, England, United Kingdom",
+"via": "Underhill, Gloucestershire, England"
+},
+"aston yorkshire": {
+"asked": "Aston, Yorkshire",
+"conf": "exact",
+"kind": "place/village",
+"lat": 53.36351,
+"lon": -1.30117,
+"matched": "Aston, Rotherham, South Yorkshire, England, S26 2AP, United Kingdom",
+"via": "Aston, Yorkshire"
+},
+"austria": {
+"asked": "Austria",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 47.59397,
+"lon": 14.12456,
+"matched": "Austria",
+"via": "Austria"
+},
+"averham nottingham england": {
+"asked": "Averham, Nottingham, England",
+"conf": "approx",
+"kind": "boundary/administrative",
+"lat": 52.95342,
+"lon": -1.14965,
+"matched": "Nottingham, Nottinghamshire, East Midlands, England, United Kingdom",
+"via": "Nottingham, England"
+},
+"averham nottinghamshire england": {
+"asked": "Averham, Nottinghamshire, England",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 53.08289,
+"lon": -0.85981,
+"matched": "Averham CP, Newark and Sherwood, Nottinghamshire, East Midlands, England, United Kingdom",
+"via": "Averham, Nottinghamshire, England"
+},
+"averham nottinghamshire uk": {
+"asked": "Averham, Nottinghamshire, UK",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 53.08289,
+"lon": -0.85981,
+"matched": "Averham CP, Newark and Sherwood, Nottinghamshire, East Midlands, England, United Kingdom",
+"via": "Averham, Nottinghamshire, UK"
+},
+"averham park nottinghamshire england": {
+"asked": "Averham Park, Nottinghamshire, England",
+"conf": "approx",
+"kind": "boundary/administrative",
+"lat": 53.14593,
+"lon": -1.0215,
+"matched": "Nottinghamshire, East Midlands, England, United Kingdom",
+"via": "Nottinghamshire, England"
+},
+"ayr scotland": {
+"asked": "Ayr, Scotland",
+"conf": "exact",
+"kind": "place/county",
+"lat": 55.5,
+"lon": -4.5,
+"matched": "Ayrshire, Scotland, KA5 5NL, United Kingdom",
+"via": "Ayr, Scotland"
+},
+"bacharach darmstadt rhineland palatinate germany": {
+"asked": "Bacharach, Darmstadt, Rhineland-Palatinate, Germany",
+"conf": "approx",
+"kind": "highway/residential",
+"lat": 49.91345,
+"lon": 8.3406,
+"matched": "Christine-Darmstadt-Straße, Nackenheim, Bodenheim, Landkreis Mainz-Bingen, Rhineland-Palatinate, 55299, Germany",
+"via": "Darmstadt, Rhineland-Palatinate, Germany"
+},
+"baden wuerttemberg germany": {
+"asked": "Baden-Wuerttemberg, Germany",
+"conf": "approx",
+"kind": "boundary/administrative",
+"lat": 48.53775,
+"lon": 9.04117,
+"matched": "Baden-Württemberg, Germany",
+"via": "Baden-Wuerttemberg, Germany"
+},
+"bali indonesia": {
+"asked": "Bali, Indonesia",
+"conf": "exact",
+"kind": "place/island",
+"lat": -8.45572,
+"lon": 115.27043,
+"matched": "Bali Island, Bali, Indonesia",
+"via": "Bali, Indonesia"
+},
+"ballymodan bandon ireland": {
+"asked": "Ballymodan, Bandon, Ireland",
+"conf": "exact",
+"kind": "place/locality",
+"lat": 51.7442,
+"lon": -8.73973,
+"matched": "Ballymodan Place, Bandon ED, The Municipal District of Bandon-Kinsale, County Cork, Munster, P72 CF78, Ireland",
+"via": "Ballymodan, Bandon, Ireland"
+},
+"bandon county cork ireland": {
+"asked": "Bandon, County Cork, Ireland",
+"conf": "exact",
+"kind": "place/town",
+"lat": 51.74617,
+"lon": -8.73693,
+"matched": "Bandon, The Municipal District of Bandon-Kinsale, County Cork, Munster, Ireland",
+"via": "Bandon, County Cork, Ireland"
+},
+"basingthorpe lincolnshire england": {
+"asked": "Basingthorpe, Lincolnshire, England",
+"conf": "approx",
+"kind": "boundary/administrative",
+"lat": 53.16667,
+"lon": -0.25,
+"matched": "Lincolnshire, Greater Lincolnshire, England, United Kingdom",
+"via": "Lincolnshire, England"
+},
+"bassingthorpe lincolnshire england": {
+"asked": "Bassingthorpe, Lincolnshire, England",
+"conf": "exact",
+"kind": "place/hamlet",
+"lat": 52.84563,
+"lon": -0.56687,
+"matched": "Bassingthorpe, Bitchfield and Bassingthorpe, South Kesteven, Lincolnshire, Greater Lincolnshire, England, NG33 4EB, United Kingdom",
+"via": "Bassingthorpe, Lincolnshire, England"
+},
+"bath somerset england": {
+"asked": "Bath, Somerset, England",
+"conf": "exact",
+"kind": "place/city",
+"lat": 51.38139,
+"lon": -2.3597,
+"matched": "Bath, Bath and North East Somerset, West of England, England, United Kingdom",
+"via": "Bath, Somerset, England"
+},
+"bath somersetshire england kingdom of great britain": {
+"asked": "Bath, Somersetshire, England, Kingdom of Great Britain",
+"conf": "approx",
+"kind": "office/diplomatic",
+"lat": 51.50058,
+"lon": -0.15387,
+"matched": "Embassy of the United Arab Emirates, 1;2, Grosvenor Crescent, Belgravia, City of Westminster, Greater London, England, SW1X 7EE, United Kingdom",
+"via": "England, Kingdom of Great Britain"
+},
+"bedworth leicestershire england uk": {
+"asked": "Bedworth, Leicestershire, England, UK.",
+"conf": "approx",
+"kind": "boundary/administrative",
+"lat": 52.66667,
+"lon": -1.0,
+"matched": "Leicestershire, England, United Kingdom",
+"via": "Leicestershire, England, UK."
+},
+"benevento": {
+"asked": "Benevento",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 41.24763,
+"lon": 14.70571,
+"matched": "Benevento, Campania, Italy",
+"via": "Benevento"
+},
+"berkeley gloucester england": {
+"asked": "Berkeley, Gloucester, England",
+"conf": "approx",
+"kind": "highway/pedestrian",
+"lat": 51.86599,
+"lon": -2.2485,
+"matched": "Berkeley Street, Kings Barton, City Centre, Gloucester, Gloucestershire, England, GL1 2JB, United Kingdom",
+"via": "Berkeley, Gloucester, England"
+},
+"berkeley gloucestershire england": {
+"asked": "Berkeley, Gloucestershire, England",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 51.69136,
+"lon": -2.45852,
+"matched": "Berkeley, Ham, Stroud, Gloucestershire, England, United Kingdom",
+"via": "Berkeley, Gloucestershire, England"
+},
+"berkley gloucester england": {
+"asked": "Berkley, Gloucester, England",
+"conf": "approx",
+"kind": "place/city",
+"lat": 51.86537,
+"lon": -2.24582,
+"matched": "Gloucester, Gloucestershire, England, GL1 2AP, United Kingdom",
+"via": "Gloucester, England"
+},
+"berlin brandenburg prussia germany": {
+"asked": "Berlin, Brandenburg, Prussia, Germany",
+"conf": "approx",
+"kind": "historic/memorial",
+"lat": 52.51726,
+"lon": 13.39274,
+"matched": "Frederick II of Prussia, Unter den Linden, Friedrichswerder, Dorotheenstadt, Mitte, Berlin, 10117, Germany",
+"via": "Prussia, Germany"
+},
+"bisley gloucestershire england": {
+"asked": "Bisley, Gloucestershire, England",
+"conf": "exact",
+"kind": "place/village",
+"lat": 51.75285,
+"lon": -2.1409,
+"matched": "Bisley, Stroud, Gloucestershire, England, GL6 7BE, United Kingdom",
+"via": "Bisley, Gloucestershire, England"
+},
+"bosworth hall leicester leicestershire england": {
+"asked": "Bosworth Hall, Leicester, Leicestershire, England",
+"conf": "approx",
+"kind": "boundary/administrative",
+"lat": 52.61872,
+"lon": -1.2177,
+"matched": "Leicester Forest East, Blaby, Leicestershire, England, United Kingdom",
+"via": "Leicester, Leicestershire, England"
+},
+"boulia boulia shire queensland australia": {
+"asked": "Boulia, Boulia Shire, Queensland, Australia",
+"conf": "approx",
+"kind": "historic/memorial",
+"lat": -23.6891,
+"lon": 139.63587,
+"matched": "Time Capsule Boulia Shire, Eddie Miller Memorial Drive, Bedourie, Queensland, 4829, Australia",
+"via": "Boulia Shire, Queensland, Australia"
+},
+"braamfontein johannesburg": {
+"asked": "Braamfontein, Johannesburg",
+"conf": "exact",
+"kind": "place/suburb",
+"lat": -26.1923,
+"lon": 28.03614,
+"matched": "Braamfontein, Johannesburg Ward 60, Johannesburg, City of Johannesburg Metropolitan Municipality, Gauteng, 2001, South Africa",
+"via": "Braamfontein, Johannesburg"
+},
+"bradwell england": {
+"asked": "Bradwell, England",
+"conf": "exact",
+"kind": "place/hamlet",
+"lat": 53.03995,
+"lon": -2.23251,
+"matched": "Bradwell, Chesterton, Newcastle-under-Lyme, Staffordshire, England, ST5 8QQ, United Kingdom",
+"via": "Bradwell, England"
+},
+"briatico vibo valentia calabria": {
+"asked": "Briatico, Vibo Valentia, Calabria",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 38.72525,
+"lon": 16.03237,
+"matched": "Briatico, Vibo Valentia, Calabria, 89817, Italy",
+"via": "Briatico, Vibo Valentia, Calabria"
+},
+"brimpsfield gloucester england": {
+"asked": "Brimpsfield, Gloucester, England",
+"conf": "approx",
+"kind": "place/city",
+"lat": 51.86537,
+"lon": -2.24582,
+"matched": "Gloucester, Gloucestershire, England, GL1 2AP, United Kingdom",
+"via": "Gloucester, England"
+},
+"brisbane": {
+"asked": "Brisbane",
+"conf": "exact",
+"kind": "place/city",
+"lat": -27.46896,
+"lon": 153.0235,
+"matched": "Brisbane, Queensland, Australia",
+"via": "Brisbane"
+},
+"brisbane queensland": {
+"asked": "Brisbane, Queensland",
+"conf": "exact",
+"kind": "place/city",
+"lat": -27.46896,
+"lon": 153.0235,
+"matched": "Brisbane, Queensland, Australia",
+"via": "Brisbane, Queensland"
+},
+"brisbane queensland australia": {
+"asked": "Brisbane, Queensland, Australia",
+"conf": "exact",
+"kind": "place/city",
+"lat": -27.46896,
+"lon": 153.0235,
+"matched": "Brisbane, Queensland, Australia",
+"via": "Brisbane, Queensland, Australia"
+},
+"brookly new york city new york usa": {
+"asked": "brookly, New York City, New York, USA",
+"conf": "approx",
+"kind": "shop/car_repair",
+"lat": 40.68044,
+"lon": -74.01001,
+"matched": "Brookly Transmission and Truck Repair, Verona Street, Brooklyn, Kings County, New York, 11231, United States",
+"via": "brookly, New York City, New York, USA"
+},
+"buckwall somerset": null,
+"buenos aires": {
+"asked": "Buenos Aires",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": -34.60956,
+"lon": -58.38879,
+"matched": "Buenos Aires, Comuna 1, Autonomous City of Buenos Aires, Argentina",
+"via": "Buenos Aires"
+},
+"buenos aires and mendoza": null,
+"buenos aires argentina": {
+"asked": "Buenos Aires, Argentina",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": -34.60956,
+"lon": -58.38879,
+"matched": "Buenos Aires, Comuna 1, Autonomous City of Buenos Aires, Argentina",
+"via": "Buenos Aires, Argentina"
+},
+"butcombe som eng": null,
+"canelones": {
+"asked": "Canelones",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": -34.62225,
+"lon": -55.99038,
+"matched": "Canelones, Uruguay",
+"via": "Canelones"
+},
+"cape colony": {
+"asked": "Cape Colony",
+"conf": "exact",
+"kind": "place/hamlet",
+"lat": 36.01961,
+"lon": -76.58161,
+"matched": "Cape Colony, Chowan County, North Carolina, United States",
+"via": "Cape Colony"
+},
+"cape town": {
+"asked": "Cape Town",
+"conf": "exact",
+"kind": "place/city",
+"lat": -33.92883,
+"lon": 18.41722,
+"matched": "Cape Town, City of Cape Town, Western Cape, 8001, South Africa",
+"via": "Cape Town"
+},
+"carmelo colonia uruguay": {
+"asked": "Carmelo, Colonia, Uruguay",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": -33.99678,
+"lon": -58.28365,
+"matched": "Carmelo, Colonia, 70100, Uruguay",
+"via": "Carmelo, Colonia, Uruguay"
+},
+"caserta campania italia": {
+"asked": "Caserta, Campania, Italia",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 41.20352,
+"lon": 14.11686,
+"matched": "Caserta, Campania, Italy",
+"via": "Caserta, Campania, Italia"
+},
+"caserta campania italy": {
+"asked": "Caserta, Campania, Italy",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 41.20352,
+"lon": 14.11686,
+"matched": "Caserta, Campania, Italy",
+"via": "Caserta, Campania, Italy"
+},
+"castle church stafford england": {
+"asked": "Castle Church, Stafford, England",
+"conf": "approx",
+"kind": "highway/bus_stop",
+"lat": 52.79649,
+"lon": -2.14045,
+"matched": "Castle Church, Castle Bank, Highfields, Derrington, Stafford, Staffordshire, England, ST16 1DP, United Kingdom",
+"via": "Castle Church, Stafford, England"
+},
+"catania sicily": {
+"asked": "Catania, Sicily",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 37.50236,
+"lon": 15.08737,
+"matched": "Catania, Sicily, Italy",
+"via": "Catania, Sicily"
+},
+"catanzaro calabria": {
+"asked": "Catanzaro, Calabria",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 38.82996,
+"lon": 16.43156,
+"matched": "Catanzaro, Calabria, Italy",
+"via": "Catanzaro, Calabria"
+},
+"cayasta garay santa fe": {
+"asked": "Cayasta, Garay, Santa Fe",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": -31.20067,
+"lon": -60.15963,
+"matched": "Municipio de Cayastá, Departamento Garay, Santa Fe, Argentina",
+"via": "Cayasta, Garay, Santa Fe"
+},
+"chatham medway england": {
+"asked": "Chatham, Medway, England",
+"conf": "exact",
+"kind": "place/town",
+"lat": 51.38192,
+"lon": 0.52656,
+"matched": "Chatham, Medway, England, United Kingdom",
+"via": "Chatham, Medway, England"
+},
+"chelmsford essex england": {
+"asked": "Chelmsford, Essex, England",
+"conf": "exact",
+"kind": "place/city",
+"lat": 51.73453,
+"lon": 0.47305,
+"matched": "Chelmsford, Essex, England, CM1 1EQ, United Kingdom",
+"via": "Chelmsford, Essex, England"
+},
+"christened in berkeley gloucester england": {
+"asked": "Christened in Berkeley, Gloucester, England",
+"conf": "approx",
+"kind": "place/city",
+"lat": 51.86537,
+"lon": -2.24582,
+"matched": "Gloucester, Gloucestershire, England, GL1 2AP, United Kingdom",
+"via": "Gloucester, England"
+},
+"clarkenwell finsbury london middlesex england": {
+"asked": "Clarkenwell, Finsbury, London, Middlesex, England",
+"conf": "approx",
+"kind": "tourism/hotel",
+"lat": 51.51551,
+"lon": -0.07476,
+"matched": "Travelodge London City, 20, Middlesex Street, Spitalfields, Whitechapel, London Borough of Tower Hamlets, Greater London, England, E1 7EZ, United Kingdom",
+"via": "London, Middlesex, England"
+},
+"clifton bedfordshire england": {
+"asked": "Clifton, Bedfordshire, England",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 52.03791,
+"lon": -0.3034,
+"matched": "Clifton, Central Bedfordshire, England, United Kingdom",
+"via": "Clifton, Bedfordshire, England"
+},
+"colonia uruguay": {
+"asked": "Colonia, Uruguay",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": -34.46986,
+"lon": -57.84337,
+"matched": "Colonia del Sacramento, Colonia, 70000, Uruguay",
+"via": "Colonia, Uruguay"
+},
+"conduit street mayfair london": {
+"asked": "Conduit Street, Mayfair, London",
+"conf": "approx",
+"kind": "highway/secondary",
+"lat": 51.51272,
+"lon": -0.14127,
+"matched": "Conduit Street, St. James's, East Marylebone, Mayfair, City of Westminster, Greater London, England, W1S 2YZ, United Kingdom",
+"via": "Conduit Street, Mayfair, London"
+},
+"cordoba argentina": {
+"asked": "Cordoba, Argentina",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": -31.41669,
+"lon": -64.18342,
+"matched": "Cordoba, Municipio de Córdoba, Pedanía Capital, Departamento Capital, Córdoba, X5000, Argentina",
+"via": "Cordoba, Argentina"
+},
+"cork cork city cork ireland": {
+"asked": "Cork, Cork City, Cork, Ireland",
+"conf": "approx",
+"kind": "landuse/industrial",
+"lat": 51.89402,
+"lon": -8.45964,
+"matched": "Cork Gas AGI, City Hall B ED, Cork, County Cork, Munster, Ireland",
+"via": "Cork, Cork City, Cork, Ireland"
+},
+"cork ireland": {
+"asked": "Cork, Ireland",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 51.89851,
+"lon": -8.47264,
+"matched": "Cork, County Cork, Munster, Ireland",
+"via": "Cork, Ireland"
+},
+"cornacrieve cornacreeve co monaghan ireland": {
+"asked": "Cornacrieve Cornacreeve, Co. Monaghan, Ireland",
+"conf": "approx",
+"kind": "boundary/administrative",
+"lat": 54.16107,
+"lon": -6.94636,
+"matched": "County Monaghan, Ulster, Ireland",
+"via": "Co. Monaghan, Ireland"
+},
+"county cork ireland": {
+"asked": "County Cork, Ireland",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 51.91754,
+"lon": -8.58598,
+"matched": "County Cork, Munster, Ireland",
+"via": "County Cork, Ireland"
+},
+"crikvenica": {
+"asked": "Crikvenica",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 45.1737,
+"lon": 14.69279,
+"matched": "Crikvenica, Grad Crikvenica, Primorje-Gorski Kotar County, Croatia",
+"via": "Crikvenica"
+},
+"croatia": {
+"asked": "Croatia",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 45.36584,
+"lon": 15.65752,
+"matched": "Croatia",
+"via": "Croatia"
+},
+"croatia church books 1516 1994 database with images familysearch roman catholic krivi put births 1847 1884 image 92 of 382 arhiva hrvatske u zagrebu zagreb": null,
+"darcy meynill yorkshire cattaraugus county new york united states": {
+"asked": "Darcy Meynill, Yorkshire, Cattaraugus County, New York, United States",
+"conf": "approx",
+"kind": "boundary/administrative",
+"lat": 42.53006,
+"lon": -78.4728,
+"matched": "Town of Yorkshire, Cattaraugus County, New York, United States",
+"via": "Yorkshire, Cattaraugus County, New York, United States"
+},
+"davenham chester eng": {
+"asked": "Davenham, Chester, Eng.",
+"conf": "exact",
+"kind": "place/village",
+"lat": 53.2369,
+"lon": -2.51087,
+"matched": "Davenham, Cheshire West and Chester, England, CW9 8NP, United Kingdom",
+"via": "Davenham, Chester, Eng."
+},
+"deinschwang near amberg upper palatinate": null,
+"douglas lanarkshire scotland": {
+"asked": "Douglas, Lanarkshire, Scotland",
+"conf": "exact",
+"kind": "place/village",
+"lat": 55.55682,
+"lon": -3.848,
+"matched": "Douglas, South Lanarkshire, Scotland, ML11 0QR, United Kingdom",
+"via": "Douglas, Lanarkshire, Scotland"
+},
+"drogheda county louth ireland": {
+"asked": "Drogheda, County Louth, Ireland",
+"conf": "exact",
+"kind": "place/town",
+"lat": 53.71499,
+"lon": -6.35242,
+"matched": "Drogheda, County Louth, Leinster, Ireland",
+"via": "Drogheda, County Louth, Ireland"
+},
+"durnau biberach bw": {
+"asked": "Dürnau/Biberach/BW",
+"conf": "approx",
+"kind": "boundary/administrative",
+"lat": 48.06043,
+"lon": 9.55419,
+"matched": "Dürnau, GVV Bad Buchau, Landkreis Biberach, Baden-Württemberg, Germany",
+"via": "Dürnau/Biberach/BW"
+},
+"east london": {
+"asked": "East London",
+"conf": "approx",
+"kind": "place/city",
+"lat": -33.01916,
+"lon": 27.89986,
+"matched": "KuGompo City, Buffalo City Metropolitan Municipality, Eastern Cape, 5201, South Africa",
+"via": "East London"
+},
+"edinburgh castle edinburgh midlothian scotland": {
+"asked": "Edinburgh Castle, Edinburgh, Midlothian, Scotland",
+"conf": "approx",
+"kind": "place/locality",
+"lat": 55.8602,
+"lon": -3.20656,
+"matched": "Edinburgh Technopole, Pentlands Science Park, Easter Howgate, Bush, Midlothian, Scotland, EH26 0BA, United Kingdom",
+"via": "Edinburgh, Midlothian, Scotland"
+},
+"edingen baden wurttemberg deutschland": {
+"asked": "Edingen, Baden-Württemberg, Deutschland",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 49.45719,
+"lon": 8.60537,
+"matched": "Edingen-Neckarhausen, Rhein-Neckar-Kreis, Baden-Württemberg, 68535, Germany",
+"via": "Edingen, Baden-Württemberg, Deutschland"
+},
+"edingen baden wurttemberg deutschland hrr": null,
+"ehrstaedt heidelberg baden germany": {
+"asked": "Ehrstaedt, Heidelberg, Baden, Germany",
+"conf": "approx",
+"kind": "boundary/administrative",
+"lat": 49.40936,
+"lon": 8.69472,
+"matched": "Heidelberg, Baden-Württemberg, Germany",
+"via": "Heidelberg, Baden, Germany"
+},
+"ehrstaedt heidelburg baden germany": {
+"asked": "Ehrstaedt, Heidelburg, Baden, Germany",
+"conf": "approx",
+"kind": "place/region",
+"lat": 48.19284,
+"lon": 8.13903,
+"matched": "Baden, Baden-Württemberg, 79215, Germany",
+"via": "Baden, Germany"
+},
+"eltonhead lancashire england": {
+"asked": "Eltonhead, Lancashire, England",
+"conf": "approx",
+"kind": "boundary/administrative",
+"lat": 53.86117,
+"lon": -2.56509,
+"matched": "Lancashire, England, United Kingdom",
+"via": "Lancashire, England"
+},
+"england": {
+"asked": "England",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 52.53102,
+"lon": -1.26491,
+"matched": "England, United Kingdom",
+"via": "England"
+},
+"entre rios": {
+"asked": "Entre Rios",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": -32.12907,
+"lon": -59.50777,
+"matched": "Entre Ríos Province, Argentina",
+"via": "Entre Rios"
+},
+"falkland palace fife scotland": {
+"asked": "Falkland Palace, Fife, Scotland",
+"conf": "approx",
+"kind": "historic/castle",
+"lat": 56.2539,
+"lon": -3.20608,
+"matched": "Falkland Palace, East Port, Falkland, Fife, Scotland, KY15 7BZ, United Kingdom",
+"via": "Falkland Palace, Fife, Scotland"
+},
+"fiji": {
+"asked": "Fiji",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": -18.12397,
+"lon": 179.01227,
+"matched": "Fiji",
+"via": "Fiji"
+},
+"forchia": {
+"asked": "Forchia",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 41.03023,
+"lon": 14.53734,
+"matched": "Forchia, Benevento, Campania, Italy",
+"via": "Forchia"
+},
+"forde hall warwickshire england": {
+"asked": "Forde Hall, Warwickshire, England",
+"conf": "approx",
+"kind": "landuse/farmyard",
+"lat": 52.32124,
+"lon": -1.83381,
+"matched": "Forde Hall, Tanworth in Arden CP, Danzey Green, Stratford-on-Avon, Warwickshire, England, United Kingdom",
+"via": "Forde Hall, Warwickshire, England"
+},
+"fremantle western australia": {
+"asked": "Fremantle, Western Australia",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": -32.05341,
+"lon": 115.75862,
+"matched": "Fremantle, Western Australia, 6160, Australia",
+"via": "Fremantle, Western Australia"
+},
+"frere hall warwickshire england": {
+"asked": "Frere Hall, Warwickshire, England",
+"conf": "approx",
+"kind": "boundary/administrative",
+"lat": 52.32131,
+"lon": -1.55369,
+"matched": "Warwickshire, England, United Kingdom",
+"via": "Warwickshire, England"
+},
+"geisenhain thuringen germany": {
+"asked": "Geisenhain, Thüringen, Germany",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 50.83525,
+"lon": 11.71693,
+"matched": "Geisenhain, Hügelland/Täler, Saale-Holzland-Kreis, Thuringia, Germany",
+"via": "Geisenhain, Thüringen, Germany"
+},
+"genoa liguria": {
+"asked": "Genoa, Liguria",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 44.40726,
+"lon": 8.93386,
+"matched": "Genoa, Liguria, Italy",
+"via": "Genoa, Liguria"
+},
+"german savoy church strand london": {
+"asked": "German Savoy Church, Strand, London",
+"conf": "approx",
+"kind": "highway/primary",
+"lat": 51.50915,
+"lon": -0.12432,
+"matched": "Strand, St Clement Danes, Westminster, Covent Garden, City of Westminster, Greater London, England, WC2N 5JB, United Kingdom",
+"via": "Strand, London"
+},
+"germany": {
+"asked": "Germany",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 51.16382,
+"lon": 10.44783,
+"matched": "Germany",
+"via": "Germany"
+},
+"giarre catania sicily": {
+"asked": "Giarre, Catania, Sicily",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 37.72686,
+"lon": 15.18769,
+"matched": "Giarre, Catania, Sicily, 95014, Italy",
+"via": "Giarre, Catania, Sicily"
+},
+"gloucestershire england": {
+"asked": "Gloucestershire, England",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 51.83333,
+"lon": -2.16667,
+"matched": "Gloucestershire, England, United Kingdom",
+"via": "Gloucestershire, England"
+},
+"gold coast queensland": {
+"asked": "Gold Coast, Queensland",
+"conf": "exact",
+"kind": "place/city",
+"lat": -28.00237,
+"lon": 153.4146,
+"matched": "Gold Coast, Queensland, 4217, Australia",
+"via": "Gold Coast, Queensland"
+},
+"gologorica istra croatia": {
+"asked": "Gologorica, Istra, Croatia",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 45.25783,
+"lon": 14.03435,
+"matched": "Gologorica, Općina Cerovlje, Istria County, Croatia",
+"via": "Gologorica, Istra, Croatia"
+},
+"graham street south brisbane queensland australia": {
+"asked": "Graham Street, South Brisbane, Queensland, Australia",
+"conf": "approx",
+"kind": "highway/residential",
+"lat": -27.48339,
+"lon": 153.02588,
+"matched": "Graham Street, South Brisbane, Brisbane, Queensland, 4101, Australia",
+"via": "Graham Street, South Brisbane, Queensland, Australia"
+},
+"great britain": {
+"asked": "Great Britain",
+"conf": "exact",
+"kind": "place/island",
+"lat": 54.31516,
+"lon": -1.91815,
+"matched": "Great Britain, United Kingdom",
+"via": "Great Britain"
+},
+"gro sa records": {
+"asked": "GRO + SA records",
+"conf": "approx",
+"kind": "shop/music",
+"lat": 38.5706,
+"lon": -121.49551,
+"matched": "Medium Rare Records & Collectibles, Rice Alley, Southside Park, Sacramento, Sacramento County, California, 95811, United States",
+"via": "GRO + SA records"
+},
+"gualeguaychu entre rios": {
+"asked": "Gualeguaychu, Entre Rios",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": -33.00789,
+"lon": -58.51099,
+"matched": "Gualeguaychu, Distrito Costa Uruguay Sur, Departamento Gualeguaychú, Entre Ríos Province, Argentina",
+"via": "Gualeguaychu, Entre Rios"
+},
+"gympie queensland australia": {
+"asked": "Gympie, Queensland, Australia",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": -26.19004,
+"lon": 152.66003,
+"matched": "Gympie, Queensland, Australia",
+"via": "Gympie, Queensland, Australia"
+},
+"hampton court palace richmond greater london united kingdom": {
+"asked": "Hampton Court Palace, Richmond, Greater London, United Kingdom",
+"conf": "approx",
+"kind": "building/palace",
+"lat": 51.40368,
+"lon": -0.3377,
+"matched": "Hampton Court Palace, Tennis Court Lane, Hampton Wick, London Borough of Richmond upon Thames, Greater London, England, KT8 9AU, United Kingdom",
+"via": "Hampton Court Palace, Richmond, Greater London, United Kingdom"
+},
+"hanley stoke on trent staffordshire england": {
+"asked": "Hanley, Stoke-on-Trent, Staffordshire, England",
+"conf": "approx",
+"kind": "amenity/school",
+"lat": 52.9569,
+"lon": -2.11405,
+"matched": "St Matthews Church of England Academy, Lightwood Road, Rough Close, Fulford, Meir Heath, Stoke-on-Trent, Staffordshire, England, ST3 7NE, United Kingdom",
+"via": "Stoke-on-Trent, Staffordshire, England"
+},
+"heidelberg baden germany": {
+"asked": "Heidelberg, Baden, Germany",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 49.40936,
+"lon": 8.69472,
+"matched": "Heidelberg, Baden-Württemberg, Germany",
+"via": "Heidelberg, Baden, Germany"
+},
+"heidelberg bayern deutschland": {
+"asked": "Heidelberg, Bayern, Deutschland",
+"conf": "approx",
+"kind": "natural/peak",
+"lat": 49.95156,
+"lon": 12.38986,
+"matched": "Heidelberg, Bad Neualbenreuth, Landkreis Tirschenreuth, Bavaria, 95698, Germany",
+"via": "Heidelberg, Bayern, Deutschland"
+},
+"heidelberg bayern deutschland hrr": null,
+"heidelberg karlsruhe baden wurttemberg germany": {
+"asked": "Heidelberg, Karlsruhe, Baden-Wurttemberg, Germany",
+"conf": "approx",
+"kind": "information/map",
+"lat": 49.219,
+"lon": 8.63425,
+"matched": "Heidelberg- Schwarzwald- Bodensee- Radweg, Kirchstraße, Kronau, VVG der Gemeinde Bad Schönborn, Landkreis Karlsruhe, Baden-Württemberg, 76709, Germany",
+"via": "Heidelberg, Karlsruhe, Baden-Wurttemberg, Germany"
+},
+"hillingdon house middlesex london england": {
+"asked": "Hillingdon House, Middlesex, London, England",
+"conf": "approx",
+"kind": "amenity/courthouse",
+"lat": 51.50041,
+"lon": -0.12813,
+"matched": "Supreme Court, Parliament Square, Westminster, Millbank, City of Westminster, Greater London, England, SW1P 3BD, United Kingdom",
+"via": "Middlesex, London, England"
+},
+"himley hall himley staffs": {
+"asked": "Himley Hall, Himley Staffs",
+"conf": "approx",
+"kind": "building/yes",
+"lat": 52.52194,
+"lon": -2.16618,
+"matched": "Himley Hall, Dudley Road, Himley, South Staffordshire, Staffordshire, England, DY3 4LA, United Kingdom",
+"via": "Himley Hall, Himley Staffs"
+},
+"hornby castle north riding yorkshire england": {
+"asked": "Hornby Castle, North Riding, Yorkshire, England",
+"conf": "approx",
+"kind": "landuse/farmyard",
+"lat": 53.71524,
+"lon": -0.50093,
+"matched": "North Ferriby Riding For The Disabled, North Ferriby, East Riding of Yorkshire, Hull and East Yorkshire, England, United Kingdom",
+"via": "North Riding, Yorkshire, England"
+},
+"hornby castle nr bedale yorkshire": {
+"asked": "Hornby Castle, nr Bedale, Yorkshire",
+"conf": "approx",
+"kind": "boundary/administrative",
+"lat": 54.2882,
+"lon": -1.59145,
+"matched": "Bedale, North Yorkshire, York and North Yorkshire, England, United Kingdom",
+"via": "nr Bedale, Yorkshire"
+},
+"hornby castle yorkshire england": {
+"asked": "Hornby Castle, Yorkshire, England",
+"conf": "approx",
+"kind": "historic/manor",
+"lat": 54.33849,
+"lon": -1.6542,
+"matched": "Hornby Castle, Church View, Hornby, Catterick Garrison, North Yorkshire, York and North Yorkshire, England, DL8 1NH, United Kingdom",
+"via": "Hornby Castle, Yorkshire, England"
+},
+"hornby yorkshire england": {
+"asked": "Hornby, Yorkshire, England",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 54.44435,
+"lon": -1.44087,
+"matched": "Hornby, North Yorkshire, York and North Yorkshire, England, United Kingdom",
+"via": "Hornby, Yorkshire, England"
+},
+"ireland": {
+"asked": "Ireland",
+"conf": "exact",
+"kind": "place/island",
+"lat": 53.41524,
+"lon": -7.9666,
+"matched": "Ireland",
+"via": "Ireland"
+},
+"isla martin garcia": {
+"asked": "Isla Martin Garcia",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": -34.18261,
+"lon": -58.25126,
+"matched": "Isla Martín García, Partido de La Plata, Buenos Aires, B1601XAA, Argentina",
+"via": "Isla Martin Garcia"
+},
+"italia": {
+"asked": "Italia",
+"conf": "approx",
+"kind": "boundary/administrative",
+"lat": 42.63843,
+"lon": 12.6743,
+"matched": "Italy",
+"via": "Italia"
+},
+"italy": {
+"asked": "Italy",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 42.63843,
+"lon": 12.6743,
+"matched": "Italy",
+"via": "Italy"
+},
+"jackson ocean new jersey": {
+"asked": "Jackson, Ocean, New Jersey",
+"conf": "approx",
+"kind": "leisure/park",
+"lat": 40.06206,
+"lon": -74.40821,
+"matched": "New Jersey Wildlife and Game Refuge, Jackson Township, Ocean County, New Jersey, United States",
+"via": "Jackson, Ocean, New Jersey"
+},
+"johannesburg south africa": {
+"asked": "Johannesburg, South Africa",
+"conf": "exact",
+"kind": "place/city",
+"lat": -26.205,
+"lon": 28.04972,
+"matched": "Johannesburg, City of Johannesburg Metropolitan Municipality, Gauteng, 2001, South Africa",
+"via": "Johannesburg, South Africa"
+},
+"keele staffordshire england": {
+"asked": "Keele, Staffordshire, England",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 53.00381,
+"lon": -2.28774,
+"matched": "Keele, Newcastle-under-Lyme, Staffordshire, England, United Kingdom",
+"via": "Keele, Staffordshire, England"
+},
+"keele staffordshire inglaterra": {
+"asked": "Keele, Staffordshire-Inglaterra",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 53.00381,
+"lon": -2.28774,
+"matched": "Keele, Newcastle-under-Lyme, Staffordshire, England, United Kingdom",
+"via": "Keele, Staffordshire-Inglaterra"
+},
+"kempsey new south wales australia": {
+"asked": "Kempsey, New South Wales, Australia",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": -30.90565,
+"lon": 152.5228,
+"matched": "Kempsey Shire Council, New South Wales, Australia",
+"via": "Kempsey, New South Wales, Australia"
+},
+"kensington house london middlesex england": {
+"asked": "Kensington House, London, Middlesex, England",
+"conf": "approx",
+"kind": "tourism/hotel",
+"lat": 51.51551,
+"lon": -0.07476,
+"matched": "Travelodge London City, 20, Middlesex Street, Spitalfields, Whitechapel, London Borough of Tower Hamlets, Greater London, England, E1 7EZ, United Kingdom",
+"via": "London, Middlesex, England"
+},
+"kermpote": null,
+"kermpote sv jakov": null,
+"kirkby mallory leicestershire england": {
+"asked": "Kirkby Mallory, Leicestershire, England",
+"conf": "exact",
+"kind": "place/village",
+"lat": 52.60244,
+"lon": -1.32968,
+"matched": "Kirkby Mallory, Hinckley and Bosworth, Leicestershire, England, LE9 7QB, United Kingdom",
+"via": "Kirkby Mallory, Leicestershire, England"
+},
+"klaricevac krivi put croatia": {
+"asked": "Klaricevac, Krivi Put, Croatia",
+"conf": "approx",
+"kind": "boundary/administrative",
+"lat": 45.03209,
+"lon": 14.96444,
+"matched": "Krivi Put, Grad Senj, Lika-Senj County, Croatia",
+"via": "Krivi Put, Croatia"
+},
+"klenovica": {
+"asked": "Klenovica",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 45.10275,
+"lon": 14.84572,
+"matched": "Klenovica, Grad Novi Vinodolski, Primorje-Gorski Kotar County, Croatia",
+"via": "Klenovica"
+},
+"klenovica 22 klenovica croatia": {
+"asked": "Klenovica 22, Klenovica, Croatia",
+"conf": "approx",
+"kind": "boundary/administrative",
+"lat": 45.10275,
+"lon": 14.84572,
+"matched": "Klenovica, Grad Novi Vinodolski, Primorje-Gorski Kotar County, Croatia",
+"via": "Klenovica, Croatia"
+},
+"klenovica 23 klenovica croatia": {
+"asked": "Klenovica 23, Klenovica, Croatia",
+"conf": "approx",
+"kind": "boundary/administrative",
+"lat": 45.10275,
+"lon": 14.84572,
+"matched": "Klenovica, Grad Novi Vinodolski, Primorje-Gorski Kotar County, Croatia",
+"via": "Klenovica, Croatia"
+},
+"klenovica 36 klenovica croatia": {
+"asked": "Klenovica 36, Klenovica, Croatia",
+"conf": "approx",
+"kind": "boundary/administrative",
+"lat": 45.10275,
+"lon": 14.84572,
+"matched": "Klenovica, Grad Novi Vinodolski, Primorje-Gorski Kotar County, Croatia",
+"via": "Klenovica, Croatia"
+},
+"klenovica croatia": {
+"asked": "Klenovica, Croatia",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 45.10275,
+"lon": 14.84572,
+"matched": "Klenovica, Grad Novi Vinodolski, Primorje-Gorski Kotar County, Croatia",
+"via": "Klenovica, Croatia"
+},
+"klenovica novi vinodolski croatia": {
+"asked": "Klenovica, Novi Vinodolski, Croatia",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 45.10275,
+"lon": 14.84572,
+"matched": "Klenovica, Grad Novi Vinodolski, Primorje-Gorski Kotar County, Croatia",
+"via": "Klenovica, Novi Vinodolski, Croatia"
+},
+"koln": {
+"asked": "Köln",
+"conf": "approx",
+"kind": "boundary/administrative",
+"lat": 50.93836,
+"lon": 6.95997,
+"matched": "Cologne, North Rhine-Westphalia, Germany",
+"via": "Köln"
+},
+"krivi put": {
+"asked": "Krivi Put",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 45.03209,
+"lon": 14.96444,
+"matched": "Krivi Put, Grad Senj, Lika-Senj County, Croatia",
+"via": "Krivi Put"
+},
+"krivi put 136 senj lika senj county croatia": {
+"asked": "Krivi Put 136, Senj, Lika-Senj County, Croatia",
+"conf": "approx",
+"kind": "boundary/administrative",
+"lat": 45.03209,
+"lon": 14.96444,
+"matched": "Krivi Put, Grad Senj, Lika-Senj County, Croatia",
+"via": "Krivi Put 136, Senj, Lika-Senj County, Croatia"
+},
+"krivi put 79 croatia": {
+"asked": "Krivi Put 79, Croatia",
+"conf": "approx",
+"kind": "boundary/administrative",
+"lat": 45.03209,
+"lon": 14.96444,
+"matched": "Krivi Put, Grad Senj, Lika-Senj County, Croatia",
+"via": "Krivi Put 79, Croatia"
+},
+"krivi put 82 croatia": {
+"asked": "Krivi Put 82, Croatia",
+"conf": "approx",
+"kind": "boundary/administrative",
+"lat": 45.03209,
+"lon": 14.96444,
+"matched": "Krivi Put, Grad Senj, Lika-Senj County, Croatia",
+"via": "Krivi Put 82, Croatia"
+},
+"krivi put croatia": {
+"asked": "Krivi Put, Croatia",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 45.03209,
+"lon": 14.96444,
+"matched": "Krivi Put, Grad Senj, Lika-Senj County, Croatia",
+"via": "Krivi Put, Croatia"
+},
+"krivi put lika senj county croatia": {
+"asked": "Krivi Put, Lika-Senj County, Croatia",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 45.03209,
+"lon": 14.96444,
+"matched": "Krivi Put, Grad Senj, Lika-Senj County, Croatia",
+"via": "Krivi Put, Lika-Senj County, Croatia"
+},
+"krivi put senj croatia": {
+"asked": "Krivi Put, Senj, Croatia",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 45.03209,
+"lon": 14.96444,
+"matched": "Krivi Put, Grad Senj, Lika-Senj County, Croatia",
+"via": "Krivi Put, Senj, Croatia"
+},
+"krmpote": {
+"asked": "Krmpote",
+"conf": "exact",
+"kind": "place/region",
+"lat": 45.08895,
+"lon": 14.93371,
+"matched": "Krmpote, Primorje-Gorski Kotar County, 51252, Croatia",
+"via": "Krmpote"
+},
+"krmpote novi vinodolski croatia": {
+"asked": "Krmpote, Novi Vinodolski, Croatia",
+"conf": "approx",
+"kind": "boundary/administrative",
+"lat": 45.12826,
+"lon": 14.78883,
+"matched": "Novi Vinodolski, Grad Novi Vinodolski, Primorje-Gorski Kotar County, 51250, Croatia",
+"via": "Novi Vinodolski, Croatia"
+},
+"krmpote primorje gorski kotar county croatia": {
+"asked": "Krmpote, Primorje-Gorski Kotar County, Croatia",
+"conf": "exact",
+"kind": "place/region",
+"lat": 45.08895,
+"lon": 14.93371,
+"matched": "Krmpote, Primorje-Gorski Kotar County, 51252, Croatia",
+"via": "Krmpote, Primorje-Gorski Kotar County, Croatia"
+},
+"krmpotske vodice grad novi vinodolski primorje gorski kotar county croatia": {
+"asked": "Krmpotske Vodice, Grad Novi Vinodolski, Primorje-Gorski Kotar County, Croatia",
+"conf": "exact",
+"kind": "place/hamlet",
+"lat": 45.11241,
+"lon": 14.98108,
+"matched": "Krmpotske Vodice, Grad Novi Vinodolski, Primorje-Gorski Kotar County, Croatia",
+"via": "Krmpotske Vodice, Grad Novi Vinodolski, Primorje-Gorski Kotar County, Croatia"
+},
+"langdon hall warwick england": {
+"asked": "Langdon Hall, Warwick, England",
+"conf": "approx",
+"kind": "place/village",
+"lat": 54.89955,
+"lon": -2.83942,
+"matched": "Warwick, Cumberland, England, CA4 8PA, United Kingdom",
+"via": "Warwick, England"
+},
+"langdon hall warwickshire england": {
+"asked": "Langdon Hall, Warwickshire, England",
+"conf": "approx",
+"kind": "boundary/administrative",
+"lat": 52.32131,
+"lon": -1.55369,
+"matched": "Warwickshire, England, United Kingdom",
+"via": "Warwickshire, England"
+},
+"ledenice": {
+"asked": "Ledenice",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 45.13671,
+"lon": 14.84101,
+"matched": "Ledenice, Grad Novi Vinodolski, Primorje-Gorski Kotar County, 51251, Croatia",
+"via": "Ledenice"
+},
+"ledenice 22 croatia": {
+"asked": "Ledenice, 22, Croatia",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 45.13671,
+"lon": 14.84101,
+"matched": "Ledenice, Grad Novi Vinodolski, Primorje-Gorski Kotar County, 51251, Croatia",
+"via": "Ledenice, 22, Croatia"
+},
+"ledenice 74 croatia": {
+"asked": "Ledenice, 74, Croatia",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 45.13671,
+"lon": 14.84101,
+"matched": "Ledenice, Grad Novi Vinodolski, Primorje-Gorski Kotar County, 51251, Croatia",
+"via": "Ledenice, 74, Croatia"
+},
+"ledenice croatia": {
+"asked": "Ledenice, Croatia",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 45.13671,
+"lon": 14.84101,
+"matched": "Ledenice, Grad Novi Vinodolski, Primorje-Gorski Kotar County, 51251, Croatia",
+"via": "Ledenice, Croatia"
+},
+"ledenice modrus fiume hungary": null,
+"ledenice modrus fiume magyarorszag": null,
+"ledenice novi vinodolski croatia": {
+"asked": "Ledenice, Novi Vinodolski, Croatia",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 45.13671,
+"lon": 14.84101,
+"matched": "Ledenice, Grad Novi Vinodolski, Primorje-Gorski Kotar County, 51251, Croatia",
+"via": "Ledenice, Novi Vinodolski, Croatia"
+},
+"leicester house st martin s in the fields london england": {
+"asked": "Leicester House, St. Martin's-in-the-Fields, London, England",
+"conf": "approx",
+"kind": "boundary/administrative",
+"lat": 51.50745,
+"lon": -0.12777,
+"matched": "Greater London, England, United Kingdom",
+"via": "London, England"
+},
+"limerick city ireland": {
+"asked": "Limerick City, Ireland",
+"conf": "approx",
+"kind": "boundary/political",
+"lat": 52.6486,
+"lon": -8.45232,
+"matched": "Limerick City, County Limerick, Munster, Ireland",
+"via": "Limerick City, Ireland"
+},
+"limerick county limerick ireland": {
+"asked": "Limerick, County Limerick, Ireland",
+"conf": "exact",
+"kind": "place/city",
+"lat": 52.65327,
+"lon": -8.61149,
+"matched": "Limerick, County Limerick, Munster, Ireland",
+"via": "Limerick, County Limerick, Ireland"
+},
+"limerick ireland": {
+"asked": "Limerick, Ireland",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 52.66125,
+"lon": -8.63012,
+"matched": "Limerick, County Limerick, Munster, Ireland",
+"via": "Limerick, Ireland"
+},
+"lismore lismore city new south wales australia": {
+"asked": "Lismore, Lismore City, New South Wales, Australia",
+"conf": "approx",
+"kind": "shop/car_repair",
+"lat": -28.80124,
+"lon": 153.28924,
+"matched": "Lismore City Council Repair Depot, Lismore City Council Depot Access, Lismore, New South Wales, 2480, Australia",
+"via": "Lismore, Lismore City, New South Wales, Australia"
+},
+"lismore new south wales australia": {
+"asked": "Lismore, New South Wales, Australia",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": -28.80776,
+"lon": 153.27919,
+"matched": "Lismore, New South Wales, Australia",
+"via": "Lismore, New South Wales, Australia"
+},
+"lismore nsw": {
+"asked": "Lismore NSW",
+"conf": "approx",
+"kind": "boundary/administrative",
+"lat": -28.80776,
+"lon": 153.27919,
+"matched": "Lismore, New South Wales, Australia",
+"via": "Lismore NSW"
+},
+"london england": {
+"asked": "London, England",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 51.50745,
+"lon": -0.12777,
+"matched": "Greater London, England, United Kingdom",
+"via": "London, England"
+},
+"london middlesex england": {
+"asked": "London, Middlesex, England",
+"conf": "approx",
+"kind": "tourism/hotel",
+"lat": 51.51551,
+"lon": -0.07476,
+"matched": "Travelodge London City, 20, Middlesex Street, Spitalfields, Whitechapel, London Borough of Tower Hamlets, Greater London, England, E1 7EZ, United Kingdom",
+"via": "London, Middlesex, England"
+},
+"long ashton somerset eng": {
+"asked": "Long Ashton, Somerset, Eng",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 51.43015,
+"lon": -2.66184,
+"matched": "Long Ashton, North Somerset, England, United Kingdom",
+"via": "Long Ashton, Somerset, Eng"
+},
+"long ashton somerset england": {
+"asked": "Long Ashton, Somerset, England",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 51.43015,
+"lon": -2.66184,
+"matched": "Long Ashton, North Somerset, England, United Kingdom",
+"via": "Long Ashton, Somerset, England"
+},
+"lt ehrstaedt heidelberg baden germany gt": null,
+"madeley staffordshire england": {
+"asked": "Madeley, Staffordshire, England",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 52.99975,
+"lon": -2.33783,
+"matched": "Madeley, Madeley Heath, Newcastle-under-Lyme, Staffordshire, England, United Kingdom",
+"via": "Madeley, Staffordshire, England"
+},
+"mainz rheinhessen hessen lande germany": null,
+"maket drayton shropshire england": {
+"asked": "Maket Drayton, Shropshire, England",
+"conf": "approx",
+"kind": "boundary/administrative",
+"lat": 52.65234,
+"lon": -2.79587,
+"matched": "Shropshire, England, United Kingdom",
+"via": "Shropshire, England"
+},
+"maloney street toowoomba queensland australia": {
+"asked": "Maloney Street, Toowoomba, Queensland, Australia",
+"conf": "approx",
+"kind": "place/city",
+"lat": -27.56102,
+"lon": 151.95335,
+"matched": "Toowoomba, Queensland, 4350, Australia",
+"via": "Toowoomba, Queensland, Australia"
+},
+"mandaradoni vibo valentia calabria": {
+"asked": "Mandaradoni , Vibo Valentia, Calabria",
+"conf": "exact",
+"kind": "place/hamlet",
+"lat": 38.68312,
+"lon": 15.98498,
+"matched": "Mandaradoni, Briatico, Vibo Valentia, Calabria, 89817, Italy",
+"via": "Mandaradoni, Vibo Valentia, Calabria"
+},
+"market bosworth leicester england": {
+"asked": "MARKET BOSWORTH, LEICESTER, England",
+"conf": "approx",
+"kind": "place/city",
+"lat": 52.6362,
+"lon": -1.1332,
+"matched": "Leicester, City of Leicester, England, LE1 4FB, United Kingdom",
+"via": "LEICESTER, England"
+},
+"market bosworth leicestershire england": {
+"asked": "Market Bosworth, Leicestershire, England",
+"conf": "exact",
+"kind": "place/town",
+"lat": 52.62399,
+"lon": -1.40181,
+"matched": "Market Bosworth, Hinckley and Bosworth, Leicestershire, England, CV13 0JN, United Kingdom",
+"via": "Market Bosworth, Leicestershire, England"
+},
+"market bosworth leicestershire england uk": {
+"asked": "Market Bosworth, Leicestershire, England, UK.",
+"conf": "exact",
+"kind": "place/town",
+"lat": 52.62399,
+"lon": -1.40181,
+"matched": "Market Bosworth, Hinckley and Bosworth, Leicestershire, England, CV13 0JN, United Kingdom",
+"via": "Market Bosworth, Leicestershire, England, UK."
+},
+"mascali catania sicily": {
+"asked": "Mascali, Catania, Sicily",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 37.76028,
+"lon": 15.19743,
+"matched": "Mascali, Catania, Sicily, 95016, Italy",
+"via": "Mascali, Catania, Sicily"
+},
+"melbourne victoria": {
+"asked": "Melbourne, Victoria",
+"conf": "exact",
+"kind": "place/city",
+"lat": -37.81425,
+"lon": 144.96317,
+"matched": "Melbourne, Victoria, Australia",
+"via": "Melbourne, Victoria"
+},
+"mendoza": {
+"asked": "Mendoza",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": -34.59703,
+"lon": -68.73048,
+"matched": "Mendoza, Argentina",
+"via": "Mendoza"
+},
+"mendoza later new york and rio crossings": null,
+"messina sicily": {
+"asked": "Messina, Sicily",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 38.19376,
+"lon": 15.55421,
+"matched": "Messina, Sicily, Italy",
+"via": "Messina, Sicily"
+},
+"miami florida usa": {
+"asked": "Miami, Florida, USA",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 25.77416,
+"lon": -80.1936,
+"matched": "Miami, Miami-Dade County, Florida, United States",
+"via": "Miami, Florida, USA"
+},
+"milan lombardy": {
+"asked": "Milan, Lombardy",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 45.46419,
+"lon": 9.18963,
+"matched": "Milan, Rodano, Milan, Lombardy, Italy",
+"via": "Milan, Lombardy"
+},
+"montevideo": {
+"asked": "Montevideo",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": -34.90589,
+"lon": -56.19131,
+"matched": "Montevideo, Uruguay",
+"via": "Montevideo"
+},
+"montevideo calle san juan": {
+"asked": "Montevideo, Calle San Juan",
+"conf": "approx",
+"kind": "highway/bus_stop",
+"lat": -31.51962,
+"lon": -68.37396,
+"matched": "Sarmiento y Montevideo, Avenida Sarmiento, Villa Lugano, San Martín, San Juan, 5439, Argentina",
+"via": "Montevideo, Calle San Juan"
+},
+"moree new south wales australia": {
+"asked": "Moree, New South Wales, Australia",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": -29.32132,
+"lon": 149.45971,
+"matched": "Moree Plains Shire Council, New South Wales, Australia",
+"via": "Moree, New South Wales, Australia"
+},
+"mrzli dol": {
+"asked": "Mrzli Dol",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 45.03371,
+"lon": 14.9891,
+"matched": "Mrzli Dol, Grad Senj, Lika-Senj County, Croatia",
+"via": "Mrzli Dol"
+},
+"mrzli dol 6 lika senj county croatia": {
+"asked": "Mrzli Dol 6, Lika-Senj County, Croatia",
+"conf": "approx",
+"kind": "boundary/administrative",
+"lat": 45.03371,
+"lon": 14.9891,
+"matched": "Mrzli Dol, Grad Senj, Lika-Senj County, Croatia",
+"via": "Mrzli Dol 6, Lika-Senj County, Croatia"
+},
+"mrzli dol br 6 lika senj county croatia": {
+"asked": "Mrzli Dol br. 6, Lika-Senj County, Croatia",
+"conf": "approx",
+"kind": "boundary/administrative",
+"lat": 45.03371,
+"lon": 14.9891,
+"matched": "Mrzli Dol, Grad Senj, Lika-Senj County, Croatia",
+"via": "Mrzli Dol br. 6, Lika-Senj County, Croatia"
+},
+"mrzli dol lika senj croatia": {
+"asked": "Mrzli Dol, Lika-Senj, Croatia",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 45.03371,
+"lon": 14.9891,
+"matched": "Mrzli Dol, Grad Senj, Lika-Senj County, Croatia",
+"via": "Mrzli Dol, Lika-Senj, Croatia"
+},
+"mrzli dol lika senj jugoslavija": null,
+"mrzli dol senj croatia": {
+"asked": "Mrzli Dol, Senj, Croatia",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 45.03371,
+"lon": 14.9891,
+"matched": "Mrzli Dol, Grad Senj, Lika-Senj County, Croatia",
+"via": "Mrzli Dol, Senj, Croatia"
+},
+"murwillumbah nsw": {
+"asked": "Murwillumbah NSW",
+"conf": "approx",
+"kind": "boundary/administrative",
+"lat": -28.32676,
+"lon": 153.39715,
+"matched": "Murwillumbah, New South Wales, Australia",
+"via": "Murwillumbah NSW"
+},
+"naples campania": {
+"asked": "Naples, Campania",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 40.83588,
+"lon": 14.24877,
+"matched": "Naples, Campania, Italy",
+"via": "Naples, Campania"
+},
+"nether skyers darfield yorkshire": {
+"asked": "Nether Skyers, Darfield, Yorkshire",
+"conf": "approx",
+"kind": "place/village",
+"lat": 53.5353,
+"lon": -1.37625,
+"matched": "Darfield, Barnsley, South Yorkshire, England, S73 9AB, United Kingdom",
+"via": "Darfield, Yorkshire"
+},
+"neuhaus neckar wuertt": null,
+"new orleans louisiana": {
+"asked": "New Orleans, Louisiana",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 29.95614,
+"lon": -90.07339,
+"matched": "New Orleans, Orleans Parish, Louisiana, United States",
+"via": "New Orleans, Louisiana"
+},
+"new york new york": {
+"asked": "New York, New York",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 40.71273,
+"lon": -74.00602,
+"matched": "New York, United States",
+"via": "New York, New York"
+},
+"newcastle new south wales australia": {
+"asked": "Newcastle, New South Wales, Australia",
+"conf": "exact",
+"kind": "place/city",
+"lat": -32.92729,
+"lon": 151.78125,
+"matched": "Newcastle, Newcastle-Maitland, New South Wales, 2300, Australia",
+"via": "Newcastle, New South Wales, Australia"
+},
+"no 3 well st hanley staffordshire england": {
+"asked": "No 3, Well St, Hanley, Staffordshire, England",
+"conf": "approx",
+"kind": "amenity/bank",
+"lat": 52.90244,
+"lon": -2.14605,
+"matched": "Hanley Economic, Christchurch Way, Oultoncross, Stone, Oulton, Stafford, Staffordshire, England, ST15 8ZB, United Kingdom",
+"via": "Hanley, Staffordshire, England"
+},
+"nogoya entre rios": {
+"asked": "Nogoya, Entre Rios",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": -32.39856,
+"lon": -59.78778,
+"matched": "Nogoyá, Distrito Montoya, Departamento Nogoyá, Entre Ríos Province, Argentina",
+"via": "Nogoya, Entre Rios"
+},
+"north yorkshire england": {
+"asked": "North Yorkshire, England",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 54.0916,
+"lon": -1.53594,
+"matched": "North Yorkshire, York and North Yorkshire, England, United Kingdom",
+"via": "North Yorkshire, England"
+},
+"novi vinodolski": {
+"asked": "Novi Vinodolski",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 45.12826,
+"lon": 14.78883,
+"matched": "Novi Vinodolski, Grad Novi Vinodolski, Primorje-Gorski Kotar County, 51250, Croatia",
+"via": "Novi Vinodolski"
+},
+"novi vinodolski croatia": {
+"asked": "Novi Vinodolski, Croatia",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 45.12826,
+"lon": 14.78883,
+"matched": "Novi Vinodolski, Grad Novi Vinodolski, Primorje-Gorski Kotar County, 51250, Croatia",
+"via": "Novi Vinodolski, Croatia"
+},
+"of aller som eng": {
+"asked": "of Aller, Som., Eng.",
+"conf": "approx",
+"kind": "boundary/administrative",
+"lat": 51.08333,
+"lon": -3.0,
+"matched": "Somerset, England, United Kingdom",
+"via": "Som., Eng."
+},
+"of hornby castle yorkshire england": {
+"asked": "Of, Hornby Castle, Yorkshire, England",
+"conf": "approx",
+"kind": "historic/manor",
+"lat": 54.33849,
+"lon": -1.6542,
+"matched": "Hornby Castle, Church View, Hornby, Catterick Garrison, North Yorkshire, York and North Yorkshire, England, DL8 1NH, United Kingdom",
+"via": "Hornby Castle, Yorkshire, England"
+},
+"of st quivox ayr sctl": null,
+"of st quivox ayrshire scotland": {
+"asked": "of St Quivox, Ayrshire, Scotland",
+"conf": "approx",
+"kind": "shop/car",
+"lat": 55.47853,
+"lon": -4.60282,
+"matched": "Parks of Hamilton, Boundary Road, Heathfield, Prestwick, South Ayrshire, Scotland, KA8 9SN, United Kingdom",
+"via": "of St Quivox, Ayrshire, Scotland"
+},
+"ossington nottinghamshire england": {
+"asked": "Ossington, Nottinghamshire, England",
+"conf": "exact",
+"kind": "place/village",
+"lat": 53.17485,
+"lon": -0.86996,
+"matched": "Ossington, Newark and Sherwood, Nottinghamshire, East Midlands, England, NG23 6LD, United Kingdom",
+"via": "Ossington, Nottinghamshire, England"
+},
+"oswestry shropshire england": {
+"asked": "Oswestry, Shropshire, England",
+"conf": "exact",
+"kind": "place/town",
+"lat": 52.86031,
+"lon": -3.05482,
+"matched": "Oswestry, Shropshire, England, SY11 1PX, United Kingdom",
+"via": "Oswestry, Shropshire, England"
+},
+"otocac": {
+"asked": "Otočac",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 44.8688,
+"lon": 15.23587,
+"matched": "Otočac, Grad Otočac, Lika-Senj County, 53220, Croatia",
+"via": "Otočac"
+},
+"otocac croatia": {
+"asked": "Otočac, Croatia",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 44.8688,
+"lon": 15.23587,
+"matched": "Otočac, Grad Otočac, Lika-Senj County, 53220, Croatia",
+"via": "Otočac, Croatia"
+},
+"otocac lika senj county croatia": {
+"asked": "Otočac, Lika-Senj County, Croatia",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 44.8688,
+"lon": 15.23587,
+"matched": "Otočac, Grad Otočac, Lika-Senj County, 53220, Croatia",
+"via": "Otočac, Lika-Senj County, Croatia"
+},
+"otocac opcina otocac lika senj county croatia": {
+"asked": "Otočac, Općina Otočac, Lika-Senj County, Croatia",
+"conf": "approx",
+"kind": "boundary/administrative",
+"lat": 44.66818,
+"lon": 15.33247,
+"matched": "Lika-Senj County, Croatia",
+"via": "Lika-Senj County, Croatia"
+},
+"palermo sicily": {
+"asked": "Palermo, Sicily",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 38.11123,
+"lon": 13.35244,
+"matched": "Palermo, Sicily, Italy",
+"via": "Palermo, Sicily"
+},
+"parish of elmore": {
+"asked": "Parish of Elmore",
+"conf": "approx",
+"kind": "highway/residential",
+"lat": 45.24698,
+"lon": -66.08658,
+"matched": "Elmore Crescent, Duck Cove, Saint John West, Saint John, Saint Johns Parish, City of Saint John, Saint John County, New Brunswick, E2M 3L7, Canada",
+"via": "Parish of Elmore"
+},
+"parramatta new south wales australia": {
+"asked": "Parramatta, New South Wales, Australia",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": -33.81398,
+"lon": 151.00267,
+"matched": "Parramatta, New South Wales, 2150, Australia",
+"via": "Parramatta, New South Wales, Australia"
+},
+"piedimonte etneo catania sicily": {
+"asked": "Piedimonte Etneo, Catania, Sicily",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 37.80671,
+"lon": 15.17819,
+"matched": "Piedimonte Etneo, Catania, Sicily, 95017, Italy",
+"via": "Piedimonte Etneo, Catania, Sicily"
+},
+"pizzo vibo valentia calabria": {
+"asked": "Pizzo, Vibo Valentia, Calabria",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 38.73567,
+"lon": 16.16229,
+"matched": "Pizzo, Vibo Valentia, Calabria, 89812, Italy",
+"via": "Pizzo, Vibo Valentia, Calabria"
+},
+"port germein south australia australia": {
+"asked": "Port Germein, South Australia, Australia",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": -33.02053,
+"lon": 137.99932,
+"matched": "Port Germein, South Australia, Australia",
+"via": "Port Germein, South Australia, Australia"
+},
+"port pirie south australia": {
+"asked": "Port Pirie, South Australia",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": -33.17912,
+"lon": 138.00586,
+"matched": "Port Pirie, South Australia, Australia",
+"via": "Port Pirie, South Australia"
+},
+"port pirie south australia australia": {
+"asked": "Port Pirie, South Australia, Australia",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": -33.17912,
+"lon": 138.00586,
+"matched": "Port Pirie, South Australia, Australia",
+"via": "Port Pirie, South Australia, Australia"
+},
+"portsmouth hampshire england or west indies": null,
+"potenzoni vibo valentia calabria": {
+"asked": "Potenzoni , Vibo Valentia, Calabria",
+"conf": "exact",
+"kind": "place/hamlet",
+"lat": 38.69041,
+"lon": 16.00359,
+"matched": "Potenzoni, San Costantino, Briatico, Vibo Valentia, Calabria, 89817, Italy",
+"via": "Potenzoni, Vibo Valentia, Calabria"
+},
+"povile 22 croatia": {
+"asked": "Povile 22, Croatia",
+"conf": "approx",
+"kind": "boundary/administrative",
+"lat": 45.11645,
+"lon": 14.82327,
+"matched": "Povile, Grad Novi Vinodolski, Primorje-Gorski Kotar County, Croatia",
+"via": "Povile 22, Croatia"
+},
+"povile 23 croatia": {
+"asked": "Povile 23, Croatia",
+"conf": "approx",
+"kind": "boundary/administrative",
+"lat": 45.11645,
+"lon": 14.82327,
+"matched": "Povile, Grad Novi Vinodolski, Primorje-Gorski Kotar County, Croatia",
+"via": "Povile 23, Croatia"
+},
+"prozor": {
+"asked": "Prozor",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 44.85013,
+"lon": 15.26555,
+"matched": "Prozor, Grad Otočac, Lika-Senj County, Croatia",
+"via": "Prozor"
+},
+"prozor otocac croatia": {
+"asked": "Prozor, Otočac, Croatia",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 44.85013,
+"lon": 15.26555,
+"matched": "Prozor, Grad Otočac, Lika-Senj County, Croatia",
+"via": "Prozor, Otočac, Croatia"
+},
+"putney surrey england": {
+"asked": "Putney, Surrey, England",
+"conf": "approx",
+"kind": "boundary/administrative",
+"lat": 51.27153,
+"lon": -0.34145,
+"matched": "Surrey, England, United Kingdom",
+"via": "Surrey, England"
+},
+"queenland australia": {
+"asked": "Queenland, Australia",
+"conf": "approx",
+"kind": "tourism/artwork",
+"lat": -27.47498,
+"lon": 153.02839,
+"matched": "Queenland Police Memorial, Palm Avenue, Brisbane City, Brisbane, Queensland, 4000, Australia",
+"via": "Queenland, Australia"
+},
+"queensland": {
+"asked": "Queensland",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": -22.16468,
+"lon": 144.58449,
+"matched": "Queensland, Australia",
+"via": "Queensland"
+},
+"queensland australia": {
+"asked": "Queensland Australia",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": -22.16468,
+"lon": 144.58449,
+"matched": "Queensland, Australia",
+"via": "Queensland Australia"
+},
+"quorn south australia australia": {
+"asked": "Quorn, South Australia, Australia",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": -32.34694,
+"lon": 138.04212,
+"matched": "Quorn, South Australia, 5433, Australia",
+"via": "Quorn, South Australia, Australia"
+},
+"retiro buenos aires": {
+"asked": "Retiro, Buenos Aires",
+"conf": "approx",
+"kind": "railway/station",
+"lat": -34.59115,
+"lon": -58.37468,
+"matched": "Retiro (Mitre), 1420, Avenida Doctor José María Ramos Mejía, Catalinas Norte, Villa 31, Retiro, Buenos Aires, Comuna 1, Autonomous City of Buenos Aires, 1104, Argentina",
+"via": "Retiro, Buenos Aires"
+},
+"rijeka": {
+"asked": "Rijeka",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 45.3268,
+"lon": 14.44221,
+"matched": "Grad Rijeka, Primorje-Gorski Kotar County, Croatia",
+"via": "Rijeka"
+},
+"rijeka primorje gorski kotar croatia": {
+"asked": "Rijeka, Primorje-Gorski Kotar, Croatia",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 45.3268,
+"lon": 14.44221,
+"matched": "Grad Rijeka, Primorje-Gorski Kotar County, Croatia",
+"via": "Rijeka, Primorje-Gorski Kotar, Croatia"
+},
+"rockhampton au": {
+"asked": "Rockhampton, AU",
+"conf": "exact",
+"kind": "place/city",
+"lat": -23.37821,
+"lon": 150.51342,
+"matched": "Rockhampton, Queensland, 4700, Australia",
+"via": "Rockhampton, AU"
+},
+"rockhampton queensland australia": {
+"asked": "Rockhampton, Queensland, Australia",
+"conf": "exact",
+"kind": "place/city",
+"lat": -23.37821,
+"lon": 150.51342,
+"matched": "Rockhampton, Queensland, 4700, Australia",
+"via": "Rockhampton, Queensland, Australia"
+},
+"rosario colonia uruguay": {
+"asked": "Rosario, Colonia, Uruguay",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": -34.31156,
+"lon": -57.35129,
+"matched": "Rosario, Colonia, 70200, Uruguay",
+"via": "Rosario, Colonia, Uruguay"
+},
+"rosario santa fe": {
+"asked": "Rosario, Santa Fe",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": -32.95936,
+"lon": -60.6617,
+"matched": "Rosario, Municipio de Rosario, Gran Rosario, Departamento Rosario, Santa Fe, S2000, Argentina",
+"via": "Rosario, Santa Fe"
+},
+"rosario then montevideo": null,
+"royal women s hospital parkville vic australia": {
+"asked": "Royal Women's Hospital, Parkville Vic Australia",
+"conf": "approx",
+"kind": "amenity/hospital",
+"lat": -37.79886,
+"lon": 144.955,
+"matched": "Royal Women's Hospital, 18-22, Flemington Road, Parkville, Melbourne, Victoria, 3052, Australia",
+"via": "Royal Women's Hospital, Parkville Vic Australia"
+},
+"rushton spencer staffordshire england": {
+"asked": "Rushton, Spencer, Staffordshire, England",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 53.1611,
+"lon": -2.11655,
+"matched": "Rushton, Rushton Spencer, Staffordshire Moorlands, Staffordshire, England, United Kingdom",
+"via": "Rushton, Spencer, Staffordshire, England"
+},
+"sa argentine records": null,
+"sa records": {
+"asked": "SA records",
+"conf": "approx",
+"kind": "shop/music",
+"lat": -34.97964,
+"lon": 138.59163,
+"matched": "Rocktherapy Records, 536, Goodwood Road, Daw Park, Adelaide, South Australia, 5041, Australia",
+"via": "SA records"
+},
+"saffron walden": {
+"asked": "Saffron Walden",
+"conf": "exact",
+"kind": "place/town",
+"lat": 52.02157,
+"lon": 0.24113,
+"matched": "Saffron Walden, Uttlesford, Essex, England, CB10 1NQ, United Kingdom",
+"via": "Saffron Walden"
+},
+"san costantino calabro vibo valentia calabria": {
+"asked": "San Costantino Calabro, Vibo Valentia, Calabria",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 38.63352,
+"lon": 16.07113,
+"matched": "San Costantino Calabro, Vibo Valentia, Calabria, 89851, Italy",
+"via": "San Costantino Calabro, Vibo Valentia, Calabria"
+},
+"san felice a cancello": {
+"asked": "San Felice a Cancello",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 41.01239,
+"lon": 14.48299,
+"matched": "San Felice a Cancello, Caserta, Campania, 81027, Italy",
+"via": "San Felice a Cancello"
+},
+"san felice caserta campania italia": {
+"asked": "San Felice, Caserta, Campania, Italia",
+"conf": "exact",
+"kind": "place/hamlet",
+"lat": 41.2373,
+"lon": 13.96774,
+"matched": "San Felice, Cascano, Sessa Aurunca, Caserta, Campania, 81037, Italy",
+"via": "San Felice, Caserta, Campania, Italia"
+},
+"sandgate queensland australia": {
+"asked": "Sandgate, Queensland, Australia",
+"conf": "exact",
+"kind": "place/suburb",
+"lat": -27.32066,
+"lon": 153.06976,
+"matched": "Sandgate, Brisbane, Queensland, 4017, Australia",
+"via": "Sandgate, Queensland, Australia"
+},
+"santa maria a vico caserta campania italia": {
+"asked": "Santa Maria a Vico, Caserta, Campania, Italia",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 41.02686,
+"lon": 14.46519,
+"matched": "Santa Maria a Vico, Caserta, Campania, Italy",
+"via": "Santa Maria a Vico, Caserta, Campania, Italia"
+},
+"santa maria a vico nola terra di lavoro": null,
+"schloss friedrichsburg mannheim germ": null,
+"schwetzingen rhein neckar kreis baden wurttemberg deutschland": {
+"asked": "Schwetzingen, Rhein-Neckar-Kreis, Baden-Württemberg, Deutschland",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 49.38329,
+"lon": 8.57351,
+"matched": "Schwetzingen, Rhein-Neckar-Kreis, Baden-Württemberg, 68782, Germany",
+"via": "Schwetzingen, Rhein-Neckar-Kreis, Baden-Württemberg, Deutschland"
+},
+"scilla reggio calabria": {
+"asked": "Scilla, Reggio Calabria",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 38.25067,
+"lon": 15.71899,
+"matched": "Scilla, Reggio Calabria, Calabria, 89058, Italy",
+"via": "Scilla, Reggio Calabria"
+},
+"scillla": null,
+"scotland": {
+"asked": "Scotland",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 56.78611,
+"lon": -4.11405,
+"matched": "Scotland, United Kingdom",
+"via": "Scotland"
+},
+"selce": {
+"asked": "Selce",
+"conf": "exact",
+"kind": "place/quarter",
+"lat": 45.51141,
+"lon": 15.55464,
+"matched": "Selce, Banija, Karlovac, Grad Karlovac, Karlovac County, 47104, Croatia",
+"via": "Selce"
+},
+"selce crikvenica primorje gorski kotar croatia": {
+"asked": "Selce, Crikvenica, Primorje-Gorski Kotar, Croatia",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 45.15822,
+"lon": 14.72067,
+"matched": "Selce, Grad Crikvenica, Primorje-Gorski Kotar County, 51266, Croatia",
+"via": "Selce, Crikvenica, Primorje-Gorski Kotar, Croatia"
+},
+"selce croatia": {
+"asked": "Selce, Croatia",
+"conf": "exact",
+"kind": "place/quarter",
+"lat": 45.51141,
+"lon": 15.55464,
+"matched": "Selce, Banija, Karlovac, Grad Karlovac, Karlovac County, 47104, Croatia",
+"via": "Selce, Croatia"
+},
+"senj": {
+"asked": "Senj",
+"conf": "exact",
+"kind": "place/hamlet",
+"lat": 43.58239,
+"lon": 16.59235,
+"matched": "Senj, Dugopolje, Općina Dugopolje, Split-Dalmatia County, 21204, Croatia",
+"via": "Senj"
+},
+"senj croatia": {
+"asked": "Senj, Croatia",
+"conf": "exact",
+"kind": "place/hamlet",
+"lat": 43.58239,
+"lon": 16.59235,
+"matched": "Senj, Dugopolje, Općina Dugopolje, Split-Dalmatia County, 21204, Croatia",
+"via": "Senj, Croatia"
+},
+"senj lika senj county croatia": {
+"asked": "Senj, Lika-Senj County, Croatia",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 44.83285,
+"lon": 14.98888,
+"matched": "Grad Senj, Lika-Senj County, Croatia",
+"via": "Senj, Lika-Senj County, Croatia"
+},
+"shoreditch london": {
+"asked": "Shoreditch, London",
+"conf": "exact",
+"kind": "place/suburb",
+"lat": 51.52667,
+"lon": -0.07989,
+"matched": "Shoreditch, London Borough of Hackney, Greater London, England, EC2A 3AR, United Kingdom",
+"via": "Shoreditch, London"
+},
+"sicily": {
+"asked": "Sicily",
+"conf": "exact",
+"kind": "place/island",
+"lat": 37.47428,
+"lon": 14.13853,
+"matched": "Sicily, Italy",
+"via": "Sicily"
+},
+"skanderborg castle kingdom of denmark": null,
+"smokvica krmpotska": {
+"asked": "Smokvica Krmpotska",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 45.08688,
+"lon": 14.85282,
+"matched": "Smokvica Krmpotska, Grad Novi Vinodolski, Primorje-Gorski Kotar County, Croatia",
+"via": "Smokvica Krmpotska"
+},
+"smokvica krmpotska opcina novi vinodolski primorje gorski kotar county croatia": {
+"asked": "Smokvica Krmpotska, Općina Novi Vinodolski, Primorje-Gorski Kotar County, Croatia",
+"conf": "approx",
+"kind": "boundary/administrative",
+"lat": 45.42259,
+"lon": 14.6172,
+"matched": "Primorje-Gorski Kotar County, Croatia",
+"via": "Primorje-Gorski Kotar County, Croatia"
+},
+"soho london middlesex": {
+"asked": "Soho, London, Middlesex",
+"conf": "approx",
+"kind": "amenity/courthouse",
+"lat": 51.50041,
+"lon": -0.12813,
+"matched": "Supreme Court, Parliament Square, Westminster, Millbank, City of Westminster, Greater London, England, SW1P 3BD, United Kingdom",
+"via": "London, Middlesex"
+},
+"solihull west midlands england": {
+"asked": "SOLIHULL West Midlands England",
+"conf": "exact",
+"kind": "place/town",
+"lat": 52.41302,
+"lon": -1.77689,
+"matched": "Solihull, Metropolitan Borough of Solihull, West Midlands, England, B91 3AX, United Kingdom",
+"via": "SOLIHULL West Midlands England"
+},
+"sorianno calabro": null,
+"south africa": {
+"asked": "South Africa",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": -28.81662,
+"lon": 24.99164,
+"matched": "South Africa",
+"via": "South Africa"
+},
+"south australia australia": {
+"asked": "South Australia, Australia",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": -30.53437,
+"lon": 135.63012,
+"matched": "South Australia, Australia",
+"via": "South Australia, Australia"
+},
+"south leith midlothian scotland": {
+"asked": "South Leith, Midlothian, Scotland",
+"conf": "approx",
+"kind": "boundary/administrative",
+"lat": 55.83333,
+"lon": -3.08333,
+"matched": "Midlothian, Scotland, United Kingdom",
+"via": "Midlothian, Scotland"
+},
+"st flannan s catholic church zillmere qld australia": {
+"asked": "St Flannan's Catholic Church, Zillmere, Qld Australia",
+"conf": "approx",
+"kind": "boundary/administrative",
+"lat": -27.35876,
+"lon": 153.0377,
+"matched": "Zillmere, Brisbane, Queensland, 4034, Australia",
+"via": "Zillmere, Qld Australia"
+},
+"st gerrard majella catholic church chermside west qld australia": {
+"asked": "St Gerrard Majella Catholic Church, Chermside West, Qld Australia",
+"conf": "approx",
+"kind": "boundary/administrative",
+"lat": -27.37934,
+"lon": 153.01869,
+"matched": "Chermside West, Brisbane, Queensland, Australia",
+"via": "Chermside West, Qld Australia"
+},
+"st james palace london middlesex englan": null,
+"st james palace london middlesex england kingdom of england": null,
+"st mary s limerick ireland": {
+"asked": "ST. MARY'S, Limerick, Ireland",
+"conf": "approx",
+"kind": "landuse/residential",
+"lat": 52.67571,
+"lon": -8.62704,
+"matched": "St. Mary's Park, John's A, The Metropolitan District of Limerick City, Limerick, County Limerick, Munster, Ireland",
+"via": "ST. MARY'S, Limerick, Ireland"
+},
+"st quivox ayrshire scotland": {
+"asked": "St Quivox, Ayrshire, Scotland",
+"conf": "exact",
+"kind": "place/village",
+"lat": 55.48354,
+"lon": -4.57207,
+"matched": "St Quivox, South Ayrshire, Scotland, KA6 5HJ, United Kingdom",
+"via": "St Quivox, Ayrshire, Scotland"
+},
+"staffordshire england": {
+"asked": "Staffordshire, England",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 52.82469,
+"lon": -2.00745,
+"matched": "Staffordshire, England, United Kingdom",
+"via": "Staffordshire, England"
+},
+"strassburg karnten austria": {
+"asked": "Strassburg, Kärnten, Austria.",
+"conf": "approx",
+"kind": "boundary/administrative",
+"lat": 46.89554,
+"lon": 14.33139,
+"matched": "Straßburg, Bezirk St. Veit an der Glan, Carinthia, 9341, Austria",
+"via": "Strassburg, Kärnten, Austria."
+},
+"stroughton grange leicestershire england": {
+"asked": "Stroughton Grange, Leicestershire, England",
+"conf": "approx",
+"kind": "boundary/administrative",
+"lat": 52.66667,
+"lon": -1.0,
+"matched": "Leicestershire, England, United Kingdom",
+"via": "Leicestershire, England"
+},
+"sv jakov krmpote croatia": {
+"asked": "Sv. Jakov, Krmpote, Croatia",
+"conf": "approx",
+"kind": "place/region",
+"lat": 45.08895,
+"lon": 14.93371,
+"matched": "Krmpote, Primorje-Gorski Kotar County, 51252, Croatia",
+"via": "Krmpote, Croatia"
+},
+"sydney new south wales": {
+"asked": "Sydney, New South Wales",
+"conf": "exact",
+"kind": "place/city",
+"lat": -33.86984,
+"lon": 151.20828,
+"matched": "Sydney, New South Wales, Australia",
+"via": "Sydney, New South Wales"
+},
+"tomasica croatia": {
+"asked": "TOMAŠICA, Croatia",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 45.60691,
+"lon": 17.00178,
+"matched": "Tomašica, Grad Garešnica, Bjelovar-Bilogora County, Croatia",
+"via": "TOMAŠICA, Croatia"
+},
+"toowoomba": {
+"asked": "Toowoomba",
+"conf": "exact",
+"kind": "place/city",
+"lat": -27.56102,
+"lon": 151.95335,
+"matched": "Toowoomba, Queensland, 4350, Australia",
+"via": "Toowoomba"
+},
+"toowoomba australia": {
+"asked": "Toowoomba, Australia",
+"conf": "exact",
+"kind": "place/city",
+"lat": -27.56102,
+"lon": 151.95335,
+"matched": "Toowoomba, Queensland, 4350, Australia",
+"via": "Toowoomba, Australia"
+},
+"toowoomba q ld australia": null,
+"toowoomba queensland": {
+"asked": "Toowoomba, Queensland",
+"conf": "exact",
+"kind": "place/city",
+"lat": -27.56102,
+"lon": 151.95335,
+"matched": "Toowoomba, Queensland, 4350, Australia",
+"via": "Toowoomba, Queensland"
+},
+"township of washington new jersey": {
+"asked": "Township of Washington, New Jersey",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 40.98848,
+"lon": -74.06524,
+"matched": "Township of Washington, Bergen County, New Jersey, 07676, United States",
+"via": "Township of Washington, New Jersey"
+},
+"transvaal": {
+"asked": "Transvaal",
+"conf": "exact",
+"kind": "place/village",
+"lat": 52.62344,
+"lon": 10.68915,
+"matched": "Transvaal, Wittingen, Landkreis Gifhorn, Lower Saxony, 29379, Germany",
+"via": "Transvaal"
+},
+"trinidad flores": {
+"asked": "Trinidad, Flores",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": -33.51735,
+"lon": -56.89797,
+"matched": "Trinidad, Flores, 85000, Uruguay",
+"via": "Trinidad, Flores"
+},
+"tucuman": {
+"asked": "Tucuman",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": -27.04484,
+"lon": -65.3658,
+"matched": "Tucumán, Argentina",
+"via": "Tucuman"
+},
+"tully queensland": {
+"asked": "Tully, Queensland",
+"conf": "exact",
+"kind": "place/town",
+"lat": -17.93403,
+"lon": 145.92323,
+"matched": "Tully, Queensland, 4854, Australia",
+"via": "Tully, Queensland"
+},
+"uruguay": {
+"asked": "Uruguay",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": -32.87555,
+"lon": -56.02015,
+"matched": "Uruguay",
+"via": "Uruguay"
+},
+"westminster middlesex": {
+"asked": "Westminster, Middlesex",
+"conf": "approx",
+"kind": "amenity/courthouse",
+"lat": 51.50041,
+"lon": -0.12813,
+"matched": "Supreme Court, Parliament Square, Westminster, Millbank, City of Westminster, Greater London, England, SW1P 3BD, United Kingdom",
+"via": "Westminster, Middlesex"
+},
+"whyalla south australia australia": {
+"asked": "Whyalla, South Australia, Australia",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": -33.03821,
+"lon": 137.58436,
+"matched": "Whyalla, South Australia, 5600, Australia",
+"via": "Whyalla, South Australia, Australia"
+},
+"zagreb": {
+"asked": "Zagreb",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 45.8131,
+"lon": 15.97728,
+"matched": "City of Zagreb, Croatia",
+"via": "Zagreb"
+}
+}

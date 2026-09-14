@@ -1,0 +1,23 @@
+{
+  "_note": "Hand-set coordinates that the gazetteer gets wrong, each with the reason. Applied over the machine lookups by geocode.load(). A correction here is a human claim and says so; nothing in this file was guessed, and every entry names what the automatic answer was and why it is not the place the archives mean.",
+  "senj": {
+    "lat": 44.98937, "lon": 14.90578, "conf": "exact",
+    "matched": "Senj, Lika-Senj County, Croatia",
+    "why": "Nominatim ranks a HAMLET called Senj at Dugopolje, near Split, above the coastal town — the hamlet is a place/hamlet and the town is a boundary/administrative, so any ranking that prefers populated places picks the wrong one. Every Senj in this estate is the town under the Velebit."
+  },
+  "senj croatia": {
+    "lat": 44.98937, "lon": 14.90578, "conf": "exact",
+    "matched": "Senj, Lika-Senj County, Croatia",
+    "why": "As above — the same Dugopolje hamlet outranks the town."
+  },
+  "transvaal": {
+    "lat": -25.93634, "lon": 28.08131, "conf": "approx",
+    "matched": "Gauteng, South Africa",
+    "why": "A province that no longer exists, so there is nothing to match: the bare name resolved to a street in Germany. Gauteng is the part of the old Transvaal this family was actually in, and the coordinate is approximate by nature."
+  },
+  "cape colony": {
+    "lat": -32.21718, "lon": 26.63864, "conf": "approx",
+    "matched": "Eastern Cape, South Africa",
+    "why": "Also a polity rather than a place; it resolved to the United States. The Eastern Cape is where these records were made, and this is a regional centroid, not a town."
+  }
+}

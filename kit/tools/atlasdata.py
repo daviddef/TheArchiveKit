@@ -15,14 +15,21 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import geocode as G
 
 
-def build(rows, out_path, gaz=None, quiet=False):
+def build(rows, out_path, gaz=None, quiet=False, countries=None):
     """rows: dicts already in Atlas shape but carrying `_lookup` instead of lat/lon."""
     gaz = G.load() if gaz is None else gaz
-    places, missed, approx = [], [], 0
+    places, missed, approx, outside = [], [], 0, []
     for r in rows:
         hit = G.find(r.pop("_lookup", r.get("name")), gaz)
         if not hit:
             missed.append(r.get("name"))
+            continue
+        # A dot in the wrong country is worse than no dot: "Rijeka" resolved
+        # to Bosnia and "Transvaal" to a street in Germany before this. An
+        # archive names the countries it can plausibly be in, and anything
+        # landing outside them is refused and reported rather than drawn.
+        if countries and not any(c.lower() in hit["matched"].lower() for c in countries):
+            outside.append(f"{r.get('name')} -> {hit['matched'].split(',')[-1].strip()}")
             continue
         if hit["conf"] != "exact":
             approx += 1
@@ -33,13 +40,15 @@ def build(rows, out_path, gaz=None, quiet=False):
     stats = {"places": len(places),
              "withPeople": sum(1 for p in places if p.get("n")),
              "people": sum(p.get("n") or 0 for p in places),
-             "unplaced": len(missed), "approx": approx}
+             "unplaced": len(missed) + len(outside), "approx": approx}
     os.makedirs(os.path.dirname(out_path), exist_ok=True)
     json.dump({"places": places, "stats": stats},
               open(out_path, "w", encoding="utf-8"), ensure_ascii=False)
     if not quiet:
         print(f"atlas: {len(places)} placed ({approx} approximate), "
               f"{len(missed)} without a coordinate, {stats['people']} people placed")
+        if outside:
+            print("       REFUSED, outside the expected countries: " + "; ".join(outside[:6]))
         if missed:
             print("       unplaced: " + ", ".join(str(m) for m in missed[:8])
                   + (" …" if len(missed) > 8 else ""))
