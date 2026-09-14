@@ -10,8 +10,18 @@
  *   closed    followed, tested, and shown not to belong here
  *
  * Rows come from the archive's own trees.json.
+ *
+ * `drawn` is the archive's own line as a chart — /tree/. It is a prop and not
+ * a row because it is not one of the lines: it is the picture of the one the
+ * reader is already standing in. Six archives sent the reader from here to
+ * their prose instead, each under a different name — "The spine", "The line",
+ * "Open the line" — so the drawing was reachable from the menu and not from
+ * the page whose whole job is to index the lines. One route, one wording,
+ * every archive. Mazza is why this is not a row: it follows four lines of its
+ * own and has one chart covering all four.
  */
-const { rows = [], note, close, doors = [] } = Astro.props;
+import { md } from "../lib/md.js";
+const { rows = [], note, close, doors = [], drawn } = Astro.props;
 
 const STATE = {
   drawn:    ["Drawn as a line",     "var(--accent)"],
@@ -21,7 +31,16 @@ const STATE = {
   closed:   ["Followed and closed", "var(--rule-strong)"],
 };
 ---
-{note && <p class="prose" style="margin-bottom:6px">{note}</p>}
+{note && <p class="prose" style="margin-bottom:6px" set:html={md(note)}></p>}
+
+{drawn && (
+  <a class="tl-drawn" href={drawn}>
+    <span class="tl-drawn-k">Our line, drawn</span>
+    <span class="tl-drawn-w">The line this archive is about, as a chart — every generation it can
+    name, and every place it stops.</span>
+    <span class="tl-drawn-go">Open the chart →</span>
+  </a>
+)}
 
 <div class="tl">
   {rows.map(r => {
@@ -35,15 +54,15 @@ const STATE = {
           </div>
           <span class="tl-s">{label}</span>
         </div>
-        <p class="tl-w">{r.what}</p>
-        {r.gap && <p class="tl-g">{r.gap}</p>}
+        <p class="tl-w" set:html={md(r.what)}></p>
+        {r.gap && <p class="tl-g" set:html={md(r.gap)}></p>}
         {r.href && <a class="tl-go" href={r.href}>{r.cta || "Open it →"}</a>}
       </section>
     );
   })}
 </div>
 
-{close && <p class="prose note" style="margin-top:24px">{close}</p>}
+{close && <p class="prose note" style="margin-top:24px" set:html={md(close)}></p>}
 
 {doors.length > 0 && (
   <div class="tl-doors">
@@ -65,6 +84,40 @@ const STATE = {
   .tl-row { border-left: 3px solid var(--c); background: var(--panel); padding: 15px 17px; border-radius: 2px; }
   .tl-head { display: flex; gap: 14px; align-items: baseline; flex-wrap: wrap; }
   .tl-n { font-family: var(--serif); font-size: 20px; }
+  .tl-drawn {
+    display: block;
+    margin: 18px 0 26px;
+    padding: 16px 18px;
+    border: 1px solid var(--rule);
+    border-left: 3px solid var(--accent);
+    border-radius: 4px;
+    background: var(--panel);
+    text-decoration: none;
+    color: inherit;
+  }
+  .tl-drawn:hover { border-color: var(--accent); }
+  .tl-drawn-k {
+    display: block;
+    font-family: var(--serif, Georgia, serif);
+    font-size: 1.22rem;
+    line-height: 1.2;
+    color: var(--ink);
+  }
+  .tl-drawn-w {
+    display: block;
+    margin-top: 5px;
+    font-size: .92rem;
+    line-height: 1.5;
+    color: var(--ink-2);
+    max-width: 56ch;
+  }
+  .tl-drawn-go {
+    display: block;
+    margin-top: 9px;
+    font-size: .86rem;
+    color: var(--accent);
+  }
+
   .tl-ours {
     margin-left: 9px; font-family: var(--sans); font-size: 9.5px; letter-spacing: .12em;
     text-transform: uppercase; color: var(--accent); border: 1px solid var(--accent);
