@@ -210,13 +210,16 @@
       if (!A || !B) return;
       var s = STROKE[via] || STROKE.tree;
       var onLine = LIN[a] && LIN[b];
+      /* an edge into a person with more than two claimed parents is one of
+         several competing claims, and is drawn as a claim rather than a fact */
+      var toContested = (P[b].parents || []).filter(function (p) { return p.slug; }).length > 2;
       var ax = A.x + BOX / 2, ay = A.y + BH, bx = B.x + BOX / 2, by = B.y;
       svg.appendChild(el("path", {
         d: "M" + ax + "," + ay + " C" + ax + "," + (ay + LANE * 0.35) +
            " " + bx + "," + (by - LANE * 0.35) + " " + bx + "," + by,
         stroke: s[0], "stroke-width": onLine ? 3.4 : 1.6,
         "stroke-dasharray": s[1], fill: "none",
-        "stroke-opacity": onLine ? 1 : ".45",
+        "stroke-opacity": toContested ? ".38" : (onLine ? 1 : ".45"),
         class: onLine ? "bl-edge is-line" : "bl-edge"
       }));
     }
@@ -271,11 +274,25 @@
       }
     });
 
+    /* Nobody has five parents. Where an archive records more than two it is
+       holding competing claims from different sources — Falco has a register
+       couple, a tree couple and a line assertion for one man — and drawing all
+       five as equally true is the one thing these archives do not do. Say so
+       instead of quietly picking. */
+    var ps = me.parents.filter(function (p) { return p.slug; });
+    var srcs = {};
+    ps.forEach(function (p) { srcs[p.via] = (srcs[p.via] || 0) + 1; });
+    var contested = ps.length > 2 ? Object.keys(srcs).length : 0;
+
     var n = Object.keys(gen).length;
     summary.textContent = n === 1
       ? "No relative of " + me.name + " is recorded here yet."
       : n + " people, across " + gens.length + " generations — everyone this archive can join to "
-        + me.name + " by blood.";
+        + me.name + " by blood."
+        + (contested
+            ? "  The records disagree about this person's parents: "
+              + ps.length + " are claimed, from " + contested + " different kinds of source."
+            : "");
     var box = xy[root];
     if (box) stage.scrollLeft = Math.max(0, box.x + BOX / 2 - stage.clientWidth / 2);
   }
