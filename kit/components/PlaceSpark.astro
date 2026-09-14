@@ -15,6 +15,20 @@
    out stretched sideways; beyond that there is no projection worth the name at
    this size, and pretending otherwise would be decoration.
 
+   THE FRAME IS NOT THE FULL EXTENT, and it used to be. Fitting min to max puts
+   one far-flung place in charge of the whole picture: Blazevic has 88% of its
+   fifty-nine places inside a degree and a half of each other and still had to
+   span 124° for two outliers, so fifty-two towns landed on top of one another
+   and the drawing showed three dots. Mazza spanned 269° — most of the planet —
+   for fifty-six places.
+
+   So the frame is now the middle nine-tenths of the points, and anything
+   outside it is drawn ON the edge it went out through, as a half-dot, and
+   counted underneath. Every place is still represented and none of them is
+   moved anywhere it is not: a place beyond the frame is shown at the boundary
+   in its own direction, which is a true statement about it, and the caption
+   says how many there are. Nothing is hidden and the cluster is legible.
+
      places   [{ lat, lon, n }] — the archive's own atlas data
      href     where the picture leads
      label    the line underneath
@@ -23,33 +37,115 @@ const { places = [], href, label } = Astro.props;
 const pts = places.filter((p) => typeof p.lat === "number" && typeof p.lon === "number");
 
 const W = 520, H = 200, PAD = 14;
-let view = null;
+const q = (arr, p) => {
+  const a = [...arr].sort((x, y) => x - y);
+  const i = (a.length - 1) * p;
+  const lo = Math.floor(i), hi = Math.ceil(i);
+  return lo === hi ? a[lo] : a[lo] + (a[hi] - a[lo]) * (i - lo);
+};
+
+/* The TIGHTEST window that still holds `share` of the values — not a fixed
+   percentile, which was the first thing tried here and did nothing for the
+   case it was written for. Blazevic keeps 88% of its places inside a degree
+   and a half and the rest scattered over a hemisphere; trimming five per cent
+   off each end left the frame 123° wide and the cluster still a smudge.
+   Sliding the narrowest window that covers four places in five finds the
+   cluster itself, whatever shape the tail is. */
+/* how many places a frame actually keeps apart, on the grid it will be drawn on */
+const legibility = (frame, pts, k) => {
+  const [[la0, la1], [lo0, lo1]] = frame;
+  const spanX = Math.max((lo1 - lo0) * k, 0.02), spanY = Math.max(la1 - la0, 0.02);
+  const scale = Math.min((520 - 28) / spanX, (200 - 28) / spanY);
+  const cx = ((lo0 + lo1) / 2) * k, cy = (la0 + la1) / 2;
+  const cells = new Set();
+  let inside = 0;
+  for (const p of pts) {
+    const x = 260 + (p.lon * k - cx) * scale, y = 100 - (p.lat - cy) * scale;
+    if (x < 7 || x > 513 || y < 7 || y > 193) continue;
+    inside++;
+    cells.add(Math.round(x / 6) + "," + Math.round(y / 6));
+  }
+  return { cells: cells.size, kept: inside / pts.length };
+};
+/* keep the frame that separates the most places while still holding 70% of them */
+const bestFrame = (frames, pts, k) => {
+  let best = frames[frames.length - 1], bestScore = -1;
+  for (const f of frames) {
+    const { cells, kept } = legibility(f, pts, k);
+    if (kept < 0.7) continue;
+    if (cells > bestScore) { bestScore = cells; best = f; }
+  }
+  return best;
+};
+const densest2 = (lats, lons, share) => [densest(lats, share), densest(lons, share)];
+
+const densest = (arr, share) => {
+  const a = [...arr].sort((x, y) => x - y);
+  const need = Math.max(2, Math.ceil(a.length * share));
+  if (a.length <= need) return [a[0], a[a.length - 1]];
+  let best = [a[0], a[need - 1]];
+  for (let i = 0; i + need <= a.length; i++)
+    if (a[i + need - 1] - a[i] < best[1] - best[0]) best = [a[i], a[i + need - 1]];
+  return best;
+};
+
+let view = null, outside = 0;
 if (pts.length) {
   const lats = pts.map((p) => p.lat), lons = pts.map((p) => p.lon);
-  const la0 = Math.min(...lats), la1 = Math.max(...lats);
-  const lo0 = Math.min(...lons), lo1 = Math.max(...lons);
-  const k = Math.cos(((la0 + la1) / 2) * Math.PI / 180) || 1;
+  const k = Math.cos(q(lats, 0.5) * Math.PI / 180) || 1;
+
+  /* Below about a dozen places a quantile is not measuring anything, so the
+     old full-extent frame is still the honest one. */
+  /* Which frame? It depends entirely on the family, and the component is in no
+     position to guess. A tight window is right for Blazevic, whose places are
+     one mountain county and a few emigrants — it took the picture from 124°
+     wide to 1° and from five legible dots to eighteen. It is WRONG for Mazza
+     and Lerena, who really did live on three continents at once: there is no
+     home cluster to find, and cropping to one lost them dots rather than
+     gaining any.
+
+     So draw each candidate frame and keep whichever separates the most places,
+     provided it still holds most of them. That is measurable here, at build
+     time, against this archive's own coordinates, instead of being decided in
+     advance for seven families who have nothing in common. */
+  const robust = pts.length >= 12;
+  const candidates = robust
+    ? [densest2(lats, lons, 0.8), densest2(lats, lons, 0.9),
+       [[Math.min(...lats), Math.max(...lats)], [Math.min(...lons), Math.max(...lons)]]]
+    : [[[Math.min(...lats), Math.max(...lats)], [Math.min(...lons), Math.max(...lons)]]];
+  const [[la0, la1], [lo0, lo1]] = bestFrame(candidates, pts, k);
+
   // a single place, or places all at one spot, still needs a box with width
   const spanX = Math.max((lo1 - lo0) * k, 0.02);
   const spanY = Math.max(la1 - la0, 0.02);
   const scale = Math.min((W - PAD * 2) / spanX, (H - PAD * 2) / spanY);
   const cx = ((lo0 + lo1) / 2) * k, cy = (la0 + la1) / 2;
   const most = Math.max(1, ...pts.map((p) => p.n || 0));
-  view = pts.map((p) => ({
-    x: W / 2 + (p.lon * k - cx) * scale,
-    y: H / 2 - (p.lat - cy) * scale,
-    r: 2.2 + 4.6 * Math.sqrt((p.n || 0) / most),
-  }));
+
+  view = pts.map((p) => {
+    const x = W / 2 + (p.lon * k - cx) * scale;
+    const y = H / 2 - (p.lat - cy) * scale;
+    const cx2 = Math.min(W - PAD / 2, Math.max(PAD / 2, x));
+    const cy2 = Math.min(H - PAD / 2, Math.max(PAD / 2, y));
+    const off = cx2 !== x || cy2 !== y;
+    if (off) outside++;
+    return { x: cx2, y: cy2, off, r: 2.2 + 4.6 * Math.sqrt((p.n || 0) / most) };
+  });
 }
+/* said plainly under the picture rather than left for the reader to wonder at */
+const note = outside
+  ? `${outside} ${outside === 1 ? "place sits" : "places sit"} beyond this frame, shown on the edge`
+  : null;
 ---
 {view && (
   <a class="spark" href={href} aria-label={label || "Open the atlas"}>
     <svg viewBox={`0 0 ${W} ${H}`} width="100%" role="img" aria-hidden="true">
       {view.map((p) => (
-        <circle cx={p.x} cy={p.y} r={p.r} class="spark-dot" />
+        <circle cx={p.x} cy={p.y} r={p.r} class={p.off ? "spark-dot is-off" : "spark-dot"} />
       ))}
     </svg>
     {label && <div class="spark-l">{label}</div>}
+    {note && <div class="spark-l spark-off">{note}</div>}
   </a>
 )}
 
@@ -63,6 +159,12 @@ if (pts.length) {
   .spark svg { display: block; }
   .spark-dot { fill: var(--accent); fill-opacity: .62; }
   .spark:hover .spark-dot { fill-opacity: .85; }
+  /* A place on the edge is not at the edge — it is somewhere past it, in that
+     direction. Hollow, so it cannot be misread as a town that is really there. */
+  .spark-dot.is-off {
+    fill: none; stroke: var(--accent); stroke-width: 1.4; stroke-opacity: .75;
+  }
+  .spark-off { opacity: .72; font-style: italic; }
   .spark-l {
     font-family: var(--mono); font-size: 11px; color: var(--ink-3);
     margin-top: 8px; line-height: 1.5;
