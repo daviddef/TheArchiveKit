@@ -1,0 +1,60 @@
+---
+/* Three ways in, directly under the hero.
+
+   Three archives did this already and did it the same way: exactly three
+   doors, before any heading, each with a name, a sentence of what is behind
+   it, and a line saying where it goes. Three others offered a flat list of
+   everything instead — D'Arcy's front page carried forty-eight links — and one
+   offered nothing at all.
+
+   The shape is shared; the CHOICES are not, and should not be. Defranceschi
+   opens with the story, a person and a map. Booyzen opens with why a letter of
+   the surname was changed. Lerena opens with a passport. Those are editorial
+   decisions about what is most worth reading first in that archive, and a kit
+   that flattened them would be taking away the only thing a front page is for.
+
+   Exactly three is the rule worth keeping. Two looks unfinished and four stops
+   being a choice — which is what the long lists had become.
+
+     doors  [{ href, name, blurb, cta }] — three of them
+*/
+const { doors = [] } = Astro.props;
+---
+{doors.length > 0 && (
+  <div class="waysin">
+    {doors.slice(0, 3).map(({ href, name, blurb, cta }) => (
+      <a class="wayin" href={href}>
+        <div class="wayin-n">{name}</div>
+        <p class="wayin-d">{blurb}</p>
+        <div class="wayin-go">{cta || "Open it →"}</div>
+      </a>
+    ))}
+  </div>
+)}
+
+<style>
+  .waysin {
+    display: grid; gap: 14px; margin: 26px 0 8px;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  }
+  .wayin {
+    display: flex; flex-direction: column;
+    text-decoration: none; color: inherit;
+    background: var(--panel); border: 1px solid var(--rule);
+    border-radius: 3px; padding: 18px 19px 16px;
+    transition: border-color .15s, background .15s;
+  }
+  .wayin:hover { border-color: var(--accent); background: var(--panel-2, var(--panel)); }
+  .wayin-n {
+    font-family: var(--serif); font-size: 20px; line-height: 1.2; color: var(--ink);
+  }
+  .wayin-d {
+    font-family: var(--sans); font-size: 13.5px; line-height: 1.55;
+    color: var(--ink-2); margin: 9px 0 0; flex: 1;
+  }
+  /* The cue sits at the foot of every card, so three cards of unequal text
+     still line their arrows up. */
+  .wayin-go {
+    font-family: var(--mono); font-size: 11px; color: var(--accent); margin-top: 14px;
+  }
+</style>
