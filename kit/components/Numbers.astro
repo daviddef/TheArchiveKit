@@ -1,0 +1,73 @@
+---
+/* The archive in numbers.
+
+   Four archives had this block under four different names — "The archive in
+   numbers", "Six numbers", "By the numbers", "{N} numbers" — and three had no
+   such block at all. Underneath the names they were the same idea rendered
+   three ways, and one archive's stylesheet still carried the hover rules for a
+   `.stat` tile it had stopped defining.
+
+   So it is a component, and it brings its own styles. The idea it keeps from
+   the Defranceschi archive, which is the whole point of the block:
+
+     every number links to the page that earns it.
+
+   A figure a reader cannot check is decoration. Rows are [value, label, href],
+   and href is optional only because a few counts genuinely have no page of
+   their own yet — those render as plain tiles rather than as dead links.
+
+     rows   [[value, label, href?], …]
+     note   optional line under the heading
+     cta    what the link says; defaults to the Defranceschi wording
+*/
+const { rows = [], note = "Every one of these is a link to the page that earns it.",
+        cta = "See the evidence →", heading = "The archive in numbers" } = Astro.props;
+const fmt = (v) => (typeof v === "number" ? v.toLocaleString() : v);
+---
+<section class="blk">
+  <h2>{heading}</h2>
+  {note && <p class="dek">{note}</p>}
+  <div class="numgrid">
+    {rows.map(([value, label, href]) => (
+      href
+        ? <a class="numtile" href={href}>
+            <div class="numtile-n">{fmt(value)}</div>
+            <div class="numtile-l">{label}</div>
+            <div class="numtile-go">{cta}</div>
+          </a>
+        : <div class="numtile is-flat">
+            <div class="numtile-n">{fmt(value)}</div>
+            <div class="numtile-l">{label}</div>
+          </div>
+    ))}
+  </div>
+</section>
+
+<style>
+  .numgrid {
+    display: grid; gap: 14px; margin-top: 18px;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  }
+  .numtile {
+    display: block; text-decoration: none; color: inherit;
+    background: var(--panel); border: 1px solid var(--rule);
+    border-radius: 3px; padding: 18px 18px 20px;
+    transition: border-color .15s, background .15s;
+  }
+  a.numtile:hover { border-color: var(--accent); background: var(--panel-2, var(--panel)); }
+  .numtile-n {
+    font-family: var(--mono); font-size: 30px; line-height: 1.05;
+    color: var(--ink); font-variant-numeric: tabular-nums;
+  }
+  .numtile-l {
+    font-family: var(--sans); font-size: 12.5px; line-height: 1.45;
+    color: var(--ink-2); margin-top: 10px;
+  }
+  .numtile-go {
+    font-family: var(--mono); font-size: 10.5px; color: var(--accent);
+    margin-top: 10px; opacity: 0; transition: opacity .15s;
+  }
+  a.numtile:hover .numtile-go { opacity: 1; }
+  /* The cue has to be visible to anyone who cannot hover. */
+  @media (hover: none) { .numtile-go { opacity: 1; } }
+</style>
