@@ -34,31 +34,60 @@
  *   gap      draw a dashed placeholder instead of a person, name as the legend
  *            ("— living, withheld —"). Never a real name.
  *   mar      the word above a spouse, default "married"
+ *   small    draw this row as a small node; siblings are small anyway
  *
- *   self     { name, dates, gen, note, noteCls } — the person the page is about.
+ *   childGroups  [{ label, rows }] where an archive knows which marriage a
+ *            child came from — one tier per union, its own label. A flat
+ *            `children` list is the same thing with one unnamed group.
+ *
+ *   self     { name, dates, gen, genHref, note, noteCls } — the page's person.
+ *            gen is the emphasised line under the dates and is printed
+ *            VERBATIM: the archives do not agree on what belongs there, and one
+ *            of them puts three facts in it, so the kit does not supply the
+ *            word "generation" or anything else.
  *            note is the line under the dates; noteCls "living" italicises it
+ *   labels   { parents, siblings } where an archive names a tier in its own
+ *            voice — D'Arcy draws brothers and sisters, not siblings. siblings
+ *            is a function of the count, and the count is printed before it.
  *   keys     [{ cls, label }] legend swatches; <slot name="keys"> for one that
  *            needs a link in it
  *   palette  { bg, node-bg, line, tree, via, gen } — any archive whose colours
  *            are its own, stamped inline so it beats the shared defaults
  *
- * Slots: "notes" goes inside the caption under the keys, "after" below the
+ * Slots: "before-caption" sits between the chart and the caption, "notes"
+ * inside the caption under the keys, "after" below the
  * whole caption. Both take the archive's own prose, which is an argument it is
  * making and not this component's business.
  */
 const {
   self = {},
   parents = [], spouses = [], children = [], siblings = [],
+  childGroups = [],
+  labels = {},
+  /* D'Arcy draws the chart even when it is empty, because its caption then says
+     why it is empty — the tree records nobody, or everybody they connect to is
+     alive and withheld. That sentence is worth more than a hidden figure. */
+  always = false,
   keys = [],
   palette = {},
 } = Astro.props;
 
-const has = parents.length || spouses.length || children.length || siblings.length;
+/* Children hang below. Where an archive knows which marriage they came from it
+   hands over groups and gets a tier each; where it does not, a flat list is one
+   unnamed group and renders exactly as it always did. */
+const groups = childGroups.length ? childGroups
+  : children.length
+    ? [{ label: children.length === 1 ? "Child" : `${children.length} children`,
+         rows: children }]
+    : [];
+
+const has = always || parents.length || spouses.length || siblings.length
+  || groups.some((g) => g.rows.length);
 
 /* node, small, gap, spouse, then the archive's class — the order the three
    originals emitted, so the markup is unchanged where it is compared. */
 const cls = (r, o = {}) => "node"
-  + (o.small ? " small" : "")
+  + (o.small || r.small ? " small" : "")
   + (r.gap ? " gap" : "")
   + (o.spouse ? " spouse" : "")
   + (r.gap || !r.cls ? "" : " " + r.cls);
@@ -69,7 +98,8 @@ const sty = Object.entries(palette).map(([k, v]) => `--pt-${k}:${v}`).join(";") 
 <figure class="ptree" style={sty}>
   {parents.length ? (
     <div class="tier">
-      <div class="lab">{parents.length === 1 ? "Parent" : "Parents"}</div>
+      <div class="lab">{labels.parents
+        || (parents.length === 1 ? "Parent" : "Parents")}</div>
       <div class="row">
         {parents.map((r) => (
           r.gap
@@ -96,7 +126,11 @@ const sty = Object.entries(palette).map(([k, v]) => `--pt-${k}:${v}`).join(";") 
       <div class="node me">
         <span class="nm">{self.name}</span>
         {self.dates ? <span class="dt">{self.dates}</span> : null}
-        {self.gen ? <span class="via gen">generation {self.gen}</span> : null}
+        {self.gen
+          ? (self.genHref
+              ? <a class="via gen" href={self.genHref}>{self.gen}</a>
+              : <span class="via gen">{self.gen}</span>)
+          : null}
         {self.note ? <span class={"via" + (self.noteCls ? " " + self.noteCls : "")}>{self.note}</span> : null}
       </div>
       {spouses.map((r) => (
@@ -122,12 +156,12 @@ const sty = Object.entries(palette).map(([k, v]) => `--pt-${k}:${v}`).join(";") 
     </div>
   </div>
 
-  {children.length ? (
+  {groups.filter((g) => g.rows.length).map((g) => (
     <div class="tier">
       <div class="drop up" aria-hidden="true"></div>
-      <div class="lab">{children.length === 1 ? "Child" : `${children.length} children`}</div>
+      <div class="lab">{g.label}</div>
       <div class="row">
-        {children.map((r) => (
+        {g.rows.map((r) => (
           r.gap
             ? <div class={cls(r)}><span class="nm">{r.name}</span></div>
             : r.href
@@ -144,11 +178,13 @@ const sty = Object.entries(palette).map(([k, v]) => `--pt-${k}:${v}`).join(";") 
         ))}
       </div>
     </div>
-  ) : null}
+  ))}
 
   {siblings.length ? (
     <div class="tier sibs">
-      <div class="lab">{siblings.length === 1 ? "Sibling" : `${siblings.length} siblings`}</div>
+      <div class="lab">{labels.siblings
+        ? `${siblings.length} ${labels.siblings(siblings.length)}`
+        : siblings.length === 1 ? "Sibling" : `${siblings.length} siblings`}</div>
       <div class="row">
         {siblings.map((r) => (
           r.gap
@@ -166,6 +202,8 @@ const sty = Object.entries(palette).map(([k, v]) => `--pt-${k}:${v}`).join(";") 
       </div>
     </div>
   ) : null}
+
+  <slot name="before-caption" />
 
   <figcaption>
     {keys.map((k) => (
@@ -211,6 +249,9 @@ const sty = Object.entries(palette).map(([k, v]) => `--pt-${k}:${v}`).join(";") 
   .ptree .via-read .via{color:var(--accent)}
   .ptree .node.via-scanned{border-left:3px dashed var(--accent)}
   .ptree .node.via-tree{border-left:3px dotted var(--pt-tree)}
+  /* stated in no record, but following from one — Booyzen's own distinction,
+     and the only one of these six words that is not a synonym of another */
+  .ptree .node.via-inferred{border-left:3px dashed var(--accent)}
   .ptree .node.via-none{border-left:3px dotted var(--ink-2);opacity:.75}
   .ptree .node.via-disputed{border-left:3px solid #9b2c2c}
   .ptree .via-disputed .via{color:#9b2c2c;font-weight:600}
@@ -238,7 +279,14 @@ const sty = Object.entries(palette).map(([k, v]) => `--pt-${k}:${v}`).join(";") 
   .ptree .sw{width:.85rem;height:0;border-top:3px solid var(--accent);display:inline-block}
   .ptree .sw.line{border-top-color:var(--pt-line);border-top-width:4px}
   .ptree .sw.scanned{border-top-style:dashed}
+  .ptree .sw.inferred{border-top-style:dashed}
+  .ptree .sw.gone{border-top-style:dashed;border-top-color:var(--pt-tree)}
   .ptree .sw.tree{border-top-style:dotted;border-top-color:var(--pt-tree)}
   .ptree .note-line{margin:.6rem 0 0}
   .ptree .warn{margin:.5rem 0 0;line-height:1.5;max-width:86ch}
+  /* a warning that is a boxed callout above the caption rather than a line of
+     prose inside it */
+  .ptree .warn.cap{margin:12px 0 0;padding:10px 12px;border-left:3px solid var(--rule-strong);
+                   background:var(--panel-2);border-radius:2px;color:var(--ink-2)}
+  .ptree figcaption b{color:var(--ink-2);font-weight:600}
 </style>
