@@ -1,43 +1,50 @@
 #!/usr/bin/env python3
-"""Refuse to ship a build that gives away a living person's details.
+"""Refuse to ship a build that gives away a living person.
 
-THE RULE, in David's words: a living person is NAMED AND NOTHING MORE. No date
-of birth, no date of death, no place. Public figures are the exception and are
-declared. A name is unlocked when its owner dies, one at a time.
+ONE GUARD, THREE POLICIES. Two were written separately on the same day — one
+in the kit reading committed data for dates, one in D'Arcy reading the GEDCOM
+for names — and they were never duplicates: they enforce different rules.
 
-AND THE AGE RULE: anyone more than EIGHTY YEARS OLD is treated as deceased. An
-archive that cannot say whether someone is alive has to presume something, and
-this is what it presumes.
+    named-bare   a living person is NAMED AND NOTHING MORE. Their name may
+                 appear; no date of theirs may. The estate rule.
+    absent       a living person is not published at all — not their dates and
+                 not their name. Stricter. D'Arcy applies it at the boundary in
+                 build_site_data.py, and this proves it held.
+    declared     no people file to read, so the list is written by hand. The
+                 children's site, which guards four boys and their grown-ups.
 
-TWO MODES, because the estate genuinely has two situations.
+AND THE AGE RULE, under every policy: anyone more than EIGHTY YEARS OLD is
+treated as deceased. An archive that cannot say whether somebody is alive has
+to presume something, and this is what it presumes.
 
-  derived      the archives. Living people are IN the data, flagged, and the
-               guard reads them out of it. This is Falco's design, generalised.
-  declared     the children's site. There is no people file, just four boys and
-               grown-ups referred to by initials, so the list is written by hand.
+WHO IS LIVING comes from whichever source the archive has, and the archive
+owns that question, not this file:
 
-WHY THE DERIVED MODE TESTS EXACT DATE STRINGS AND NOT PROXIMITY — this is
-Falco's reasoning, kept because it was paid for twice:
+    a GEDCOM       richest, and gitignored, so only ever present locally
+    committed data a living / presumedLiving / conf:"living" flag
+    a declaration  a hand-written list
 
-  Screening on BARE YEARS passes vacuously. This is a genealogy site; every
-  year appears somewhere.
+An archive with a GEDCOM passes its own lists in — see feed(). This keeps the
+hard part in one place while leaving each archive to know its own people.
 
-  Screening on a living person's NAME NEAR A DATE fires on every homonym. A
-  living Luigi Falco shares his name with four dead ones and the HTML cannot
-  tell them apart. Identity lives in the data, not in the markup.
+WHY DATES ARE TESTED AS EXACT STRINGS, and names as PHRASES WITH SUBTRACTIONS.
+Both lessons were paid for, and rebuilding either would cost the same again:
 
-So it takes the full date strings the DATA attaches to a LIVING person and
-asserts those literal strings appear nowhere in the build. That is the leak
-that actually reached a front page: line.json carried a living generation's
-«3 Sep 1955» and a diagram printed it verbatim.
+  · Screening dates on BARE YEARS passes vacuously. On a genealogy site every
+    year appears somewhere. Screening a name NEAR a date fires on every
+    homonym. So dates are matched as the literal strings the data attaches to
+    a living person. Identity lives in the data, not the markup.
 
-An archive that omits living people from its data altogether — Defranceschi
-drops them at import, Blazevic redacts before writing — passes this with
-nothing to check, which is correct. Their rule is stricter than this one.
+  · A bare surname matches every page and a bare forename most of them, so a
+    forbidden NAME is a phrase — given + surname, and the full recorded name.
+    Two things must then be subtracted or it cries wolf and gets switched off:
+    EXACT NAMESAKES, where a living person's name is also a published dead
+    person's and the phrase cannot tell them apart; and LONGER PUBLISHED NAMES
+    that merely contain it — "Bruce Atwell" sits inside "Eric George Bruce
+    Atwell".
 
-Usage:
-  python3 checkliving.py --dist dist                  # derived, the archives
-  python3 checkliving.py --dist dist --declared f.json  # the children's site
+An archive that omits living people from its data altogether passes with
+nothing to check, which is correct rather than a gap.
 """
 import os
 import re
@@ -46,8 +53,10 @@ import json
 import html
 import argparse
 import datetime
+import collections
 
-PRESUME_DEAD_AFTER = 80          # years. Older than this is treated as deceased.
+PRESUME_DEAD_AFTER = 80
+MIN_PHRASE = 7
 
 NAME_KEYS = ("name", "n", "who", "t")
 BORN_KEYS = ("born", "b", "birth", "byear", "b_date")
@@ -64,6 +73,29 @@ ISO_DATE = re.compile(r"\b(?:1[89]\d\d|20\d\d)-\d{2}-\d{2}\b")
 SLASH_DATE = re.compile(r"\b\d{1,2}/\d{1,2}/(?:1[89]\d\d|20\d\d)\b")
 YEAR = re.compile(r"\b(1[89]\d\d|20\d\d)\b")
 
+
+# ---- names -----------------------------------------------------------------
+
+def norm(name):
+    name = re.sub(r"\s*\(.*?\)", " ", name or "")
+    name = re.sub(r"[\"“”]", " ", name)
+    return " ".join(name.split())
+
+
+def phrases_of(full):
+    """The forms a page might use: the whole recorded name, and first + last."""
+    parts = norm(full).split()
+    if len(parts) < 2:
+        return set()
+    return {" ".join(parts), parts[0] + " " + parts[-1]}
+
+
+def visible(src):
+    s = re.sub(r"(?s)<script.*?</script>|<style.*?</style>", " ", src)
+    return html.unescape(re.sub(r"<[^>]+>", " ", s))
+
+
+# ---- reading the archive's own data ----------------------------------------
 
 def rows_of(j):
     if isinstance(j, list):
@@ -87,16 +119,13 @@ def first(r, keys):
 
 
 def older_than(born, years, today):
-    """True when a birth date is far enough back to presume death."""
     m = YEAR.search(born or "")
-    if not m:
-        return False
-    return (today.year - int(m.group(1))) > years
+    return bool(m) and (today.year - int(m.group(1))) > years
 
 
-def gather(data_dir, today, verbose):
-    """Every person the data marks living, with the date strings attached."""
-    living, presumed_dead = {}, 0
+def from_data(data_dir, today):
+    """Living people and their dates, out of the committed data."""
+    living, presumed = {}, 0
     for f in sorted(os.listdir(data_dir)) if os.path.isdir(data_dir) else []:
         if not f.endswith(".json"):
             continue
@@ -109,44 +138,168 @@ def gather(data_dir, today, verbose):
                       str(r.get("conf", "")).lower() == "living"
             if not flagged:
                 continue
-            name = re.sub(r"\s*\(.*?\)", "", first(r, NAME_KEYS)).strip()
+            name = norm(first(r, NAME_KEYS))
             if not name or len(name) < 3:
                 continue
             born, died = first(r, BORN_KEYS), first(r, DIED_KEYS)
-            # the age rule: too old to still be presumed alive
             if older_than(born, PRESUME_DEAD_AFTER, today):
-                presumed_dead += 1
+                presumed += 1
                 continue
             dates = set()
             for blob in (born, died):
                 for rx in (FULL_DATE, ISO_DATE, SLASH_DATE):
-                    dates.update(rx.findall(blob))
                     dates.update(m.group(0) for m in rx.finditer(blob))
-            living.setdefault(name, set()).update(d for d in dates if isinstance(d, str))
-    if verbose:
-        print(f"  living: {len(living)} people flagged in the data, "
-              f"{presumed_dead} presumed dead by the {PRESUME_DEAD_AFTER}-year rule")
-    return living
+            living.setdefault(name, set()).update(dates)
+    return living, presumed
 
 
-def built_text(dist):
+def published_names(data_dir):
+    """Everyone the data does NOT mark living — needed to subtract namesakes."""
+    out = set()
+    for f in sorted(os.listdir(data_dir)) if os.path.isdir(data_dir) else []:
+        if not f.endswith(".json"):
+            continue
+        try:
+            j = json.load(open(os.path.join(data_dir, f), encoding="utf-8"))
+        except Exception:
+            continue
+        for r in rows_of(j):
+            if any(r.get(k) is True for k in LIVING_KEYS):
+                continue
+            n = norm(first(r, NAME_KEYS))
+            if n and len(n.split()) >= 2:
+                out.add(n)
+    return out
+
+
+# ---- the checks ------------------------------------------------------------
+
+def check_dates(pages, living, allow_files):
+    """No literal date string the data attaches to a living person may appear."""
+    forbidden = collections.defaultdict(set)
+    for name, dates in living.items():
+        for d in dates:
+            forbidden[d].add(name)
+    fails = []
+    for rel, raw in pages.items():
+        if rel in allow_files:
+            continue
+        text = visible(raw)
+        for d, owners in forbidden.items():
+            if d in text or d in raw:
+                i = text.find(d)
+                ctx = re.sub(r"\s+", " ", text[max(0, i - 50):i + 50]).strip()
+                fails.append((rel, f"the date «{d}» — the data attaches it to "
+                                   f"{', '.join(sorted(owners))} (living)", ctx))
+                break
+    return fails, len(forbidden)
+
+
+def check_names(pages, living_names, publishable, allow, allow_files):
+    """No living person's NAME PHRASE may appear, minus the two subtractions."""
+    pub_names = {n for n in publishable if len(n.split()) >= 2}
+    pub_phrases = set()
+    for n in pub_names:
+        pub_phrases |= {x.lower() for x in phrases_of(n)}
+
+    forbidden = collections.defaultdict(set)
+    for full in living_names:
+        for ph in phrases_of(full):
+            low = ph.lower()
+            if len(low) < MIN_PHRASE or low in pub_phrases:
+                continue                     # an exact namesake: indistinguishable
+            forbidden[low].add(full)
+    if not forbidden:
+        return [], 0, 0, 0
+
+    covers = {ph: sorted((n for n in pub_names if ph in n.lower() and len(n) > len(ph)),
+                         key=len, reverse=True) for ph in forbidden}
+    rx = re.compile(r"\b(" + "|".join(sorted(map(re.escape, forbidden), key=len,
+                                             reverse=True)) + r")\b", re.I)
+    fails, allowed_hits, covered_hits = [], 0, 0
+    for rel, raw in pages.items():
+        if rel in allow_files:
+            continue
+        text = visible(raw)
+        for m in rx.finditer(text):
+            ph = m.group(1).lower()
+            window = text[max(0, m.start() - 40):m.end() + 40].lower()
+            if any(longer.lower() in window for longer in covers.get(ph, ())):
+                covered_hits += 1
+                continue                     # part of a longer published name
+            ctx = re.sub(r"\s+", " ", text[max(0, m.start() - 70):m.end() + 70]).strip()
+            if ph in allow or any(x in ctx.lower() for x in allow):
+                allowed_hits += 1
+                continue
+            fails.append((rel, f"the name «{m.group(1)}» (living)", ctx))
+    return fails, len(forbidden), allowed_hits, covered_hits
+
+
+# ---- entry points ----------------------------------------------------------
+
+def load_pages(dist):
     pages = {}
     for root, _, files in os.walk(dist):
         for f in files:
-            if not f.endswith(".html"):
-                continue
-            p = os.path.join(root, f)
-            pages[os.path.relpath(p, dist).replace(os.sep, "/")] = \
-                open(p, encoding="utf-8", errors="replace").read()
+            if f.endswith(".html"):
+                p = os.path.join(root, f)
+                pages[os.path.relpath(p, dist).replace(os.sep, "/")] = \
+                    open(p, encoding="utf-8", errors="replace").read()
     return pages
+
+
+def report(fails, ok_line, quiet):
+    if fails:
+        print(f"  FAIL  living      {len(fails)} leak(s)")
+        seen = set()
+        for rel, what, ctx in fails:
+            if what in seen:
+                continue
+            seen.add(what)
+            print(f"          /{rel}  →  {what}")
+            print(f"              …{ctx}…")
+            if len(seen) >= 8:
+                break
+        if len(fails) > len(seen):
+            print(f"          … and {len(fails)-len(seen)} more")
+        print("\n  A living person is named and nothing more — and under the «absent» "
+              "policy,\n  not named either. If one of these people has died, record the "
+              "death;\n  do not silence the check.")
+        return 1
+    if not quiet:
+        print(f"  ok    {ok_line}")
+    return 0
+
+
+def feed(dist, living_names, publishable, allow=(), allow_files=(), quiet=False,
+         label=""):
+    """For an archive that knows its own living people — a GEDCOM, usually.
+
+    D'Arcy calls this. The archive answers «who is alive»; this file answers
+    «did any of them reach the build», which is the part worth having once.
+    """
+    pages = load_pages(dist)
+    if len(pages) < 5:
+        print(f"checkliving: only {len(pages)} page(s) under {dist} — the build is "
+              f"unfinished or in flight. Refusing to pass.")
+        return 1
+    fails, n, allowed, covered = check_names(
+        pages, living_names, publishable, {x.lower() for x in allow}, set(allow_files))
+    ok = (f"{len(pages)} pages carry none of {n:,} name phrases belonging to "
+          f"{len(living_names):,} living people"
+          + (f" — {allowed} declared, {covered} inside longer published names" if
+             (allowed or covered) else "")
+          + (f" · {label}" if label else ""))
+    return report(fails, ok, quiet)
 
 
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--dist", default="dist")
     ap.add_argument("--data", default="src/data")
-    ap.add_argument("--declared", default=None,
-                    help="a hand-written living.json (the children's-site mode)")
+    ap.add_argument("--policy", default="named-bare",
+                    choices=["named-bare", "absent", "declared"])
+    ap.add_argument("--declared", default=None)
     ap.add_argument("--quiet", action="store_true")
     a = ap.parse_args()
     today = datetime.date.today()
@@ -154,23 +307,22 @@ def main():
     if not os.path.isdir(a.dist):
         print(f"checkliving: no {a.dist} — build first")
         return 1
-    pages = built_text(a.dist)
+    pages = load_pages(a.dist)
     if len(pages) < 5:
         print(f"checkliving: only {len(pages)} page(s) under {a.dist} — the build is "
               f"unfinished or in flight. Refusing to pass.")
         return 1
 
-    fails = []
-
-    if a.declared:
-        # ---- the children's site: a hand-written list of names to forbid ----
-        if not os.path.exists(a.declared):
-            print(f"checkliving: no declaration at {a.declared}. This guard is only as "
-                  f"good as its list, so a missing list is a failure, not a pass.")
+    if a.policy == "declared" or a.declared:
+        path = a.declared or os.path.join(a.data, "living.json")
+        if not os.path.exists(path):
+            print(f"checkliving: no declaration at {path}. This guard is only as good "
+                  f"as its list, so a missing list is a failure, not a pass.")
             return 1
-        decl = json.load(open(a.declared, encoding="utf-8"))
-        allow = [x.lower() for x in decl.get("allow", [])]
-        terms = []
+        decl = json.load(open(path, encoding="utf-8"))
+        allow = {x.lower() for x in decl.get("allow", [])}
+        allow_files = set(decl.get("allowFiles", []))
+        names, terms = [], []
         for p in decl.get("living", []):
             who = p.get("initials") or "?"
             for n in p.get("forbid", []):
@@ -180,60 +332,41 @@ def main():
             if p.get("born"):
                 terms.append((re.compile(r"\b" + re.escape(str(p["born"])) + r"\b"),
                               f"{who}: the birth year {p['born']}"))
+            names.append(who)
         if not terms:
             print("checkliving: the declaration forbids nothing — nothing to check.")
             return 1
+        fails = []
         for rel, raw in pages.items():
-            for rx, label in terms:
+            if rel in allow_files:
+                continue
+            for rx, lbl in terms:
                 m = rx.search(raw)
                 if not m:
                     continue
                 ctx = re.sub(r"\s+", " ", raw[max(0, m.start() - 45):m.end() + 45])
                 if any(x in ctx.lower() for x in allow):
                     continue
-                fails.append((rel, label, ctx))
+                fails.append((rel, lbl, ctx))
                 break
-        who = ", ".join(p.get("initials", "?") for p in decl.get("living", []))
-        ok = f"{len(pages)} pages carry no name and no birth year for {who}"
+        return report(fails, f"{len(pages)} pages carry no name and no birth year "
+                             f"for {', '.join(names)}", a.quiet)
 
-    else:
-        # ---- the archives: read the living from their own data -------------
-        living = gather(a.data, today, not a.quiet)
-        forbidden = {}
-        for name, dates in living.items():
-            for dstr in dates:
-                forbidden.setdefault(dstr, set()).add(name)
-        if not a.quiet:
-            shown = ", ".join(sorted(forbidden)[:4])
-            print(f"  guarding {len(forbidden)} date string(s) belonging to living people"
-                  + (f": {shown}" if forbidden else
-                     " — none found, which is what an archive that omits them looks like"))
-        for rel, raw in pages.items():
-            text = html.unescape(re.sub(r"<[^>]+>", " ", raw))
-            for dstr, owners in forbidden.items():
-                if dstr in text or dstr in raw:
-                    fails.append((rel, f"the date «{dstr}», which the data attaches to "
-                                       f"{', '.join(sorted(owners))} (living)",
-                                  re.sub(r"\s+", " ", text[max(0, text.find(dstr) - 50):
-                                                           text.find(dstr) + 50])))
-                    break
-        ok = (f"{len(pages)} pages — no living person's date reaches the build "
-              f"({len(living)} living, {len(forbidden)} dates guarded)")
-
-    if fails:
-        print(f"  FAIL  living      {len(fails)} leak(s)")
-        for rel, label, ctx in fails[:8]:
-            print(f"          /{rel}  →  {label}")
-            print(f"              …{ctx.strip()}…")
-        if len(fails) > 8:
-            print(f"          … and {len(fails)-8} more")
-        print("\n  A living person is named and nothing more. If one of these people has "
-              "died,\n  record the death — do not silence the check.")
-        return 1
-
+    # derived: read the archive's own committed data
+    living, presumed = from_data(a.data, today)
     if not a.quiet:
-        print(f"  ok    {ok}")
-    return 0
+        print(f"  living: {len(living)} flagged in the data, {presumed} presumed dead "
+              f"by the {PRESUME_DEAD_AFTER}-year rule · policy {a.policy}")
+    fails, ndates = check_dates(pages, living, set())
+    extra = ""
+    if a.policy == "absent":
+        nf, nph, allowed, covered = check_names(
+            pages, set(living), published_names(a.data), set(), set())
+        fails += nf
+        extra = f", {nph:,} name phrases"
+    ok = (f"{len(pages)} pages — no living person reaches the build "
+          f"({len(living)} living, {ndates} dates{extra} guarded)")
+    return report(fails, ok, a.quiet)
 
 
 if __name__ == "__main__":
