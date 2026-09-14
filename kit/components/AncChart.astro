@@ -1,0 +1,167 @@
+---
+/* The ancestor chart, drawn.
+
+   This was Defranceschi's, on one archive, while the other six had no drawing
+   of their own line at all — the kit had standardised the LIST of lines and
+   not the picture of one. Promoted here so they can.
+
+   Three things tied it to one archive: the url helper, that archive's dossier
+   slugs, and its name resolver. The url helper moved to the kit's own lib; the
+   other two collapse into ONE prop. The archive answers «does this person have
+   a page, and where», because only it knows; this file answers «how is the
+   chart laid out», which is the part worth having once.
+
+     root         the nested node: { n, d, place, conf, arch, who, f, m }
+                  f and m are the father and mother, each the same shape.
+                  { wall: true, kind, label, q, arch } ends a branch instead.
+     personHref   node → a URL, or null for no link. Optional.
+
+   Nothing else is required, so an archive with a line and no person pages
+   still gets the drawing. */
+import arch from "../data/archives.json";
+const { root, personHref = () => null } = Astro.props;
+const A = Object.fromEntries(arch.archives.map(a => [a.key, a]));
+
+/* Lay the ancestor chart out by computing every box's position first, so an
+   eight-deep branch beside a two-deep one cannot tear the page open. */
+const COLW = 232, GAPX = 34, ROWH = 64, BOXH = 52;
+const boxes = [], links = [], walls = [];
+let cursor = 0;
+
+function place(node, gen) {
+  const kids = node.wall ? [] : [node.f, node.m].filter(Boolean);
+  let row;
+  if (!kids.length) { row = cursor; cursor += 1; }
+  else {
+    const rows = kids.map(k => place(k, gen + 1));
+    row = rows.reduce((a, b) => a + b, 0) / rows.length;
+    for (const r of rows) links.push({ gen, from: row, to: r });
+  }
+  /* Whether this person has a page is the archive's business, not the
+     chart's — it is the one that knows its own slugs, and a slug this file
+     guessed would be a dead link. One already was. So: ask, take null for
+     an answer, and draw the name plain when the answer is null. */
+  const b = { ...node, gen, row };
+  b.href = node.wall ? null : (personHref(b) || null);
+  boxes.push(b);
+  if (node.wall) walls.push(b);
+  return row;
+}
+place(root, 0);
+
+const maxGen = Math.max(...boxes.map(b => b.gen));
+const maxRow = Math.max(...boxes.map(b => b.row));
+const W = (maxGen + 1) * COLW + maxGen * GAPX;
+const H = (maxRow + 1) * ROWH;
+const X = g => g * (COLW + GAPX);
+const Y = r => r * ROWH;
+
+const KIND = { candidate: "var(--ochre)", unknown: "var(--terra)", unworked: "var(--ink-3)",
+               "other-archive": "var(--accent)", living: "var(--ink-3)" };
+const CONF = { doc: "var(--accent)", lore: "var(--ochre)", living: "var(--ink-3)" };
+const md = (x) => String(x ?? "").replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>").replace(/«(.+?)»/g, "<em>«$1»</em>");
+const GENLAB = ["Self", "Gen 1", "Gen 2", "Gen 3", "Gen 4", "Gen 5", "Gen 6", "Gen 7", "Gen 8"];
+---
+<div class="ac-scroll">
+  <div class="ac" style={`width:${W}px;height:${H + 26}px`}>
+    {Array.from({ length: maxGen + 1 }, (_, g) => (
+      <div class="ac-gl" style={`left:${X(g)}px`}>{GENLAB[g]}</div>
+    ))}
+
+    {/* one dashed lane per generation, so a column can be followed down the page */}
+    {Array.from({ length: maxGen }, (_, i) => (
+      <div class="ac-lane" style={`left:${X(i + 1) - GAPX / 2}px`}></div>
+    ))}
+
+    {links.map(l => {
+      const x0 = X(l.gen) + COLW, x1 = X(l.gen + 1);
+      const y0 = Y(l.from) + BOXH / 2 + 26, y1 = Y(l.to) + BOXH / 2 + 26;
+      const mid = x0 + (x1 - x0) / 2;
+      return (<>
+        <div class="ac-h" style={`left:${x0}px;top:${y0}px;width:${mid - x0}px`}></div>
+        <div class="ac-v" style={`left:${mid}px;top:${Math.min(y0, y1)}px;height:${Math.abs(y1 - y0)}px`}></div>
+        <div class="ac-h" style={`left:${mid}px;top:${y1}px;width:${x1 - mid}px`}></div>
+      </>);
+    })}
+
+    {boxes.map(b => b.wall ? (
+      <div class="ac-wall" style={`left:${X(b.gen)}px;top:${Y(b.row) + 26}px;--k:${KIND[b.kind] || "var(--ink-3)"}`}>
+        {b.arch && A[b.arch]
+          ? <a class="ac-wl ac-wlink" href={`${A[b.arch].url}search/?q=${encodeURIComponent(b.q)}`}>{b.label} →</a>
+          : <span class="ac-wl">{b.label}</span>}
+      </div>
+    ) : (
+      <div class="ac-box" style={`left:${X(b.gen)}px;top:${Y(b.row) + 26}px;--c:${CONF[b.conf] || "var(--ink-3)"}`}>
+        <div class="ac-n">{b.href ? <a href={b.href}>{b.n}</a> : b.n}</div>
+        <div class="ac-m">
+          {b.d && <span class="ac-d">{b.d}</span>}
+          {b.place && <span class="ac-p">{b.place}</span>}
+          {b.arch && A[b.arch] && <a class="ac-x" href={A[b.arch].url} title={A[b.arch].name}>{A[b.arch].name.replace("The ","").replace(" Archive","")} archive →</a>}
+        </div>
+      </div>
+    ))}
+  </div>
+</div>
+
+<div class="ac-walls">
+  <h3>The {walls.length} walls, and why each one is a wall</h3>
+  {walls.map(w => (
+    <div class="ac-wrow" style={`--k:${KIND[w.kind] || "var(--ink-3)"}`}>
+      <div class="ac-wk">{w.label}</div>
+      <div class="ac-wn">
+        <span set:html={md(w.note)}></span>
+        {w.arch && A[w.arch] && (
+          <a class="ac-go" href={`${A[w.arch].url}search/?q=${encodeURIComponent(w.q)}`}>
+            Search {A[w.arch].name} for {w.q} →
+          </a>
+        )}
+      </div>
+    </div>
+  ))}
+</div>
+
+<style is:global>
+  .ac-scroll { overflow-x: auto; padding: 4px 2px 10px; }
+  .ac { position: relative; }
+  .ac-gl {
+    position: absolute; top: 0; font-family: var(--sans); font-size: 10px;
+    letter-spacing: .14em; text-transform: uppercase; color: var(--ink-3);
+  }
+  .ac-lane {
+    position: absolute; top: 16px; bottom: 0; width: 0;
+    border-left: 1px dashed rgba(255, 255, 255, .2); pointer-events: none;
+  }
+  .ac-h, .ac-v { position: absolute; }
+  .ac-h { border-top: 1px solid var(--rule-strong); z-index: 1; }
+  .ac-v { border-left: 1px solid var(--rule-strong); z-index: 1; }
+
+  .ac-box, .ac-wall {
+    position: absolute; z-index: 2; width: 232px; height: 52px; box-sizing: border-box;
+    border-radius: 2px; padding: 7px 10px; overflow: hidden;
+  }
+  .ac-box { border: 1px solid var(--rule); border-left: 3px solid var(--c); background: var(--panel); }
+  .ac-n { font-family: var(--serif); font-size: 14.5px; line-height: 1.2; white-space: nowrap;
+          overflow: hidden; text-overflow: ellipsis; }
+  .ac-n a { color: inherit; text-decoration: none; border-bottom: 1px solid var(--rule-strong); }
+  .ac-m { margin-top: 3px; display: flex; gap: 9px; align-items: baseline; white-space: nowrap;
+          overflow: hidden; text-overflow: ellipsis; }
+  .ac-d { font-family: var(--mono); font-size: 11px; color: var(--ink-2); }
+  .ac-p { font-size: 10.5px; color: var(--ink-3); overflow: hidden; text-overflow: ellipsis; }
+  .ac-x { font-size: 10.5px; color: var(--accent); text-decoration: none; }
+
+  .ac-wall { border: 1px dashed var(--k); display: flex; align-items: center; }
+  .ac-wl { font-family: var(--sans); font-size: 10px; letter-spacing: .1em;
+           text-transform: uppercase; color: var(--k); }
+
+  .ac-walls { margin-top: 18px; }
+  .ac-walls h3 { font-family: var(--serif); font-size: 19px; margin: 0 0 10px; }
+  .ac-wrow { display: grid; grid-template-columns: 160px 1fr; gap: 4px 14px;
+             padding: 8px 0; border-top: 1px solid var(--rule); }
+  .ac-wk { font-family: var(--sans); font-size: 10px; letter-spacing: .1em;
+           text-transform: uppercase; color: var(--k); padding-top: 2px; }
+  .ac-wlink { text-decoration: none; border-bottom: 1px solid currentColor; }
+  .ac-go { display: inline-block; margin-left: 6px; font-size: 13px; color: var(--accent); text-decoration: none; white-space: nowrap; }
+  .ac-go:hover { text-decoration: underline; }
+  .ac-wn { font-size: 13.5px; line-height: 1.6; color: var(--ink-2); }
+  @media (max-width: 620px) { .ac-wrow { grid-template-columns: 1fr; } }
+</style>
