@@ -11,22 +11,30 @@
    own layout, which is the usual shape of this estate's problems.
 
    Usage, in a layout's frontmatter:
-     const v = versioner(new URL("../../public/", import.meta.url));
+     const v = versioner();
      <link rel="stylesheet" href={u("/styles.css") + v("styles.css")} />
+
+   It reads from public/ relative to the working directory, which is where
+   Astro builds from. The first version took a URL built with import.meta.url,
+   which is the idiomatic thing and which esbuild refused to parse in six of
+   the seven layouts while accepting it in the seventh. Not worth chasing: a
+   relative path has fewer moving parts and works everywhere.
 
    A missing file returns "" rather than throwing: a fingerprint is a cache
    hint, and it should never be the reason a build fails. */
 import fs from "node:fs";
 import crypto from "node:crypto";
+import path from "node:path";
 
 export function versioner(publicDir) {
+  const dir = publicDir || "public";
   const cache = new Map();
   return function v(rel) {
     if (cache.has(rel)) return cache.get(rel);
     let out = "";
     try {
       out = "?v=" + crypto.createHash("sha1")
-        .update(fs.readFileSync(new URL(rel, publicDir)))
+        .update(fs.readFileSync(path.join(dir, rel)))
         .digest("hex").slice(0, 8);
     } catch (e) { out = ""; }   /* named: esbuild rejects a bare catch here */
     cache.set(rel, out);
