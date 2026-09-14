@@ -1,0 +1,41 @@
+---
+/* A section break: a hairline, an ornament, an optional label, another hairline.
+
+   Three archives had this and the template was identical in all three, down to
+   the class names. The only real difference was which ornament each reached for
+   by default — and those ornaments are genuinely each archive's own, so the
+   mark comes in as a slot and the component never imports a Motif.
+
+   The CSS was identical too, except that Lerena had fixed something the other
+   two still had: a long label with flex:0 0 auto cannot shrink, so it pushed
+   the row wider than a phone — 31px of horizontal scroll on two of its pages.
+   That fix is the shared version now, which is the whole argument for having
+   one copy.
+
+     label   optional, set in small caps beside the mark
+     <slot>  the ornament
+*/
+const { label } = Astro.props;
+---
+<div class="mrule" role="presentation">
+  <span class="ln"></span>
+  <span class="mk"><slot /></span>
+  {label && <span class="lb">{label}</span>}
+  <span class="ln"></span>
+</div>
+<style>
+  .mrule { display:flex; align-items:center; gap:14px; margin:38px 0 6px; }
+  .mrule .ln { flex:1; height:1px; background:var(--rule); }
+  .mrule .mk { opacity:.75; flex:0 0 auto; color:var(--ink-3); display:flex; }
+  .mrule .lb {
+    font-family:var(--sans); font-size:11px; letter-spacing:.14em;
+    text-transform:uppercase; color:var(--ink-3);
+    /* not flex:0 0 auto — an unshrinkable long label pushed the row wider than
+       a phone. It may shrink and wrap. */
+    flex:0 1 auto; min-width:0; overflow-wrap:anywhere;
+  }
+  @media (max-width:620px){
+    .mrule { gap:10px; }
+    .mrule .lb { letter-spacing:.10em; }
+  }
+</style>

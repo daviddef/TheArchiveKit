@@ -1,0 +1,45 @@
+---
+/* Where a name actually lives: one horizontal bar per place, the first one
+   picked out in the accent because it is almost always the answer.
+
+   Two archives drew this. Booyzen took its rows as a prop; Defranceski read one
+   JSON file and took the name of a spelling, which meant the component could
+   only ever serve that archive. The general one wins, and Defranceski's lookup
+   moves into its own wrapper where it belongs.
+
+   The geometry had drifted — 470 against 560 for the bars, 168 against 150 for
+   the labels, 24 against 22 for the row height. The label column is the one
+   that matters and it is the wider of the two, because these labels are country
+   names and "Bosnia and Herzegovina" has to fit.
+
+     rows    [[label, n, note?], ...] — note overrides the printed figure
+     max     the value the longest bar represents; defaults to the largest row
+     unit    appended to the figure when there is no note
+     accent  CSS variable name for the first bar    (default --accent)
+     rest    CSS variable name for the others       (default --rule-strong)
+     label   accessible description of the chart
+*/
+const { rows, unit = "", accent = "--accent", rest = "--rule-strong",
+        max: maxIn, label } = Astro.props;
+const max = maxIn ?? Math.max(...rows.map((r) => r[1]));
+const BW = 470, LW = 168, RH = 24;
+const H = rows.length * RH + 18;
+const bar = (n) => Math.max(2, (n / max) * BW);
+---
+<div class="scroll">
+<svg viewBox={`0 0 ${LW + BW + 90} ${H}`} width={LW + BW + 90}
+     style="min-width:520px;display:block" role="img" aria-label={label}>
+  {rows.map(([lab, n, note], i) => (
+    <g>
+      <text x={LW - 12} y={i * RH + 17} text-anchor="end" font-size="12.5"
+            style="fill:var(--ink-2);font-family:var(--sans)">{lab}</text>
+      <rect x={LW} y={i * RH + 5} width={bar(n)} height={15} rx="1"
+            style={`fill:var(${i === 0 ? accent : rest})`} />
+      <text x={LW + bar(n) + 9} y={i * RH + 17} font-size="11.5"
+            style="fill:var(--ink-3);font-family:var(--mono)">{note ?? n.toLocaleString() + unit}</text>
+    </g>
+  ))}
+  <line x1={LW} y1={rows.length * RH + 2} x2={LW + BW} y2={rows.length * RH + 2}
+        style="stroke:var(--rule)" stroke-width="1" />
+</svg>
+</div>
