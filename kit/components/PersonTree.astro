@@ -54,6 +54,11 @@
  *   palette  { bg, node-bg, line, tree, via, gen } — any archive whose colours
  *            are its own, stamped inline so it beats the shared defaults
  *
+ * The stylesheet is kit/styles/persontree.css and is NOT bundled with this
+ * component, because one archive draws a chart in the same vocabulary without
+ * using the component at all (Lerena's Taylor chart, which is three generations
+ * rather than one person). Import it wherever the vocabulary is used.
+ *
  * Slots: "before-caption" sits between the chart and the caption, "notes"
  * inside the caption under the keys, "after" below the
  * whole caption. Both take the archive's own prose, which is an argument it is
@@ -216,77 +221,3 @@ const sty = Object.entries(palette).map(([k, v]) => `--pt-${k}:${v}`).join(";") 
 </figure>
 ) : null}
 
-<style is:global>
-  .ptree{--pt-bg:var(--ground,transparent);--pt-node-bg:var(--paper,#fff);
-         --pt-line:var(--ink,currentColor);--pt-tree:var(--ink-2);
-         --pt-via:var(--ink-2);--pt-gen:var(--accent);
-         margin:0 0 1.4rem;padding:1rem 1rem .8rem;border:1px solid var(--rule);
-         border-radius:.4rem;background:var(--pt-bg)}
-  .ptree .tier{position:relative}
-  .ptree .lab{font-family:var(--sans);font-size:10px;font-weight:600;letter-spacing:.13em;
-              text-transform:uppercase;color:var(--ink-2);margin:.2rem 0 .45rem}
-  .ptree .row{display:flex;flex-wrap:wrap;gap:.5rem;align-items:stretch}
-  .ptree .node{display:flex;flex-direction:column;gap:.1rem;min-width:9.5rem;max-width:15rem;
-               padding:.45rem .6rem;border:1px solid var(--rule);border-radius:.3rem;
-               text-decoration:none;color:inherit;background:var(--pt-node-bg)}
-  .ptree a.node:hover{border-color:var(--accent)}
-  .ptree .node.me{border-width:2px;border-color:var(--ink,currentColor)}
-  .ptree .node.small{min-width:8rem;padding:.35rem .5rem}
-  .ptree .node.gap{border-style:dashed;opacity:.7;justify-content:center}
-  .ptree .node.gap .nm{font-weight:400;font-style:italic;color:var(--ink-2)}
-  .ptree .nm{font-weight:600;line-height:1.2}
-  .ptree .dt{font-family:var(--mono,monospace);font-size:11px;color:var(--ink-2)}
-  .ptree .mar{font-family:var(--sans);font-size:9px;letter-spacing:.13em;text-transform:uppercase;
-              color:var(--ink-2)}
-  .ptree .via{font-family:var(--sans);font-size:9px;letter-spacing:.1em;text-transform:uppercase;
-              color:var(--pt-via);margin-top:.15rem}
-  /* provenance said in colour AND in words — colour alone is no use to a reader
-     who cannot see it */
-  .ptree .node.via-line{border-left:3px solid var(--pt-line)}
-  .ptree .node.via-register{border-left:3px solid var(--accent)}
-  .ptree .via-register .via{color:var(--accent)}
-  .ptree .node.via-read{border-left:3px solid var(--accent)}
-  .ptree .via-read .via{color:var(--accent)}
-  .ptree .node.via-scanned{border-left:3px dashed var(--accent)}
-  .ptree .node.via-tree{border-left:3px dotted var(--pt-tree)}
-  /* stated in no record, but following from one — Booyzen's own distinction,
-     and the only one of these six words that is not a synonym of another */
-  .ptree .node.via-inferred{border-left:3px dashed var(--accent)}
-  .ptree .node.via-none{border-left:3px dotted var(--ink-2);opacity:.75}
-  .ptree .node.via-disputed{border-left:3px solid #9b2c2c}
-  .ptree .via-disputed .via{color:#9b2c2c;font-weight:600}
-  /* an edge this archive has retracted, left in place and struck through */
-  .ptree .node.gone{opacity:.55}
-  .ptree .node.gone .nm{text-decoration:line-through}
-  .ptree .node.gone .via{font-style:italic}
-  /* a record read here contradicts the edge the tree draws — said on the edge */
-  .ptree .node.disputed{border-left:3px solid #b3261e;background:rgba(179,38,30,.045)}
-  .ptree .node.disputed .via{color:#b3261e;font-weight:600}
-  .ptree .node.disputed .nm::after{content:" ⚠";color:#b3261e;font-weight:700}
-  .ptree .disputed-note{margin-top:18px;padding:14px 16px;border-left:3px solid #b3261e;
-    background:rgba(179,38,30,.05);font-family:var(--sans);font-size:13px;line-height:1.6;color:var(--ink-2)}
-  .ptree .disputed-note ul{margin:.5rem 0 .6rem;padding-left:18px}
-  .ptree .disputed-note li{margin-bottom:.4rem}
-  .ptree .disputed-note li a{text-transform:capitalize}
-  .ptree .disputed-note p{margin:0;color:var(--ink-3)}
-  .ptree .via.gen{color:var(--pt-gen);font-weight:600}
-  .ptree .via.living{font-style:italic}
-  .ptree .drop{height:.9rem;margin-left:1.4rem;border-left:1px solid var(--rule)}
-  .ptree .sibs{margin-top:.9rem;padding-top:.7rem;border-top:1px dashed var(--rule)}
-  .ptree figcaption{margin-top:.9rem;padding-top:.6rem;border-top:1px solid var(--rule);
-                    font-family:var(--sans);font-size:11px;color:var(--ink-2);line-height:1.55}
-  .ptree .key{display:inline-flex;align-items:center;gap:.35rem;margin-right:1rem}
-  .ptree .sw{width:.85rem;height:0;border-top:3px solid var(--accent);display:inline-block}
-  .ptree .sw.line{border-top-color:var(--pt-line);border-top-width:4px}
-  .ptree .sw.scanned{border-top-style:dashed}
-  .ptree .sw.inferred{border-top-style:dashed}
-  .ptree .sw.gone{border-top-style:dashed;border-top-color:var(--pt-tree)}
-  .ptree .sw.tree{border-top-style:dotted;border-top-color:var(--pt-tree)}
-  .ptree .note-line{margin:.6rem 0 0}
-  .ptree .warn{margin:.5rem 0 0;line-height:1.5;max-width:86ch}
-  /* a warning that is a boxed callout above the caption rather than a line of
-     prose inside it */
-  .ptree .warn.cap{margin:12px 0 0;padding:10px 12px;border-left:3px solid var(--rule-strong);
-                   background:var(--panel-2);border-radius:2px;color:var(--ink-2)}
-  .ptree figcaption b{color:var(--ink-2);font-weight:600}
-</style>
