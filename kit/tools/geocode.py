@@ -172,6 +172,25 @@ def tidy(name):
     return re.sub(r"\s+", " ", s).strip(" ,")
 
 
+def _usable(hit, asked):
+    """A country is not an answer to "which town was this".
+
+    The ladder drops segments until something matches, and the last thing left
+    is usually the country — so "Bagnara Calabra, Reggio Calabria, Italy" would
+    fail twice and then land on ITALY. Six different Mazza towns collapsed onto
+    one dot in the middle of the peninsula that way, and a dot in the middle of
+    Italy asserts a location the archive does not have. Unless the place really
+    is called Italy, that is a shrug with coordinates, and an empty space is
+    more honest.
+    """
+    if not hit:
+        return None
+    m = hit.get("matched") or ""
+    if "," in m:                       # anything with a region after it is specific enough
+        return hit
+    return hit if fold(m) == fold(asked) else None
+
+
 def find(name, gaz):
     """A coordinate for this name, or None.
 
@@ -193,7 +212,7 @@ def find(name, gaz):
         # Tails first — dropping a street or a farm to reach the town.
         for i in range(len(parts)):
             tail = ", ".join(parts[i:])
-            hit = gaz.get(fold(tail)) or gaz.get(fold(tidy(tail)))
+            hit = _usable(gaz.get(fold(tail)) or gaz.get(fold(tidy(tail))), name)
             if hit:
                 return hit
         # Then heads, dropping a country that no longer exists. These files are
@@ -201,7 +220,7 @@ def find(name, gaz):
         # a tail-only ladder walks straight past the town into a dead polity.
         for j in range(len(parts) - 1, 0, -1):
             head = ", ".join(parts[:j])
-            hit = gaz.get(fold(head)) or gaz.get(fold(tidy(head)))
+            hit = _usable(gaz.get(fold(head)) or gaz.get(fold(tidy(head))), name)
             if hit:
                 return hit
     return None

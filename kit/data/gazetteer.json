@@ -67,6 +67,15 @@
 "matched": "United States",
 "via": "America"
 },
+"america italy": {
+"asked": "America, Italy",
+"conf": "exact",
+"kind": "place/suburb",
+"lat": 44.28871,
+"lon": 11.11653,
+"matched": "America, Carviano, Grizzana Morandi, Unione dell'Appennino Bolognese, Bologna, Emilia-Romagna, 40038, Italy",
+"via": "America, Italy"
+},
 "aram england": null,
 "argentina": {
 "asked": "Argentina",
@@ -241,6 +250,15 @@
 "matched": "Baden-Württemberg, Germany",
 "via": "Baden-Wuerttemberg, Germany"
 },
+"bagnara calabra calabria italy": {
+"asked": "Bagnara Calabra, Calabria, Italy",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 38.28847,
+"lon": 15.8078,
+"matched": "Bagnara Calabra, Reggio Calabria, Calabria, 89011, Italy",
+"via": "Bagnara Calabra, Calabria, Italy"
+},
 "bali indonesia": {
 "asked": "Bali, Indonesia",
 "conf": "exact",
@@ -313,6 +331,15 @@
 "lon": 14.70571,
 "matched": "Benevento, Campania, Italy",
 "via": "Benevento"
+},
+"bergamo lombardia italy": {
+"asked": "Bergamo, Lombardia, Italy",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 45.75666,
+"lon": 9.75422,
+"matched": "Bergamo, Lombardy, Italy",
+"via": "Bergamo, Lombardia, Italy"
 },
 "berkeley gloucester england": null,
 "berkeley gloucestershire england": {
@@ -674,6 +701,15 @@
 "lon": -6.94636,
 "matched": "County Monaghan, Ulster, Ireland",
 "via": "Co. Monaghan, Ireland"
+},
+"cosenza calabria italy": {
+"asked": "Cosenza, Calabria, Italy",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 39.59669,
+"lon": 16.33306,
+"matched": "Cosenza, Calabria, Italy",
+"via": "Cosenza, Calabria, Italy"
 },
 "county cork ireland": {
 "asked": "County Cork, Ireland",
@@ -1187,6 +1223,15 @@
 "matched": "Italy",
 "via": "Italia"
 },
+"italia england": {
+"asked": "Italia, England",
+"conf": "approx",
+"kind": "landuse/industrial",
+"lat": 53.39767,
+"lon": -2.36016,
+"matched": "Italia Park Estate, Broadheath, West Timperley, Trafford, Greater Manchester, England, United Kingdom",
+"via": "Italia, England"
+},
 "italy": {
 "asked": "Italy",
 "conf": "exact",
@@ -1693,6 +1738,15 @@
 "matched": "Milan, Rodano, Milan, Lombardy, Italy",
 "via": "Milan, Lombardy"
 },
+"mirabella eclano avellino campania italy": {
+"asked": "Mirabella Eclano, Avellino, Campania, Italy",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 41.04492,
+"lon": 14.99874,
+"matched": "Mirabella Eclano, Avellino, Campania, 83036, Italy",
+"via": "Mirabella Eclano, Avellino, Campania, Italy"
+},
 "moiano": {
 "asked": "moiano",
 "conf": "exact",
@@ -2054,6 +2108,24 @@
 "via": "Port Pirie, South Australia, Australia"
 },
 "portsmouth hampshire england or west indies": null,
+"postuman veneto italy": {
+"asked": "Postuman, Veneto, Italy",
+"conf": "exact",
+"kind": "place/hamlet",
+"lat": 45.49917,
+"lon": 11.119,
+"matched": "Postuman, Mezzane di Sotto, Verona, Veneto, 37030, Italy",
+"via": "Postuman, Veneto, Italy"
+},
+"potenzioni catanzaro calabria italy": {
+"asked": "Potenzioni, Catanzaro Calabria, Italy",
+"conf": "approx",
+"kind": "boundary/administrative",
+"lat": 38.82996,
+"lon": 16.43156,
+"matched": "Catanzaro, Calabria, Italy",
+"via": "Catanzaro Calabria, Italy"
+},
 "potenzoni vibo valentia calabria": {
 "asked": "Potenzoni , Vibo Valentia, Calabria",
 "conf": "exact",
@@ -2135,6 +2207,24 @@
 "lon": 138.04212,
 "matched": "Quorn, South Australia, 5433, Australia",
 "via": "Quorn, South Australia, Australia"
+},
+"reggio calabria citta metropolitana di reggio calabria calabria italy": {
+"asked": "Reggio Calabria, Città Metropolitana di Reggio Calabria, Calabria, Italy",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 38.10354,
+"lon": 15.63976,
+"matched": "Reggio Calabria, Calabria, Italy",
+"via": "Reggio Calabria, Città Metropolitana di Reggio Calabria, Calabria, Italy"
+},
+"reggio di calabria calabria italy": {
+"asked": "Reggio di Calabria, Calabria, Italy",
+"conf": "approx",
+"kind": "boundary/administrative",
+"lat": 38.10354,
+"lon": 15.63976,
+"matched": "Reggio Calabria, Calabria, Italy",
+"via": "Reggio di Calabria, Calabria, Italy"
 },
 "retiro buenos aires": null,
 "rijeka": {
@@ -2315,6 +2405,15 @@
 },
 "santa maria a vico nola terra di lavoro": null,
 "schloss friedrichsburg mannheim germ": null,
+"schloss friedrichsburg mannheim germany": {
+"asked": "Schloss Friedrichsburg, Mannheim, Germany",
+"conf": "approx",
+"kind": "boundary/administrative",
+"lat": 49.48929,
+"lon": 8.46731,
+"matched": "Mannheim, Baden-Württemberg, Germany",
+"via": "Mannheim, Germany"
+},
 "schwetzingen rhein neckar kreis baden wurttemberg deutschland": {
 "asked": "Schwetzingen, Rhein-Neckar-Kreis, Baden-Württemberg, Deutschland",
 "conf": "exact",
@@ -2396,6 +2495,15 @@
 "lon": 14.98888,
 "matched": "Grad Senj, Lika-Senj County, Croatia",
 "via": "Senj, Lika-Senj County, Croatia"
+},
+"serrata citta metropolitana di reggio calabria calabria italy": {
+"asked": "Serrata, Città Metropolitana di Reggio Calabria, Calabria, Italy",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 38.51288,
+"lon": 16.1007,
+"matched": "Serrata, Reggio Calabria, Calabria, 89020, Italy",
+"via": "Serrata, Città Metropolitana di Reggio Calabria, Calabria, Italy"
 },
 "shoreditch london": {
 "asked": "Shoreditch, London",
