@@ -80,6 +80,20 @@ def geocode(name, cache, sleeper=time.sleep, countries=None):
         if not hits:
             continue
         h = _rank(hits, want)[0]
+        # A town is not a shop. Asking for "Berkeley, Gloucester" and taking the
+        # best available answer put it on Berkeley STREET in London; "Aram,
+        # England" landed on a furniture shop and "Castle Church, Stafford" on a
+        # bus stop. Every one of those is in the right country, so the region
+        # guard cannot see it. If nothing of the right KIND came back, drop to
+        # the next, shorter attempt rather than accept a plausible-looking dot.
+        if h.get("category") not in ("place", "boundary", "historic", "landuse", "natural"):
+            h = None
+            for cand in _rank(hits, want):
+                if cand.get("category") in ("place", "boundary"):
+                    h = cand
+                    break
+            if h is None:
+                continue
         cat, typ = h.get("category"), h.get("type")
         solid = (cat in ("place", "boundary") and typ in GOOD_PLACE
                  and want and want in fold(h.get("display_name", "")))
@@ -142,6 +156,9 @@ def tidy(name):
     # "Rosario, then Montevideo" / "Portsmouth … or West Indies" / "Buenos Aires
     # and Mendoza" are two answers in one field. The first is the place.
     s = re.split(r"\s+(?:or|and|then|later)\s+", s, 1)[0]
+    # "Parish of Elmore", "Borough of X": the administrative word is not the place
+    s = re.sub(r"^\s*(?:the\s+)?(?:parish|borough|township|hundred|county|district)\s+of\s+",
+               "", s, flags=re.I)
     s = re.sub(r"^\s*of\s+", "", s, flags=re.I)
     # "Deinschwang, near Amberg" — the qualifier is not part of either name
     s = re.sub(r",?\s*\bnear\s+", ", ", s, flags=re.I)

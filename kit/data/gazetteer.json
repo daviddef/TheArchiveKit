@@ -1,14 +1,6 @@
 {
 "": null,
-"1 north quay brisbane queensland australia": {
-"asked": "1 North Quay, Brisbane, Queensland, Australia",
-"conf": "approx",
-"kind": "highway/primary",
-"lat": -27.46731,
-"lon": 153.01672,
-"matched": "North Quay, Brisbane City, Brisbane, Queensland, 4000, Australia",
-"via": "1 North Quay, Brisbane, Queensland, Australia"
-},
+"1 north quay brisbane queensland australia": null,
 "6 mrzli dol": {
 "asked": "#6 Mrzli dol",
 "conf": "approx",
@@ -28,15 +20,7 @@
 "via": "6 Mrzli Dol, Lika-Senj, Croatia"
 },
 "about limerick city ireland": null,
-"adelaide st north brisbane queensland australia": {
-"asked": "Adelaide St, North Brisbane, Queensland, Australia",
-"conf": "approx",
-"kind": "shop/clothes",
-"lat": -27.60896,
-"lon": 152.75896,
-"matched": "City Beach, Riverlink Bus Interchange, North Ipswich, Ipswich, Brisbane, Queensland, 4305, Australia",
-"via": "North Brisbane, Queensland, Australia"
-},
+"adelaide st north brisbane queensland australia": null,
 "airola": {
 "asked": "airola",
 "conf": "exact",
@@ -83,15 +67,7 @@
 "matched": "United States",
 "via": "America"
 },
-"aram england": {
-"asked": "Aram, England",
-"conf": "approx",
-"kind": "shop/furniture",
-"lat": 51.51346,
-"lon": -0.11875,
-"matched": "Aram, Kean Street, St Clement Danes, Covent Garden, City of Westminster, Greater London, England, WC2B 5SG, United Kingdom",
-"via": "Aram, England"
-},
+"aram england": null,
 "argentina": {
 "asked": "Argentina",
 "conf": "exact",
@@ -128,15 +104,7 @@
 "matched": "Arienzo, Caserta, Campania, 81021, Italy",
 "via": "Arienzo, Caserta, Campania, Italy"
 },
-"arneytown burlington county new jersey": {
-"asked": "Arneytown, Burlington County, New Jersey",
-"conf": "approx",
-"kind": "highway/tertiary",
-"lat": 40.10197,
-"lon": -74.57006,
-"matched": "Chesterfield-Arneytown Road, North Hanover Township, Burlington County, New Jersey, 08562, United States",
-"via": "Arneytown, Burlington County, New Jersey"
-},
+"arneytown burlington county new jersey": null,
 "arpaia": {
 "asked": "Arpaia",
 "conf": "exact",
@@ -245,15 +213,7 @@
 "matched": "Ayrshire, Scotland, KA5 5NL, United Kingdom",
 "via": "Ayr, Scotland"
 },
-"bacharach darmstadt rhineland palatinate germany": {
-"asked": "Bacharach, Darmstadt, Rhineland-Palatinate, Germany",
-"conf": "approx",
-"kind": "highway/residential",
-"lat": 49.91345,
-"lon": 8.3406,
-"matched": "Christine-Darmstadt-Straße, Nackenheim, Bodenheim, Landkreis Mainz-Bingen, Rhineland-Palatinate, 55299, Germany",
-"via": "Darmstadt, Rhineland-Palatinate, Germany"
-},
+"bacharach darmstadt rhineland palatinate germany": null,
 "backwell": {
 "asked": "Backwell",
 "conf": "exact",
@@ -335,15 +295,7 @@
 "matched": "Bath, Bath and North East Somerset, West of England, England, United Kingdom",
 "via": "Bath, Somerset, England"
 },
-"bath somersetshire england kingdom of great britain": {
-"asked": "Bath, Somersetshire, England, Kingdom of Great Britain",
-"conf": "approx",
-"kind": "office/diplomatic",
-"lat": 51.50058,
-"lon": -0.15387,
-"matched": "Embassy of the United Arab Emirates, 1;2, Grosvenor Crescent, Belgravia, City of Westminster, Greater London, England, SW1X 7EE, United Kingdom",
-"via": "England, Kingdom of Great Britain"
-},
+"bath somersetshire england kingdom of great britain": null,
 "bedworth leicestershire england uk": {
 "asked": "Bedworth, Leicestershire, England, UK.",
 "conf": "approx",
@@ -362,15 +314,7 @@
 "matched": "Benevento, Campania, Italy",
 "via": "Benevento"
 },
-"berkeley gloucester england": {
-"asked": "Berkeley, Gloucester, England",
-"conf": "approx",
-"kind": "highway/pedestrian",
-"lat": 51.86599,
-"lon": -2.2485,
-"matched": "Berkeley Street, Kings Barton, City Centre, Gloucester, Gloucestershire, England, GL1 2JB, United Kingdom",
-"via": "Berkeley, Gloucester, England"
-},
+"berkeley gloucester england": null,
 "berkeley gloucestershire england": {
 "asked": "Berkeley, Gloucestershire, England",
 "conf": "exact",
@@ -488,15 +432,7 @@
 "matched": "Brisbane, Queensland, Australia",
 "via": "Brisbane, Queensland, Australia"
 },
-"brookly new york city new york usa": {
-"asked": "brookly, New York City, New York, USA",
-"conf": "approx",
-"kind": "shop/car_repair",
-"lat": 40.68044,
-"lon": -74.01001,
-"matched": "Brookly Transmission and Truck Repair, Verona Street, Brooklyn, Kings County, New York, 11231, United States",
-"via": "brookly, New York City, New York, USA"
-},
+"brookly new york city new york usa": null,
 "buckwall somerset": null,
 "buenos aires": {
 "asked": "Buenos Aires",
@@ -590,15 +526,7 @@
 "matched": "Caserta, Campania, Italy",
 "via": "Caserta, Campania, Italy"
 },
-"castle church stafford england": {
-"asked": "Castle Church, Stafford, England",
-"conf": "approx",
-"kind": "highway/bus_stop",
-"lat": 52.79649,
-"lon": -2.14045,
-"matched": "Castle Church, Castle Bank, Highfields, Derrington, Stafford, Staffordshire, England, ST16 1DP, United Kingdom",
-"via": "Castle Church, Stafford, England"
-},
+"castle church stafford england": null,
 "catania sicily": {
 "asked": "Catania, Sicily",
 "conf": "exact",
@@ -691,15 +619,7 @@
 "matched": "Gloucester, Gloucestershire, England, GL1 2AP, United Kingdom",
 "via": "Gloucester, England"
 },
-"clarkenwell finsbury london middlesex england": {
-"asked": "Clarkenwell, Finsbury, London, Middlesex, England",
-"conf": "approx",
-"kind": "tourism/hotel",
-"lat": 51.51551,
-"lon": -0.07476,
-"matched": "Travelodge London City, 20, Middlesex Street, Spitalfields, Whitechapel, London Borough of Tower Hamlets, Greater London, England, E1 7EZ, United Kingdom",
-"via": "London, Middlesex, England"
-},
+"clarkenwell finsbury london middlesex england": null,
 "clifton bedfordshire england": {
 "asked": "Clifton, Bedfordshire, England",
 "conf": "exact",
@@ -718,15 +638,7 @@
 "matched": "Colonia del Sacramento, Colonia, 70000, Uruguay",
 "via": "Colonia, Uruguay"
 },
-"conduit street mayfair london": {
-"asked": "Conduit Street, Mayfair, London",
-"conf": "approx",
-"kind": "highway/secondary",
-"lat": 51.51272,
-"lon": -0.14127,
-"matched": "Conduit Street, St. James's, East Marylebone, Mayfair, City of Westminster, Greater London, England, W1S 2YZ, United Kingdom",
-"via": "Conduit Street, Mayfair, London"
-},
+"conduit street mayfair london": null,
 "cordoba argentina": {
 "asked": "Cordoba, Argentina",
 "conf": "exact",
@@ -865,6 +777,34 @@
 "matched": "Durazzano, Benevento, Campania, 82015, Italy",
 "via": "Durazzano, Benevento, Italy"
 },
+"durnau": {
+"asked": "durnau",
+"conf": "approx",
+"kind": "boundary/administrative",
+"lat": 48.06043,
+"lon": 9.55419,
+"matched": "Dürnau, GVV Bad Buchau, Landkreis Biberach, Baden-Württemberg, Germany",
+"via": "Durnau Biberach",
+"why": "Bare name; the unqualified lookup answered with a different place of the same name."
+},
+"durnau biberach": {
+"asked": "Durnau Biberach",
+"conf": "approx",
+"kind": "boundary/administrative",
+"lat": 48.06043,
+"lon": 9.55419,
+"matched": "Dürnau, GVV Bad Buchau, Landkreis Biberach, Baden-Württemberg, Germany",
+"via": "Durnau Biberach"
+},
+"durnau biberach baden wurttemberg germany": {
+"asked": "Dürnau, Biberach, Baden-Württemberg, Germany",
+"conf": "exact",
+"kind": "boundary/administrative",
+"lat": 48.06043,
+"lon": 9.55419,
+"matched": "Dürnau, GVV Bad Buchau, Landkreis Biberach, Baden-Württemberg, Germany",
+"via": "Dürnau, Biberach, Baden-Württemberg, Germany"
+},
 "durnau biberach bw": {
 "asked": "Dürnau/Biberach/BW",
 "conf": "approx",
@@ -919,6 +859,34 @@
 "lon": 8.13903,
 "matched": "Baden, Baden-Württemberg, 79215, Germany",
 "via": "Baden, Germany"
+},
+"elmore": {
+"asked": "elmore",
+"conf": "approx",
+"kind": "place/village",
+"lat": 51.83485,
+"lon": -2.31434,
+"matched": "Elmore, Stroud, Gloucestershire, England, GL2 3NT, United Kingdom",
+"via": "Elmore Gloucestershire",
+"why": "Bare name; the unqualified lookup answered with a different place of the same name."
+},
+"elmore gloucestershire": {
+"asked": "Elmore Gloucestershire",
+"conf": "approx",
+"kind": "place/village",
+"lat": 51.83485,
+"lon": -2.31434,
+"matched": "Elmore, Stroud, Gloucestershire, England, GL2 3NT, United Kingdom",
+"via": "Elmore Gloucestershire"
+},
+"elmore gloucestershire england": {
+"asked": "Elmore, Gloucestershire, England",
+"conf": "exact",
+"kind": "place/village",
+"lat": 51.83485,
+"lon": -2.31434,
+"matched": "Elmore, Stroud, Gloucestershire, England, GL2 3NT, United Kingdom",
+"via": "Elmore, Gloucestershire, England"
 },
 "eltonhead lancashire england": {
 "asked": "Eltonhead, Lancashire, England",
@@ -1019,15 +987,7 @@
 "matched": "Genoa, Liguria, Italy",
 "via": "Genoa, Liguria"
 },
-"german savoy church strand london": {
-"asked": "German Savoy Church, Strand, London",
-"conf": "approx",
-"kind": "highway/primary",
-"lat": 51.50915,
-"lon": -0.12432,
-"matched": "Strand, St Clement Danes, Westminster, Covent Garden, City of Westminster, Greater London, England, WC2N 5JB, United Kingdom",
-"via": "Strand, London"
-},
+"german savoy church strand london": null,
 "germany": {
 "asked": "Germany",
 "conf": "exact",
@@ -1073,15 +1033,7 @@
 "matched": "Gologorica, Općina Cerovlje, Istria County, Croatia",
 "via": "Gologorica, Istra, Croatia"
 },
-"graham street south brisbane queensland australia": {
-"asked": "Graham Street, South Brisbane, Queensland, Australia",
-"conf": "approx",
-"kind": "highway/residential",
-"lat": -27.48339,
-"lon": 153.02588,
-"matched": "Graham Street, South Brisbane, Brisbane, Queensland, 4101, Australia",
-"via": "Graham Street, South Brisbane, Queensland, Australia"
-},
+"graham street south brisbane queensland australia": null,
 "great britain": {
 "asked": "Great Britain",
 "conf": "exact",
@@ -1091,15 +1043,7 @@
 "matched": "Great Britain, United Kingdom",
 "via": "Great Britain"
 },
-"gro sa records": {
-"asked": "GRO + SA records",
-"conf": "approx",
-"kind": "shop/music",
-"lat": 38.5706,
-"lon": -121.49551,
-"matched": "Medium Rare Records & Collectibles, Rice Alley, Southside Park, Sacramento, Sacramento County, California, 95811, United States",
-"via": "GRO + SA records"
-},
+"gro sa records": null,
 "gualeguaychu entre rios": {
 "asked": "Gualeguaychu, Entre Rios",
 "conf": "exact",
@@ -1118,24 +1062,8 @@
 "matched": "Gympie, Queensland, Australia",
 "via": "Gympie, Queensland, Australia"
 },
-"hampton court palace richmond greater london united kingdom": {
-"asked": "Hampton Court Palace, Richmond, Greater London, United Kingdom",
-"conf": "approx",
-"kind": "building/palace",
-"lat": 51.40368,
-"lon": -0.3377,
-"matched": "Hampton Court Palace, Tennis Court Lane, Hampton Wick, London Borough of Richmond upon Thames, Greater London, England, KT8 9AU, United Kingdom",
-"via": "Hampton Court Palace, Richmond, Greater London, United Kingdom"
-},
-"hanley stoke on trent staffordshire england": {
-"asked": "Hanley, Stoke-on-Trent, Staffordshire, England",
-"conf": "approx",
-"kind": "amenity/school",
-"lat": 52.9569,
-"lon": -2.11405,
-"matched": "St Matthews Church of England Academy, Lightwood Road, Rough Close, Fulford, Meir Heath, Stoke-on-Trent, Staffordshire, England, ST3 7NE, United Kingdom",
-"via": "Stoke-on-Trent, Staffordshire, England"
-},
+"hampton court palace richmond greater london united kingdom": null,
+"hanley stoke on trent staffordshire england": null,
 "heidelberg baden germany": {
 "asked": "Heidelberg, Baden, Germany",
 "conf": "exact",
@@ -1155,32 +1083,46 @@
 "via": "Heidelberg, Bayern, Deutschland"
 },
 "heidelberg bayern deutschland hrr": null,
-"heidelberg karlsruhe baden wurttemberg germany": {
-"asked": "Heidelberg, Karlsruhe, Baden-Wurttemberg, Germany",
+"heidelberg karlsruhe baden wurttemberg germany": null,
+"hillingdon house middlesex london england": null,
+"himley": {
+"asked": "himley",
 "conf": "approx",
-"kind": "information/map",
-"lat": 49.219,
-"lon": 8.63425,
-"matched": "Heidelberg- Schwarzwald- Bodensee- Radweg, Kirchstraße, Kronau, VVG der Gemeinde Bad Schönborn, Landkreis Karlsruhe, Baden-Württemberg, 76709, Germany",
-"via": "Heidelberg, Karlsruhe, Baden-Wurttemberg, Germany"
+"kind": "place/village",
+"lat": 52.51798,
+"lon": -2.17716,
+"matched": "Himley, South Staffordshire, Staffordshire, England, DY3 4LG, United Kingdom",
+"via": "Himley Staffordshire",
+"why": "Bare name; the unqualified lookup answered with a different place of the same name."
 },
-"hillingdon house middlesex london england": {
-"asked": "Hillingdon House, Middlesex, London, England",
+"himley hall": {
+"asked": "himley hall",
 "conf": "approx",
-"kind": "amenity/courthouse",
-"lat": 51.50041,
-"lon": -0.12813,
-"matched": "Supreme Court, Parliament Square, Westminster, Millbank, City of Westminster, Greater London, England, SW1P 3BD, United Kingdom",
-"via": "Middlesex, London, England"
+"kind": "place/village",
+"lat": 52.51798,
+"lon": -2.17716,
+"matched": "Himley, South Staffordshire, Staffordshire, England, DY3 4LG, United Kingdom",
+"via": "Himley Staffordshire",
+"why": "Bare name; the unqualified lookup answered with a different place of the same name."
 },
-"himley hall himley staffs": {
-"asked": "Himley Hall, Himley Staffs",
+"himley hall himley staffs": null,
+"himley staffordshire": {
+"asked": "Himley Staffordshire",
 "conf": "approx",
-"kind": "building/yes",
-"lat": 52.52194,
-"lon": -2.16618,
-"matched": "Himley Hall, Dudley Road, Himley, South Staffordshire, Staffordshire, England, DY3 4LA, United Kingdom",
-"via": "Himley Hall, Himley Staffs"
+"kind": "place/village",
+"lat": 52.51798,
+"lon": -2.17716,
+"matched": "Himley, South Staffordshire, Staffordshire, England, DY3 4LG, United Kingdom",
+"via": "Himley Staffordshire"
+},
+"himley staffordshire england": {
+"asked": "Himley, Staffordshire, England",
+"conf": "exact",
+"kind": "place/village",
+"lat": 52.51798,
+"lon": -2.17716,
+"matched": "Himley, South Staffordshire, Staffordshire, England, DY3 4LG, United Kingdom",
+"via": "Himley, Staffordshire, England"
 },
 "hornby castle north riding yorkshire england": {
 "asked": "Hornby Castle, North Riding, Yorkshire, England",
@@ -1254,15 +1196,7 @@
 "matched": "Italy",
 "via": "Italy"
 },
-"jackson ocean new jersey": {
-"asked": "Jackson, Ocean, New Jersey",
-"conf": "approx",
-"kind": "leisure/park",
-"lat": 40.06206,
-"lon": -74.40821,
-"matched": "New Jersey Wildlife and Game Refuge, Jackson Township, Ocean County, New Jersey, United States",
-"via": "Jackson, Ocean, New Jersey"
-},
+"jackson ocean new jersey": null,
 "johannesburg south africa": {
 "asked": "Johannesburg, South Africa",
 "conf": "exact",
@@ -1299,15 +1233,7 @@
 "matched": "Kempsey Shire Council, New South Wales, Australia",
 "via": "Kempsey, New South Wales, Australia"
 },
-"kensington house london middlesex england": {
-"asked": "Kensington House, London, Middlesex, England",
-"conf": "approx",
-"kind": "tourism/hotel",
-"lat": 51.51551,
-"lon": -0.07476,
-"matched": "Travelodge London City, 20, Middlesex Street, Spitalfields, Whitechapel, London Borough of Tower Hamlets, Greater London, England, E1 7EZ, United Kingdom",
-"via": "London, Middlesex, England"
-},
+"kensington house london middlesex england": null,
 "kermpote": null,
 "kermpote sv jakov": null,
 "kirkby mallory leicestershire england": {
@@ -1600,15 +1526,7 @@
 "matched": "Limerick, County Limerick, Munster, Ireland",
 "via": "Limerick, Ireland"
 },
-"lismore lismore city new south wales australia": {
-"asked": "Lismore, Lismore City, New South Wales, Australia",
-"conf": "approx",
-"kind": "shop/car_repair",
-"lat": -28.80124,
-"lon": 153.28924,
-"matched": "Lismore City Council Repair Depot, Lismore City Council Depot Access, Lismore, New South Wales, 2480, Australia",
-"via": "Lismore, Lismore City, New South Wales, Australia"
-},
+"lismore lismore city new south wales australia": null,
 "lismore new south wales australia": {
 "asked": "Lismore, New South Wales, Australia",
 "conf": "exact",
@@ -1636,15 +1554,7 @@
 "matched": "Greater London, England, United Kingdom",
 "via": "London, England"
 },
-"london middlesex england": {
-"asked": "London, Middlesex, England",
-"conf": "approx",
-"kind": "tourism/hotel",
-"lat": 51.51551,
-"lon": -0.07476,
-"matched": "Travelodge London City, 20, Middlesex Street, Spitalfields, Whitechapel, London Borough of Tower Hamlets, Greater London, England, E1 7EZ, United Kingdom",
-"via": "London, Middlesex, England"
-},
+"london middlesex england": null,
 "long ashton somerset eng": {
 "asked": "Long Ashton, Somerset, Eng",
 "conf": "exact",
@@ -1811,15 +1721,7 @@
 "matched": "Montevideo, Uruguay",
 "via": "Montevideo"
 },
-"montevideo calle san juan": {
-"asked": "Montevideo, Calle San Juan",
-"conf": "approx",
-"kind": "highway/bus_stop",
-"lat": -31.51962,
-"lon": -68.37396,
-"matched": "Sarmiento y Montevideo, Avenida Sarmiento, Villa Lugano, San Martín, San Juan, 5439, Argentina",
-"via": "Montevideo, Calle San Juan"
-},
+"montevideo calle san juan": null,
 "moree new south wales australia": {
 "asked": "Moree, New South Wales, Australia",
 "conf": "exact",
@@ -1957,15 +1859,7 @@
 "matched": "Newcastle, Newcastle-Maitland, New South Wales, 2300, Australia",
 "via": "Newcastle, New South Wales, Australia"
 },
-"no 3 well st hanley staffordshire england": {
-"asked": "No 3, Well St, Hanley, Staffordshire, England",
-"conf": "approx",
-"kind": "amenity/bank",
-"lat": 52.90244,
-"lon": -2.14605,
-"matched": "Hanley Economic, Christchurch Way, Oultoncross, Stone, Oulton, Stafford, Staffordshire, England, ST15 8ZB, United Kingdom",
-"via": "Hanley, Staffordshire, England"
-},
+"no 3 well st hanley staffordshire england": null,
 "nogoya entre rios": {
 "asked": "Nogoya, Entre Rios",
 "conf": "exact",
@@ -2021,15 +1915,7 @@
 "via": "Hornby Castle, Yorkshire, England"
 },
 "of st quivox ayr sctl": null,
-"of st quivox ayrshire scotland": {
-"asked": "of St Quivox, Ayrshire, Scotland",
-"conf": "approx",
-"kind": "shop/car",
-"lat": 55.47853,
-"lon": -4.60282,
-"matched": "Parks of Hamilton, Boundary Road, Heathfield, Prestwick, South Ayrshire, Scotland, KA8 9SN, United Kingdom",
-"via": "of St Quivox, Ayrshire, Scotland"
-},
+"of st quivox ayrshire scotland": null,
 "ossington nottinghamshire england": {
 "asked": "Ossington, Nottinghamshire, England",
 "conf": "exact",
@@ -2112,15 +1998,7 @@
 "matched": "Paolisi, Benevento, Campania, Italy",
 "via": "Paolisi, Benevento, Italy"
 },
-"parish of elmore": {
-"asked": "Parish of Elmore",
-"conf": "approx",
-"kind": "highway/residential",
-"lat": 45.24698,
-"lon": -66.08658,
-"matched": "Elmore Crescent, Duck Cove, Saint John West, Saint John, Saint Johns Parish, City of Saint John, Saint John County, New Brunswick, E2M 3L7, Canada",
-"via": "Parish of Elmore"
-},
+"parish of elmore": null,
 "parramatta new south wales australia": {
 "asked": "Parramatta, New South Wales, Australia",
 "conf": "exact",
@@ -2230,15 +2108,7 @@
 "matched": "Surrey, England, United Kingdom",
 "via": "Surrey, England"
 },
-"queenland australia": {
-"asked": "Queenland, Australia",
-"conf": "approx",
-"kind": "tourism/artwork",
-"lat": -27.47498,
-"lon": 153.02839,
-"matched": "Queenland Police Memorial, Palm Avenue, Brisbane City, Brisbane, Queensland, 4000, Australia",
-"via": "Queenland, Australia"
-},
+"queenland australia": null,
 "queensland": {
 "asked": "Queensland",
 "conf": "exact",
@@ -2266,15 +2136,7 @@
 "matched": "Quorn, South Australia, 5433, Australia",
 "via": "Quorn, South Australia, Australia"
 },
-"retiro buenos aires": {
-"asked": "Retiro, Buenos Aires",
-"conf": "approx",
-"kind": "railway/station",
-"lat": -34.59115,
-"lon": -58.37468,
-"matched": "Retiro (Mitre), 1420, Avenida Doctor José María Ramos Mejía, Catalinas Norte, Villa 31, Retiro, Buenos Aires, Comuna 1, Autonomous City of Buenos Aires, 1104, Argentina",
-"via": "Retiro, Buenos Aires"
-},
+"retiro buenos aires": null,
 "rijeka": {
 "asked": "Rijeka",
 "conf": "exact",
@@ -2293,6 +2155,16 @@
 "matched": "Grad Rijeka, Primorje-Gorski Kotar County, Croatia",
 "via": "Rijeka, Primorje-Gorski Kotar, Croatia"
 },
+"rockhampton": {
+"asked": "rockhampton",
+"conf": "exact",
+"kind": "place/city",
+"lat": -23.37821,
+"lon": 150.51342,
+"matched": "Rockhampton, Queensland, 4700, Australia",
+"via": "Rockhampton Queensland",
+"why": "Bare name; the unqualified lookup answered with a different place of the same name."
+},
 "rockhampton au": {
 "asked": "Rockhampton, AU",
 "conf": "exact",
@@ -2301,6 +2173,15 @@
 "lon": 150.51342,
 "matched": "Rockhampton, Queensland, 4700, Australia",
 "via": "Rockhampton, AU"
+},
+"rockhampton queensland": {
+"asked": "Rockhampton Queensland",
+"conf": "exact",
+"kind": "place/city",
+"lat": -23.37821,
+"lon": 150.51342,
+"matched": "Rockhampton, Queensland, 4700, Australia",
+"via": "Rockhampton Queensland"
 },
 "rockhampton queensland australia": {
 "asked": "Rockhampton, Queensland, Australia",
@@ -2348,15 +2229,7 @@
 "via": "Rosario, Santa Fe, Argentina"
 },
 "rosario then montevideo": null,
-"royal women s hospital parkville vic australia": {
-"asked": "Royal Women's Hospital, Parkville Vic Australia",
-"conf": "approx",
-"kind": "amenity/hospital",
-"lat": -37.79886,
-"lon": 144.955,
-"matched": "Royal Women's Hospital, 18-22, Flemington Road, Parkville, Melbourne, Victoria, 3052, Australia",
-"via": "Royal Women's Hospital, Parkville Vic Australia"
-},
+"royal women s hospital parkville vic australia": null,
 "rushton spencer staffordshire england": {
 "asked": "Rushton, Spencer, Staffordshire, England",
 "conf": "exact",
@@ -2367,15 +2240,7 @@
 "via": "Rushton, Spencer, Staffordshire, England"
 },
 "sa argentine records": null,
-"sa records": {
-"asked": "SA records",
-"conf": "approx",
-"kind": "shop/music",
-"lat": -34.97964,
-"lon": 138.59163,
-"matched": "Rocktherapy Records, 536, Goodwood Road, Daw Park, Adelaide, South Australia, 5041, Australia",
-"via": "SA records"
-},
+"sa records": null,
 "saffron walden": {
 "asked": "Saffron Walden",
 "conf": "exact",
@@ -2587,15 +2452,7 @@
 "matched": "Primorje-Gorski Kotar County, Croatia",
 "via": "Primorje-Gorski Kotar County, Croatia"
 },
-"soho london middlesex": {
-"asked": "Soho, London, Middlesex",
-"conf": "approx",
-"kind": "amenity/courthouse",
-"lat": 51.50041,
-"lon": -0.12813,
-"matched": "Supreme Court, Parliament Square, Westminster, Millbank, City of Westminster, Greater London, England, SW1P 3BD, United Kingdom",
-"via": "London, Middlesex"
-},
+"soho london middlesex": null,
 "solihull west midlands england": {
 "asked": "SOLIHULL West Midlands England",
 "conf": "exact",
@@ -2835,15 +2692,7 @@
 "matched": "Uruguay",
 "via": "Uruguay"
 },
-"westminster middlesex": {
-"asked": "Westminster, Middlesex",
-"conf": "approx",
-"kind": "amenity/courthouse",
-"lat": 51.50041,
-"lon": -0.12813,
-"matched": "Supreme Court, Parliament Square, Westminster, Millbank, City of Westminster, Greater London, England, SW1P 3BD, United Kingdom",
-"via": "Westminster, Middlesex"
-},
+"westminster middlesex": null,
 "whyalla south australia australia": {
 "asked": "Whyalla, South Australia, Australia",
 "conf": "exact",
