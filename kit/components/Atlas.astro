@@ -254,6 +254,11 @@ const base = import.meta.env.BASE_URL || "/";
 </script>
 
 <style>
+  /* The panel's contents are written by the script with innerHTML, so they
+     never carry Astro's scope attribute — which meant every rule below that
+     styles them matched nothing at all, on the benchmark archive included.
+     They are :global for that reason and must stay so. Everything the
+     template itself renders is scoped normally. */
   .at-wrap { display: grid; grid-template-columns: 1fr 340px; gap: 18px; margin-top: 8px; }
   .at-map { height: 560px; border: 1px solid var(--rule); border-radius: 3px; }
   .at-panel {
@@ -262,21 +267,21 @@ const base = import.meta.env.BASE_URL || "/";
   }
   .at-empty p { font-size: 13px; line-height: 1.6; color: var(--ink-2); margin: 8px 0 0; }
   .at-hint { color: var(--ink-3) !important; font-size: 12px !important; }
-  .at-h { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
-  .at-h h3 { font-family: var(--serif); font-size: 21px; margin: 0; line-height: 1.25; }
-  .at-n { font: 400 11px/1 var(--mono); color: var(--accent); white-space: nowrap; }
-  .at-also { font: 400 11.5px/1.5 var(--mono); color: var(--ink-3); margin: 8px 0 0; }
-  .at-what { font-size: 13.5px; line-height: 1.65; margin: 12px 0 0; }
-  .at-ev { margin: 6px 0 0; padding: 0; list-style: none; }
-  .at-ev li { font-size: 12.5px; line-height: 1.5; margin-bottom: 5px; color: var(--ink-2); }
-  .at-ed { display: block; font-family: var(--mono); font-size: 11px; color: var(--ink-3); }
-  .at-go { margin: 10px 0 0; font-size: 13px; }
-  .at-sec { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--rule); }
-  .at-sub { font: 400 11.5px/1.5 var(--mono); color: var(--ink-3); margin: 6px 0 8px; }
-  .at-films, .at-ppl { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 4px; }
-  .at-films li a { font-size: 12.5px; line-height: 1.45; }
-  .at-ppl li { font-size: 13px; line-height: 1.5; }
-  .at-y { font: 400 11px/1 var(--mono); color: var(--ink-3); }
+  :global(.at-h){ display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  :global(.at-h h3){ font-family: var(--serif); font-size: 21px; margin: 0; line-height: 1.25; }
+  :global(.at-n){ font: 400 11px/1 var(--mono); color: var(--accent); white-space: nowrap; }
+  :global(.at-also){ font: 400 11.5px/1.5 var(--mono); color: var(--ink-3); margin: 8px 0 0; }
+  :global(.at-what){ font-size: 13.5px; line-height: 1.65; margin: 12px 0 0; }
+  :global(.at-ev){ margin: 6px 0 0; padding: 0; list-style: none; }
+  :global(.at-ev li){ font-size: 12.5px; line-height: 1.5; margin-bottom: 5px; color: var(--ink-2); }
+  :global(.at-ed){ display: block; font-family: var(--mono); font-size: 11px; color: var(--ink-3); }
+  :global(.at-go){ margin: 10px 0 0; font-size: 13px; }
+  :global(.at-sec){ margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--rule); }
+  :global(.at-sub){ font: 400 11.5px/1.5 var(--mono); color: var(--ink-3); margin: 6px 0 8px; }
+  :global(.at-films), :global(.at-ppl){ list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 4px; }
+  :global(.at-films li a){ font-size: 12.5px; line-height: 1.45; }
+  :global(.at-ppl li){ font-size: 13px; line-height: 1.5; }
+  :global(.at-y){ font: 400 11px/1 var(--mono); color: var(--ink-3); }
   .at-tools { display: flex; flex-wrap: wrap; gap: 16px 26px; align-items: flex-end; margin-top: 16px; }
   .at-find { flex: 1 1 260px; }
   #at-q {
@@ -293,9 +298,9 @@ const base = import.meta.env.BASE_URL || "/";
   .at-cat.on { opacity: 1; color: var(--ink-2); border-color: var(--ink-3); }
   .at-cat i { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
   .at-over { width: 100%; }
-  :global(.at-flow) { stroke-dasharray: 5 7; animation: at-march 1.6s linear infinite; }
+  .at-flow) { stroke-dasharray: 5 7; animation: at-march 1.6s linear infinite; }
   @keyframes at-march { to { stroke-dashoffset: -24; } }
-  @media (prefers-reduced-motion: reduce) { :global(.at-flow) { animation: none; } }
+  @media (prefers-reduced-motion: reduce) { .at-flow) { animation: none; } }
   @media (max-width: 860px) {
     .at-wrap { grid-template-columns: 1fr; }
     .at-map { height: 380px; } .at-panel { height: auto; max-height: 460px; }
