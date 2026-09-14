@@ -1,0 +1,36 @@
+---
+/* schema.org for an archive whose whole content is people, places and dates.
+
+   None of the seven emitted any. For sites like these it is the difference
+   between being read and being found: a search engine that can see a Person
+   with a birth place and a death date can answer a question about that person,
+   and one that sees only prose cannot.
+
+   Emitted as a single graph so the page, the site and the subject are linked
+   rather than asserted three times over. Nothing here is invented: every field
+   is one the page already displays.
+
+     type     "WebSite" for a front page, "Article" otherwise
+     name     the page's own title
+     about    optional { name, birthDate, deathDate, birthPlace } for a person page
+*/
+const { type = "Article", name, description, url, site, about } = Astro.props;
+const graph = [{
+  "@type": type === "WebSite" ? "WebSite" : "Article",
+  "@id": url,
+  name, headline: name, description,
+  isPartOf: site ? { "@type": "WebSite", name: site } : undefined,
+  inLanguage: "en",
+}];
+if (about && about.name) {
+  graph.push({
+    "@type": "Person",
+    name: about.name,
+    birthDate: about.birthDate || undefined,
+    deathDate: about.deathDate || undefined,
+    birthPlace: about.birthPlace ? { "@type": "Place", name: about.birthPlace } : undefined,
+  });
+}
+const clean = JSON.parse(JSON.stringify({ "@context": "https://schema.org", "@graph": graph }));
+---
+<script type="application/ld+json" set:html={JSON.stringify(clean)} />

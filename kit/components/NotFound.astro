@@ -1,0 +1,39 @@
+---
+/* The page a reader lands on when a link is wrong.
+
+   None of the seven archives had one, so a mistyped address — or any of the
+   URLs these archives have retired and redirected over the years — fell
+   through to GitHub's own 404, which offers no way back in.
+
+   It says what happened in one line and then does the only useful thing: hands
+   over the ways in. An archive's 404 should not apologise, it should navigate.
+
+     ways   [{ href, name }] — where to go instead
+     note   optional line for an archive with something specific to say
+*/
+const { ways = [], note } = Astro.props;
+---
+<section class="blk nf">
+  <p class="nf-code">404</p>
+  <h2 class="nf-h">That page is not here.</h2>
+  <p class="nf-d">The address may be mistyped, or it may be one this archive retired. Nothing has
+  been deleted — the pages move, and the links below are the ones that do not.</p>
+  {note && <p class="nf-d">{note}</p>}
+  {ways.length > 0 && (
+    <ul class="nf-ways">
+      {ways.map(({ href, name }) => <li><a href={href}>{name}</a></li>)}
+    </ul>
+  )}
+</section>
+
+<style>
+  .nf { max-width: 62ch; }
+  .nf-code {
+    font-family: var(--mono); font-size: 13px; letter-spacing: .18em;
+    color: var(--ink-3); margin: 0;
+  }
+  .nf-h { font-family: var(--serif); margin: 10px 0 0; }
+  .nf-d { font-size: 15px; line-height: 1.62; color: var(--ink-2); margin: 14px 0 0; }
+  .nf-ways { list-style: none; margin: 22px 0 0; padding: 0; display: grid; gap: 10px; }
+  .nf-ways a { font-family: var(--serif); font-size: 18px; }
+</style>

@@ -1,0 +1,35 @@
+/* Printing an archive page.
+
+   None of the seven had print styles, and these are documents people take to a
+   registry office or post to a cousin. What a printed page must not do is lose
+   the thing that makes these archives worth anything: where a claim came from.
+
+   So links are expanded to their addresses, and the evidence chips keep their
+   words when they lose their colour. Everything that is furniture on screen —
+   the menu, the search pill, the visit counter, the map controls — comes off.
+*/
+@media print {
+  :root { --paper: #fff; --panel: #fff; --panel-2: #fff; --ink: #000; --ink-2: #222; --ink-3: #555; }
+
+  header.site, .topnav, .findbtn, .skiplink, .vc, .at-tools, .leaflet-control-container,
+  .spark, .waysin, .numgrid, .tl-drawn { display: none !important; }
+
+  body { background: #fff !important; color: #000 !important; font-size: 11.5pt; }
+  main, .wrap { max-width: none !important; margin: 0 !important; padding: 0 !important; }
+
+  /* A printed claim without its source is just an assertion. */
+  a[href^="http"]::after { content: " (" attr(href) ")"; font-size: 9pt; color: #555; word-break: break-all; }
+  a[href^="/"]::after    { content: " (daviddef.github.io" attr(href) ")"; font-size: 9pt; color: #555; }
+  a[href^="#"]::after    { content: ""; }
+
+  /* The evidence ladder has to survive losing its colour. */
+  .ev, [class*="ev-"] { border: 1px solid #000 !important; color: #000 !important; background: #fff !important; }
+
+  h1, h2, h3 { break-after: avoid; page-break-after: avoid; }
+  .blk, .card, .tl-row, .qrow, figure, table { break-inside: avoid; page-break-inside: avoid; }
+  img, svg { max-width: 100% !important; }
+
+  /* The map is an interactive thing; in print it is a grey rectangle. */
+  .at-map, .ac-scroll { display: none !important; }
+  .ac-walls { display: block !important; }
+}
