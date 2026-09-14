@@ -8,10 +8,10 @@ hand exactly those pages to search engines. This reads each built file and
 skips anything that noindexes itself, so the sitemap can never disagree with
 the privacy rule the pages already state.
 """
-import os, re, sys, json, datetime
+import os, re, sys, json, datetime, subprocess, functools
 
-here = os.path.dirname(os.path.abspath(__file__))
-site = os.path.join(here, "..", "site")
+here = os.getcwd()                      # run from the site directory
+site = here if os.path.basename(here) == "site" else os.path.join(here, "site")
 dist = os.path.join(site, "dist")
 cfg = open(os.path.join(site, "astro.config.mjs"), encoding="utf-8").read()
 
@@ -35,12 +35,40 @@ for dp, _, fns in os.walk(dist):
             continue
         rel = os.path.relpath(dp, dist).replace(os.sep, "/")
         path = "" if rel == "." else rel + "/"
-        urls.append(f"{origin}{base}/{path}")
+        urls.append((f"{origin}{base}/{path}", path))
 
 urls.sort()
-today = datetime.date.today().isoformat()
+
+# ---- lastmod ---------------------------------------------------------------
+# It used to be today's date on every URL, every build — which tells a crawler
+# that all 10,000 pages changed this morning and, after a week of that, teaches
+# it to ignore the field. The truth is in git: when the page's own source last
+# changed. Pages with no single source file (the dynamic routes) fall back to
+# the last commit that touched the archive at all.
+def _git(args, default=""):
+    try:
+        return subprocess.run(["git"] + args, cwd=site, capture_output=True,
+                              text=True, timeout=20).stdout.strip() or default
+    except Exception:
+        return default
+
+REPO_DATE = _git(["log", "-1", "--format=%cs"], datetime.date.today().isoformat())
+
+@functools.lru_cache(maxsize=None)
+def _date_for(src):
+    return _git(["log", "-1", "--format=%cs", "--", src], REPO_DATE)
+
+def lastmod(path):
+    """path is the url path under the base, e.g. "people/x/" or "" for home."""
+    stem = (path or "").strip("/")
+    for cand in ([ "src/pages/index.astro" ] if not stem else
+                 [f"src/pages/{stem}.astro", f"src/pages/{stem}/index.astro"]):
+        if os.path.exists(os.path.join(site, cand)):
+            return _date_for(cand)
+    return REPO_DATE
+
 body = "\n".join(
-    f"  <url><loc>{u}</loc><lastmod>{today}</lastmod></url>" for u in urls)
+    f"  <url><loc>{u}</loc><lastmod>{lastmod(path)}</lastmod></url>" for u, path in urls)
 open(os.path.join(dist, "sitemap.xml"), "w", encoding="utf-8").write(
     '<?xml version="1.0" encoding="UTF-8"?>\n'
     '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
