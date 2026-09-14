@@ -144,9 +144,20 @@ def find(name, gaz):
         return None
     for candidate in (str(name), tidy(name)):
         parts = [x.strip() for x in candidate.split(",") if x.strip()]
+        if not parts:
+            continue
+        # Tails first — dropping a street or a farm to reach the town.
         for i in range(len(parts)):
             tail = ", ".join(parts[i:])
             hit = gaz.get(fold(tail)) or gaz.get(fold(tidy(tail)))
+            if hit:
+                return hit
+        # Then heads, dropping a country that no longer exists. These files are
+        # full of them — "Modruš-Fiume, Hungary", "Lika-Senj, Jugoslavija" — and
+        # a tail-only ladder walks straight past the town into a dead polity.
+        for j in range(len(parts) - 1, 0, -1):
+            head = ", ".join(parts[:j])
+            hit = gaz.get(fold(head)) or gaz.get(fold(tidy(head)))
             if hit:
                 return hit
     return None
