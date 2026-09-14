@@ -1,0 +1,219 @@
+---
+/* Several families of one surname, drawn as rivers.
+
+   Each lane is one family this archive follows: the dots along it are places it
+   can put a document in, and the fan at the right is where that family ended
+   up. Beneath the lanes go the households of the name that are real and
+   documented and NOT yet on any lane, so the picture cannot quietly imply that
+   everything has been placed.
+
+   Promoted out of Defranceschi, where it was the best drawing in the estate and
+   the only archive that had it. It took no props at all — 15.6KB of one
+   family's branches were written into the component itself — which is why the
+   one other archive that wanted something like it wrote a second, different
+   component of the same name rather than use this one.
+
+   The data is one prop now and the arithmetic stays here:
+
+     rivers  { lanes, unplaced, loose }
+
+   lanes     [{ key, colour, label, href, read, conf, nodes, ends }]
+             nodes are the places along the lane, ends the fan at its right
+   unplaced  households of the name that are documented and not yet placed
+   loose     the labels under the rule at the foot
+
+   Any archive that can say which families it follows, where each began and
+   where each went, gets the drawing. What it must not do is invent a lane to
+   fill the picture: an empty band is a true statement, a guessed one is not. */
+import { u } from "../lib/url.js";
+
+const { rivers } = Astro.props;
+const LANES = rivers?.lanes ?? [];
+const UNPLACED = rivers?.unplaced ?? [];
+const LOOSE = rivers?.loose ?? [];
+
+const W = 1040;
+const BH = 140, BGAP = 152;
+const BANDS = LANES.map((_, i) => ({ y0: 34 + i * BGAP, sp: 34 + i * BGAP + 76, h: BH }));
+const LOOSE_Y = 34 + LANES.length * BGAP + 22;   // rule
+const VH = LOOSE_Y + 124 + (Math.ceil(UNPLACED.length / 3) - 1) * 26;   // viewBox height
+const X0 = 150, X1 = 700, XE = 902;
+---
+<figure class="rivers">
+  <svg viewBox={`0 0 1040 ${VH}`} role="img" aria-labelledby="riversttl">
+    <title id="riversttl">Six families of one surname, and the road each of them took</title>
+    {LANES.map((lane, li) => {
+      const b = BANDS[li];
+      const n = lane.nodes.length;
+      const step = n > 2 ? (X1 - X0) / (n - 1) : (X1 - X0) / 2;
+      const lineEnd = X0 + step * (n - 1);
+      const ends = lane.ends;
+      const spread = Math.min(b.h / 2 - 18, 16 + ends.length * 13);
+      return (
+        <g>
+          <rect x="0" y={b.y0} width={W} height={b.h} rx="10"
+                fill={lane.colour} opacity={lane.parallel ? 0.04 : 0.055}
+                stroke={lane.parallel ? lane.colour : "none"}
+                stroke-dasharray={lane.parallel ? "5 5" : ""} stroke-opacity="0.4" />
+          <text x="12" y={b.y0 + 21} class="lane-label" fill={lane.colour}>{lane.label}</text>
+          <text x="12" y={b.y0 + 37} class="lane-conf">{lane.conf}</text>
+          <a href={u(lane.href)} class="lane-link"><text x="12" y={b.y0 + b.h - 9} class="lane-read" fill={lane.colour}>{lane.read}</text></a>
+
+          <line x1={X0} y1={b.sp} x2={Math.max(lineEnd, X1)} y2={b.sp} stroke={lane.colour}
+                stroke-width="5" stroke-linecap="round" opacity="0.34"
+                stroke-dasharray={lane.parallel ? "12 7" : ""} />
+
+          {ends.map(([e, ehref, ewhy], ei) => {
+            const y = ends.length === 1 ? b.sp
+              : b.sp - spread + (ei * (spread * 2) / (ends.length - 1));
+            const soft = e.endsWith("?");
+            return (
+              <g class="node end" tabindex="0" role="button"
+                 data-place={e.replace("?","")} data-year={soft ? "unverified" : ""}
+                 data-why={ewhy} data-lane={lane.label}
+                 data-href={u(ehref)} data-read={`Read the ${e.replace("?","")} story`}>
+                <title>{e.replace("?","")} — {ewhy}</title>
+                <path d={`M ${Math.max(lineEnd, X1)} ${b.sp} C ${X1 + 90} ${b.sp}, ${XE - 90} ${y}, ${XE} ${y}`}
+                      fill="none" stroke={lane.colour} stroke-width="1.6" opacity="0.5"
+                      stroke-dasharray={soft ? "3 4" : ""} />
+                <circle cx={XE} cy={y} r="6.5" fill="transparent" />
+                <circle cx={XE} cy={y} r="3.4" fill={lane.colour}
+                        fill-opacity={soft ? 0.35 : 1} />
+                <text x={XE + 9} y={y + 4} class={soft ? "endlab soft" : "endlab"}>{e.replace("?","")}</text>
+              </g>
+            );
+          })}
+
+          {lane.nodes.map(([place, year, why], i) => {
+            const x = X0 + i * step;
+            return (
+              <g class="node" tabindex="0" role="button"
+                 data-place={place} data-year={year} data-why={why} data-lane={lane.label}
+                 data-href={u(lane.href)} data-read={lane.read.replace(" →","")}>
+                <title>{place}{year !== "—" ? ` · ${year}` : ""} — {why}</title>
+                <circle cx={x} cy={b.sp} r="8.5" fill="var(--panel)" stroke={lane.colour} stroke-width="2.6" />
+                <circle cx={x} cy={b.sp} r="3" fill={lane.colour} />
+                <text x={x} y={b.sp - 19} class="place">{place}</text>
+                <text x={x} y={b.sp + 27} class="year" fill={lane.colour}>{year}</text>
+              </g>
+            );
+          })}
+        </g>
+      );
+    })}
+    <g>
+      <line x1="12" y1={LOOSE_Y} x2={W - 12} y2={LOOSE_Y} stroke="var(--rule-strong)" stroke-width="1" stroke-dasharray="2 4" />
+      <text x="12" y={LOOSE_Y + 20} class="loose-head">Real households of the name — not yet placed on any of these lines</text>
+      {UNPLACED.map((l, i) => (
+        <g class="node" tabindex="0" role="button"
+           data-place={l[0]} data-year="unplaced" data-why={l[2]}
+           data-lane="Not yet placed on a line" data-href={u(l[1])} data-read={`Where ${l[0]} is written up`}>
+          <title>{l[0]} — {l[2]}</title>
+          <circle cx={110 + (i % 3) * 310} cy={LOOSE_Y + 40 + Math.floor(i / 3) * 26} r="7" fill="transparent" />
+          <circle cx={110 + (i % 3) * 310} cy={LOOSE_Y + 40 + Math.floor(i / 3) * 26} r="4.5" fill="none" stroke="var(--ink-2)" stroke-width="1.8" />
+          <text x={122 + (i % 3) * 310} y={LOOSE_Y + 44 + Math.floor(i / 3) * 26} class="loose">{l[0]}</text>
+        </g>
+      ))}
+
+      <text x="12" y={LOOSE_Y + 80 + (Math.ceil(UNPLACED.length / 3) - 1) * 26} class="loose-head">Attached to no line here — a different stock of a very common name</text>
+      {LOOSE.map((l, i) => (
+        <g class="node" tabindex="0" role="button"
+           data-place={l[0]} data-year="—" data-why={l[2]}
+           data-lane="Attached to no line here" data-href={u(l[1])} data-read={`Where ${l[0]} is written up`}>
+          <title>{l[0]} — {l[2]}</title>
+          <circle cx={150 + i * 200} cy={LOOSE_Y + 100 + (Math.ceil(UNPLACED.length / 3) - 1) * 26} r="7" fill="transparent" />
+          <circle cx={150 + i * 200} cy={LOOSE_Y + 100 + (Math.ceil(UNPLACED.length / 3) - 1) * 26} r="4.5" fill="none" stroke="var(--ink-3)" stroke-width="1.6" stroke-dasharray="2 2" />
+          <text x={162 + i * 200} y={LOOSE_Y + 104 + (Math.ceil(UNPLACED.length / 3) - 1) * 26} class="loose">{l[0]}</text>
+        </g>
+      ))}
+      <text x={760} y={LOOSE_Y + 104 + (Math.ceil(UNPLACED.length / 3) - 1) * 26} class="loose-note">— the commonest patronymic in Italy</text>
+    </g>
+  </svg>
+  <div class="riverread" id="riverread" aria-live="polite">
+    <b>Click or tab any dot</b> — the stops tell you what the document behind them says, and the destinations on the right tell their own story and link to it. Click a second time to go there.
+  </div>
+  <figcaption>The teal river is the one this archive descends from, and the only one that arrived on foot looking for work. <strong>The green river at the bottom is drawn dashed because it never came to Istria at all</strong> — a fully documented family of the same name that goes from Cap Corse to the Caribbean, put here so that a Franceschi found in Puerto Rico or Caracas can be seen for what they are. <strong>A dotted end-point means the attachment is family lore, not a document</strong> — Argentina hangs off Carnia only on the word of a reunion album, and Monheim is a pin on a map. Below the rule are the households this archive will not pretend to have placed: <strong>Fiume, Svetvinčenat, Bakar and Vodnjan are real, documented families of the name that belong to nobody yet</strong>, and Brazil, Ticino and Michigan are somebody else's entirely. The table under this diagram gives every one of them a verdict.</figcaption>
+</figure>
+
+<script is:inline>
+  (function () {
+    var host = document.getElementById("riverread");
+    if (!host) return;
+    var rest = host.innerHTML;
+    function show(g) {
+      var place = g.getAttribute("data-place"), year = g.getAttribute("data-year"),
+          why = g.getAttribute("data-why"), lane = g.getAttribute("data-lane");
+      var href = g.getAttribute("data-href"), read = g.getAttribute("data-read");
+      host.innerHTML = '<span class="rr-lane"></span><b class="rr-place"></b>'
+        + '<span class="rr-year"></span><span class="rr-why"></span>'
+        + (href ? '<a class="rr-go" href="' + href + '"></a>' : '');
+      host.querySelector(".rr-lane").textContent = lane;
+      host.querySelector(".rr-place").textContent = place;
+      host.querySelector(".rr-year").textContent = year && year !== "\u2014" ? year : "";
+      host.querySelector(".rr-why").textContent = why;
+      if (href) host.querySelector(".rr-go").textContent = (read || "Read on") + " \u2192";
+      document.querySelectorAll(".rivers .node").forEach(function (n) { n.classList.remove("sel"); });
+      g.classList.add("sel");
+    }
+    document.querySelectorAll(".rivers .node").forEach(function (g) {
+      g.addEventListener("click", function () {
+        var was = g.classList.contains("sel"), href = g.getAttribute("data-href");
+        show(g);
+        if (was && href) window.location.href = href;
+      });
+      g.addEventListener("mouseenter", function () { show(g); });
+      g.addEventListener("focus", function () { show(g); });
+      g.addEventListener("keydown", function (e) {
+        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); show(g); }
+      });
+    });
+  })();
+</script>
+
+<style>
+  .rivers{margin:0}
+  .rivers svg{width:100%;height:auto;display:block;overflow:visible}
+  .lane-label{font-family:var(--sans);font-size:13px;font-weight:600}
+  .lane-conf{font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;
+    text-transform:uppercase;fill:var(--ink-3)}
+  .lane-read{font-family:var(--sans);font-size:11.5px;font-weight:600;text-anchor:start}
+  .lane-link{text-decoration:none}
+  .lane-link:hover .lane-read{text-decoration:underline}
+  .place{font-family:var(--sans);font-size:12.5px;font-weight:600;fill:var(--ink);
+    text-anchor:middle;paint-order:stroke;stroke:var(--panel);stroke-width:3.4px}
+  .year{font-family:var(--mono);font-size:10.5px;text-anchor:middle;
+    paint-order:stroke;stroke:var(--panel);stroke-width:3px}
+  .endlab{font-family:var(--sans);font-size:11.5px;fill:var(--ink-2)}
+  .endlab.soft{fill:var(--ink-3);font-style:italic}
+  .loose-head{font-family:var(--mono);font-size:10px;letter-spacing:.14em;
+    text-transform:uppercase;fill:var(--ink-3)}
+  .loose{font-family:var(--sans);font-size:12.5px;fill:var(--ink-2)}
+  .loose-note{font-family:var(--sans);font-size:11.5px;font-style:italic;fill:var(--ink-3)}
+  .rivers .node{cursor:help}
+  .rivers .node:hover circle:first-of-type,
+  .rivers .node:focus circle:first-of-type{r:11}
+  .rivers .node:focus{outline:none}
+  .rivers .node:focus .place{fill:var(--accent)}
+  .rivers .node.sel circle:first-of-type{r:11;stroke-width:3.4}
+  .riverread{margin-top:18px;padding:14px 18px;border-left:3px solid var(--accent);
+    background:var(--panel-2);border-radius:0 10px 10px 0;font-family:var(--sans);
+    font-size:14px;line-height:1.55;color:var(--ink-2);min-height:52px}
+  .riverread .rr-lane{display:block;font-family:var(--mono);font-size:9.5px;
+    letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);margin-bottom:4px}
+  .riverread .rr-place{color:var(--ink);font-size:16px}
+  .riverread .rr-year{font-family:var(--mono);font-size:12px;color:var(--accent);margin-left:9px}
+  .riverread .rr-why{display:block;margin-top:5px}
+  .riverread .rr-go{display:inline-block;margin-top:8px;font-weight:600;
+    font-size:13px;color:var(--accent);text-decoration:none}
+  .riverread .rr-go:hover{text-decoration:underline}
+  .rivers .node.end{cursor:pointer}
+  .rivers .node.end:hover .endlab,
+  .rivers .node.end:focus .endlab{fill:var(--ink);text-decoration:underline}
+  .rivers .node.end.sel .endlab{fill:var(--ink);font-weight:600}
+  .rivers figcaption{font-family:var(--sans);font-size:13px;color:var(--ink-2);
+    margin-top:14px;max-width:78ch;line-height:1.6}
+  @media (max-width:700px){
+    .rivers svg{min-width:660px}
+    .rivers{overflow-x:auto}
+  }
+</style>
