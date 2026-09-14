@@ -164,8 +164,8 @@ export function fromAhnentafel(rows, opts = {}) {
        matched: two sisters called Mary in different families stay two people,
        and the same woman recorded under two ancestors stays two nodes rather
        than being merged on a name she happens to share. */
-    for (const sib of r.siblings || []) {
-      const nm = typeof sib === "string" ? sib : sib && sib.name;
+    for (const sib of r.siblings || r.sib || []) {
+      const nm = typeof sib === "string" ? sib : sib && (sib.name || sib.n);
       if (!nm) continue;
       out.push({ slug: "sib:" + n + ":" + nm.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
                  name: nm, dt: "", parents: parents.slice(),
@@ -179,10 +179,20 @@ export function fromPedigree(root, opts = {}) {
   const out = [];
   const walk = (node, path) => {
     if (!node || !node.n) return null;
+    /* Brothers and sisters hang off the same parents. A pedigree records them
+       as names, so each is keyed by the node it stands beside — two sisters
+       called Mary under different parents stay two people. */
     const slug = opts.prefix ? opts.prefix + path : "ped" + path;
     const rec = { slug, name: node.n, dt: [node.b, node.d].filter(Boolean).join(" – "),
                   parents: [], children: [], siblings: [] };
     out.push(rec);
+    for (const sib of node.sib || []) {
+      const nm = sib && (sib.n || sib.name);
+      if (!nm) continue;
+      out.push({ slug: slug + ":sib:" + nm.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+                 name: nm, dt: [sib.b, sib.d].filter(Boolean).join(" – "),
+                 _sibOf: slug, _via: sib.via === "doc" ? "read" : (sib.via || "tree") });
+    }
     for (const [side, k] of [["f", "-f"], ["m", "-m"]]) {
       const up = walk(node[side], path + k);
       if (up) {
@@ -193,5 +203,18 @@ export function fromPedigree(root, opts = {}) {
     return rec;
   };
   walk(root, "");
+  /* a sibling shares whatever parents the person it stands beside has */
+  const byslug = Object.fromEntries(out.map((r) => [r.slug, r]));
+  for (const r of out) {
+    if (!r._sibOf) continue;
+    const base = byslug[r._sibOf];
+    if (!base) continue;
+    r.parents = (base.parents || []).map((p) => ({ ...p, via: r._via }));
+    for (const p of r.parents) {
+      const up = byslug[p.slug];
+      if (up && !up.children.some((c) => c.slug === r.slug))
+        up.children.push({ slug: r.slug, name: r.name, via: r._via });
+    }
+  }
   return out;
 }
