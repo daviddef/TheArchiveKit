@@ -1,0 +1,137 @@
+---
+/* What each ancestral place was living under, and what it was up against.
+
+   Lanes are the regions this family's places sit in; the blocks along each are
+   who ruled it and when. Above the lanes go the family's own events, below them
+   the wars, plagues, treaties and regime changes they were lived through — so
+   the picture answers "what were they up against" rather than only "where were
+   they".
+
+   Every one of these seven families crossed a border without moving, and one
+   archive drew it. Promoted with its data as a prop; the lanes and the regimes
+   belong to whichever archive is drawing them.
+
+     sov     { lanes, ticks, family, world } — this archive's sovereignty.json
+     events  draw the family's own events above the lanes
+*/
+
+const { sov, events = true } = Astro.props;
+
+const X0=90, X1=980, MID=490;
+const x = (y) => y<=1800 ? X0+(y-1200)*((MID-X0)/600) : MID+(y-1800)*((X1-MID)/226);
+const LANE_H=30, TOP=68, GAP=34;
+const laneY = (i)=> TOP + i*(LANE_H+GAP);
+const AX = laneY(sov.lanes.length-1)+LANE_H+24;
+const WORLD_Y = AX+42;
+const H = WORLD_Y+28;
+const ticks=[1200,1400,1600,1800,1850,1900,1950,2000];
+
+/* Family events, collapsed by year so one dot can carry several. */
+const fam = {};
+for (const e of sov.events) (fam[e.year] = fam[e.year] || []).push(e.text);
+const famYears = Object.keys(fam).map(Number).sort((a,b)=>a-b);
+
+/* What they were up against — the same axis, read from below. */
+const world = sov.world || [];
+---
+<div class="scroll">
+<svg viewBox={`0 0 1000 ${H}`} width="1000" style="min-width:940px;display:block" role="img"
+     aria-label="Sovereignty over Central Istria, Senj and Vinodol, Carnia and Dalmatia from 1200, with the family's own events above the lanes and the regional and political events they lived through below">
+
+  {events && <>
+    <line x1={X0} y1="44" x2={X1} y2="44" style="stroke:var(--rule-strong)" stroke-width="1"/>
+    <text x="6" y="47" font-size="9.5" style="fill:var(--terra);font-family:var(--sans)">Family events</text>
+    {famYears.map(y => (
+      <g class="ev" data-kind="fam" data-year={y} data-text={fam[y].join(" · ")} tabindex="0" role="button"
+         aria-label={`${y}: ${fam[y].join(". ")}`}>
+        <circle cx={x(y)} cy="44" r="9" fill="transparent"/>
+        <circle cx={x(y)} cy="44" r="3.2" style="fill:var(--terra)"/>
+        <title>{y} — {fam[y].join(" · ")}</title>
+      </g>
+    ))}
+  </>}
+
+  {sov.lanes.map((lane,i) => (
+    <g>
+      <text x="6" y={laneY(i)+12} font-size="9.5" style="fill:var(--ink-2);font-family:var(--sans)">{lane.label}</text>
+      <text x="6" y={laneY(i)+24} font-size="9.5" style="fill:var(--ink-3);font-family:var(--sans)">{lane.sub}</text>
+      {lane.bands.map(([a,b,kind,label]) => {
+        const w = x(b)-x(a);
+        return <>
+          <rect x={x(a)} y={laneY(i)} width={w} height={LANE_H}
+                style={`fill:var(${sov.regimes[kind].color})`}/>
+          {label && w>46 &&
+            <text x={x(a)+8} y={laneY(i)+19} font-size="9.5"
+                  style="fill:var(--band-label);font-family:var(--sans)">{label}</text>}
+        </>;
+      })}
+    </g>
+  ))}
+
+  <line x1={MID} y1="36" x2={MID} y2={AX-10} style="stroke:var(--ink-3)" stroke-width="1" stroke-dasharray="2 3"/>
+  <text x={MID+5} y={AX-8} font-size="8.5" style="fill:var(--ink-3);font-family:var(--mono)">scale expands →</text>
+
+  <line x1={X0} y1={AX} x2={X1} y2={AX} style="stroke:var(--rule-strong)" stroke-width="1"/>
+  {ticks.map(t => <line x1={x(t)} y1={AX} x2={x(t)} y2={AX+6} style="stroke:var(--rule-strong)" stroke-width="1"/>)}
+  {ticks.map(t => <text x={x(t)} y={AX+20} text-anchor="middle" font-size="10"
+                        style="fill:var(--ink-3);font-family:var(--mono)">{t}</text>)}
+
+  <line x1={X0} y1={WORLD_Y} x2={X1} y2={WORLD_Y} style="stroke:var(--rule-strong)" stroke-width="1"/>
+  <text x="6" y={WORLD_Y+3} font-size="9.5" style="fill:var(--ochre);font-family:var(--sans)">What they were up against</text>
+  {world.map(([y,text]) => (
+    <g class="ev" data-kind="world" data-year={y} data-text={text} tabindex="0" role="button"
+       aria-label={`${y}: ${text}`}>
+      <circle cx={x(y)} cy={WORLD_Y} r="9" fill="transparent"/>
+      <rect x={x(y)-2.6} y={WORLD_Y-2.6} width="5.2" height="5.2" style="fill:var(--ochre)"/>
+      <title>{y} — {text}</title>
+    </g>
+  ))}
+</svg>
+</div>
+
+<p class="readout" id="sovread" aria-live="polite">
+  <span class="hint">Hover or tab through a marker — red above for this family, ochre below for the world around it.</span>
+</p>
+
+<div class="legend">
+  {Object.values(sov.regimes).map(r => (
+    <span><i style={`background:var(${r.color})`}></i>{r.label}</span>
+  ))}
+</div>
+
+<style>
+  .readout {
+    margin: 12px 0 0; min-height: 3.1em;
+    font-family: var(--sans); font-size: 14px; line-height: 1.5; color: var(--ink);
+    border-left: 3px solid var(--rule); padding-left: 12px;
+  }
+  .readout .hint { color: var(--ink-3); font-size: 13px; }
+  .readout b { font-family: var(--mono); font-size: 13px; margin-right: .5em; }
+  .readout.fam { border-left-color: var(--terra); }
+  .readout.world { border-left-color: var(--ochre); }
+  .ev { cursor: default; }
+  .ev:focus { outline: none; }
+  .ev circle:last-of-type, .ev rect { transition: transform .12s ease; transform-box: fill-box; transform-origin: center; }
+  .ev:hover circle:last-of-type, .ev:focus circle:last-of-type,
+  .ev:hover rect, .ev:focus rect { transform: scale(1.9); }
+</style>
+
+<script is:inline>
+  (function () {
+    var read = document.getElementById("sovread");
+    if (!read) return;
+    var idle = read.innerHTML;
+    function show(g) {
+      read.className = "readout " + (g.getAttribute("data-kind") || "");
+      read.innerHTML = "<b>" + g.getAttribute("data-year") + "</b>" +
+                       g.getAttribute("data-text").replace(/</g, "&lt;");
+    }
+    function clear() { read.className = "readout"; read.innerHTML = idle; }
+    document.querySelectorAll("g.ev").forEach(function (g) {
+      g.addEventListener("mouseenter", function () { show(g); });
+      g.addEventListener("focus", function () { show(g); });
+      g.addEventListener("mouseleave", clear);
+      g.addEventListener("blur", clear);
+    });
+  })();
+</script>
