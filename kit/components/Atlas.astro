@@ -124,6 +124,26 @@ const base = import.meta.env.BASE_URL || "/";
         h.push("</ul></div>");
       }
 
+      /* Indexed entries are not register volumes and must not be dressed as
+         them. A film is a book you can turn the pages of; one of these is a
+         single line somebody typed out of a book, about one person. The
+         archives hold far more of the second kind than the first, and saying
+         so is the difference between an atlas and a catalogue. */
+      if (p.records && p.records.length) {
+        h.push('<div class="at-sec"><div class="lab">Records read about the people here</div>');
+        h.push('<p class="at-sub">' + (p.nrecords || p.records.length) +
+               " indexed entr" + ((p.nrecords || p.records.length) === 1 ? "y" : "ies") +
+               ", each naming one person rather than a volume to browse.</p><ul class=\"at-films\">");
+        p.records.forEach(function (f) {
+          h.push('<li><a href="https://www.familysearch.org/ark:/61903/' + esc(f.ark) +
+                 '" target="_blank" rel="noopener">' + esc(f.t) + " &#8599;</a></li>");
+        });
+        h.push("</ul>");
+        if (p.moreRecords)
+          h.push('<p class="at-sub">and ' + p.moreRecords + " more.</p>");
+        h.push("</div>");
+      }
+
       if (p.people && p.people.length) {
         h.push('<div class="at-sec"><div class="lab">Who the archive puts here</div><ul class="at-ppl">');
         p.people.forEach(function (q) {
