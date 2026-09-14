@@ -238,13 +238,30 @@ def check_names(pages, living_names, publishable, allow, allow_files):
 # ---- entry points ----------------------------------------------------------
 
 def load_pages(dist):
-    pages = {}
+    """Every built page, and a count of what disappeared while we looked.
+
+    Several sessions work these repositories at once and `astro build` empties
+    dist before refilling it, so a file listed by os.walk can be gone a
+    millisecond later. This used to end in a FileNotFoundError traceback that
+    read like a broken archive rather than a race — the same failure
+    checkarchive.py already guards against, unlearnt in its sibling.
+    """
+    pages, vanished = {}, 0
     for root, _, files in os.walk(dist):
         for f in files:
-            if f.endswith(".html"):
-                p = os.path.join(root, f)
-                pages[os.path.relpath(p, dist).replace(os.sep, "/")] = \
-                    open(p, encoding="utf-8", errors="replace").read()
+            if not f.endswith(".html"):
+                continue
+            p = os.path.join(root, f)
+            try:
+                text = open(p, encoding="utf-8", errors="replace").read()
+            except FileNotFoundError:
+                vanished += 1
+                continue
+            pages[os.path.relpath(p, dist).replace(os.sep, "/")] = text
+    if vanished:
+        print(f"check_living: {vanished} page(s) disappeared from {dist} while this "
+              f"ran — another build is in flight. Refusing to pass on a partial read.")
+        raise SystemExit(1)
     return pages
 
 
