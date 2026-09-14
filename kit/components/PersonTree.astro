@@ -1,0 +1,244 @@
+---
+/* A person drawn with the people they belong to: parents above, the couple in
+ * the middle, children below, siblings beside.
+ *
+ * Three archives drew this chart and drew it the same way — the shape below is
+ * theirs, unchanged. What they did NOT agree on is what a node means, and that
+ * disagreement is real:
+ *
+ *   Falco      marks the EDGE. A relationship can come from a register act that
+ *              has been read, and an edge keeps every source that carries it.
+ *   Mazza      marks the PERSON, because every edge there comes from one family
+ *              tree and none is proved by a record. Saying otherwise would be a
+ *              confident diagram telling a lie.
+ *   Blazevic   marks the PERSON too, but from its own evidence register, and
+ *              says so in the caption: this archive has no separate provenance
+ *              for the links themselves.
+ *
+ * So this component draws the shape and refuses to decide the meaning. Each
+ * archive annotates its own rows and writes its own caption. What was being
+ * forked for that was the geometry — and the geometry had drifted to no
+ * purpose: 1.4rem against 1.6rem, 11px against 11.5px, 9.5rem against 10rem,
+ * values nobody chose.
+ *
+ * Rows. Each of parents / spouses / children / siblings is a list of:
+ *
+ *   name     required
+ *   href     linked when present, drawn as a plain node when not
+ *   dates    already formatted, and already withheld where the archive withholds
+ *   cls      the archive's provenance class: via-line, via-register, via-read,
+ *            via-scanned, via-tree, via-none, via-disputed, disputed, gone
+ *   mark     the same thing said in words, under the name — colour alone is no
+ *            use to a reader who cannot see it
+ *   title    hover text
+ *   gap      draw a dashed placeholder instead of a person, name as the legend
+ *            ("— living, withheld —"). Never a real name.
+ *   mar      the word above a spouse, default "married"
+ *
+ *   self     { name, dates, gen, note, noteCls } — the person the page is about.
+ *            note is the line under the dates; noteCls "living" italicises it
+ *   keys     [{ cls, label }] legend swatches; <slot name="keys"> for one that
+ *            needs a link in it
+ *   palette  { bg, node-bg, line, tree, via, gen } — any archive whose colours
+ *            are its own, stamped inline so it beats the shared defaults
+ *
+ * Slots: "notes" goes inside the caption under the keys, "after" below the
+ * whole caption. Both take the archive's own prose, which is an argument it is
+ * making and not this component's business.
+ */
+const {
+  self = {},
+  parents = [], spouses = [], children = [], siblings = [],
+  keys = [],
+  palette = {},
+} = Astro.props;
+
+const has = parents.length || spouses.length || children.length || siblings.length;
+
+/* node, small, gap, spouse, then the archive's class — the order the three
+   originals emitted, so the markup is unchanged where it is compared. */
+const cls = (r, o = {}) => "node"
+  + (o.small ? " small" : "")
+  + (r.gap ? " gap" : "")
+  + (o.spouse ? " spouse" : "")
+  + (r.gap || !r.cls ? "" : " " + r.cls);
+
+const sty = Object.entries(palette).map(([k, v]) => `--pt-${k}:${v}`).join(";") || undefined;
+---
+{has ? (
+<figure class="ptree" style={sty}>
+  {parents.length ? (
+    <div class="tier">
+      <div class="lab">{parents.length === 1 ? "Parent" : "Parents"}</div>
+      <div class="row">
+        {parents.map((r) => (
+          r.gap
+            ? <div class={cls(r)}><span class="nm">{r.name}</span></div>
+            : r.href
+              ? <a class={cls(r)} href={r.href} title={r.title}>
+                  <span class="nm">{r.name}</span>
+                  {r.dates ? <span class="dt">{r.dates}</span> : null}
+                  {r.mark ? <span class="via">{r.mark}</span> : null}
+                </a>
+              : <div class={cls(r)}>
+                  <span class="nm">{r.name}</span>
+                  {r.dates ? <span class="dt">{r.dates}</span> : null}
+                  {r.mark ? <span class="via">{r.mark}</span> : null}
+                </div>
+        ))}
+      </div>
+      <div class="drop" aria-hidden="true"></div>
+    </div>
+  ) : null}
+
+  <div class="tier self">
+    <div class="row">
+      <div class="node me">
+        <span class="nm">{self.name}</span>
+        {self.dates ? <span class="dt">{self.dates}</span> : null}
+        {self.gen ? <span class="via gen">generation {self.gen}</span> : null}
+        {self.note ? <span class={"via" + (self.noteCls ? " " + self.noteCls : "")}>{self.note}</span> : null}
+      </div>
+      {spouses.map((r) => (
+        r.gap
+          ? <div class={cls(r, { spouse: true })}>
+              <span class="mar">{r.mar || "married"}</span>
+              <span class="nm">{r.name}</span>
+            </div>
+          : r.href
+            ? <a class={cls(r, { spouse: true })} href={r.href} title={r.title}>
+                <span class="mar">{r.mar || "married"}</span>
+                <span class="nm">{r.name}</span>
+                {r.dates ? <span class="dt">{r.dates}</span> : null}
+                {r.mark ? <span class="via">{r.mark}</span> : null}
+              </a>
+            : <div class={cls(r, { spouse: true })}>
+                <span class="mar">{r.mar || "married"}</span>
+                <span class="nm">{r.name}</span>
+                {r.dates ? <span class="dt">{r.dates}</span> : null}
+                {r.mark ? <span class="via">{r.mark}</span> : null}
+              </div>
+      ))}
+    </div>
+  </div>
+
+  {children.length ? (
+    <div class="tier">
+      <div class="drop up" aria-hidden="true"></div>
+      <div class="lab">{children.length === 1 ? "Child" : `${children.length} children`}</div>
+      <div class="row">
+        {children.map((r) => (
+          r.gap
+            ? <div class={cls(r)}><span class="nm">{r.name}</span></div>
+            : r.href
+              ? <a class={cls(r)} href={r.href} title={r.title}>
+                  <span class="nm">{r.name}</span>
+                  {r.dates ? <span class="dt">{r.dates}</span> : null}
+                  {r.mark ? <span class="via">{r.mark}</span> : null}
+                </a>
+              : <div class={cls(r)}>
+                  <span class="nm">{r.name}</span>
+                  {r.dates ? <span class="dt">{r.dates}</span> : null}
+                  {r.mark ? <span class="via">{r.mark}</span> : null}
+                </div>
+        ))}
+      </div>
+    </div>
+  ) : null}
+
+  {siblings.length ? (
+    <div class="tier sibs">
+      <div class="lab">{siblings.length === 1 ? "Sibling" : `${siblings.length} siblings`}</div>
+      <div class="row">
+        {siblings.map((r) => (
+          r.gap
+            ? <div class={cls(r, { small: true })}><span class="nm">{r.name}</span></div>
+            : r.href
+              ? <a class={cls(r, { small: true })} href={r.href} title={r.title}>
+                  <span class="nm">{r.name}</span>
+                  {r.dates ? <span class="dt">{r.dates}</span> : null}
+                </a>
+              : <div class={cls(r, { small: true })}>
+                  <span class="nm">{r.name}</span>
+                  {r.dates ? <span class="dt">{r.dates}</span> : null}
+                </div>
+        ))}
+      </div>
+    </div>
+  ) : null}
+
+  <figcaption>
+    {keys.map((k) => (
+      <span class="key"><i class={"sw " + k.cls}></i> {k.label}</span>
+    ))}
+    <slot name="keys" />
+    <slot name="notes" />
+  </figcaption>
+  <slot name="after" />
+</figure>
+) : null}
+
+<style is:global>
+  .ptree{--pt-bg:var(--ground,transparent);--pt-node-bg:var(--paper,#fff);
+         --pt-line:var(--ink,currentColor);--pt-tree:var(--ink-2);
+         --pt-via:var(--ink-2);--pt-gen:var(--accent);
+         margin:0 0 1.4rem;padding:1rem 1rem .8rem;border:1px solid var(--rule);
+         border-radius:.4rem;background:var(--pt-bg)}
+  .ptree .tier{position:relative}
+  .ptree .lab{font-family:var(--sans);font-size:10px;font-weight:600;letter-spacing:.13em;
+              text-transform:uppercase;color:var(--ink-2);margin:.2rem 0 .45rem}
+  .ptree .row{display:flex;flex-wrap:wrap;gap:.5rem;align-items:stretch}
+  .ptree .node{display:flex;flex-direction:column;gap:.1rem;min-width:9.5rem;max-width:15rem;
+               padding:.45rem .6rem;border:1px solid var(--rule);border-radius:.3rem;
+               text-decoration:none;color:inherit;background:var(--pt-node-bg)}
+  .ptree a.node:hover{border-color:var(--accent)}
+  .ptree .node.me{border-width:2px;border-color:var(--ink,currentColor)}
+  .ptree .node.small{min-width:8rem;padding:.35rem .5rem}
+  .ptree .node.gap{border-style:dashed;opacity:.7;justify-content:center}
+  .ptree .node.gap .nm{font-weight:400;font-style:italic;color:var(--ink-2)}
+  .ptree .nm{font-weight:600;line-height:1.2}
+  .ptree .dt{font-family:var(--mono,monospace);font-size:11px;color:var(--ink-2)}
+  .ptree .mar{font-family:var(--sans);font-size:9px;letter-spacing:.13em;text-transform:uppercase;
+              color:var(--ink-2)}
+  .ptree .via{font-family:var(--sans);font-size:9px;letter-spacing:.1em;text-transform:uppercase;
+              color:var(--pt-via);margin-top:.15rem}
+  /* provenance said in colour AND in words — colour alone is no use to a reader
+     who cannot see it */
+  .ptree .node.via-line{border-left:3px solid var(--pt-line)}
+  .ptree .node.via-register{border-left:3px solid var(--accent)}
+  .ptree .via-register .via{color:var(--accent)}
+  .ptree .node.via-read{border-left:3px solid var(--accent)}
+  .ptree .via-read .via{color:var(--accent)}
+  .ptree .node.via-scanned{border-left:3px dashed var(--accent)}
+  .ptree .node.via-tree{border-left:3px dotted var(--pt-tree)}
+  .ptree .node.via-none{border-left:3px dotted var(--ink-2);opacity:.75}
+  .ptree .node.via-disputed{border-left:3px solid #9b2c2c}
+  .ptree .via-disputed .via{color:#9b2c2c;font-weight:600}
+  /* an edge this archive has retracted, left in place and struck through */
+  .ptree .node.gone{opacity:.55}
+  .ptree .node.gone .nm{text-decoration:line-through}
+  .ptree .node.gone .via{font-style:italic}
+  /* a record read here contradicts the edge the tree draws — said on the edge */
+  .ptree .node.disputed{border-left:3px solid #b3261e;background:rgba(179,38,30,.045)}
+  .ptree .node.disputed .via{color:#b3261e;font-weight:600}
+  .ptree .node.disputed .nm::after{content:" ⚠";color:#b3261e;font-weight:700}
+  .ptree .disputed-note{margin-top:18px;padding:14px 16px;border-left:3px solid #b3261e;
+    background:rgba(179,38,30,.05);font-family:var(--sans);font-size:13px;line-height:1.6;color:var(--ink-2)}
+  .ptree .disputed-note ul{margin:.5rem 0 .6rem;padding-left:18px}
+  .ptree .disputed-note li{margin-bottom:.4rem}
+  .ptree .disputed-note li a{text-transform:capitalize}
+  .ptree .disputed-note p{margin:0;color:var(--ink-3)}
+  .ptree .via.gen{color:var(--pt-gen);font-weight:600}
+  .ptree .via.living{font-style:italic}
+  .ptree .drop{height:.9rem;margin-left:1.4rem;border-left:1px solid var(--rule)}
+  .ptree .sibs{margin-top:.9rem;padding-top:.7rem;border-top:1px dashed var(--rule)}
+  .ptree figcaption{margin-top:.9rem;padding-top:.6rem;border-top:1px solid var(--rule);
+                    font-family:var(--sans);font-size:11px;color:var(--ink-2);line-height:1.55}
+  .ptree .key{display:inline-flex;align-items:center;gap:.35rem;margin-right:1rem}
+  .ptree .sw{width:.85rem;height:0;border-top:3px solid var(--accent);display:inline-block}
+  .ptree .sw.line{border-top-color:var(--pt-line);border-top-width:4px}
+  .ptree .sw.scanned{border-top-style:dashed}
+  .ptree .sw.tree{border-top-style:dotted;border-top-color:var(--pt-tree)}
+  .ptree .note-line{margin:.6rem 0 0}
+  .ptree .warn{margin:.5rem 0 0;line-height:1.5;max-width:86ch}
+</style>
