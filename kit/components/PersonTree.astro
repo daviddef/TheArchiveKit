@@ -169,7 +169,7 @@ const sty = Object.entries(palette).map(([k, v]) => `--pt-${k}:${v}`).join(";") 
 
   <figcaption>
     {keys.map((k) => (
-      <span class="key"><i class={"sw " + k.cls}></i> {k.label}</span>
+      <span class="key"><i class={"sw " + k.cls}></i>{" " + k.label}</span>
     ))}
     <slot name="keys" />
     <slot name="notes" />
