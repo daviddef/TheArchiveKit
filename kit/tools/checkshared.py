@@ -14,6 +14,12 @@ Comments are stripped before comparing, because two copies that differ only in
 how they explain themselves are still one component and should be promoted, not
 argued about.
 
+A local file that IMPORTS the kit component of its own name is a wrapper, not a
+fork, and is reported as such. That is the shape promotion is supposed to leave
+behind: the kit draws the thing, and each archive keeps only what it alone can
+say about it. Three wrappers are expected to differ — that is their whole job —
+so they are not counted as drift.
+
   python3 checkshared.py --root /path/containing/the/archives [--fail-on-new]
 
 Advisory by default: an estate does not stop deploying because two archives
@@ -23,6 +29,13 @@ actually worth preventing.
 import os, re, sys, glob, json, hashlib, argparse, collections
 
 SEEN = ".shared-components.json"
+
+
+def wraps(path, name):
+    """True if this local file defers to the kit component of the same name."""
+    s = open(path, encoding="utf-8", errors="replace").read()
+    return re.search(r'from\s+["\']@daviddef/archive-kit/components/'
+                     + re.escape(name) + r'["\']', s) is not None
 
 
 def norm(path):
@@ -46,24 +59,36 @@ def main():
     owned = collections.defaultdict(list)
     for p in glob.glob(os.path.join(a.root, "*", "site", "src", "components", "*.astro")):
         arch = os.path.relpath(p, a.root).split(os.sep)[0]
-        owned[os.path.basename(p)].append((arch, norm(p), os.path.getsize(p)))
+        n = os.path.basename(p)
+        owned[n].append((arch, norm(p), os.path.getsize(p), wraps(p, n)))
 
     dup = {n: v for n, v in owned.items() if len(v) > 1}
-    in_kit_too = sorted(n for n in dup if n in kit)
+    wrapped = {n for n, v in dup.items() if all(w for _, _, _, w in v)}
+    partial = sorted(n for n, v in dup.items()
+                     if n not in wrapped and any(w for _, _, _, w in v))
+    in_kit_too = sorted(n for n in dup if n in kit and n not in wrapped)
 
-    total = sum(sz for v in dup.values() for _, _, sz in v)
-    drifted = [n for n, v in dup.items() if len({h for _, h, _ in v}) > 1]
+    total = sum(sz for v in dup.values() for _, _, sz, _ in v)
+    drifted = [n for n, v in dup.items()
+               if n not in wrapped and len({h for _, h, _, _ in v}) > 1]
 
     print(f"  {len(dup)} component name(s) in more than one archive, {total/1024:.0f}KB in total")
-    for n in sorted(dup, key=lambda n: -sum(sz for _, _, sz in dup[n])):
+    for n in sorted(dup, key=lambda n: -sum(sz for _, _, sz, _ in dup[n])):
         v = dup[n]
-        same = len({h for _, h, _ in v}) == 1
-        mark = "identical" if same else "DRIFTED "
-        who = ", ".join(f"{arch.replace(' Family','')} {sz/1024:.1f}KB" for arch, _, sz in v)
+        same = len({h for _, h, _, _ in v}) == 1
+        mark = "wrapper  " if n in wrapped else "identical" if same else "DRIFTED "
+        who = ", ".join(f"{arch.replace(' Family','')} {sz/1024:.1f}KB" for arch, _, sz, _ in v)
         print(f"    {mark}  {n:<22} {len(v)} copies — {who}")
+    if wrapped:
+        print(f"  {len(wrapped)} defer to the kit and keep only what each archive "
+              f"alone can say: {', '.join(sorted(wrapped))}")
+    if partial:
+        print(f"  HALF DONE  {', '.join(partial)} — some archives wrap the kit "
+              f"component, others still carry their own")
     if in_kit_too:
         print(f"  also in the kit, so the local copies are shadowing it: {', '.join(in_kit_too)}")
-    print(f"  {len(drifted)} of {len(dup)} have drifted — same name, different behaviour")
+    forkable = len(dup) - len(wrapped)
+    print(f"  {len(drifted)} of {forkable} have drifted — same name, different behaviour")
 
     if a.fail_on_new:
         path = os.path.join(a.root, SEEN)
