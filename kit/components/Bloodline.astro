@@ -1,0 +1,94 @@
+---
+/* Everyone one person is related to, drawn — parents and children, brothers
+   and sisters, and through them aunts, uncles, cousins and their children, as
+   far as the archive's own records reach.
+
+   Every line is drawn in the colour of the record behind it, at the WEAKER
+   grade of the two records that produced it, so the picture never claims more
+   than the archive does. Nothing is matched on a name: an edge exists only
+   where a record names a slug.
+
+     people    the graph from lib/bloodline.js
+     start     slug to open on
+     archive   what to call it in the prose, e.g. "this archive"
+*/
+import fs from "node:fs";
+import path from "node:path";
+import { components } from "../lib/bloodline.js";
+
+const { people, start, total } = Astro.props;
+const linked = Object.fromEntries(Object.entries(people).filter(([, p]) =>
+  p.parents.length || p.children.length || p.siblings.length));
+const comps = components(linked);
+const big = comps.filter((c) => c.length >= 3);
+const edges = Object.values(linked).reduce(
+  (n, p) => n + p.parents.length + p.children.length + p.siblings.length, 0);
+const viaCount = {};
+for (const p of Object.values(linked))
+  for (const k of [...p.parents, ...p.children, ...p.siblings])
+    viaCount[k.via] = (viaCount[k.via] || 0) + 1;
+
+/* the renderer travels with the component instead of seven copies in public/ */
+const client = fs.readFileSync(
+  path.join(process.cwd(), "node_modules/@daviddef/archive-kit/kit/lib/bloodline.client.js"),
+  "utf8");
+const S = linked[start] || Object.values(linked)[0] || null;
+---
+<section class="prose">
+  <p>This archive has always said, in words, how well each claim is known. This page says it in a
+  picture. A solid line means a register was read and it names the relationship; a lighter line means
+  an index says so; a dashed line means the family tree asserts it and nothing has been read that
+  confirms it — and those are the ones worth your suspicion, because they are the ones that have been
+  wrong before.</p>
+  <p><strong>{Object.keys(linked).length} of the {total ?? Object.keys(people).length} people this
+  archive can name</strong> are joined to at least one other by a link it can show you. They fall
+  into {big.length} families of three or more; the largest holds
+  <strong>{comps[0] ? comps[0].length : 0}</strong>. The rest stand alone — not because they are
+  unrelated, but because the record that would join them has not been read.</p>
+</section>
+
+<div class="bl-ctl">
+  <label for="who">Choose a person</label>
+  <input id="who" type="search" placeholder="A name, or just a surname" autocomplete="off" />
+  <p id="bl-none" class="cap" hidden>Nobody of that name is drawn here. If you were looking for
+    someone alive, that is the point rather than a fault: the living are named and nothing more
+    across this estate, and only where a record has placed them.</p>
+</div>
+
+<p id="bl-summary" class="cap bl-sum"></p>
+<div id="bl-stage" class="bl-stage"><svg id="bl-svg" role="img" aria-label="Blood relatives chart"></svg></div>
+
+<p class="cap bl-key">
+  <span><i class="k-line"></i>the direct line through this person</span>
+  <span><i class="k-read"></i>a register was read</span>
+  <span><i class="k-index"></i>an index says so</span>
+  <span><i class="k-tree"></i>the tree says so, nothing read</span>
+</p>
+
+<noscript>
+  {S && <section class="blk"><h2>{S.name}</h2>
+    <p class="dek">The chart needs JavaScript. The links do not — here they are.</p>
+    {S.parents.length > 0 && <p><strong>Parents:</strong> {S.parents.map((p) => p.name).join(" · ")}</p>}
+    {S.siblings.length > 0 && <p><strong>Brothers and sisters:</strong> {S.siblings.map((p) => p.name).join(" · ")}</p>}
+    {S.children.length > 0 && <p><strong>Children:</strong> {S.children.map((p) => p.name).join(" · ")}</p>}
+  </section>}
+</noscript>
+
+<section class="blk">
+  <h2>What the lines are made of</h2>
+  <p class="dek">Every link on this page, counted by the kind of record behind it.</p>
+  <div class="scroll" style="margin-top:14px">
+    <table>
+      <thead><tr><th>How the link was made</th><th class="m">Links</th><th>What it means</th></tr></thead>
+      <tbody>
+        <tr><td><b>Read</b></td><td class="m">{(viaCount.read || 0) + (viaCount.register || 0)}</td><td>a baptism, marriage or burial act was read and it names the relationship.</td></tr>
+        <tr><td><b>Index</b></td><td class="m">{viaCount.index || 0}</td><td>an index gives the relationship; the act behind it has not been opened.</td></tr>
+        <tr><td><b>Direct line</b></td><td class="m">{viaCount.line || 0}</td><td>carried on the archive's own spine, where the joins are argued page by page.</td></tr>
+        <tr><td><b>Tree</b></td><td class="m">{viaCount.tree || 0}</td><td>the family tree asserts it and no record has been read. Drawn dashed.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<script is:inline set:html={`window.__BLOOD = ${JSON.stringify(linked)}; window.__START = ${JSON.stringify(start)};`} />
+<script is:inline set:html={client} />

@@ -1,0 +1,125 @@
+/* The blood graph, built from whatever shape an archive records kin in.
+
+   Written for Defranceschi and generalised once five other archives turned out
+   to hold the same facts under different names: parents/children/siblings as
+   arrays of {slug,name,via}, or a `rel` object wrapping them, or father/mother
+   as single objects. None of that is worth arguing about, so it is read rather
+   than standardised.
+
+   What is NOT negotiable is how a link is allowed to exist. Every edge here
+   comes from a record that names a slug. Nothing is matched on a name — this
+   estate has 94 Marijas and two consecutive generations both called Ivan
+   Defranceski, and matching on names gave one Pietro five mothers before a
+   count of parents-per-person caught it. */
+
+const RANK = { read: 3, register: 3, line: 3, index: 2, tree: 1 };
+
+function pick(rec, names) {
+  for (const n of names) if (rec && rec[n] != null) return rec[n];
+  return null;
+}
+function many(v) {
+  if (!v) return [];
+  return Array.isArray(v) ? v : [v];
+}
+
+/* records: { slug: personRecord }  or  [personRecord] with a slug field */
+export function graph(records, opts = {}) {
+  const O = {
+    parents: ["parents"], children: ["children"], siblings: ["siblings"],
+    spouses: ["spouses", "spouse"], father: ["father"], mother: ["mother"],
+    rel: ["rel"], name: ["name"], dates: ["dt", "dates", "life"],
+    ...opts,
+  };
+  const rows = Array.isArray(records)
+    ? records.filter((r) => r && r.slug)
+    : Object.entries(records).map(([slug, r]) => ({ slug, ...r }));
+
+  const people = {};
+  const put = (slug, name) => (people[slug] ||= {
+    slug, name: name || slug, dt: "",
+    parents: [], children: [], siblings: [], spouse: null,
+  });
+
+  const kin = (r, kind) => {
+    const src = pick(r, O.rel) || r;
+    let out = many(pick(src, O[kind]));
+    if (kind === "parents") {
+      out = out.concat(many(pick(src, O.father)), many(pick(src, O.mother)));
+    }
+    return out.filter((x) => x && x.slug);
+  };
+
+  for (const r of rows) {
+    const me = put(r.slug, pick(r, O.name));
+    const d = pick(r, O.dates);
+    if (typeof d === "string") me.dt = d;
+    const sp = many(pick(pick(r, O.rel) || r, O.spouses))[0];
+    if (sp) me.spouse = typeof sp === "string" ? sp : sp.name;
+
+    for (const p of kin(r, "parents")) {
+      if (p.slug === r.slug) continue;
+      const via = p.via || "tree";
+      if (!me.parents.some((x) => x.slug === p.slug))
+        me.parents.push({ slug: p.slug, name: p.name, dt: p.dates || "", via });
+      const up = put(p.slug, p.name);
+      if (!up.children.some((c) => c.slug === r.slug))
+        up.children.push({ slug: r.slug, name: me.name, dt: me.dt, via });
+    }
+    for (const c of kin(r, "children")) {
+      if (c.slug === r.slug) continue;
+      const via = c.via || "tree";
+      if (!me.children.some((x) => x.slug === c.slug))
+        me.children.push({ slug: c.slug, name: c.name, dt: c.dates || "", via });
+      const kid = put(c.slug, c.name);
+      if (!kid.parents.some((x) => x.slug === r.slug))
+        kid.parents.push({ slug: r.slug, name: me.name, dt: me.dt, via });
+    }
+    for (const s of kin(r, "siblings")) {
+      if (s.slug === r.slug) continue;
+      if (!me.siblings.some((x) => x.slug === s.slug))
+        me.siblings.push({ slug: s.slug, name: s.name, dt: s.dates || "", via: s.via || "tree" });
+    }
+  }
+
+  /* siblings are symmetric even where only one side records it */
+  for (const [slug, me] of Object.entries(people))
+    for (const s of me.siblings) {
+      const o = people[s.slug];
+      if (o && !o.siblings.some((x) => x.slug === slug))
+        o.siblings.push({ slug, name: me.name, dt: me.dt, via: s.via });
+    }
+
+  /* A person recorded as somebody's parent in one place and their brother in
+     another cannot be drawn as both. The parent link is directional and comes
+     out of a record somebody argued over, so it wins. */
+  for (const me of Object.values(people)) {
+    const direct = new Set([...me.parents, ...me.children].map((k) => k.slug));
+    me.siblings = me.siblings.filter((s) => !direct.has(s.slug));
+  }
+  for (const [slug, me] of Object.entries(people)) {
+    me.parents = me.parents.filter((k) => k.slug !== slug);
+    me.children = me.children.filter((k) => k.slug !== slug);
+    me.siblings = me.siblings.filter((k) => k.slug !== slug);
+  }
+  return people;
+}
+
+export function components(people) {
+  const seen = new Set(), out = [];
+  for (const slug of Object.keys(people)) {
+    if (seen.has(slug)) continue;
+    const stack = [slug], comp = [];
+    while (stack.length) {
+      const x = stack.pop();
+      if (seen.has(x) || !people[x]) continue;
+      seen.add(x); comp.push(x);
+      for (const k of [...people[x].parents, ...people[x].children, ...people[x].siblings])
+        if (k.slug && !seen.has(k.slug)) stack.push(k.slug);
+    }
+    out.push(comp);
+  }
+  return out.sort((a, b) => b.length - a.length);
+}
+
+export const weakest = (a, b) => ((RANK[a] ?? 1) <= (RANK[b] ?? 1) ? a : b);
