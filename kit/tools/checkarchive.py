@@ -146,6 +146,12 @@ def main():
     # 404 is reached by a wrong URL, never by a link, and that is correct
     orphans = [o for o in orphans
                if o.rstrip("/").rsplit("/", 1)[-1] not in ("404", "404.html")]
+    # A redirect is SUPPOSED to be unreachable by link. It exists for an old
+    # bookmark somebody saved years ago, it carries noindex, and nothing should
+    # point at it — Falco keeps 4,757 of them so that no URL it ever published
+    # goes dead. Counting those as orphans buried the real finding under them.
+    orphans = [o for o in orphans
+               if not re.search(r'http-equiv="refresh"', pages[o], re.I)]
     # Report the root of an orphaned tree, not every leaf of it. When Falco's
     # /names index lost its last inbound link it took 4,785 name pages with it,
     # and printing all 4,786 tells you far less than printing one.
