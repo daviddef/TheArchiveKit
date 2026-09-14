@@ -1,0 +1,70 @@
+---
+/* Every place this archive can put a person in, as one small still picture.
+
+   Five of the seven home pages carried no drawing at all — the same gap the
+   tree pages had before the chart was shared and the atlases before the map
+   was. This closes it with the one thing every archive now has: coordinates.
+
+   It is a PLOT, not a map. No tiles, no coastline, no borders — because an
+   archive that has not got a coastline should not draw one, which is the
+   argument Booyzen made for its own graticule and it is right. What is here is
+   exactly what the data contains: a point per place, sized by how many people
+   stand in it, on the ground those points actually cover.
+
+   Longitude is corrected by cos(latitude) so a band of Istria does not come
+   out stretched sideways; beyond that there is no projection worth the name at
+   this size, and pretending otherwise would be decoration.
+
+     places   [{ lat, lon, n }] — the archive's own atlas data
+     href     where the picture leads
+     label    the line underneath
+*/
+const { places = [], href, label } = Astro.props;
+const pts = places.filter((p) => typeof p.lat === "number" && typeof p.lon === "number");
+
+const W = 520, H = 200, PAD = 14;
+let view = null;
+if (pts.length) {
+  const lats = pts.map((p) => p.lat), lons = pts.map((p) => p.lon);
+  const la0 = Math.min(...lats), la1 = Math.max(...lats);
+  const lo0 = Math.min(...lons), lo1 = Math.max(...lons);
+  const k = Math.cos(((la0 + la1) / 2) * Math.PI / 180) || 1;
+  // a single place, or places all at one spot, still needs a box with width
+  const spanX = Math.max((lo1 - lo0) * k, 0.02);
+  const spanY = Math.max(la1 - la0, 0.02);
+  const scale = Math.min((W - PAD * 2) / spanX, (H - PAD * 2) / spanY);
+  const cx = ((lo0 + lo1) / 2) * k, cy = (la0 + la1) / 2;
+  const most = Math.max(1, ...pts.map((p) => p.n || 0));
+  view = pts.map((p) => ({
+    x: W / 2 + (p.lon * k - cx) * scale,
+    y: H / 2 - (p.lat - cy) * scale,
+    r: 2.2 + 4.6 * Math.sqrt((p.n || 0) / most),
+  }));
+}
+---
+{view && (
+  <a class="spark" href={href} aria-label={label || "Open the atlas"}>
+    <svg viewBox={`0 0 ${W} ${H}`} width="100%" role="img" aria-hidden="true">
+      {view.map((p) => (
+        <circle cx={p.x} cy={p.y} r={p.r} class="spark-dot" />
+      ))}
+    </svg>
+    {label && <div class="spark-l">{label}</div>}
+  </a>
+)}
+
+<style>
+  .spark {
+    display: block; text-decoration: none; color: inherit;
+    border: 1px solid var(--rule); border-radius: 3px;
+    background: var(--panel); padding: 12px 14px 10px; margin-top: 20px;
+  }
+  .spark:hover { border-color: var(--accent); }
+  .spark svg { display: block; }
+  .spark-dot { fill: var(--accent); fill-opacity: .62; }
+  .spark:hover .spark-dot { fill-opacity: .85; }
+  .spark-l {
+    font-family: var(--mono); font-size: 11px; color: var(--ink-3);
+    margin-top: 8px; line-height: 1.5;
+  }
+</style>
