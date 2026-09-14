@@ -4,9 +4,22 @@
 
    Everyone one person is related to — not a card of their immediate family.
    Parents, children, brothers and sisters, and through them aunts, uncles,
-   cousins and their children, as far as the archive's links reach. Laid out by
-   generation, scrollable in both directions, every line in the colour of the
-   record behind it. */
+   cousins and their children, as far as the archive's links reach.
+
+   Generations are COLUMNS and people stack down them. They used to be rows,
+   which reads beautifully for a small family and falls apart for a real one:
+   one Zubrinic has 217 blood relatives, 105 of them in a single generation, and
+   that row was 25,008px wide against 616px tall — a 41:1 ribbon nobody could
+   follow, with every parent-child line flattened into a horizontal dash running
+   the width of it.
+
+   Turned on its side the width stops growing with the family: it is set by the
+   NUMBER of generations, which is small, while the count of people in any one
+   of them costs height, and height is what a page has to spare. The same chart
+   is now about 2,200px wide. Lines became short local hops between neighbouring
+   columns instead.
+
+   Every line is still drawn in the colour of the record behind it. */
 (function () {
   var P = window.__BLOOD || {}, START = window.__START;
   var svg = document.getElementById("bl-svg");
@@ -18,6 +31,7 @@
 
   var NS = "http://www.w3.org/2000/svg";
   var BOX = 150, BH = 42, GAPX = 14, LANE = 96, PAD = 20;
+  var COLGAP = 74, ROWH = BH + 12, HEADH = 30;
   var STROKE = { read: ["var(--accent-2,#5c8a5c)", "0"], line: ["var(--accent-2,#5c8a5c)", "0"],
                  index: ["var(--accent)", "0"], tree: ["var(--ochre,#8a7f5c)", "6 4"] };
 
@@ -182,27 +196,43 @@
       list.forEach(function (s, i) { pos[s] = i; });
     });
 
-    /* a married person takes two boxes' worth of room, their own and their
-       husband's or wife's, so the rows have to be measured rather than counted */
-    var wide = function (s) { return BOX + (P[s].spouse ? GAPX + BOX : 0); };
-    var rowW = function (gi) {
-      return byGen[gi].reduce(function (t, s) { return t + wide(s); }, 0)
-             + (byGen[gi].length - 1) * GAPX * 2;
+    /* A column only needs room for a husband or wife if somebody in it has one,
+       so each is measured rather than assumed. */
+    var colW = function (gi) {
+      return BOX + (byGen[gi].some(function (s) { return P[s].spouse; }) ? GAPX + BOX : 0);
     };
-    var W = Math.max(640, PAD * 2 + Math.max.apply(null, gens.map(rowW)));
-    var H = PAD * 2 + gens.length * LANE;
+    var colX = {}, cx = PAD;
+    gens.forEach(function (gi) { colX[gi] = cx; cx += colW(gi) + COLGAP; });
+    var tallest = Math.max.apply(null, gens.map(function (gi) { return byGen[gi].length; }));
+    var W = Math.max(640, cx - COLGAP + PAD);
+    var H = PAD * 2 + HEADH + tallest * ROWH;
     svg.setAttribute("viewBox", "0 0 " + W + " " + H);
     svg.setAttribute("width", W);
     svg.setAttribute("height", H);
 
+    /* short columns are centred against the tallest, so a family of four beside
+       a family of a hundred sits opposite them rather than at the ceiling */
     var xy = {};
-    gens.forEach(function (gi, row) {
+    gens.forEach(function (gi) {
       var list = byGen[gi];
-      var x = (W - rowW(gi)) / 2;
-      list.forEach(function (s) {
-        xy[s] = { x: x, y: PAD + row * LANE };
-        x += wide(s) + GAPX * 2;
-      });
+      var top = PAD + HEADH + (tallest - list.length) * ROWH / 2;
+      list.forEach(function (s, i) { xy[s] = { x: colX[gi], y: top + i * ROWH }; });
+    });
+
+    /* Say what each column is. A column holds everyone at that remove — aunts
+       and cousins as well as ancestors — so it is named for the generation
+       rather than for a relationship. */
+    function genLabel(g) {
+      var back = ["this generation", "parents' generation", "grandparents' generation",
+                  "great-grandparents' generation"];
+      var on = ["this generation", "children's generation", "grandchildren's generation",
+                "great-grandchildren's generation"];
+      var k = Math.abs(g);
+      if (k < 4) return (g <= 0 ? back : on)[k];
+      return k + " generations " + (g < 0 ? "back" : "on");
+    }
+    gens.forEach(function (gi) {
+      svg.appendChild(el("text", { x: colX[gi], y: PAD + 14, class: "bl-lane" }, genLabel(gi)));
     });
 
     function edge(a, b, via) {
@@ -213,10 +243,14 @@
       /* an edge into a person with more than two claimed parents is one of
          several competing claims, and is drawn as a claim rather than a fact */
       var toContested = (P[b].parents || []).filter(function (p) { return p.slug; }).length > 2;
-      var ax = A.x + BOX / 2, ay = A.y + BH, bx = B.x + BOX / 2, by = B.y;
+      /* the line leaves the COUPLE, not the blood parent, so it never crosses
+         the husband or wife sitting beside them */
+      var ax = A.x + (P[a].spouse ? BOX + GAPX + BOX : BOX), ay = A.y + BH / 2;
+      var bx = B.x, by = B.y + BH / 2;
+      var bend = Math.max(22, (bx - ax) * 0.45);
       svg.appendChild(el("path", {
-        d: "M" + ax + "," + ay + " C" + ax + "," + (ay + LANE * 0.35) +
-           " " + bx + "," + (by - LANE * 0.35) + " " + bx + "," + by,
+        d: "M" + ax + "," + ay + " C" + (ax + bend) + "," + ay +
+           " " + (bx - bend) + "," + by + " " + bx + "," + by,
         stroke: s[0], "stroke-width": onLine ? 3.4 : 1.6,
         "stroke-dasharray": s[1], fill: "none",
         "stroke-opacity": toContested ? ".38" : (onLine ? 1 : ".45"),
@@ -294,7 +328,10 @@
               + ps.length + " are claimed, from " + contested + " different kinds of source."
             : "");
     var box = xy[root];
-    if (box) stage.scrollLeft = Math.max(0, box.x + BOX / 2 - stage.clientWidth / 2);
+    if (box) {
+      stage.scrollLeft = Math.max(0, box.x + BOX / 2 - stage.clientWidth / 2);
+      stage.scrollTop = Math.max(0, box.y + BH / 2 - stage.clientHeight / 2);
+    }
   }
 
   function go(slug) {
