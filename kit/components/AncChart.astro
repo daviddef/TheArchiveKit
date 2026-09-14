@@ -103,8 +103,13 @@ const GENLAB = ["Self", "Gen 1", "Gen 2", "Gen 3", "Gen 4", "Gen 5", "Gen 6", "G
   </div>
 </div>
 
+{walls.length > 0 && (
 <div class="ac-walls">
-  <h3>The {walls.length} walls, and why each one is a wall</h3>
+  {/* Falco has exactly one, which is how "The 1 walls" reached a published
+      page. An archive with none gets no heading over nothing at all. */}
+  <h3>{walls.length === 1
+        ? "The one wall, and why it is a wall"
+        : `The ${walls.length} walls, and why each one is a wall`}</h3>
   {walls.map(w => (
     <div class="ac-wrow" style={`--k:${KIND[w.kind] || "var(--ink-3)"}`}>
       <div class="ac-wk">{w.label}</div>
@@ -119,6 +124,7 @@ const GENLAB = ["Self", "Gen 1", "Gen 2", "Gen 3", "Gen 4", "Gen 5", "Gen 6", "G
     </div>
   ))}
 </div>
+)}
 
 <style is:global>
   .ac-scroll { overflow-x: auto; padding: 4px 2px 10px; }
