@@ -93,26 +93,52 @@ def geocode(name, cache, sleeper=time.sleep):
 # ---- reading the cache back, which is what the archives actually do --------
 
 def load(path=None):
-    """The shared gazetteer, as a dict keyed on the folded place name."""
+    """The shared gazetteer, as a dict keyed on the folded place name.
+
+    Normally the copy inside the installed kit, which is what CI sees. While
+    the gazetteer is being extended, ARCHIVE_KIT_GAZETTEER points at the
+    working copy instead — otherwise every archive would need a repin between
+    each batch of lookups.
+    """
     if path is None:
-        path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "data", "gazetteer.json")
+        path = os.environ.get("ARCHIVE_KIT_GAZETTEER") or os.path.join(
+            os.path.dirname(os.path.abspath(__file__)), "..", "data", "gazetteer.json")
     return json.load(open(path, encoding="utf-8")) if os.path.exists(path) else {}
+
+def tidy(name):
+    """Strip what an archive writes around a place name but a gazetteer cannot use.
+
+    The files carry "Klenovica 22" (a house number), "Buenos Aires — arrivals"
+    (which record it came from), "(about) Limerick" (a hedge) and "Senj,
+    Croatia [Senj]" (a normalised form in brackets). None of those are part of
+    the place, and each one is enough to turn a hit into a miss.
+    """
+    s = str(name or "")
+    s = re.sub(r"\s*[\u2014\u2013-]{1,2}\s+[a-z].*$", "", s)   # trailing " — arrivals"
+    s = re.sub(r"\s*[\(\[][^)\]]*[\)\]]", " ", s)              # (about), [Senj]
+    s = re.sub(r"^\s*(about|near|probably|possibly)\s+", "", s, flags=re.I)
+    s = re.sub(r"\s+\d{1,4}\s*$", "", s)                       # a house number
+    s = re.sub(r"\s*/\s*.*$", "", s)                            # "Montevideo / Canelones"
+    return re.sub(r"\s+", " ", s).strip(" ,")
+
 
 def find(name, gaz):
     """A coordinate for this name, or None.
 
     Tries the whole string, then drops leading segments — the same ladder the
-    lookup itself climbed, so a place recorded as "St Mary's, Limerick" finds
-    the Limerick entry that was cached under the shorter form.
+    lookup itself climbed, so "St Mary's, Limerick" finds the Limerick entry
+    cached under the shorter form. Each rung is tried as written and tidied.
     """
     if not name:
         return None
-    parts = [x.strip() for x in str(name).split(",") if x.strip()]
-    for i in range(len(parts)):
-        hit = gaz.get(fold(", ".join(parts[i:])))
-        if hit:
-            return hit
-    return gaz.get(fold(parts[0])) if parts else None
+    for candidate in (str(name), tidy(name)):
+        parts = [x.strip() for x in candidate.split(",") if x.strip()]
+        for i in range(len(parts)):
+            tail = ", ".join(parts[i:])
+            hit = gaz.get(fold(tail)) or gaz.get(fold(tidy(tail)))
+            if hit:
+                return hit
+    return None
 
 
 def main():
