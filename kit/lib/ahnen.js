@@ -1,4 +1,12 @@
-/* Ahnentafel → the shape AncChart draws.
+/* An archive's ancestry → the shape AncChart draws.
+
+   The seven archives record their lines two different ways, and neither of
+   them is the nested shape the chart wants. So: two readers, one node
+   builder, and the rules that matter — what the living may show, and how a
+   branch is allowed to end — written once and applied to both.
+
+     ahnen(rows, opts)    a flat ahnentafel: you are 1, your father 2n
+     lineage(root, opts)  rows that point at their own parents
 
    Two archives keep their line as a flat list numbered the old way: you are 1,
    your father is 2, your mother 3, and the father of n is always 2n. That is
@@ -27,7 +35,8 @@ const quiet = (s) => String(s ?? "").split(/\s*,\s*/)
 export const dates = (b, d) =>
   b && d ? `${b}–${d}` : b ? `b. ${b}` : d ? `d. ${d}` : "";
 
-export function ahnen(rows, opts = {}) {
+/* Every reader an archive may override, and the two rules it may not. */
+function readers(opts) {
   const {
     name    = (r) => r.name,
     born    = (r) => yr(r.born ?? r.byear),
@@ -36,14 +45,34 @@ export function ahnen(rows, opts = {}) {
     living  = (r) => !!r.living || r.name === "—" || !r.name,
     conf    = (r) => (living(r) ? "living" : (r.sources && r.sources.length) ? "doc" : "lore"),
     extra   = () => ({}),
-    wall    = defaultWall,
-    maxGen  = 99,
+  } = opts;
+
+  /* The one thing a caller cannot opt out of: a row marked living loses its
+     dates and its birthplace here, whatever the file says. Named, and nothing
+     more. Enforcing it in one place beats trusting seven callers. */
+  return (r) => {
+    const isLiving = living(r);
+    return {
+      n: name(r) || "—",
+      d: isLiving ? "" : dates(born(r), died(r)),
+      place: isLiving ? "" : place(r),
+      conf: conf(r),
+      ...extra(r),
+    };
+  };
+}
+
+export function ahnen(rows, opts = {}) {
+  const {
+    wall   = defaultWall,
+    maxGen = 99,
     /* Where to start drawing. An archive whose first two generations are
        living people has three boxes reading "—" before anything is said;
        starting at the first ancestor it can actually name is not hiding
        anything, it is beginning where the archive begins. */
-    from    = 1,
+    from   = 1,
   } = opts;
+  const box = readers(opts);
 
   const by = new Map();
   for (const r of rows) if (r.ahn) by.set(Number(r.ahn), r);
@@ -52,15 +81,7 @@ export function ahnen(rows, opts = {}) {
   const node = (n) => {
     const r = by.get(n);
     if (!r) return null;
-    const isLiving = living(r);
-    const b = {
-      n: name(r) || "—",
-      /* nothing more, for the living */
-      d: isLiving ? "" : dates(born(r), died(r)),
-      place: isLiving ? "" : place(r),
-      conf: conf(r),
-      ...extra(r),
-    };
+    const b = box(r);
     const gen = Math.floor(Math.log2(n)) - root0;
     if (gen < maxGen) {
       b.f = node(n * 2);
@@ -104,6 +125,46 @@ export function ahnen(rows, opts = {}) {
   }
 
   return node(from);
+}
+
+/* The other way an archive writes its ancestry: rows that point at their own
+   parents, by id or by slug or by an inline scrap of a person who is not in
+   the file at all. Every archive spells that link differently, so the caller
+   supplies one function — parentsOf(row) → { f, m } — and gets back the same
+   nested shape, under the same rules about the living and about walls.
+
+   Returning a row that is not in the file is allowed and is the point: a
+   parent known only as a name on a register is still a real thing the chart
+   should draw, and refusing it would quietly shorten the line. */
+export function lineage(root, opts = {}) {
+  const {
+    parentsOf,
+    wall   = defaultWall,
+    maxGen = 99,
+  } = opts;
+  if (typeof parentsOf !== "function")
+    throw new Error("lineage(): parentsOf(row) is required");
+  const box = readers(opts);
+
+  /* A tree that points at its own parents can point in a circle — a bad merge
+     is all it takes — and a walk that trusts it will not come back. */
+  const walking = new Set();
+
+  const node = (r, gen) => {
+    if (!r || walking.has(r)) return null;
+    const b = box(r);
+    if (gen < maxGen) {
+      walking.add(r);
+      const { f, m } = parentsOf(r) || {};
+      b.f = node(f, gen + 1);
+      b.m = node(m, gen + 1);
+      walking.delete(r);
+    }
+    if (!b.f && !b.m && gen > 0) { const w = wall(r, b); if (w) b.f = w; }
+    return b;
+  };
+
+  return node(root, 0);
 }
 
 function defaultWall(r, b) {
