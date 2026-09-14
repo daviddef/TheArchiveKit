@@ -321,9 +321,9 @@ const base = import.meta.env.BASE_URL || "/";
   .at-cat.on { opacity: 1; color: var(--ink-2); border-color: var(--ink-3); }
   .at-cat i { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
   .at-over { width: 100%; }
-  .at-flow) { stroke-dasharray: 5 7; animation: at-march 1.6s linear infinite; }
+  :global(.at-flow) { stroke-dasharray: 5 7; animation: at-march 1.6s linear infinite; }
   @keyframes at-march { to { stroke-dashoffset: -24; } }
-  @media (prefers-reduced-motion: reduce) { .at-flow) { animation: none; } }
+  @media (prefers-reduced-motion: reduce) { :global(.at-flow) { animation: none; } }
   @media (max-width: 860px) {
     .at-wrap { grid-template-columns: 1fr; }
     .at-map { height: 380px; } .at-panel { height: auto; max-height: 460px; }
