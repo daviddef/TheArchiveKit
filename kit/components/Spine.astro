@@ -6,6 +6,11 @@
    kit's. So it takes exactly one prop, `s`, the line file itself, and any
    archive that can shape its line into stops/joins/people gets the drawing.
 
+   The minimum is one array: stops, each {place}. years, gloss, kind, joins and
+   people are all optional and each is omitted from the output when absent, so
+   an archive whose line is only a list of places in order still draws honestly
+   rather than drawing empty scaffolding around the gaps.
+
    Places run left to right in the order the line actually moved through them.
    Beneath each stop: the people born there, numbered by generation.
    Above each stop: the families that married in, each dropping from its own town.
@@ -41,12 +46,12 @@ const KIND = {
           <div class="sp-up">
             {at(s.joins, i).map(j => (
               <div class={`sp-join${j.open ? " open" : ""}`}>
-                <div class="sp-jt">{j.from}</div>
-                <div class="sp-jf">{j.family}</div>
-                <div class="sp-jp">{j.person}</div>
-                <div class="sp-jb">{j.born}</div>
-                <div class="sp-jn">{j.note}</div>
-                <div class="sp-jg">joins at generation {j.gen}</div>
+                {j.from   && <div class="sp-jt">{j.from}</div>}
+                {j.family && <div class="sp-jf">{j.family}</div>}
+                {j.person && <div class="sp-jp">{j.person}</div>}
+                {j.born   && <div class="sp-jb">{j.born}</div>}
+                {j.note   && <div class="sp-jn">{j.note}</div>}
+                {j.gen != null && <div class="sp-jg">joins at generation {j.gen}</div>}
                 {j.arch && A[j.arch] &&
                   <a class="sp-jx" href={A[j.arch].url}>
                     {A[j.arch].name.replace("The ", "").replace(" Archive", "")} archive →
@@ -64,7 +69,7 @@ const KIND = {
           {/* ---- lane 3 · the place ---- */}
           <div class={`sp-head${inBand(i) ? " band" : ""}`} style={`--c:${KIND[st.kind] || KIND.stop}`}>
             <div class="sp-pl">{st.place}</div>
-            <div class="sp-yr">{st.years}</div>
+            {st.years && <div class="sp-yr">{st.years}</div>}
             {st.gloss && <div class="sp-gl">{st.gloss}</div>}
           </div>
 
@@ -74,7 +79,7 @@ const KIND = {
               <div class={`sp-p${p.conf ? " c-" + p.conf : ""}`}>
                 <span class="sp-g">{p.gen}</span>
                 <span class="sp-pn">{p.name}</span>
-                <span class="sp-pd">{p.d}</span>
+                {p.d && <span class="sp-pd">{p.d}</span>}
                 {p.what && <span class="sp-pw">{p.what}</span>}
               </div>
             ))}
