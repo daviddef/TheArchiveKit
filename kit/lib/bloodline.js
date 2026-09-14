@@ -123,3 +123,57 @@ export function components(people) {
 }
 
 export const weakest = (a, b) => ((RANK[a] ?? 1) <= (RANK[b] ?? 1) ? a : b);
+
+
+/* ---- two other shapes an archive may already hold ------------------------
+
+   Neither needs a session to convert anything, and neither guesses.
+
+   An AHNENTAFEL is the strongest source there is: person n's father is 2n and
+   their mother 2n+1, so the parent links are arithmetic rather than matching.
+   D'Arcy carries 243 ancestors numbered this way.
+
+   A NESTED PEDIGREE carries the relationship in its structure — each node has
+   an f and an m — so the links are the shape of the tree. Booyzen's runs from
+   one woman back through both her parents' lines. Nodes are keyed by their
+   path through the tree, because a pedigree asserts positions rather than
+   identities: the same man appearing twice in two places is a claim about the
+   tree, not something to merge on a name. */
+
+export function fromAhnentafel(rows, opts = {}) {
+  const key = opts.key || ((r) => String(r.id || r.ahn));
+  const byAhn = new Map();
+  for (const r of rows) if (r && r.ahn) byAhn.set(Number(r.ahn), r);
+  const out = [];
+  for (const [n, r] of byAhn) {
+    const parents = [];
+    for (const p of [2 * n, 2 * n + 1]) {
+      const up = byAhn.get(p);
+      if (up) parents.push({ slug: key(up), name: up.name, via: opts.via || "line" });
+    }
+    out.push({ slug: key(r), name: r.name, dt: r.life || "", parents,
+               spouses: (r.spouses || []).map((x) => (typeof x === "string" ? { name: x } : x)) });
+  }
+  return out;
+}
+
+export function fromPedigree(root, opts = {}) {
+  const out = [];
+  const walk = (node, path) => {
+    if (!node || !node.n) return null;
+    const slug = opts.prefix ? opts.prefix + path : "ped" + path;
+    const rec = { slug, name: node.n, dt: [node.b, node.d].filter(Boolean).join(" – "),
+                  parents: [], children: [], siblings: [] };
+    out.push(rec);
+    for (const [side, k] of [["f", "-f"], ["m", "-m"]]) {
+      const up = walk(node[side], path + k);
+      if (up) {
+        rec.parents.push({ slug: up.slug, name: up.name, via: node.s === "doc" ? "read" : "tree" });
+        up.children.push({ slug, name: rec.name, via: node.s === "doc" ? "read" : "tree" });
+      }
+    }
+    return rec;
+  };
+  walk(root, "");
+  return out;
+}
