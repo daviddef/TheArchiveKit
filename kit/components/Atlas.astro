@@ -1,0 +1,288 @@
+---
+/* The Atlas — every place an archive can put a person in.
+
+   Written for one archive and, like the ancestor chart before it, trapped
+   there: 288 lines of page no other archive could reach. What made it
+   archive-specific was never the map. It was six category names, a bounding
+   box round the Adriatic, and three overlays only one family has.
+
+     places     served as JSON at `dataUrl`, each:
+                { name, lat, lon, cat, n, what, when, href, also,
+                  people:[{n,y,d,w}], more, films:[{t,ark,cc,wc}], nfilms,
+                  order }   — `order` marks the documented descent, in sequence
+     cats       [[key, label, colour]] — the filter buttons AND the marker colours
+     bounds     [[south, west], [north, east]] — where the map opens
+     overlays   [[key, label, colour, onByDefault]] for spine / moves / areas.
+                An archive with no arrows of its own passes none and the row
+                is not drawn.
+
+   The data is fetched rather than inlined: an atlas of any size is more than
+   a page should carry, and the map cannot draw before Leaflet loads anyway.
+
+   Markers are sized by how many people stand in a place, which is the one
+   piece of editorial in here and worth saying out loud: weight on this map is
+   not kinship. A parish can hold forty people of the surname and be connected
+   to the family by nothing whatever. */
+const {
+  cats = [],
+  bounds = [[-60, -180], [75, 180]],
+  homeLabel = "Back to the home view",
+  dataUrl,
+  overlays = [],
+  hint,
+  placeholder = "Find a place",
+} = Astro.props;
+const COLORS = Object.fromEntries(cats.map(([k, , c]) => [k, c]));
+const base = import.meta.env.BASE_URL || "/";
+---
+  <div class="at-wrap">
+    <div class="at-map" id="atlas"></div>
+    <aside class="at-panel" id="at-panel">
+      <div class="at-empty" id="at-empty">
+        <div class="lab">Pick a place</div>
+        <p>Click any marker. Bigger markers hold more people.</p>
+        {hint && <p class="at-hint">{hint}</p>}
+      </div>
+      <div class="at-body" id="at-body" hidden></div>
+    </aside>
+  </div>
+
+  <div class="at-tools">
+    <label class="at-find">
+      <span class="lab">Find a place</span>
+      <input id="at-q" type="search" placeholder={placeholder} autocomplete="off" />
+    </label>
+    <div class="atlas-key">
+      {cats.map(([k, label, c]) => (
+        <button class="at-cat on" data-cat={k}><i style={`background:${c}`}></i>{label}</button>
+      ))}
+    </div>
+    {overlays.length > 0 && (
+      <div class="atlas-key at-over">
+        {overlays.map(([k, label, c, on = true]) => (
+          <button class={`at-cat${on ? " on" : ""}`} data-over={k}><i style={`background:${c}`}></i>{label}</button>
+        ))}
+      </div>
+    )}
+<p class="cap" id="at-count"></p>
+  <p class="cap" style="margin-top:6px"><strong>Movements and hot-spots are David's own</strong>, lifted whole from the Google My Map he kept for years — fifty-six arrows and ten shaded areas. They are drawn dashed and labelled as his, because <em>motion on a map is persuasive in a way that evidence is not</em>. The one journey this archive holds a document for is Zuane De Franceschi of Mione, working in the County of Pazin in 1679.</p>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer></script>
+<script is:inline define:vars={{ BASE: base, DATA: dataUrl, COLORS, BOUNDS: bounds, HOME: homeLabel }}>
+  window.addEventListener("load", async function () {
+    var el = document.getElementById("atlas");
+    if (!el || typeof L === "undefined") return;
+    var base = BASE.replace(/\/$/, "");
+    var d;
+    try { d = await (await fetch(DATA)).json(); } catch (e) { return; }
+
+    var map = L.map(el, { scrollWheelZoom: true, worldCopyJump: true });
+    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: "&copy; OpenStreetMap contributors", maxZoom: 18
+    }).addTo(map);
+
+    var esc = function (x) { return String(x == null ? "" : x)
+      .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); };
+    var panel = document.getElementById("at-body");
+    var empty = document.getElementById("at-empty");
+
+    function show(p) {
+      var h = [];
+      h.push('<div class="at-h"><h3>' + esc(p.name) + "</h3>");
+      if (p.n) h.push('<span class="at-n">' + p.n + (p.n === 1 ? " person" : " people") + "</span>");
+      h.push("</div>");
+      if (p.also && p.also.length)
+        h.push('<p class="at-also">also written ' + p.also.map(function (x) {
+          return "<em>" + esc(x) + "</em>"; }).join(" · ") + "</p>");
+      if (p.when || p.what)
+        h.push('<p class="at-what">' + (p.when ? "<b>" + esc(p.when) + "</b> — " : "") + esc(p.what) + "</p>");
+      if (p.href)
+        h.push('<p class="at-go"><a href="' + base + esc(p.href) + '">The page that proves it &rarr;</a></p>');
+
+      if (p.nfilms) {
+        h.push('<div class="at-sec"><div class="lab">The registers, open at page one</div>');
+        h.push('<p class="at-sub">' + p.nfilms + " volume" + (p.nfilms === 1 ? "" : "s") +
+               " photographed for this parish. None of it is name-indexed.</p><ul class=\"at-films\">");
+        p.films.forEach(function (f) {
+          h.push('<li><a href="https://www.familysearch.org/ark:/61903/' + esc(f.ark) +
+                 "?cc=" + esc(f.cc) + "&wc=" + encodeURIComponent(f.wc) +
+                 '" target="_blank" rel="noopener">' + esc(f.t) + " &#8599;</a></li>");
+        });
+        h.push("</ul></div>");
+      }
+
+      if (p.people && p.people.length) {
+        h.push('<div class="at-sec"><div class="lab">Who the archive puts here</div><ul class="at-ppl">');
+        p.people.forEach(function (q) {
+          var yr = q.y ? (q.y + (q.d ? "–" + q.d : "")) : "";
+          var nm = esc(q.n) + (yr ? ' <span class="at-y">' + esc(yr) + "</span>" : "");
+          h.push("<li>" + (q.w ? '<a href="' + base + esc(q.w) + '">' + nm + "</a>" : nm) + "</li>");
+        });
+        h.push("</ul>");
+        if (p.more) h.push('<p class="at-sub">and ' + p.more + " more — <a href=\"" + base + "/people/\">the full roster &rarr;</a></p>");
+        h.push("</div>");
+      }
+      panel.innerHTML = h.join("");
+      panel.hidden = false; empty.hidden = true;
+      panel.scrollTop = 0;
+    }
+
+    var markers = [], pts = [];
+    d.places.forEach(function (p) {
+      var r = p.n > 40 ? 11 : p.n > 12 ? 8.5 : p.n > 3 ? 6.5 : p.order ? 7.5 : 5;
+      var m = L.circleMarker([p.lat, p.lon], {
+        radius: r, color: "#ffffff", weight: p.order ? 2.2 : 1.2,
+        fillColor: COLORS[p.cat] || "#666", fillOpacity: 0.9
+      }).addTo(map);
+      m.bindTooltip(p.name + (p.n ? " · " + p.n : ""), { direction: "top", offset: [0, -6] });
+      m.on("click", function () { show(p); });
+      m._p = p; markers.push(m); pts.push([p.lat, p.lon]);
+    });
+
+    // ---- the documented descent: the only line drawn solid ----------------
+    var spinePts = d.places.filter(function (p) { return p.order; })
+      .sort(function (x, y) { return x.order - y.order; })
+      .map(function (p) { return [p.lat, p.lon]; });
+    var spineLayer = L.layerGroup();
+    L.polyline(spinePts, { color: "#A8442B", weight: 3, opacity: 0.85, lineCap: "round" }).addTo(spineLayer);
+
+    // ---- David's own arrows, dashed and animated --------------------------
+    // Motion is persuasive in a way that evidence is not, so these stay dashed
+    // and say whose they are. Nothing here is upgraded to a document.
+    var movesLayer = L.layerGroup();
+    (d.moves || []).forEach(function (m) {
+      var line = L.polyline([m.from, m.to], {
+        color: "#7A5CA8", weight: 1.6, opacity: 0.55,
+        dashArray: "5 7", className: "at-flow", lineCap: "round"
+      });
+      line.bindTooltip(m.n + " · " + m.km + " km", { sticky: true });
+      line.bindPopup("<b>" + esc(m.n) + "</b><br><i>" + esc(m.layer) + "</i><br>" +
+        m.km + " km<br><span style='font-size:11px;opacity:.75'>Drawn by David on his own map. " +
+        "This archive has not verified it.</span>");
+      line.addTo(movesLayer);
+      // a head at the destination, so the arrow has a direction
+      L.circleMarker(m.to, { radius: 2.6, color: "#7A5CA8", weight: 0, fillColor: "#7A5CA8", fillOpacity: 0.8 })
+        .addTo(movesLayer);
+    });
+
+    // ---- the hot-spots, as he drew them -----------------------------------
+    var areasLayer = L.layerGroup();
+    (d.areas || []).forEach(function (a) {
+      if (!a.ring || a.ring.length < 3) return;
+      L.polygon(a.ring, { color: "#4E7A55", weight: 1.4, opacity: 0.7,
+                          fillColor: "#4E7A55", fillOpacity: 0.10 })
+        .bindTooltip(a.n, { sticky: true })
+        .bindPopup("<b>" + esc(a.n) + "</b><br><i>" + esc(a.layer) + "</i><br>" +
+          "<span style='font-size:11px;opacity:.75'>An area David shaded on his own map.</span>")
+        .addTo(areasLayer);
+    });
+
+    /* Whichever overlays this archive declared, switched on exactly as its
+       buttons say. An archive that declared none has no buttons, so nothing
+       here can turn on a layer with nothing in it. */
+    var OVER = { spine: spineLayer, moves: movesLayer, areas: areasLayer };
+    document.querySelectorAll(".at-cat[data-over].on").forEach(function (b) {
+      var lay = OVER[b.getAttribute("data-over")];
+      if (lay && !map.hasLayer(lay)) lay.addTo(map);
+    });
+    document.querySelectorAll(".at-cat[data-over]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        var k = b.getAttribute("data-over"), lay = OVER[k];
+        var on = map.hasLayer(lay);
+        if (on) map.removeLayer(lay); else lay.addTo(map);
+        b.classList.toggle("on", !on);
+      });
+    });
+
+    map.fitBounds(L.latLngBounds(BOUNDS), { padding: [24, 24] });
+
+    // filters
+    var off = {}, q = document.getElementById("at-q"), count = document.getElementById("at-count");
+    function apply() {
+      var t = (q.value || "").toLowerCase().trim();
+      var shown = 0;
+      markers.forEach(function (m) {
+        var p = m._p;
+        var ok = !off[p.cat] &&
+          (!t || (p.name + " " + (p.also || []).join(" ")).toLowerCase().indexOf(t) > -1);
+        if (ok) { if (!map.hasLayer(m)) m.addTo(map); shown++; }
+        else if (map.hasLayer(m)) map.removeLayer(m);
+      });
+      count.textContent = shown + " of " + markers.length + " places shown";
+      if (t && shown) {
+        var vis = markers.filter(function (m) { return map.hasLayer(m); });
+        map.fitBounds(L.latLngBounds(vis.map(function (m) { return m.getLatLng(); })), { padding: [40, 40], maxZoom: 11 });
+        if (vis.length === 1) show(vis[0]._p);
+      }
+    }
+    q.addEventListener("input", apply);
+    document.querySelectorAll(".at-cat").forEach(function (b) {
+      b.addEventListener("click", function () {
+        var c = b.getAttribute("data-cat");
+        off[c] = !off[c]; b.classList.toggle("on", !off[c]); apply();
+      });
+    });
+    apply();
+
+    var btn = L.control({ position: "topright" });
+    btn.onAdd = function () {
+      var b = L.DomUtil.create("div", "leaflet-bar");
+      b.innerHTML = '<a href="#" title="Show the whole world" style="width:auto;padding:0 9px;font:500 11px/26px system-ui">Whole world</a>';
+      var wide = false;
+      L.DomEvent.on(b, "click", function (e) {
+        L.DomEvent.stop(e); wide = !wide;
+        if (wide) { map.fitBounds(L.latLngBounds(pts), { padding: [24, 24] }); b.querySelector("a").textContent = HOME; }
+        else { map.fitBounds(L.latLngBounds(BOUNDS), { padding: [24, 24] }); b.querySelector("a").textContent = "Whole world"; }
+      });
+      return b;
+    };
+    btn.addTo(map);
+  });
+</script>
+
+<style>
+  .at-wrap { display: grid; grid-template-columns: 1fr 340px; gap: 18px; margin-top: 8px; }
+  .at-map { height: 560px; border: 1px solid var(--rule); border-radius: 3px; }
+  .at-panel {
+    height: 560px; overflow-y: auto; border: 1px solid var(--rule);
+    border-radius: 3px; background: var(--panel); padding: 18px 18px 24px;
+  }
+  .at-empty p { font-size: 13px; line-height: 1.6; color: var(--ink-2); margin: 8px 0 0; }
+  .at-hint { color: var(--ink-3) !important; font-size: 12px !important; }
+  .at-h { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .at-h h3 { font-family: var(--serif); font-size: 21px; margin: 0; line-height: 1.25; }
+  .at-n { font: 400 11px/1 var(--mono); color: var(--accent); white-space: nowrap; }
+  .at-also { font: 400 11.5px/1.5 var(--mono); color: var(--ink-3); margin: 8px 0 0; }
+  .at-what { font-size: 13.5px; line-height: 1.65; margin: 12px 0 0; }
+  .at-go { margin: 10px 0 0; font-size: 13px; }
+  .at-sec { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--rule); }
+  .at-sub { font: 400 11.5px/1.5 var(--mono); color: var(--ink-3); margin: 6px 0 8px; }
+  .at-films, .at-ppl { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 4px; }
+  .at-films li a { font-size: 12.5px; line-height: 1.45; }
+  .at-ppl li { font-size: 13px; line-height: 1.5; }
+  .at-y { font: 400 11px/1 var(--mono); color: var(--ink-3); }
+  .at-tools { display: flex; flex-wrap: wrap; gap: 16px 26px; align-items: flex-end; margin-top: 16px; }
+  .at-find { flex: 1 1 260px; }
+  #at-q {
+    width: 100%; box-sizing: border-box; margin-top: 6px; padding: 9px 12px;
+    font: 400 15px/1.3 var(--serif); color: var(--ink);
+    background: var(--card); border: 1px solid var(--rule); border-radius: 3px;
+  }
+  #at-q:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .at-cat {
+    font: 400 12px/1 var(--sans); color: var(--ink-3); cursor: pointer;
+    background: none; border: 1px solid var(--rule); border-radius: 999px;
+    padding: 6px 11px; display: inline-flex; align-items: center; gap: 6px; opacity: .45;
+  }
+  .at-cat.on { opacity: 1; color: var(--ink-2); border-color: var(--ink-3); }
+  .at-cat i { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+  .at-over { width: 100%; }
+  :global(.at-flow) { stroke-dasharray: 5 7; animation: at-march 1.6s linear infinite; }
+  @keyframes at-march { to { stroke-dashoffset: -24; } }
+  @media (prefers-reduced-motion: reduce) { :global(.at-flow) { animation: none; } }
+  @media (max-width: 860px) {
+    .at-wrap { grid-template-columns: 1fr; }
+    .at-map { height: 380px; } .at-panel { height: auto; max-height: 460px; }
+  }
+</style>
