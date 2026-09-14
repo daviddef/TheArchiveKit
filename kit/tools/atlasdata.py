@@ -57,6 +57,8 @@ def build(rows, out_path, gaz=None, quiet=False, countries=None):
         base = r["slug"]; n = seen.get(base, 0) + 1; seen[base] = n
         if n > 1:
             r["slug"] = f"{base}-{n}"
+        # the marker's "page that proves it" — set after the slug is final
+        r.setdefault("href", f"/places/{r['slug']}/")
     stats = {"places": len(places),
              "withPeople": sum(1 for p in places if p.get("n")),
              "people": sum(p.get("n") or 0 for p in places),
