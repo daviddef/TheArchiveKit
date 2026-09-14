@@ -28,7 +28,7 @@ export function versioner(publicDir) {
       out = "?v=" + crypto.createHash("sha1")
         .update(fs.readFileSync(new URL(rel, publicDir)))
         .digest("hex").slice(0, 8);
-    } catch { out = ""; }
+    } catch (e) { out = ""; }   /* named: esbuild rejects a bare catch here */
     cache.set(rel, out);
     return out;
   };
