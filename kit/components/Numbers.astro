@@ -22,7 +22,13 @@
 */
 const { rows = [], note = "Every one of these is a link to the page that earns it.",
         cta = "See the evidence →", heading = "The archive in numbers" } = Astro.props;
-const fmt = (v) => (typeof v === "number" ? v.toLocaleString() : v);
+/* A year is not a quantity. 1697 is the earliest year one of these archives
+   reaches, and thousands-separating it into "1,697" made it read as a count of
+   something. Four-digit values in a plausible year range are left alone. */
+const fmt = (v) =>
+  typeof v !== "number" ? v
+  : (Number.isInteger(v) && v >= 1000 && v <= 2100) ? String(v)
+  : v.toLocaleString();
 ---
 <section class="blk">
   <h2>{heading}</h2>
