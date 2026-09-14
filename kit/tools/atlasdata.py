@@ -10,9 +10,23 @@ A place with no coordinate is not an error and is not silently lost: it is
 counted and reported, because "46 of 51 are on the map" is a fact a reader is
 entitled to and a number the page should print rather than imply.
 """
-import json, os, sys
+import json, os, re, sys, unicodedata
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import geocode as G
+
+
+def slug(name):
+    """A stable URL for a place, from the name the archive prints.
+
+    Places get a page of their own on four of the seven archives and not on the
+    other three, so the atlas offers "the page that proves it" and half the
+    estate has nothing behind the link. A slug here means the page can be built
+    from the same data the marker is, rather than from a second list that would
+    drift away from the first.
+    """
+    t = unicodedata.normalize("NFD", str(name or "")).encode("ascii", "ignore").decode()
+    t = re.sub(r"[^a-zA-Z0-9]+", "-", t).strip("-").lower()
+    return t or "place"
 
 
 def build(rows, out_path, gaz=None, quiet=False, countries=None):
@@ -34,9 +48,15 @@ def build(rows, out_path, gaz=None, quiet=False, countries=None):
         if hit["conf"] != "exact":
             approx += 1
         r["lat"], r["lon"] = hit["lat"], hit["lon"]
+        r.setdefault("slug", slug(r.get("name")))
         # a coordinate is a claim; say how sure it is, and where it came from
         r["fix"] = hit["conf"]
         places.append(r)
+    seen = {}
+    for r in places:
+        base = r["slug"]; n = seen.get(base, 0) + 1; seen[base] = n
+        if n > 1:
+            r["slug"] = f"{base}-{n}"
     stats = {"places": len(places),
              "withPeople": sum(1 for p in places if p.get("n")),
              "people": sum(p.get("n") or 0 for p in places),
