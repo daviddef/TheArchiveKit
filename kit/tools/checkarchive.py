@@ -241,6 +241,17 @@ def main():
 
     # ---- sitemap -----------------------------------------------------------
     sm = os.path.join(a.dist, "sitemap.xml")
+    rb = os.path.join(a.dist, "robots.txt")
+    # robots.txt names a sitemap. If it is not there, every crawler that reads
+    # robots first asks for a file that 404s, and nothing else here would
+    # notice: the old check simply skipped when the file was absent. It goes
+    # absent easily — a bare `astro build` empties dist and does not run the
+    # generator, so any build that is not `npm run build` ships without one.
+    if os.path.exists(rb) and not os.path.exists(sm):
+        if re.search(r"(?im)^\s*Sitemap:", open(rb, encoding="utf-8").read()):
+            F("sitemap", "robots.txt",
+              "robots.txt points at sitemap.xml and no sitemap.xml was built "
+              "(a bare `astro build` skips the generator — run `npm run build`)")
     if os.path.exists(sm):
         urls = re.findall(r"<loc>([^<]+)</loc>", open(sm, encoding="utf-8").read())
         dead = [u for u in urls
