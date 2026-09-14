@@ -57,8 +57,38 @@ const H = (maxRow + 1) * ROWH;
 const X = g => g * (COLW + GAPX);
 const Y = r => r * ROWH;
 
-const KIND = { candidate: "var(--ochre)", unknown: "var(--terra)", unworked: "var(--ink-3)",
-               "other-archive": "var(--accent)", living: "var(--ink-3)" };
+/* A wall is not one thing, and a list that says the same sentence about all of
+   them is true of every wall and useful about none. Two archives worked this
+   out independently — Booyzen stores a kind on each wall, Blažević wrote a
+   paragraph counting them — which is the signal it belongs here.
+
+   The vocabulary, smallest first in how much work is left to do:
+
+     candidate      not a wall at all — the drawing was cut for room
+     other-archive  the line continues, in a sibling archive
+     name           the record names someone too vaguely to search for. A given
+                    name and no surname, or a wife under her husband's. There
+                    is nothing to look for until a marriage or a baptism
+                    supplies the missing half
+     unfilmed       a properly identified person whose next record exists and
+                    is not reachable — not filmed, not indexed, not public
+     searched       looked for, and not found. A finding, not a gap
+     unworked       nobody has looked yet
+
+   An archive that says nothing gets `unworked`, which is the honest default:
+   not knowing why a line stops is itself not knowing. */
+const WALL = {
+  candidate:       ["More to come",        "var(--ochre)"],
+  "other-archive": ["Continues elsewhere", "var(--accent)"],
+  name:            ["A name problem",      "var(--terra)"],
+  unfilmed:        ["Not reachable",       "var(--ochre)"],
+  searched:        ["Searched, not found", "var(--ink-2)"],
+  unworked:        ["Not yet worked",      "var(--ink-3)"],
+  unknown:         ["Not yet worked",      "var(--terra)"],
+  hard:            ["Searched, not found", "var(--ink-2)"],
+};
+const kindOf = (w) => WALL[w && w.kind] || WALL.unworked;
+const KIND = Object.fromEntries(Object.entries(WALL).map(([k, v]) => [k, v[1]]));
 const CONF = { doc: "var(--accent)", lore: "var(--ochre)", living: "var(--ink-3)" };
 const GENLAB = ["Self", "Gen 1", "Gen 2", "Gen 3", "Gen 4", "Gen 5", "Gen 6", "Gen 7", "Gen 8"];
 ---
@@ -111,8 +141,8 @@ const GENLAB = ["Self", "Gen 1", "Gen 2", "Gen 3", "Gen 4", "Gen 5", "Gen 6", "G
         ? "The one wall, and why it is a wall"
         : `The ${walls.length} walls, and why each one is a wall`}</h3>
   {walls.map(w => (
-    <div class="ac-wrow" style={`--k:${KIND[w.kind] || "var(--ink-3)"}`}>
-      <div class="ac-wk">{w.label}</div>
+    <div class="ac-wrow" style={`--k:${kindOf(w)[1]}`}>
+      <div class="ac-wk">{w.label}<span class="ac-wkind">{kindOf(w)[0]}</span></div>
       <div class="ac-wn">
         <span set:html={md(w.note)}></span>
         {w.arch && A[w.arch] && (
@@ -161,6 +191,10 @@ const GENLAB = ["Self", "Gen 1", "Gen 2", "Gen 3", "Gen 4", "Gen 5", "Gen 6", "G
 
   .ac-walls { margin-top: 18px; }
   .ac-walls h3 { font-family: var(--serif); font-size: 19px; margin: 0 0 10px; }
+  .ac-wkind {
+    display: block; font-family: var(--mono); font-size: 10px; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--k); margin-top: 4px;
+  }
   .ac-wrow { display: grid; grid-template-columns: 160px 1fr; gap: 4px 14px;
              padding: 8px 0; border-top: 1px solid var(--rule); }
   .ac-wk { font-family: var(--sans); font-size: 10px; letter-spacing: .1em;

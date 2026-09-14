@@ -170,13 +170,25 @@ export function lineage(root, opts = {}) {
 function defaultWall(r, b) {
   const where = b.place ? b.place.split(/\s*,\s*/)[0] : "";
   const when = /\b(\d{4})\b/.exec(b.d);
+  /* Why a line stops is not always a research problem. The commonest reason in
+     these files is that the tree names somebody too vaguely to look for — a
+     given name and no surname, a wife under her husband's, a bare surname with
+     no given name. Nothing can be searched for until a marriage entry or a
+     child's baptism supplies the missing half, and calling that "not yet
+     worked" invites somebody to waste an afternoon on it. */
+  const name = String(b.n || "").trim();
+  const words = name.split(/\s+/).filter(Boolean);
+  const vague = !name || name === "—" || words.length < 2 || /^\?+$/.test(name);
   return {
     wall: true,
-    kind: "unworked",
+    kind: vague ? "name" : "unworked",
     label: where && when ? `Before ${where}, ${when[1]}`
          : where ? `Before ${where}`
          : "No parents recorded",
-    note: `No parents are recorded for **${b.n}** in this archive. `
+    note: vague
+      ? `The tree names this person too vaguely to look for — there is nothing to `
+        + `search until a marriage entry or a child's baptism supplies the rest of the name.`
+      : `No parents are recorded for **${b.n}** in this archive. `
         + (where ? `The line is known back to ${where} and no further.`
                  : `Where the line goes next is not yet known.`),
   };
