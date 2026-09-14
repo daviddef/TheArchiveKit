@@ -27,7 +27,12 @@
 .bl-node rect { fill: var(--panel-2); stroke: var(--rule-2); stroke-width:1 }
 .bl-node.is-line rect { stroke: var(--accent); stroke-width:1.8; fill: var(--panel) }
 .bl-node.is-line text { font-weight:500 }
+.bl-node.is-kin rect { stroke-dasharray:0; opacity:.92 }
 .bl-node.is-kin text { fill: var(--ink-2) }
+/* the husband or wife is not blood, and this page is about blood — the dashed
+   edge says so without needing a legend entry. From the archive that drew this
+   chart first, and worth having everywhere. */
+.bl-node.is-spouse rect { stroke-dasharray:4 3 }
 .bl-node.is-kin .bl-dt { fill: var(--ink-3) }
 .bl-node.is-self rect { stroke: var(--accent); stroke-width:2.6; fill: var(--accent-wash, var(--panel)) }
 .bl-node:hover rect { stroke: var(--ink-2) }
