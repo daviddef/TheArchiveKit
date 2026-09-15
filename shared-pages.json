@@ -53,17 +53,17 @@
       "key": "people",
       "route": "/people/",
       "on": 7,
-      "state": "local",
+      "state": "partial",
       "tier": 1,
-      "note": "**2,634 to 50,004 words.** Every archive lists its people and no two do it alike. The biggest single win left."
+      "note": "**Five of seven on the shared FilterTable** — Falco, Defranceschi, Booyzen, Blazevic, Mazza — each keeping its own columns, facets and prose. Falco went 378 lines to 280, Blazevic 182 to 80, Booyzen 141 to 57. **Nothing was surrendered to standardise**: the Blazevic spelling fold is a prop now (joannis still finds 118 Ivans), Falco's five booleans are still one row of mutually exclusive buttons, and the links gained trailing slashes — 9,750 redirects removed on the Falco page alone. **D'Arcy and Lerena do not have a table here at all** and need reading before they are moved."
     },
     {
       "key": "who",
       "route": "/who/",
       "on": 7,
-      "state": "local",
+      "state": "partial",
       "tier": 1,
-      "note": "**1,099 to 16,861 words**, 0 to 24 sections. The name namespace the estate agreed to call Every Name."
+      "note": "**Five of seven on the shared EveryName.** Three were byte-identical apart from the import line; Falco and Booyzen differed only in wording. **The other two are a different page under the same label**: Defranceschi's /who/ is a PERSON index grouped by letter and D'Arcy's is the people it met in documents and had nowhere to put — witnesses, constables, surgeons. That is for you to settle, not for a component to paper over."
     },
     {
       "key": "register",

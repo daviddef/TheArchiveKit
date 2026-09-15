@@ -474,14 +474,14 @@
       "since": "2026-09-15",
       "what": "Tier 1: the six pages every archive has and no two do alike",
       "covers": [
-        "page:people",
-        "page:who",
         "page:register",
         "page:searched",
         "page:corrections",
-        "page:open-questions"
+        "page:open-questions",
+        "part:people",
+        "part:who"
       ],
-      "note": "**/marriages/ is one of twenty-three shared routes and the only one finished.** These six are next because every archive has them, the job is identical on each, and the divergence is largest: **/people/ runs 2,634 to 50,004 words**, **/who/ 1,099 to 16,861**, **/register/ 9,025 to 356,720** (size is fair — Falco holds 11,923 records — the SHAPE is not), **/corrections/ has five different page titles**, **/searched/ is prose on Falco and a table everywhere else**, and **/open-questions/ is on a shared component in one archive of seven**. Same method as /marriages/: measure all seven first, promote the best one, let each archive keep its own rule and its own prose."
+      "note": "**/marriages/ is one of twenty-three shared routes and the only one finished.** These six are next because every archive has them, the job is identical on each, and the divergence is largest: **/people/ runs 2,634 to 50,004 words**, **/who/ 1,099 to 16,861**, **/register/ 9,025 to 356,720** (size is fair — Falco holds 11,923 records — the SHAPE is not), **/corrections/ has five different page titles**, **/searched/ is prose on Falco and a table everywhere else**, and **/open-questions/ is on a shared component in one archive of seven**. Same method as /marriages/: measure all seven first, promote the best one, let each archive keep its own rule and its own prose. **/who/ and /people/ done 15 September — five of seven each.** `FilterTable` and `EveryName` are in the kit; Falco 378 lines to 280, Blazevic 182 to 80, Booyzen 141 to 57. The two that are left on each are genuinely different pages, not laggards. **Four to go in this tier: register, searched, corrections, open-questions.**"
     },
     {
       "n": 57,
