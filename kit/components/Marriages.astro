@@ -116,13 +116,27 @@ const gn = (g) => (typeof g.count === "number" ? g.count
   {groups.map((grp) => (
     <section class="mg-group" id={"g-" + grp.key}>
       <h2 class="mg-glabel">{grp.label}
-        <span class="small mono mg-gn">{gn(grp)} {gn(grp) === 1 ? "family" : "families"}</span></h2>
+        <span class="small mono mg-gn">{gn(grp) === 0 ? "none routed here yet"
+          : gn(grp) + " " + (gn(grp) === 1 ? (grp.countNoun1 || "family")
+            : (grp.countNoun || "families"))}</span>
+        {grp.badge ? <span class="mg-badge">{grp.badge}</span> : null}</h2>
+      {grp.places ? <p class="small mono mg-places">{grp.places}</p> : null}
       {grp.blurb ? <p class="mg-blurb" set:html={grp.blurb} /> : null}
+      {/* A group may carry structured detail of its own — the Defranceschi
+          archive routes each family to the empire that held its town, and who
+          held it, which registers survive and where the archive stands are four
+          separate answers, not one paragraph. */}
+      {(grp.detail || []).length ? (
+        <dl class="mg-dl">{grp.detail.map(([term, html]) => (
+          <><dt>{term}</dt><dd set:html={html} /></>))}</dl>
+      ) : null}
 
       {(grp.families || []).map((f) => (
         <article class="mg-fam">
-          <h3 class="mg-fname">{f.surname}
-            <span class="small mono mg-fmeta">{f.n} named{f.withheld ? ` · ${f.withheld} living, withheld` : ""}</span></h3>
+          <h3 class="mg-fname">{f.href ? <a href={u(f.href)}>{f.surname}</a> : f.surname}
+            <span class="small mono mg-fmeta">{f.n} {f.countLabel || "named"}{f.withheld
+              ? ` · ${f.withheld} living, withheld` : ""}</span>
+            {f.badge ? <span class="mg-badge">{f.badge}</span> : null}</h3>
 
           <p class="small mg-fline">
             {f.span || ""}{f.places && f.places.length ? (f.span ? " · " : "") + f.places.join(" · ") : ""}
@@ -171,6 +185,27 @@ const gn = (g) => (typeof g.count === "number" ? g.count
           {f.note ? <p class="small mg-note" set:html={f.note} /> : null}
         </article>
       ))}
+
+      {/* Families the archive knows only a COUNT for. A section with an empty
+          table under it would be worse than what it replaces: the Defranceschi
+          archive holds 74 in-law surnames and a number of indexed marriages
+          against each, and nothing else, so they belong in a grid you can read
+          at a glance and not in 74 headings. An archive with real people under
+          a surname uses `families` instead; most use both. */}
+      {(grp.chips || []).length ? (
+        <div class="mg-chips">
+          {grp.chips.map((c) => {
+            const inner = (<>
+              <span class="mg-cn">{c.name}</span>
+              <span class="mg-cc mono">{c.count}</span>
+              {c.aside ? <span class="mg-ca mono" title={c.asideTitle || ""}>{c.aside}</span> : null}
+            </>);
+            return c.href
+              ? <a class={"mg-chip on" + (c.mark ? " mark" : "")} href={u(c.href)}>{inner}</a>
+              : <span class={"mg-chip" + (c.mark ? " mark" : "")}>{inner}</span>;
+          })}
+        </div>
+      ) : null}
 
       {(grp.thin || []).length ? (
         <div class="mg-gthin">
@@ -267,6 +302,28 @@ const gn = (g) => (typeof g.count === "number" ? g.count
   .mg-sub { color:var(--ink-3,#777); font-weight:600; margin-bottom:.35rem;
     text-transform:uppercase; letter-spacing:.05em; }
   .mg-gheld { color:var(--ink-3,#777); margin:.8rem 0 0; }
+  .mg-chips { display:flex; flex-wrap:wrap; gap:7px; margin-top:1rem; padding-top:.9rem;
+    border-top:1px solid var(--rule,#ddd); }
+  .mg-chip { display:inline-flex; align-items:baseline; gap:7px; border:1px solid var(--rule,#ddd);
+    border-radius:2px; padding:3px 9px; font-size:12.5px; color:var(--ink-3,#777);
+    text-decoration:none; }
+  .mg-cc { font-size:10.5px; opacity:.8; }
+  .mg-ca { font-size:9.5px; color:var(--ochre,#963); opacity:.9;
+    border-left:1px solid var(--rule,#ddd); padding-left:7px; }
+  .mg-chip.on { color:var(--ink,#111); border-color:var(--rule-strong,#bbb); }
+  .mg-chip.on:hover { border-color:var(--accent,#963); color:var(--accent,#963); }
+  .mg-chip.mark { border-color:var(--accent,#963); color:var(--accent,#963);
+    background:var(--accent-wash,transparent); }
+  .mg-badge { font-size:9.5px; font-weight:600; letter-spacing:.12em; text-transform:uppercase;
+    color:var(--accent,#963); border:1px solid var(--accent,#963);
+    background:var(--accent-wash,transparent); border-radius:2px; padding:2px 8px; }
+  .mg-places { color:var(--ink-3,#777); margin:.25rem 0 .5rem; line-height:1.6; }
+  .mg-dl { display:grid; grid-template-columns:auto 1fr; gap:6px 18px; margin:.9rem 0 0; }
+  .mg-dl dt { font-size:9.5px; font-weight:600; letter-spacing:.12em; text-transform:uppercase;
+    color:var(--ink-3,#777); padding-top:3px; white-space:nowrap; }
+  .mg-dl dd { margin:0; line-height:1.62; color:var(--ink-2,#444); max-width:78ch; }
+  @media (max-width:560px) { .mg-dl { grid-template-columns:1fr; gap:2px 0; }
+    .mg-dl dt { padding-top:9px; } }
   .mg-living { margin-top:1.2rem; }
   @media (max-width:520px) { .mg-n { font-size:1.25rem; } }
 </style>
