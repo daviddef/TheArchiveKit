@@ -1,0 +1,100 @@
+---
+/* What this archive does not know, and what would settle each one.
+ *
+ * An open question is a first-class object: the question itself, what is
+ * already known, what has been tried, and — the part that matters — THE
+ * SPECIFIC RECORD THAT WOULD ANSWER IT. A page of questions without that last
+ * field is a list of regrets; with it, it is a work queue.
+ *
+ * Only two of the seven archives hold their questions as data — Defranceschi
+ * (q/status/known/needed) and D'Arcy (q/state/rank/settles/tried). The other
+ * five write them as prose, so they cannot use this until somebody extracts
+ * them, and that extraction is research work belonging to each archive rather
+ * than something to guess at from outside. This component is here so adoption
+ * is cheap when they do.
+ *
+ *   rows  [{q, state, known, tried, settles, since, rank, href, n}]
+ *          fields arrive as HTML the archive has already rendered
+ */
+const { rows = [], u = (p) => p, unit = "questions" } = Astro.props;
+const states = [...new Set(rows.map((r) => r.state).filter(Boolean))];
+---
+<div class="qs">
+  {states.length > 1 ? (
+    <div class="qs-bar">
+      <span class="qs-lab">Show</span>
+      <button type="button" class="qs-opt on" data-v="">All <span class="mono">{rows.length}</span></button>
+      {states.map((s) => (
+        <button type="button" class="qs-opt" data-v={s}>{s}
+          <span class="mono">{rows.filter((r) => r.state === s).length}</span></button>
+      ))}
+    </div>
+  ) : null}
+
+  {rows.map((r, i) => (
+    <section class="qs-q" data-state={r.state || ""}>
+      <h3 class="qs-h">
+        <span class="qs-n mono">{r.n ?? i + 1}</span>
+        <span set:html={r.q} />
+        {r.state ? <span class="chip">{r.state}</span> : null}
+      </h3>
+      {r.rank ? <p class="qs-rank small" set:html={r.rank} /> : null}
+      <dl class="qs-dl">
+        {r.known ? <><dt>What is known</dt><dd set:html={r.known} /></> : null}
+        {r.tried ? <><dt>What has been tried</dt><dd set:html={r.tried} /></> : null}
+        {r.settles ? <><dt>What would settle it</dt><dd set:html={r.settles} /></> : null}
+      </dl>
+      {(r.since || r.href) ? (
+        <p class="small qs-foot">
+          {r.since ? <span class="dim">Open since {r.since}.</span> : null}
+          {r.href ? <> {r.since ? " · " : ""}<a href={u(r.href)}>{r.hrefLabel || "Where it stands →"}</a></> : null}
+        </p>
+      ) : null}
+    </section>
+  ))}
+  <p class="qs-none small" hidden>Nothing at that state.</p>
+</div>
+
+<script>
+  document.querySelectorAll(".qs").forEach((box) => {
+    const qs = [...box.querySelectorAll(".qs-q")];
+    const none = box.querySelector(".qs-none");
+    box.querySelectorAll(".qs-opt").forEach((b) => {
+      b.addEventListener("click", () => {
+        box.querySelectorAll(".qs-opt").forEach((x) => x.classList.remove("on"));
+        b.classList.add("on");
+        const v = b.dataset.v || "";
+        let shown = 0;
+        for (const q of qs) {
+          const ok = !v || q.dataset.state === v;
+          q.hidden = !ok;
+          if (ok) shown++;
+        }
+        if (none) none.hidden = shown > 0;
+      });
+    });
+  });
+</script>
+
+<style is:global>
+  .qs-bar { display:flex; flex-wrap:wrap; gap:.35rem; align-items:center; margin:1rem 0 .6rem; }
+  .qs-lab { font-size:9.5px; font-weight:600; letter-spacing:.11em; text-transform:uppercase;
+    color:var(--ink-3,#888); margin-right:.35rem; }
+  .qs-opt { font:inherit; font-size:.78rem; padding:.22rem .6rem; cursor:pointer;
+    color:var(--ink-2,inherit); background:transparent; border:1px solid var(--rule,#ccc);
+    border-radius:2px; display:inline-flex; gap:.4rem; align-items:baseline; }
+  .qs-opt.on { color:var(--accent,#963); border-color:var(--accent,#963);
+    background:var(--accent-wash,transparent); font-weight:600; }
+  .qs-q { border-top:1px solid var(--rule,#ddd); padding:1rem 0 .9rem; }
+  .qs-h { display:flex; align-items:baseline; gap:.5rem; flex-wrap:wrap; margin:0 0 .3rem;
+    font-size:1.02rem; }
+  .qs-n { color:var(--ink-3,#888); font-weight:400; }
+  .qs-rank { color:var(--accent,#963); margin:.1rem 0 .4rem; }
+  .qs-dl { display:grid; grid-template-columns:auto 1fr; gap:.3rem 1.1rem; margin:.4rem 0 0; }
+  .qs-dl dt { font-size:9.5px; font-weight:600; letter-spacing:.11em; text-transform:uppercase;
+    color:var(--ink-3,#888); padding-top:.28rem; white-space:nowrap; }
+  .qs-dl dd { margin:0; line-height:1.62; }
+  .qs-foot { margin-top:.5rem; color:var(--ink-3,#888); }
+  @media (max-width:560px) { .qs-dl { grid-template-columns:1fr; gap:.1rem 0; }
+    .qs-dl dt { padding-top:.5rem; } }
+</style>
