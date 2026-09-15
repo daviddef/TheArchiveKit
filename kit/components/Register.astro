@@ -1,0 +1,50 @@
+---
+import FilterTable from "./FilterTable.astro";
+/* Every record this archive holds, one row per record.
+ *
+ * The largest page in the estate and the widest spread — 1,466 records on
+ * Blazevic to 12,034 on Falco, which is 356,720 words against 9,025. The SIZE
+ * is legitimate: an archive that has read more registers has more records, and
+ * making them equal would mean deleting evidence. The SHAPE is not, and those
+ * two pages were near-identical forks of each other: the same three columns,
+ * the same search box, the same grouping into a section per surname.
+ *
+ * A record is not a person and this page is where that matters most. Twelve
+ * thousand records are not twelve thousand people — a name page and a person
+ * page are different things, and the link on each row goes to whichever the
+ * archive has actually identified.
+ *
+ * The surname sections become a facet. A reader looking for one surname gets
+ * it in a click instead of scrolling past two hundred headings, and the search
+ * still runs across all of them at once.
+ *
+ *   rows  [{name, href, detail, source, sourceHref, sourceLabel, surname, chip}]
+ *          detail arrives as HTML the archive has already rendered
+ */
+const { rows = [], u = (p) => p, unit = "records" } = Astro.props;
+const bySur = {};
+for (const r of rows) bySur[r.surname || "—"] = (bySur[r.surname || "—"] || 0) + 1;
+const surnames = Object.entries(bySur).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;");
+const ext = (h) => /^(https?:)?\/\//.test(String(h || ""));
+---
+<FilterTable
+  unit={unit}
+  columns={[{ label: "Name" }, { label: "What the source says" }, { label: "Source", cls: "small" }]}
+  facets={surnames.length > 1 ? [{ key: "sur", label: "Surname", all: `All ${surnames.length} surnames`,
+    options: surnames.map(([s, n]) => ({ v: s, label: `${s} (${n})` })) }] : []}
+  note={`<strong>${rows.length.toLocaleString()}</strong> records across <strong>${surnames.length}</strong> surnames. A record is not a person: the same person can appear many times and two people can share a name, so a row links to whichever page this archive has actually identified.`}
+  rows={rows.map((r) => ({
+    /* no `hay`: every word of a register row is on screen, so the script
+       reads it from the row itself rather than shipping a second copy */
+    facets: { sur: r.surname || "—" },
+    cells: [
+      (r.href ? `<a href="${u(r.href)}">${esc(r.name)}</a>` : esc(r.name)) +
+        (r.chip ? `<br><span class="chip doc">${esc(r.chip)}</span>` : ""),
+      r.detail || "",
+      (r.sourceHref
+        ? `<a href="${r.sourceHref}"${ext(r.sourceHref) ? ' rel="noopener"' : ""}>${esc(r.sourceLabel || "source")} ↗</a>`
+        : esc(r.sourceLabel || "")) +
+        (r.source ? `<br><span style="color:var(--ink-3)">${esc(r.source)}</span>` : ""),
+    ],
+  }))} />

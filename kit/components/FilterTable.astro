@@ -20,6 +20,13 @@
  *
  *   columns  [{label, cls}]
  *   rows     [{cells:[…], hay, facets:{key:value}, href}]  cells may be HTML
+ *
+ * `hay` IS OPTIONAL AND SHOULD BE LEFT OUT ON A LONG TABLE. It is a lowercase
+ * copy of the row's own text, and on the Falco register — 12,034 records of
+ * prose — duplicating it into an attribute took the page to 7.2 MB. Where it
+ * is absent the script reads the row's textContent once at load, which costs
+ * nothing to ship. Pass it only when a row should match on something it does
+ * not DISPLAY, such as a spelling variant.
  *   facets   [{key, label, options:[{v, label}]}]
  *   note     a line under the controls, before the table
  */
@@ -91,7 +98,7 @@ const {
       <thead><tr>{columns.map((c) => <th class={c.cls || ""}>{c.label}</th>)}</tr></thead>
       <tbody>
         {rows.map((r) => (
-          <tr class="ft-row" data-hay={r.hay || ""}
+          <tr class="ft-row" data-hay={r.hay || undefined}
               {...Object.fromEntries((facets || []).map((f) => ["data-" + f.key, String((r.facets || {})[f.key] ?? "")]))}>
             {r.cells.map((c, i) => (
               <td class={(columns[i] && columns[i].cls) || ""} set:html={c} />
@@ -110,6 +117,9 @@ const {
   document.querySelectorAll(".ft").forEach((box) => {
     const q = box.querySelector(".ft-q");
     const rows = [...box.querySelectorAll(".ft-row")];
+    for (const r of rows) {
+      if (r.dataset.hay === undefined) r.dataset.hay = (r.textContent || "").toLowerCase();
+    }
     const nEl = box.querySelector(".ft-n");
     const ofEl = box.querySelector(".ft-of");
     const emptyEl = box.querySelector(".ft-empty");
