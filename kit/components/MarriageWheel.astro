@@ -21,7 +21,7 @@ const {
   groups = [],
   subject = "",          // the name in the middle
   caption = "",          // the line under it
-  max = 64,              // beyond this a wheel is a smear; the page still lists them all
+  perGroup = 22,         // the largest families in a group get a spoke; the rest are counted
 } = Astro.props;
 
 const PALETTE = ["--r-venice", "--accent", "--terra", "--r-habsburg", "--r-italy", "--r-yugo"];
@@ -39,9 +39,22 @@ const membersOf = (g) => [
   ...(g.chips || []).map((c) => ({ name: c.name, c: +c.count || 0, accent: c.accent })),
 ];
 
+/* A wheel of everything is a smear at the sizes these pages are read at, and
+   suppressing it entirely was worse: the first version hid the chart above 64
+   families, which silently dropped it from the Defranceschi archive — 74
+   families, and the archive the chart was written in — and from Lerena, whose
+   230 unplaced names would have been unreadable anyway.
+   
+   So a group shows its largest families and COUNTS the rest, rather than the
+   page showing nothing. Every name is still on the page below, as text and as
+   a link; this is the shape, not the list. */
 const live = groups
-  .map((g, i) => ({ key: g.key, label: g.label, col: g.accent || PALETTE[i % PALETTE.length],
-                    members: membersOf(g).sort((a, b) => b.c - a.c) }))
+  .map((g, i) => {
+    const all = membersOf(g).sort((a, b) => b.c - a.c);
+    return { key: g.key, label: g.label, col: g.accent || PALETTE[i % PALETTE.length],
+             members: all.slice(0, perGroup), hidden: Math.max(0, all.length - perGroup),
+             all: all.length };
+  })
   .filter((g) => g.members.length);
 
 const total = live.reduce((a, g) => a + g.members.length, 0);
@@ -49,7 +62,6 @@ const total = live.reduce((a, g) => a + g.members.length, 0);
    mean different things, and the key has to say both rather than one. */
 const { memberKey = [] } = Astro.props;
 const keyOf = memberKey;
-const tooMany = total > max;
 
 /* Geometry. The ring grows with how many spokes there are, so a wheel of twelve
    and a wheel of seventy-eight are both readable rather than one being a smear
@@ -84,7 +96,7 @@ for (const a of arcs) {
   });
 }
 ---
-{live.length && !tooMany ? (
+{live.length ? (
   <figure class="mw">
     <div class="scroll">
       <svg viewBox={`0 0 ${W} ${H}`} width={W} style={`max-width:100%;min-width:${Math.min(W, 640)}px;display:block`}
@@ -115,7 +127,8 @@ for (const a of arcs) {
           {k.label}</span>))}</div>) : null}
       {live.map((g, i) => (
         <span>{i ? "  ·  " : ""}<span class="mw-key" style={`background:var(${g.col},currentColor)`}></span>
-          {g.label} <span class="mono">{g.members.length}</span></span>
+          {g.label} <span class="mono">{g.all}</span>
+          {g.hidden ? <span class="dim"> ({g.hidden} not drawn)</span> : null}</span>
       ))}
     </figcaption>
   </figure>
