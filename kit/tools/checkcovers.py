@@ -49,6 +49,23 @@ off. An archive whose register rows carry no stable key cannot use the register
 half of this until it adds one, and that is the honest answer rather than a
 heuristic.
 
+THE BACKLOG IS A RATCHET, NOT A CLIFF. Turning enforcement on in an archive
+that has never reconciled means every outstanding item fails the build at once
+— 143 of them across four archives the first time this was tried — and the only
+ways out are to write 143 rows in one sitting or to leave the whole thing
+switched off. Both are how a gate ends up disabled.
+
+So a work list may declare what it has NOT yet reconciled:
+
+    "unreconciled": 31
+
+and the build fails only when the real number is HIGHER than that. It can
+never get worse, the count is printed on every build so it is impossible to
+forget, and each covering row added lets the session lower the number by one.
+A declaration that is too generous is caught too: when the real number is
+lower, this says so and names the figure to drop to, so the ratchet cannot be
+left slack.
+
 AN ARCHIVE THAT DECLARES NOTHING IS NOT SILENTLY EXCUSED. It would defeat the
 purpose to pass quietly: silence is the failure this gate exists to end. So when
 there is no declaration, this looks for the files an archive of this estate
@@ -228,9 +245,22 @@ def check(root, name):
         for c in row.get("covers", []):
             claimed.setdefault(c, []).append(row.get("n"))
 
-    for token, what in sorted(outstanding.items()):
-        if token not in claimed:
-            bad.append(f"nothing on the work list covers {token!r} — {what}")
+    uncovered = [(t, w) for t, w in sorted(outstanding.items()) if t not in claimed]
+    allowed = work.get("unreconciled", 0)
+    try:
+        allowed = int(allowed)
+    except (TypeError, ValueError):
+        bad.append(f"unreconciled must be a whole number, not {allowed!r}")
+        allowed = 0
+    over = len(uncovered) - allowed
+    if over > 0:
+        for t, w in uncovered[:allowed + 12][allowed:]:
+            bad.append(f"nothing on the work list covers {t!r} — {w}")
+        if over > 12:
+            bad.append(f"… and {over - 12} more uncovered")
+        bad.append(f"{len(uncovered)} outstanding items have no row and the list "
+                   f"declares only {allowed} unreconciled — raise a row, or raise the number "
+                   f"deliberately and say why")
 
     for token, rws in sorted(claimed.items()):
         where = ", ".join(f"row {n}" for n in rws)
@@ -256,7 +286,15 @@ def check(root, name):
         if per.get(pre):
             bits.append(f"{per[pre]} {acc.get('noun', pre)}")
     detail = " · ".join(bits) or "nothing outstanding"
-    print(f"  ok    {name} accounts for {len(outstanding)} outstanding item(s) — {detail}")
+    covered = len(outstanding) - len(uncovered)
+    tail = ""
+    if uncovered:
+        tail = f" · {len(uncovered)} not yet reconciled"
+    print(f"  ok    {name} accounts for {covered} of {len(outstanding)} outstanding item(s) "
+          f"— {detail}{tail}")
+    if uncovered and len(uncovered) < allowed:
+        print(f"        the backlog has fallen to {len(uncovered)}: lower \"unreconciled\" "
+              f"from {allowed} so it cannot drift back up")
     return 0
 
 
