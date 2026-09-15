@@ -150,18 +150,21 @@ if (pts.length) {
      already written. Greedy, biggest first, because if only six names fit they
      should be the six that account for the most people — and a picture with
      six names on it is readable where the same picture with none is not. */
-  const taken = [];
+  const taken = [], used = new Set();
   const clear = (b) => !taken.some((t) =>
     b.x < t.x2 && b.x2 > t.x && b.y < t.y2 && b.y2 > t.y);
   for (const d of [...view].sort((a, b) => b.n - a.n)) {
     if (labels.length >= names) break;
-    if (!d.name || d.off) continue;
+    /* two rows can carry the same name — Blazevic has two Senj entries — and
+       the same word twice on one picture reads as a mistake rather than as two
+       places */
+    if (!d.name || d.off || used.has(d.name)) continue;
     const w = Math.min(d.name.length * 5.1 + 6, 96);
     const right = d.x + d.r + 4 + w < W - PAD;
     const bx = right ? d.x + d.r + 4 : d.x - d.r - 4 - w;
     const box = { x: bx, x2: bx + w, y: d.y - 6, y2: d.y + 6 };
     if (bx < PAD / 2 || !clear(box)) continue;
-    taken.push(box);
+    taken.push(box); used.add(d.name);
     labels.push({ x: right ? bx : bx + w, y: d.y + 3.4, text: d.name, anchor: right ? "start" : "end" });
   }
 
