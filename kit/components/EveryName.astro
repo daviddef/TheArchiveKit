@@ -1,0 +1,43 @@
+---
+import FilterTable from "./FilterTable.astro";
+/* Every name in the archive, and how many people bore it.
+ *
+ * Five archives had this page and three of them were BYTE-IDENTICAL apart from
+ * the line that imports the data — a copy-paste fork sitting there waiting to
+ * drift, which is the thing the kit exists to stop. Falco and Booyzen differed
+ * only in wording.
+ *
+ * It does not cover all seven, and that is a finding rather than a gap. The
+ * Defranceschi /who/ is a PERSON index grouped by letter and the D'Arcy one is
+ * the people it met in documents and had nowhere else to put — witnesses,
+ * constables, surgeons. Three different pages under one menu label, which is
+ * for the archives to settle, not for this component to paper over.
+ *
+ * The distinction it draws is the estate's oldest rule: A NAME IS NOT A PERSON.
+ * The names held by more than one are the ones a reader goes wrong on, so the
+ * count is what the page is sorted and filtered by.
+ *
+ *   names  [{slug, name, n}]  n = how many bore it
+ *   u      the archive's url helper
+ *   unit   what n counts, in this archive's words ("people", "records")
+ */
+const { names = [], u = (p) => p, unit = "people", noun = "names" } = Astro.props;
+const shared = names.filter((n) => n.n > 1);
+---
+<FilterTable
+  unit={noun}
+  columns={[{ label: "Name" }, { label: unit === "records" ? "Records" : "People", cls: "mono" }]}
+  facets={shared.length ? [{ key: "many", label: "Held by", options: [
+    { v: "1", label: `More than one ${unit === "records" ? "record" : "person"}` },
+    { v: "0", label: "Only one" }] }] : []}
+  note={shared.length
+    ? `<strong>${shared.length.toLocaleString()}</strong> of these ${noun} belong to more than one ${unit === "records" ? "record" : "person"}. Those are the ones where a reader can go wrong.`
+    : `No name here is held by more than one ${unit === "records" ? "record" : "person"}.`}
+  rows={names.map((n) => ({
+    hay: n.name.toLowerCase(),
+    facets: { many: n.n > 1 ? "1" : "0" },
+    cells: [
+      `<a href="${u(`/who/${n.slug}/`)}">${n.name}</a>`,
+      n.n > 1 ? String(n.n) : "",
+    ],
+  }))} />

@@ -1,0 +1,143 @@
+---
+/* A long list of rows, with a search box and facet buttons over it.
+ *
+ * Seven archives had written this seven times. Every one of them had a filter
+ * box and a script; five had a table and two had talked themselves out of one;
+ * /people/ ran from 2,634 words to 50,004 and /who/ from 1,099 to 16,861. The
+ * job is identical on all of them — here are the rows, let me narrow them —
+ * and nothing about it is archive-specific except WHICH rows and WHICH facets,
+ * which is exactly what the props are.
+ *
+ * WORKS WITHOUT SCRIPT. Every row is in the HTML and visible before anything
+ * runs; the script only hides. A reader with no JavaScript, a search engine,
+ * and Reader mode all get the whole list, which is the point of a static
+ * archive. The count line says so when nothing is filtered.
+ *
+ * THE FACETS ARE THE ARCHIVE'S. This renders whatever buttons it is handed and
+ * knows nothing about what they mean — Falco facets by household and by line,
+ * Blazevic by ahnentafel, Lerena by status. A component that decided the facets
+ * would be deciding what each archive is about.
+ *
+ *   columns  [{label, cls}]
+ *   rows     [{cells:[…], hay, facets:{key:value}, href}]  cells may be HTML
+ *   facets   [{key, label, options:[{v, label}]}]
+ *   note     a line under the controls, before the table
+ */
+const {
+  columns = [], rows = [], facets = [], note = "",
+  empty = "Nothing matches that.",
+  unit = "rows",
+  id = "ft",
+} = Astro.props;
+---
+<div class="ft" data-ft={id}>
+  <div class="ft-bar">
+    <label class="ft-search">
+      <span class="ft-lab">Search</span>
+      <input type="search" class="ft-q" placeholder={`Filter ${rows.length.toLocaleString()} ${unit}…`}
+             autocomplete="off" spellcheck="false" />
+    </label>
+    {facets.map((f) => (
+      <div class="ft-facet" data-key={f.key}>
+        <span class="ft-lab">{f.label}</span>
+        <div class="ft-opts">
+          <button type="button" class="ft-opt on" data-v="">All</button>
+          {f.options.map((o) => (
+            <button type="button" class="ft-opt" data-v={String(o.v)}>{o.label}</button>
+          ))}
+        </div>
+      </div>
+    ))}
+  </div>
+
+  <p class="ft-count small">
+    <span class="ft-n">{rows.length.toLocaleString()}</span> {unit}
+    <span class="ft-of dim"> · everything is listed; the filters only narrow it</span>
+  </p>
+  {note ? <p class="small ft-note" set:html={note} /> : null}
+
+  <div class="scroll">
+    <table class="ft-table">
+      <thead><tr>{columns.map((c) => <th class={c.cls || ""}>{c.label}</th>)}</tr></thead>
+      <tbody>
+        {rows.map((r) => (
+          <tr class="ft-row" data-hay={r.hay || ""}
+              {...Object.fromEntries((facets || []).map((f) => ["data-" + f.key, String((r.facets || {})[f.key] ?? "")]))}>
+            {r.cells.map((c, i) => (
+              <td class={(columns[i] && columns[i].cls) || ""} set:html={c} />
+            ))}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+  <p class="ft-empty small" hidden>{empty}</p>
+</div>
+
+<script>
+  /* One handler for every table on the page, keyed by its own id, so two of
+     these can sit on one page without fighting. */
+  document.querySelectorAll(".ft").forEach((box) => {
+    const q = box.querySelector(".ft-q");
+    const rows = [...box.querySelectorAll(".ft-row")];
+    const nEl = box.querySelector(".ft-n");
+    const ofEl = box.querySelector(".ft-of");
+    const emptyEl = box.querySelector(".ft-empty");
+    const picked = {};
+
+    const apply = () => {
+      const needle = (q && q.value || "").trim().toLowerCase();
+      let shown = 0;
+      for (const r of rows) {
+        let ok = !needle || (r.dataset.hay || "").includes(needle);
+        if (ok) for (const k in picked) {
+          if (picked[k] && (r.dataset[k] || "") !== picked[k]) { ok = false; break; }
+        }
+        r.hidden = !ok;
+        if (ok) shown++;
+      }
+      if (nEl) nEl.textContent = shown.toLocaleString();
+      const filtered = needle || Object.values(picked).some(Boolean);
+      if (ofEl) ofEl.textContent = filtered
+        ? ` of ${rows.length.toLocaleString()}`
+        : " · everything is listed; the filters only narrow it";
+      if (emptyEl) emptyEl.hidden = shown > 0;
+    };
+
+    if (q) q.addEventListener("input", apply);
+    box.querySelectorAll(".ft-facet").forEach((f) => {
+      const key = f.dataset.key;
+      f.querySelectorAll(".ft-opt").forEach((b) => {
+        b.addEventListener("click", () => {
+          f.querySelectorAll(".ft-opt").forEach((x) => x.classList.remove("on"));
+          b.classList.add("on");
+          picked[key] = b.dataset.v || "";
+          apply();
+        });
+      });
+    });
+  });
+</script>
+
+<style is:global>
+  .ft-bar { display:flex; flex-wrap:wrap; gap:.9rem 1.4rem; align-items:flex-end;
+    margin:.9rem 0 .6rem; }
+  .ft-lab { display:block; font-size:9.5px; font-weight:600; letter-spacing:.11em;
+    text-transform:uppercase; color:var(--ink-3,#888); margin-bottom:.25rem; }
+  .ft-search { flex:1 1 15rem; max-width:24rem; }
+  .ft-q { width:100%; padding:.42rem .6rem; font:inherit; font-size:.9rem;
+    color:var(--ink,inherit); background:var(--bg-2,transparent);
+    border:1px solid var(--rule,#ccc); border-radius:3px; }
+  .ft-q:focus { outline:2px solid var(--accent,#963); outline-offset:1px; }
+  .ft-opts { display:flex; flex-wrap:wrap; gap:.3rem; }
+  .ft-opt { font:inherit; font-size:.78rem; padding:.2rem .55rem; cursor:pointer;
+    color:var(--ink-2,inherit); background:transparent;
+    border:1px solid var(--rule,#ccc); border-radius:2px; }
+  .ft-opt:hover { border-color:var(--accent,#963); }
+  .ft-opt.on { color:var(--accent,#963); border-color:var(--accent,#963);
+    background:var(--accent-wash,transparent); font-weight:600; }
+  .ft-count { margin:.2rem 0 .1rem; font-variant-numeric:tabular-nums; }
+  .ft-note { color:var(--ink-3,#888); margin:.1rem 0 .5rem; }
+  .ft-empty { color:var(--ink-3,#888); padding:.8rem 0; }
+  .ft-table { width:100%; }
+</style>
