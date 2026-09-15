@@ -329,6 +329,14 @@
       "since": "2026-09-15",
       "what": "Seven Mazza surnames cannot be reached from the family at all",
       "note": "The new descent test returns **blood 14 · married 17 · kin 37 · second 49 · unconnected 7**. The seven are the useful output — they are in the archive and no parent, child or spouse edge connects them to the line — and they only appear because the rule is capable of returning no. Each is a thread to pull or a record to remove."
+    },
+    {
+      "n": 42,
+      "state": "done",
+      "owner": "this session",
+      "since": "2026-09-15",
+      "what": "Compared all seven navigations route by route",
+      "note": "**`/who/` — the page this estate agreed to call «Every Name» — is built and live on all seven and was in the menu on five.** Falco had renamed it from `/names/` and never added it; Booyzen never added it at all. Both had been reachable by URL and by search the whole time and invisible to anyone using the navigation. Also normalised: «What Changed»/«What changed» (four sites to two, lowercase wins and matches «Our line, drawn») and Booyzen's «The Documents» → «Documents». **Everything else that differs, differs on purpose:** `/lines/` is three different pages about three different things, Booyzen's `/namesakes/` really is about forenames, and the extra menu groups — D'Arcy's four, Blazevic's Documents and Origins, Defranceschi's «Go there», Lerena's «The work» — are local content, not drift. The shared spine is **Start · Our line · People & places · Evidence** on all seven, with «The families» on six."
     }
   ]
 }
