@@ -1,278 +1,302 @@
 {
- "title": "The kit and the estate",
- "dek": "Work that belongs to no single archive: the shared components, the build gates, and anything that has to be true in all of them at once.",
- "rows": [
-  {
-   "n": 1,
-   "state": "next",
-   "owner": "David",
-   "since": "2026-09-13",
-   "what": "Force-push the four rewritten histories",
-   "note": "Four public repositories were tracking raw family exports — a GEDCOM holding 134 people born since 1950, a tree export marking 137 alive. The rendered pages were clean throughout; the exposure sat one level below them. They are untracked and ignored now, the histories rewritten and verified, mirrors kept. **Pushing is irreversible, so it stops at a human.**"
-  },
-  {
-   "n": 2,
-   "state": "blocked",
-   "owner": "David",
-   "since": "2026-09-13",
-   "what": "Ask GitHub Support to purge the unreferenced objects",
-   "note": "A force-push rewrites the branch; it does not drop the old blobs. Until Support purges them they stay reachable by anyone who knows a commit hash. Follows item 1."
-  },
-  {
-   "n": 3,
-   "state": "done",
-   "owner": "every archive session",
-   "since": "2026-09-15",
-   "what": "Keep a worklist.json, so this board stops being written by hand",
-   "note": "Nine of ten archives now keep one, all calling the kit's gate rather than a forked copy, and every row of the 186 carries an owner and a date. The children's site is the exception and arguably should be — it is written for a six-year-old, not a research register. Adopted in about an hour, from one archive to nine."
-  },
-  {
-   "n": 4,
-   "state": "blocked",
-   "owner": "the Falco session",
-   "since": "2026-09-15",
-   "what": "All thirteen Falco places carry n=0",
-   "note": "Nothing to size a dot by or rank a name by, so that archive has no front-page place picture while five others do. A data fix, not a component fix."
-  },
-  {
-   "n": 5,
-   "state": "blocked",
-   "owner": "the D'Arcy session",
-   "since": "2026-09-15",
-   "what": "Arienzo appears twice in D'Arcy's atlas, and it is a Falco parish",
-   "note": "n=12 and n=2 at identical coordinates, under /places/arienzo/ and /places/arienzo-2/. May be real — two of Falco's living people are in D'Arcy's tree — but duplicated under two slugs it is a fault either way. **18 place names in D'Arcy appear more than once**; Brisbane ×3, Averham ×3."
-  },
-  {
-   "n": 6,
-   "state": "blocked",
-   "owner": "the Blazevic session",
-   "since": "2026-09-15",
-   "what": "Ten Blazevic place names appear more than once",
-   "note": "Senj ×3, Krivi Put ×3, Otočac ×2 — the same place under variant spellings, splitting its people between entries. The front-page picture now labels only the first of a repeated name, which hides the symptom rather than fixing it. **Merging places on a name is the thing this estate refuses to do automatically**, so this is a human call per place."
-  },
-  {
-   "n": 7,
-   "state": "blocked",
-   "owner": "five archive sessions",
-   "since": "2026-09-14",
-   "what": "Branch data for the rivers diagram",
-   "note": "The component is in the kit and takes one prop. What is missing is a paragraph per node — where a branch was, in what year, and what the archive can actually show happened there. Derivable lanes with empty prose would be a confident drawing that says nothing. Booyzen, D'Arcy, Blazevic, Mazza, Lerena."
-  },
-  {
-   "n": 8,
-   "state": "blocked",
-   "owner": "five archive sessions",
-   "since": "2026-09-14",
-   "what": "Sovereignty data for the timeline",
-   "note": "Blazevic's file existed and was wired on 15 September. The other five need lanes of districts with bands of [from, to, regime, label]. Regime dates are public history; which districts matter, and what the family lived through, is the archive's own work."
-  },
-  {
-   "n": 9,
-   "state": "next",
-   "owner": "the Defranceski session",
-   "since": "2026-09-15",
-   "what": "Which Ivan is which",
-   "note": "Only 1 of 8 spine generations matches a dossier on name and dates, and the dossier called ivan-defranceski is dated 1829–1895, neither of them. Two consecutive generations are both Ivan Defranceski. **Nobody can derive this** — it is a reading, not a join."
-  },
-  {
-   "n": 10,
-   "state": "next",
-   "owner": "the Booyzen session",
-   "since": "2026-09-14",
-   "what": "Booyzen carries ancestors only — no siblings, so no aunts or uncles",
-   "note": "26 people and no lateral kin, so the blood chart there draws a line rather than a family. D'Arcy had the same gap and its GEDCOM answered it mechanically."
-  },
-  {
-   "n": 11,
-   "state": "next",
-   "owner": "all sessions",
-   "since": "2026-09-14",
-   "what": "Join the kin across archives",
-   "note": "Hedviga on the Defranceschi spine founds the Blazevic archive; Cheryl Anne founds Lerena's; two of Falco's living are in D'Arcy's tree. Seven archives that are one family and cannot yet say so to each other."
-  },
-  {
-   "n": 12,
-   "state": "done",
-   "owner": "this session",
-   "since": "2026-09-15",
-   "what": "151 of 368 menu links resolved a redirect before a page",
-   "note": "It was not two links, it was **151** — 67 of D'Arcy's 72, 50 of Falco's 54, 33 of Mazza's 40. These sites build in directory format, so a path without a trailing slash is a 301 before the page: a wasted round trip on every click, on most of the navigation, on most of the archives. Confirmed live before touching anything. **Zero redirecting menu links across all seven now**, and the link checker confirms none of the new paths is dead."
-  },
-  {
-   "n": 13,
-   "state": "next",
-   "owner": "four archive sessions",
-   "since": "2026-09-15",
-   "what": "Four archives have no About page at all",
-   "note": "Booyzen, Blazevic, Mazza and Lerena. Three of seven tell a reader what the archive is and who made it; four do not."
-  },
-  {
-   "n": 14,
-   "state": "blocked",
-   "owner": "David",
-   "since": "2026-09-15",
-   "what": "Two tiles still carry a year rather than a count",
-   "note": "Blazevic's «1750, the earliest Blazevic birth year» and Mazza's «1697, the earliest year this archive reaches». Both measure reach rather than telling a story, which is why they were left — but the canon says six measures, and this is a judgement call that should be yours."
-  },
-  {
-   "n": 15,
-   "state": "done",
-   "owner": "this session",
-   "since": "2026-09-15",
-   "what": "One chart, six archives — PersonTree, Ptree and Pedigree consolidated",
-   "note": "Six archives drew one chart under three names. The kit draws the shape; each archive keeps what only it can say about the evidence."
-  },
-  {
-   "n": 16,
-   "state": "done",
-   "owner": "this session",
-   "since": "2026-09-15",
-   "what": "The bloodline chart turned on its side",
-   "note": "25,008px wide against 616 tall. Generations are columns now; the same chart is 1,966 × 5,740 and fits a phone."
-  },
-  {
-   "n": 17,
-   "state": "done",
-   "owner": "this session",
-   "since": "2026-09-15",
-   "what": "Front pages end the same way, carry six measures, and teach the evidence words in the first screen",
-   "note": "established → numbers → missing → the ring, on all seven. Tiles counted at build time. Documented / Inferred / Family lore before the doors."
-  },
-  {
-   "n": 18,
-   "state": "done",
-   "owner": "this session",
-   "since": "2026-09-15",
-   "what": "The household explorer opens into the blood graph",
-   "note": "Joined on FamilySearch record ids, never on names — the key the data carried was a forename. 24 of the 43 households that stood in no chain now have a way through."
-  },
-  {
-   "n": 19,
-   "state": "done",
-   "owner": "this session",
-   "since": "2026-09-15",
-   "what": "The menu canon, applied to all seven and re-verified",
-   "note": "Seven archives carried the same seventeen shared pages in seven different orders. The canon fixes POSITION, never a URL — so no link anyone had shared stopped resolving. **165 items moved.** Start · Our line · The families lead; People & places, then Evidence, close. Re-read off the BUILT sites on 15 September: all seven still hold it exactly, including three where other sessions worked in the layout file all week. The surname keeps two homes on purpose — its own group on the three archives with more than one page for it, last under Our line on the four with exactly one — so the menu says how far the name has been worked instead of hiding it."
-  },
-  {
-   "n": 20,
-   "state": "done",
-   "owner": "this session",
-   "since": "2026-09-15",
-   "what": "The front-page read-across, and the eight-slot canon it produced",
-   "note": "Measured off the built index.html of all seven. Found the same four sections everywhere in seven different orders, a 3× spread in words, six to ten number tiles, and evidence chips on three of seven. Produced the canon the front pages now follow: hero, the rule with its chips, three doors, one real drawing, what this archive has established, the archive in numbers, what is still missing, the ring. **What is deliberately NOT standardised:** the hero sentence, door two, the cards, and every archive's own sections — the Senj 1943 page, the rebels' testimony, the inquest, the passport. The shape is shared; the material is not."
-  },
-  {
-   "n": 21,
-   "state": "done",
-   "owner": "this session",
-   "since": "2026-09-15",
-   "what": "The blood-relatives chart, on all seven",
-   "note": "Built on the claim that it was blocked for want of parent identifiers. It was not — I had checked the wrong file. `dossiers.json` had carried 200 parent links and 765 sibling links by slug, each with the provenance that established it, for as long as it had existed. Every line is drawn in the colour of its own evidence at the WEAKER grade of the two records behind it, so the picture never claims more than the archive does. Nothing is matched on a name: an edge exists only where a record names a slug."
-  },
-  {
-   "n": 22,
-   "state": "done",
-   "owner": "this session",
-   "since": "2026-09-15",
-   "what": "The standing estate record — thirteen phases since September",
-   "note": "The read-across that found the seven archives were one system: shared colour, five evidence words, a page canon, one tree model, and the eight-site disagreement read side by side. It also carried the day four public repositories were found tracking raw family exports with living people in them. **Its living-person rule is superseded:** initials-only became the Falco approach — name them, nothing more, anyone over eighty treated as deceased — and `checkliving.py` enforces it on all seven."
-  },
-  {
-   "n": 23,
-   "state": "done",
-   "owner": "this session",
-   "since": "2026-09-15",
-   "what": "The lessons that cost the most, kept because they will be paid for again",
-   "note": "**Repinning a git dependency by editing package.json and running npm install is a no-op** — npm keeps the locked commit, seven archives reported clean installs on the old kit, and `npm ci` then refuses when the two disagree. Name-matching once gave one Pietro five mothers. A scoped `<style>` on a big list page makes Astro stamp a cid on every element — 2.7MB on one archive. `content-visibility` needs the plain length declared before the `auto <length>` form. A check that cannot fail is not a check: a build loop printed exit=0 beside a stack trace because it read the wrong command's status."
-  },
-  {
-   "n": 24,
-   "state": "done",
-   "owner": "this session",
-   "since": "2026-09-15",
-   "what": "The front-page drawings, specified rather than left in a chat",
-   "note": "`kit/docs/front-page-drawings.md` holds the schema for the sovereignty timeline and the rivers diagram, the two strict shape rules that left one archive's file inert for weeks, and the reason the place picture draws no coastline. Kept in the repository beside the components, because a published page and a chat window are the two places a spec does not survive."
-  },
-  {
-   "n": 25,
-   "state": "next",
-   "owner": "David",
-   "since": "2026-09-15",
-   "what": "Four pages sit in a different menu group depending on the archive",
-   "note": "`/australia` is under **Leaving** on one and **Our line** on another; `/brisbane` **Leaving** vs **People & places**; `/gallery/` **Evidence** vs **The work**; `/namesakes/` **People & places** vs **The work**. A reader who learns where something lives on one site should find it in the same place on the next. Each needs one decision, then it applies to all seven. `/name` is the deliberate exception and stays as it is."
-  },
-  {
-   "n": 26,
-   "state": "next",
-   "owner": "David",
-   "since": "2026-09-15",
-   "what": "Six shared pages carry genuinely different names",
-   "note": "Four of the original ten were only case or an article and are settled — the estate writes menu labels in sentence case (257 of 368, and every archive's own majority), so «What Changed» → «What changed», «Photograph These» → «Photograph these», «What We Cannot Close», «The Namesakes» → «Namesakes».\n\nThe six left are a decision about voice, not a tidy-up: `/people/` is **The People** on one archive and **Nine lives in full** on another; `/who/` is **Every Name** and **Everyone, a page each**; `/gallery/` is **Gallery** and **The Plates**; `/lines` is **The Lines** and **The Four Quarters**; `/married-in/` is **Married In** and **The families they married**; `/australia` is **Australia** and **Arrival, 1826**. Worth deciding whether a shared page keeps one name everywhere, or the archive's own voice wins."
-  },
-  {
-   "n": 27,
-   "state": "blocked",
-   "owner": "five archive sessions",
-   "since": "2026-09-15",
-   "what": "The front pages run 1,486 to 5,080 words",
-   "note": "A 3.4× spread. The structure is aligned now — same order, same slots — but Defranceschi carries two large diagrams and nearly 5,100 words where Mazza has one small drawing and under 1,500. That gap is **writing and data**, not layout, and closing it is each archive's own work rather than something to be evened out from outside."
-  },
-  {
-   "n": 28,
-   "state": "done",
-   "owner": "this session",
-   "since": "2026-09-15",
-   "what": "The seven front pages now run in one order, with the drawing framed the same way",
-   "note": "Two archives introduced their picture with a heading and a line on how to read it; five dropped a bare dot-plot in with a caption, which is why one read as dots in a void. All seven now go hero, the rule with its chips, three doors, one framed drawing, the archive's own sections, established, numbers, missing, the ring. Verified on the built pages. **The middle stays different on purpose** — it is the reason each site is worth reading."
-  },
-  {
-   "n": 29,
-   "state": "done",
-   "owner": "this session",
-   "since": "2026-09-15",
-   "what": "All 368 menu items compared, seven archives side by side",
-   "note": "55 pages more than one archive carries, 185 unique to one. Only four sit in the wrong group and ten carry inconsistent names — both now rows of their own above. The 185 are listed rather than flagged: they are what makes each archive its own."
-  },
-  {
-   "n": 30,
-   "state": "blocked",
-   "owner": "the Luwinski session",
-   "since": "2026-09-15",
-   "what": "Luwinski does not run the estate's main build gate",
-   "note": "Its package.json has **check:living** and **check:worklist** but no **check:kit** — so `checkarchive.py`, which catches dead links, broken anchors, a missing sitemap and pages nothing links to, has never run on that archive. Every other archive gates on it. One line in package.json: `python3 node_modules/@daviddef/archive-kit/kit/tools/checkarchive.py --dist dist`."
-  },
-  {
-   "n": 31,
-   "state": "blocked",
-   "owner": "the Luwinski session",
-   "since": "2026-09-15",
-   "what": "Luwinski publishes an empty search index, so its search finds nothing",
-   "note": "`/searchindex.json` is published but empty. Found by running the gate above by hand — which is the argument for wiring it: this has been live and invisible, and the archive's search box returns nothing for every query."
-  },
-  {
-   "n": 32,
-   "state": "next",
-   "owner": "this session",
-   "since": "2026-09-15",
-   "what": "The work list has no way to notice a row that is missing",
-   "note": "Found by the Blazevic session, not by the gate. Five letters had been sent; four were on the list and each looked fine in isolation. The fifth — DAR Ispostava u Senju, the nil return that named the three doors the other three letters went through — was absent entirely, so the list showed four letters and hid the one that generated three of them. **checkworklist.py validates rows that exist and can never see one that does not.** It needs to count the list against something outside it: letters against `requests/sent/`, corrections against corrections.json, and so on. Same failure class as a register over-reporting what is outstanding, in the other direction."
-  },
-  {
-   "n": 33,
-   "state": "next",
-   "owner": "this session",
-   "since": "2026-09-15",
-   "what": "Some sessions adopted the work list without the step that keeps it honest",
-   "note": "The Blazevic session is the one to copy: it re-counts its own rows against the evidence on disk rather than trusting what it wrote. Sessions that only append rows will drift the way every hand-kept register in this estate has. The prompt should say to reconcile, not just to record."
-  },
-  {
-   "n": 34,
-   "state": "done",
-   "owner": "this session",
-   "since": "2026-09-15",
-   "what": "Audited whether the other archives group married-in families by surname",
-   "note": "Only **Falco** is at fault, and only because it is the one asserting a relationship it has not tested: its rule is «any surname in the tree that is not Falco», with no descent check. **Blazevic** groups by surname but gates membership on an ahnentafel number, so nothing is listed because of a name — 19 families, 45 proven ancestors, zero inflation. **Defranceschi** groups by surname correctly, because that archive's subject IS the name: it says outright that there is no single Defranceschi family and that the name was invented independently many times over. Mazza and D'Arcy list surnames as a census and claim nothing. The rule is not «never group by surname» — it is that the grouping must match what the archive is about."
-  }
- ]
+  "title": "The kit and the estate",
+  "dek": "Work that belongs to no single archive: the shared components, the build gates, and anything that has to be true in all of them at once.",
+  "rows": [
+    {
+      "n": 1,
+      "state": "next",
+      "owner": "David",
+      "since": "2026-09-13",
+      "what": "Force-push the four rewritten histories",
+      "note": "Four public repositories were tracking raw family exports — a GEDCOM holding 134 people born since 1950, a tree export marking 137 alive. The rendered pages were clean throughout; the exposure sat one level below them. They are untracked and ignored now, the histories rewritten and verified, mirrors kept. **Pushing is irreversible, so it stops at a human.**"
+    },
+    {
+      "n": 2,
+      "state": "blocked",
+      "owner": "David",
+      "since": "2026-09-13",
+      "what": "Ask GitHub Support to purge the unreferenced objects",
+      "note": "A force-push rewrites the branch; it does not drop the old blobs. Until Support purges them they stay reachable by anyone who knows a commit hash. Follows item 1."
+    },
+    {
+      "n": 3,
+      "state": "done",
+      "owner": "every archive session",
+      "since": "2026-09-15",
+      "what": "Keep a worklist.json, so this board stops being written by hand",
+      "note": "Nine of ten archives now keep one, all calling the kit's gate rather than a forked copy, and every row of the 186 carries an owner and a date. The children's site is the exception and arguably should be — it is written for a six-year-old, not a research register. Adopted in about an hour, from one archive to nine."
+    },
+    {
+      "n": 4,
+      "state": "blocked",
+      "owner": "the Falco session",
+      "since": "2026-09-15",
+      "what": "All thirteen Falco places carry n=0",
+      "note": "Nothing to size a dot by or rank a name by, so that archive has no front-page place picture while five others do. A data fix, not a component fix."
+    },
+    {
+      "n": 5,
+      "state": "blocked",
+      "owner": "the D'Arcy session",
+      "since": "2026-09-15",
+      "what": "Arienzo appears twice in D'Arcy's atlas, and it is a Falco parish",
+      "note": "n=12 and n=2 at identical coordinates, under /places/arienzo/ and /places/arienzo-2/. May be real — two of Falco's living people are in D'Arcy's tree — but duplicated under two slugs it is a fault either way. **18 place names in D'Arcy appear more than once**; Brisbane ×3, Averham ×3."
+    },
+    {
+      "n": 6,
+      "state": "blocked",
+      "owner": "the Blazevic session",
+      "since": "2026-09-15",
+      "what": "Ten Blazevic place names appear more than once",
+      "note": "Senj ×3, Krivi Put ×3, Otočac ×2 — the same place under variant spellings, splitting its people between entries. The front-page picture now labels only the first of a repeated name, which hides the symptom rather than fixing it. **Merging places on a name is the thing this estate refuses to do automatically**, so this is a human call per place."
+    },
+    {
+      "n": 7,
+      "state": "blocked",
+      "owner": "five archive sessions",
+      "since": "2026-09-14",
+      "what": "Branch data for the rivers diagram",
+      "note": "The component is in the kit and takes one prop. What is missing is a paragraph per node — where a branch was, in what year, and what the archive can actually show happened there. Derivable lanes with empty prose would be a confident drawing that says nothing. Booyzen, D'Arcy, Blazevic, Mazza, Lerena."
+    },
+    {
+      "n": 8,
+      "state": "blocked",
+      "owner": "five archive sessions",
+      "since": "2026-09-14",
+      "what": "Sovereignty data for the timeline",
+      "note": "Blazevic's file existed and was wired on 15 September. The other five need lanes of districts with bands of [from, to, regime, label]. Regime dates are public history; which districts matter, and what the family lived through, is the archive's own work."
+    },
+    {
+      "n": 9,
+      "state": "next",
+      "owner": "the Defranceski session",
+      "since": "2026-09-15",
+      "what": "Which Ivan is which",
+      "note": "Only 1 of 8 spine generations matches a dossier on name and dates, and the dossier called ivan-defranceski is dated 1829–1895, neither of them. Two consecutive generations are both Ivan Defranceski. **Nobody can derive this** — it is a reading, not a join."
+    },
+    {
+      "n": 10,
+      "state": "next",
+      "owner": "the Booyzen session",
+      "since": "2026-09-14",
+      "what": "Booyzen carries ancestors only — no siblings, so no aunts or uncles",
+      "note": "26 people and no lateral kin, so the blood chart there draws a line rather than a family. D'Arcy had the same gap and its GEDCOM answered it mechanically."
+    },
+    {
+      "n": 11,
+      "state": "next",
+      "owner": "all sessions",
+      "since": "2026-09-14",
+      "what": "Join the kin across archives",
+      "note": "Hedviga on the Defranceschi spine founds the Blazevic archive; Cheryl Anne founds Lerena's; two of Falco's living are in D'Arcy's tree. Seven archives that are one family and cannot yet say so to each other."
+    },
+    {
+      "n": 12,
+      "state": "done",
+      "owner": "this session",
+      "since": "2026-09-15",
+      "what": "151 of 368 menu links resolved a redirect before a page",
+      "note": "It was not two links, it was **151** — 67 of D'Arcy's 72, 50 of Falco's 54, 33 of Mazza's 40. These sites build in directory format, so a path without a trailing slash is a 301 before the page: a wasted round trip on every click, on most of the navigation, on most of the archives. Confirmed live before touching anything. **Zero redirecting menu links across all seven now**, and the link checker confirms none of the new paths is dead."
+    },
+    {
+      "n": 13,
+      "state": "next",
+      "owner": "four archive sessions",
+      "since": "2026-09-15",
+      "what": "Four archives have no About page at all",
+      "note": "Booyzen, Blazevic, Mazza and Lerena. Three of seven tell a reader what the archive is and who made it; four do not."
+    },
+    {
+      "n": 14,
+      "state": "blocked",
+      "owner": "David",
+      "since": "2026-09-15",
+      "what": "Two tiles still carry a year rather than a count",
+      "note": "Blazevic's «1750, the earliest Blazevic birth year» and Mazza's «1697, the earliest year this archive reaches». Both measure reach rather than telling a story, which is why they were left — but the canon says six measures, and this is a judgement call that should be yours."
+    },
+    {
+      "n": 15,
+      "state": "done",
+      "owner": "this session",
+      "since": "2026-09-15",
+      "what": "One chart, six archives — PersonTree, Ptree and Pedigree consolidated",
+      "note": "Six archives drew one chart under three names. The kit draws the shape; each archive keeps what only it can say about the evidence."
+    },
+    {
+      "n": 16,
+      "state": "done",
+      "owner": "this session",
+      "since": "2026-09-15",
+      "what": "The bloodline chart turned on its side",
+      "note": "25,008px wide against 616 tall. Generations are columns now; the same chart is 1,966 × 5,740 and fits a phone."
+    },
+    {
+      "n": 17,
+      "state": "done",
+      "owner": "this session",
+      "since": "2026-09-15",
+      "what": "Front pages end the same way, carry six measures, and teach the evidence words in the first screen",
+      "note": "established → numbers → missing → the ring, on all seven. Tiles counted at build time. Documented / Inferred / Family lore before the doors."
+    },
+    {
+      "n": 18,
+      "state": "done",
+      "owner": "this session",
+      "since": "2026-09-15",
+      "what": "The household explorer opens into the blood graph",
+      "note": "Joined on FamilySearch record ids, never on names — the key the data carried was a forename. 24 of the 43 households that stood in no chain now have a way through."
+    },
+    {
+      "n": 19,
+      "state": "done",
+      "owner": "this session",
+      "since": "2026-09-15",
+      "what": "The menu canon, applied to all seven and re-verified",
+      "note": "Seven archives carried the same seventeen shared pages in seven different orders. The canon fixes POSITION, never a URL — so no link anyone had shared stopped resolving. **165 items moved.** Start · Our line · The families lead; People & places, then Evidence, close. Re-read off the BUILT sites on 15 September: all seven still hold it exactly, including three where other sessions worked in the layout file all week. The surname keeps two homes on purpose — its own group on the three archives with more than one page for it, last under Our line on the four with exactly one — so the menu says how far the name has been worked instead of hiding it."
+    },
+    {
+      "n": 20,
+      "state": "done",
+      "owner": "this session",
+      "since": "2026-09-15",
+      "what": "The front-page read-across, and the eight-slot canon it produced",
+      "note": "Measured off the built index.html of all seven. Found the same four sections everywhere in seven different orders, a 3× spread in words, six to ten number tiles, and evidence chips on three of seven. Produced the canon the front pages now follow: hero, the rule with its chips, three doors, one real drawing, what this archive has established, the archive in numbers, what is still missing, the ring. **What is deliberately NOT standardised:** the hero sentence, door two, the cards, and every archive's own sections — the Senj 1943 page, the rebels' testimony, the inquest, the passport. The shape is shared; the material is not."
+    },
+    {
+      "n": 21,
+      "state": "done",
+      "owner": "this session",
+      "since": "2026-09-15",
+      "what": "The blood-relatives chart, on all seven",
+      "note": "Built on the claim that it was blocked for want of parent identifiers. It was not — I had checked the wrong file. `dossiers.json` had carried 200 parent links and 765 sibling links by slug, each with the provenance that established it, for as long as it had existed. Every line is drawn in the colour of its own evidence at the WEAKER grade of the two records behind it, so the picture never claims more than the archive does. Nothing is matched on a name: an edge exists only where a record names a slug."
+    },
+    {
+      "n": 22,
+      "state": "done",
+      "owner": "this session",
+      "since": "2026-09-15",
+      "what": "The standing estate record — thirteen phases since September",
+      "note": "The read-across that found the seven archives were one system: shared colour, five evidence words, a page canon, one tree model, and the eight-site disagreement read side by side. It also carried the day four public repositories were found tracking raw family exports with living people in them. **Its living-person rule is superseded:** initials-only became the Falco approach — name them, nothing more, anyone over eighty treated as deceased — and `checkliving.py` enforces it on all seven."
+    },
+    {
+      "n": 23,
+      "state": "done",
+      "owner": "this session",
+      "since": "2026-09-15",
+      "what": "The lessons that cost the most, kept because they will be paid for again",
+      "note": "**Repinning a git dependency by editing package.json and running npm install is a no-op** — npm keeps the locked commit, seven archives reported clean installs on the old kit, and `npm ci` then refuses when the two disagree. Name-matching once gave one Pietro five mothers. A scoped `<style>` on a big list page makes Astro stamp a cid on every element — 2.7MB on one archive. `content-visibility` needs the plain length declared before the `auto <length>` form. A check that cannot fail is not a check: a build loop printed exit=0 beside a stack trace because it read the wrong command's status."
+    },
+    {
+      "n": 24,
+      "state": "done",
+      "owner": "this session",
+      "since": "2026-09-15",
+      "what": "The front-page drawings, specified rather than left in a chat",
+      "note": "`kit/docs/front-page-drawings.md` holds the schema for the sovereignty timeline and the rivers diagram, the two strict shape rules that left one archive's file inert for weeks, and the reason the place picture draws no coastline. Kept in the repository beside the components, because a published page and a chat window are the two places a spec does not survive."
+    },
+    {
+      "n": 25,
+      "state": "next",
+      "owner": "David",
+      "since": "2026-09-15",
+      "what": "Four pages sit in a different menu group depending on the archive",
+      "note": "`/australia` is under **Leaving** on one and **Our line** on another; `/brisbane` **Leaving** vs **People & places**; `/gallery/` **Evidence** vs **The work**; `/namesakes/` **People & places** vs **The work**. A reader who learns where something lives on one site should find it in the same place on the next. Each needs one decision, then it applies to all seven. `/name` is the deliberate exception and stays as it is."
+    },
+    {
+      "n": 26,
+      "state": "next",
+      "owner": "David",
+      "since": "2026-09-15",
+      "what": "Six shared pages carry genuinely different names",
+      "note": "Four of the original ten were only case or an article and are settled — the estate writes menu labels in sentence case (257 of 368, and every archive's own majority), so «What Changed» → «What changed», «Photograph These» → «Photograph these», «What We Cannot Close», «The Namesakes» → «Namesakes».\n\nThe six left are a decision about voice, not a tidy-up: `/people/` is **The People** on one archive and **Nine lives in full** on another; `/who/` is **Every Name** and **Everyone, a page each**; `/gallery/` is **Gallery** and **The Plates**; `/lines` is **The Lines** and **The Four Quarters**; `/married-in/` is **Married In** and **The families they married**; `/australia` is **Australia** and **Arrival, 1826**. Worth deciding whether a shared page keeps one name everywhere, or the archive's own voice wins."
+    },
+    {
+      "n": 27,
+      "state": "blocked",
+      "owner": "five archive sessions",
+      "since": "2026-09-15",
+      "what": "The front pages run 1,486 to 5,080 words",
+      "note": "A 3.4× spread. The structure is aligned now — same order, same slots — but Defranceschi carries two large diagrams and nearly 5,100 words where Mazza has one small drawing and under 1,500. That gap is **writing and data**, not layout, and closing it is each archive's own work rather than something to be evened out from outside."
+    },
+    {
+      "n": 28,
+      "state": "done",
+      "owner": "this session",
+      "since": "2026-09-15",
+      "what": "The seven front pages now run in one order, with the drawing framed the same way",
+      "note": "Two archives introduced their picture with a heading and a line on how to read it; five dropped a bare dot-plot in with a caption, which is why one read as dots in a void. All seven now go hero, the rule with its chips, three doors, one framed drawing, the archive's own sections, established, numbers, missing, the ring. Verified on the built pages. **The middle stays different on purpose** — it is the reason each site is worth reading."
+    },
+    {
+      "n": 29,
+      "state": "done",
+      "owner": "this session",
+      "since": "2026-09-15",
+      "what": "All 368 menu items compared, seven archives side by side",
+      "note": "55 pages more than one archive carries, 185 unique to one. Only four sit in the wrong group and ten carry inconsistent names — both now rows of their own above. The 185 are listed rather than flagged: they are what makes each archive its own."
+    },
+    {
+      "n": 30,
+      "state": "blocked",
+      "owner": "the Luwinski session",
+      "since": "2026-09-15",
+      "what": "Luwinski does not run the estate's main build gate",
+      "note": "Its package.json has **check:living** and **check:worklist** but no **check:kit** — so `checkarchive.py`, which catches dead links, broken anchors, a missing sitemap and pages nothing links to, has never run on that archive. Every other archive gates on it. One line in package.json: `python3 node_modules/@daviddef/archive-kit/kit/tools/checkarchive.py --dist dist`."
+    },
+    {
+      "n": 31,
+      "state": "blocked",
+      "owner": "the Luwinski session",
+      "since": "2026-09-15",
+      "what": "Luwinski publishes an empty search index, so its search finds nothing",
+      "note": "`/searchindex.json` is published but empty. Found by running the gate above by hand — which is the argument for wiring it: this has been live and invisible, and the archive's search box returns nothing for every query."
+    },
+    {
+      "n": 32,
+      "state": "next",
+      "owner": "this session",
+      "since": "2026-09-15",
+      "what": "The work list has no way to notice a row that is missing",
+      "note": "Found by the Blazevic session, not by the gate. Five letters had been sent; four were on the list and each looked fine in isolation. The fifth — DAR Ispostava u Senju, the nil return that named the three doors the other three letters went through — was absent entirely, so the list showed four letters and hid the one that generated three of them. **checkworklist.py validates rows that exist and can never see one that does not.** It needs to count the list against something outside it: letters against `requests/sent/`, corrections against corrections.json, and so on. Same failure class as a register over-reporting what is outstanding, in the other direction."
+    },
+    {
+      "n": 33,
+      "state": "next",
+      "owner": "this session",
+      "since": "2026-09-15",
+      "what": "Some sessions adopted the work list without the step that keeps it honest",
+      "note": "The Blazevic session is the one to copy: it re-counts its own rows against the evidence on disk rather than trusting what it wrote. Sessions that only append rows will drift the way every hand-kept register in this estate has. The prompt should say to reconcile, not just to record."
+    },
+    {
+      "n": 34,
+      "state": "done",
+      "owner": "this session",
+      "since": "2026-09-15",
+      "what": "Audited whether the other archives group married-in families by surname",
+      "note": "Only **Falco** is at fault, and only because it is the one asserting a relationship it has not tested: its rule is «any surname in the tree that is not Falco», with no descent check. **Blazevic** groups by surname but gates membership on an ahnentafel number, so nothing is listed because of a name — 19 families, 45 proven ancestors, zero inflation. **Defranceschi** groups by surname correctly, because that archive's subject IS the name: it says outright that there is no single Defranceschi family and that the name was invented independently many times over. Mazza and D'Arcy list surnames as a census and claim nothing. The rule is not «never group by surname» — it is that the grouping must match what the archive is about."
+    },
+    {
+      "n": 35,
+      "state": "done",
+      "owner": "this session",
+      "since": "2026-09-15",
+      "what": "Falco now places a married-in family by descent, not by spelling",
+      "note": "The register asked «is this surname something other than Falco?», so **Mazza** sat on a Falco page with no Falco near it, while **Annecchino** and **Zampiello** — who married into the family without ever marrying the name — read the same as a stranger. Each person is now placed by descent: born a Falco or descended from one, married such a person, the family that person came from, or married into one of those. **15 carry the blood, 48 married one, 36 are such a family, 4 married into one of those, 0 reach it not at all.** No name matching anywhere in it. Living people, previously dropped from the marriages entirely, are now named with the relationship and nothing else, which took marriages from 152 to 196."
+    },
+    {
+      "n": 36,
+      "state": "done",
+      "owner": "this session",
+      "since": "2026-09-15",
+      "what": "A grave no longer reduces an archive's count of the living",
+      "note": "**Bucolo read «0 withheld» when three of its people were living.** The build subtracted one from the withheld count for every Nudgee burial of the surname — seven graves against three living women, so the count floored at zero. Matching the two lists on a name instead is no better and I tested it: it fires nowhere across 77 surnames, and the one near-miss, a Carmine Falco at Nudgee and a Carmine Falco alive today, is **two people**. The tree says who is living; a burial index keyed on a name cannot outrank it. The decrement is gone, both sets are shown, and the note on the page now says plainly that they have not been joined. Estate-wide withheld went 98 → 105."
+    },
+    {
+      "n": 37,
+      "state": "next",
+      "owner": "this session",
+      "since": "2026-09-15",
+      "what": "Present the descent categories on the page, then roll the merged page to all seven",
+      "note": "The data now carries `reach` and `reachCount` per family; the page still shows the old flat list. Rebuild `married-in.astro` around the four categories, merge it with `/marriages/` as the prototype showed — descriptions, collapsible name lists, links to people pages, provenance chips, metrics, living collapsed — and then **carry that same page to all seven archives**, which is the point of the exercise and the user's explicit ask. Each archive keeps its own rule for what «reaches the family»: Blazevic's ahnentafel gate and Defranceschi's name-is-the-subject are both correct as they stand and must not be flattened into Falco's descent test."
+    }
+  ]
 }
