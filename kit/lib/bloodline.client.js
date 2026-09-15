@@ -114,8 +114,22 @@
       if (!best || tot < best.t) best = { t: tot, a: A[k], b: B[k] };
     }
     /* a sibling link with no shared parent recorded still means a sibling */
-    if (!best) return sibs(root).some(function (s) { return s.slug === x; })
-      ? "brother or sister" : "related";
+    if (!best) {
+      if (sibs(root).some(function (s) { return s.slug === x; })) return "brother or sister";
+      /* No blood path — but they are usually on the chart because they married
+         somebody who has one, and their children carry it. "Related" was true
+         of them and told a reader nothing; a brother's wife should read as a
+         brother's wife. Checked through the spouse's own ancestors, so it is
+         the same test as every other line on this page. */
+      var sp = P[x].spouseSlug;
+      if (sp && P[sp]) {
+        if (sp === root || sibs(root).some(function (s) { return s.slug === sp; }))
+          return "married into the family";
+        var S = ancestors(sp);
+        for (var k3 in S) if (k3 in A) return "married into the family";
+      }
+      return "related";
+    }
     var up = best.a, down = best.b;        // up: root→ancestor, down: x→ancestor
     if (down === 0) return up === 1 ? "parent"
       : up === 2 ? "grandparent" : greats(up - 2) + "grandparent";
@@ -184,10 +198,44 @@
     while (svg.firstChild) svg.removeChild(svg.firstChild);
 
     var h = household(root), gen = h.gen;
+
+    /* Both halves of a couple can be blood relatives of the person in the
+       middle — every married pair of ancestors is — and where they were, this
+       chart used to draw each of them TWICE: once in their own right, and
+       again as the other one's "married in" chip beside them. Nuno Fernando
+       Lerena's 13 relatives came out in 22 boxes, holding two Juan Carloses,
+       two Marias and two Mary Septimas, which reads as a fault in the archive
+       rather than in the drawing.
+
+       So a husband or wife gets a chip only when they are not already on the
+       chart. The test is the SLUG, never the name — two women called Maria
+       Lerena in one family would be two people, and this file does not merge
+       on names. An archive that records a spouse as a bare name still gets
+       the chip it always got. */
+    var chip = function (s) {
+      var p = P[s];
+      return !!(p && p.spouse && !(p.spouseSlug && p.spouseSlug in gen));
+    };
     var LIN = lineage(root);
     var byGen = {};
     Object.keys(gen).forEach(function (s) { (byGen[gen[s]] = byGen[gen[s]] || []).push(s); });
     var gens = Object.keys(byGen).map(Number).sort(function (a, b) { return a - b; });
+
+    /* Where both halves of a couple are on the chart, seat them together, so
+       the tie between them is a short hop rather than a rule down the column.
+       One pass, taking each person and then their partner, so the sort above
+       still decides the order of the couples themselves. */
+    function seat(list) {
+      var out = [], taken = {};
+      for (var i = 0; i < list.length; i++) {
+        var a = list[i];
+        if (taken[a]) continue;
+        out.push(a); taken[a] = 1;
+        var sp = P[a].spouseSlug;
+        if (sp && !taken[sp] && list.indexOf(sp) > -1) { out.push(sp); taken[sp] = 1; }
+      }
+      return out;
+    }
 
     /* order each generation so that children sit near their parents */
     var pos = {};
@@ -204,13 +252,15 @@
       } else {
         list.sort(function (a, b) { return P[a].name.localeCompare(P[b].name); });
       }
+      list = byGen[gi] = seat(list);
       list.forEach(function (s, i) { pos[s] = i; });
     });
 
-    /* A column only needs room for a husband or wife if somebody in it has one,
-       so each is measured rather than assumed. */
+    /* A column only needs room for a husband or wife if somebody in it has a
+       chip — measured rather than assumed, and measured on the same test that
+       decides whether the chip is drawn at all. */
     var colW = function (gi) {
-      return BOX + (byGen[gi].some(function (s) { return P[s].spouse; }) ? GAPX + BOX : 0);
+      return BOX + (byGen[gi].some(chip) ? GAPX + BOX : 0);
     };
     var colX = {}, cx = PAD;
     gens.forEach(function (gi) { colX[gi] = cx; cx += colW(gi) + COLGAP; });
@@ -256,7 +306,7 @@
       var toContested = (P[b].parents || []).filter(function (p) { return p.slug; }).length > 2;
       /* the line leaves the COUPLE, not the blood parent, so it never crosses
          the husband or wife sitting beside them */
-      var ax = A.x + (P[a].spouse ? BOX + GAPX + BOX : BOX), ay = A.y + BH / 2;
+      var ax = A.x + (chip(a) ? BOX + GAPX + BOX : BOX), ay = A.y + BH / 2;
       var bx = B.x, by = B.y + BH / 2;
       var bend = Math.max(22, (bx - ax) * 0.45);
       svg.appendChild(el("path", {
@@ -278,6 +328,24 @@
 
     Object.keys(gen).forEach(function (s) {
       kids(s).forEach(function (c) { if (c.slug in gen) edge(s, c.slug, c.via); });
+    });
+
+    /* A marriage between two people the chart already holds — drawn once, in
+       the same dashed grey as a chip, down the left of the column where the
+       parent-and-child lines are not. */
+    var tied = {};
+    Object.keys(gen).forEach(function (a) {
+      var b = P[a].spouseSlug;
+      if (!b || !(b in gen) || !xy[a] || !xy[b]) return;
+      var k = a < b ? a + "|" + b : b + "|" + a;
+      if (tied[k]) return;
+      tied[k] = 1;
+      var A = xy[a], B = xy[b], lx = Math.min(A.x, B.x) - 9;
+      svg.appendChild(el("path", {
+        d: "M" + A.x + "," + (A.y + BH / 2) + " H" + lx + " V" + (B.y + BH / 2) + " H" + B.x,
+        stroke: "var(--ink-3)", "stroke-width": 1.5, "stroke-dasharray": "5 4",
+        fill: "none", class: "bl-tie"
+      }));
     });
 
     Object.keys(gen).forEach(function (s) {
@@ -303,7 +371,7 @@
          differently on purpose: they are not blood, and this page is about
          blood — but leaving them out makes a family look like a list of
          single men. */
-      if (P[s].spouse) {
+      if (chip(s)) {
         var sx = p.x + BOX + GAPX;
         svg.appendChild(el("path", {
           d: "M" + (p.x + BOX) + "," + (p.y + BH / 2) + " L" + sx + "," + (p.y + BH / 2),
@@ -333,7 +401,7 @@
     summary.textContent = n === 1
       ? "No relative of " + me.name + " is recorded here yet."
       : n + " people, across " + gens.length + " generations — everyone this archive can join to "
-        + me.name + " by blood."
+        + me.name + " by blood, and the husbands and wives who stand beside them."
         + (contested
             ? "  The records disagree about this person's parents: "
               + ps.length + " are claimed, from " + contested + " different kinds of source."

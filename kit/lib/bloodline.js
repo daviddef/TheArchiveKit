@@ -29,11 +29,37 @@ export function graph(records, opts = {}) {
     parents: ["parents"], children: ["children"], siblings: ["siblings"],
     spouses: ["spouses", "spouse"], father: ["father"], mother: ["mother"],
     rel: ["rel"], name: ["name"], dates: ["dt", "dates", "life"],
+    aliasOf: ["aliasOf", "alias", "sameAs"],
     ...opts,
   };
   const rows = Array.isArray(records)
     ? records.filter((r) => r && r.slug)
     : Object.entries(records).map(([slug, r]) => ({ slug, ...r }));
+
+  /* AN ALIAS IS NOT A SECOND PERSON. Several of these archives deliberately
+     keep a row for a mangled reading of somebody already resolved — Lerena
+     holds "ARMAND[O] LORENA (as machine-indexed) = Pablo Armando LERENA",
+     because a false trail is worth keeping visible. That row carries the same
+     father and mother as the man himself, so the chart drew Pablo Armando
+     standing beside Pablo Armando as his own brother.
+
+     Where a row says which person it is a spelling of, its links are folded
+     onto that person and the alias is not drawn at all. It has to say so by
+     SLUG: this file does not decide that two rows are one person by reading
+     their names, which is the whole reason it exists. */
+  const canon = {};
+  for (const r of rows) {
+    const a = pick(r, O.aliasOf);
+    const t = a && (typeof a === "string" ? a : a.slug);
+    if (t && t !== r.slug) canon[r.slug] = t;
+  }
+  for (const k of Object.keys(canon)) {          // follow a chain, stop at a loop
+    const seen = new Set([k]);
+    let v = canon[k];
+    while (canon[v] && !seen.has(v)) { seen.add(v); v = canon[v]; }
+    canon[k] = v;
+  }
+  const C = (slug) => canon[slug] || slug;
 
   const people = {};
   const put = (slug, name) => (people[slug] ||= {
@@ -50,35 +76,51 @@ export function graph(records, opts = {}) {
     return out.filter((x) => x && x.slug);
   };
 
+  for (const r of rows) if (!canon[r.slug]) put(r.slug, pick(r, O.name));
+
   for (const r of rows) {
-    const me = put(r.slug, pick(r, O.name));
+    const self = C(r.slug), isAlias = self !== r.slug;
+    const me = put(self, pick(r, O.name));
     const d = pick(r, O.dates);
-    if (typeof d === "string") me.dt = d;
+    if (typeof d === "string" && !(isAlias && me.dt)) me.dt = d;
+    /* A husband or wife is carried by NAME, because most archives record one
+       as a name and nothing else. Where the record also names a slug, keep it:
+       it is the only way the chart can tell that the person it is about to
+       draw as "married in" is already standing in the chart in their own
+       right. Matching that on the name is exactly what this file refuses to
+       do, so where there is no slug the chart draws the chip, as before. */
     const sp = many(pick(pick(r, O.rel) || r, O.spouses))[0];
-    if (sp) me.spouse = typeof sp === "string" ? sp : sp.name;
+    if (sp && !(isAlias && me.spouse)) {
+      me.spouse = typeof sp === "string" ? sp : sp.name;
+      me.spouseSlug = C((typeof sp === "object" && sp.slug) || "") || null;
+      if (me.spouseSlug === self) me.spouseSlug = null;
+    }
 
     for (const p of kin(r, "parents")) {
-      if (p.slug === r.slug) continue;
+      const ps = C(p.slug);
+      if (ps === self) continue;
       const via = p.via || "tree";
-      if (!me.parents.some((x) => x.slug === p.slug))
-        me.parents.push({ slug: p.slug, name: p.name, dt: p.dates || "", via });
-      const up = put(p.slug, p.name);
-      if (!up.children.some((c) => c.slug === r.slug))
-        up.children.push({ slug: r.slug, name: me.name, dt: me.dt, via });
+      if (!me.parents.some((x) => x.slug === ps))
+        me.parents.push({ slug: ps, name: p.name, dt: p.dates || "", via });
+      const up = put(ps, p.name);
+      if (!up.children.some((c) => c.slug === self))
+        up.children.push({ slug: self, name: me.name, dt: me.dt, via });
     }
     for (const c of kin(r, "children")) {
-      if (c.slug === r.slug) continue;
+      const cs = C(c.slug);
+      if (cs === self) continue;
       const via = c.via || "tree";
-      if (!me.children.some((x) => x.slug === c.slug))
-        me.children.push({ slug: c.slug, name: c.name, dt: c.dates || "", via });
-      const kid = put(c.slug, c.name);
-      if (!kid.parents.some((x) => x.slug === r.slug))
-        kid.parents.push({ slug: r.slug, name: me.name, dt: me.dt, via });
+      if (!me.children.some((x) => x.slug === cs))
+        me.children.push({ slug: cs, name: c.name, dt: c.dates || "", via });
+      const kid = put(cs, c.name);
+      if (!kid.parents.some((x) => x.slug === self))
+        kid.parents.push({ slug: self, name: me.name, dt: me.dt, via });
     }
     for (const s of kin(r, "siblings")) {
-      if (s.slug === r.slug) continue;
-      if (!me.siblings.some((x) => x.slug === s.slug))
-        me.siblings.push({ slug: s.slug, name: s.name, dt: s.dates || "", via: s.via || "tree" });
+      const ss = C(s.slug);
+      if (ss === self) continue;
+      if (!me.siblings.some((x) => x.slug === ss))
+        me.siblings.push({ slug: ss, name: s.name, dt: s.dates || "", via: s.via || "tree" });
     }
   }
 
