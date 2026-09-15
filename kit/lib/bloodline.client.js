@@ -121,8 +121,10 @@
          of them and told a reader nothing; a brother's wife should read as a
          brother's wife. Checked through the spouse's own ancestors, so it is
          the same test as every other line on this page. */
-      var sp = P[x].spouseSlug;
-      if (sp && P[sp]) {
+      var ms = P[x].mates || [];
+      for (var mi = 0; mi < ms.length; mi++) {
+        var sp = ms[mi];
+        if (!P[sp]) continue;
         if (sp === root || sibs(root).some(function (s) { return s.slug === sp; }))
           return "married into the family";
         var S = ancestors(sp);
@@ -231,8 +233,9 @@
         var a = list[i];
         if (taken[a]) continue;
         out.push(a); taken[a] = 1;
-        var sp = P[a].spouseSlug;
-        if (sp && !taken[sp] && list.indexOf(sp) > -1) { out.push(sp); taken[sp] = 1; }
+        (P[a].mates || []).forEach(function (sp) {
+          if (!taken[sp] && list.indexOf(sp) > -1) { out.push(sp); taken[sp] = 1; }
+        });
       }
       return out;
     }
@@ -335,17 +338,39 @@
        parent-and-child lines are not. */
     var tied = {};
     Object.keys(gen).forEach(function (a) {
-      var b = P[a].spouseSlug;
-      if (!b || !(b in gen) || !xy[a] || !xy[b]) return;
-      var k = a < b ? a + "|" + b : b + "|" + a;
-      if (tied[k]) return;
-      tied[k] = 1;
-      var A = xy[a], B = xy[b], lx = Math.min(A.x, B.x) - 9;
-      svg.appendChild(el("path", {
-        d: "M" + A.x + "," + (A.y + BH / 2) + " H" + lx + " V" + (B.y + BH / 2) + " H" + B.x,
-        stroke: "var(--ink-3)", "stroke-width": 1.5, "stroke-dasharray": "5 4",
-        fill: "none", class: "bl-tie"
-      }));
+      (P[a].mates || []).forEach(function (b) {
+        if (!(b in gen) || !xy[a] || !xy[b]) return;
+        var k = a < b ? a + "|" + b : b + "|" + a;
+        if (tied[k]) return;
+        tied[k] = 1;
+        var A = xy[a], B = xy[b], ay = A.y + BH / 2, by = B.y + BH / 2, d;
+        if (A.x === B.x) {
+          /* the ordinary case — a couple seated together, so the tie is a
+             bracket down the gutter to the left of their column, where the
+             parent-and-child lines never go */
+          var lx = A.x - 9;
+          d = "M" + A.x + "," + ay + " H" + lx + " V" + by + " H" + B.x;
+        } else {
+          /* Married across generations. Roseline Forbes married Frederick
+             Chappell and then Roque Lerena, and her daughter by the first
+             married Roque's brother — so Doreen Chappell stands a column to
+             the right of the husband she is tied to. A bracket down the far
+             gutter would be ruled straight through whatever sits between
+             them, so this takes the route every other cross-column line on
+             the chart takes: out of the right of one and into the left of the
+             other. */
+          var L = A.x < B.x ? a : b, R = A.x < B.x ? b : a;
+          var lxy = xy[L], rxy = xy[R];
+          var sx = lxy.x + (chip(L) ? BOX + GAPX + BOX : BOX), sy = lxy.y + BH / 2;
+          var ex = rxy.x, ey = rxy.y + BH / 2, bend = Math.max(22, (ex - sx) * 0.45);
+          d = "M" + sx + "," + sy + " C" + (sx + bend) + "," + sy + " " +
+              (ex - bend) + "," + ey + " " + ex + "," + ey;
+        }
+        svg.appendChild(el("path", {
+          d: d, stroke: "var(--ink-3)", "stroke-width": 1.5, "stroke-dasharray": "5 4",
+          fill: "none", class: "bl-tie"
+        }));
+      });
     });
 
     Object.keys(gen).forEach(function (s) {

@@ -89,12 +89,20 @@ export function graph(records, opts = {}) {
        draw as "married in" is already standing in the chart in their own
        right. Matching that on the name is exactly what this file refuses to
        do, so where there is no slug the chart draws the chip, as before. */
-    const sp = many(pick(pick(r, O.rel) || r, O.spouses))[0];
+    const all = many(pick(pick(r, O.rel) || r, O.spouses));
+    const sp = all[0];
     if (sp && !(isAlias && me.spouse)) {
       me.spouse = typeof sp === "string" ? sp : sp.name;
       me.spouseSlug = C((typeof sp === "object" && sp.slug) || "") || null;
       if (me.spouseSlug === self) me.spouseSlug = null;
     }
+    /* spouse/spouseSlug is the ONE the chart puts in a chip beside them. mates
+       is every marriage the record gives, because people marry twice: Roseline
+       Forbes married Frederick Chappell and then Roque Lerena, and reading only
+       the first of those left the chart unable to say why she was standing in
+       it. */
+    me.mates = (me.mates || []).concat(
+      all.map((x) => C((typeof x === "object" && x.slug) || "")).filter((x) => x && x !== self));
 
     for (const p of kin(r, "parents")) {
       const ps = C(p.slug);
@@ -123,6 +131,12 @@ export function graph(records, opts = {}) {
         me.siblings.push({ slug: ss, name: s.name, dt: s.dates || "", via: s.via || "tree" });
     }
   }
+
+  /* a marriage is symmetric even where only one side records it */
+  for (const me of Object.values(people)) me.mates = [...new Set(me.mates || [])];
+  for (const [slug, me] of Object.entries(people))
+    for (const m of me.mates)
+      if (people[m] && !people[m].mates.includes(slug)) people[m].mates.push(slug);
 
   /* siblings are symmetric even where only one side records it */
   for (const [slug, me] of Object.entries(people))
