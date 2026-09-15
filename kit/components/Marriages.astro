@@ -1,0 +1,272 @@
+---
+/* The couples and the families they came from, on one page.
+ *
+ * These were two pages in every archive that had them at all: a register of
+ * couples, and a list of surnames that married in. They answer one question
+ * from two ends, and split across two pages neither could say the thing that
+ * matters — that a surname is here because a person married a person. Merged
+ * on the user's instruction after a prototype showed the join.
+ *
+ * The important prop is `groups`. This component does NOT decide what makes a
+ * family part of this one; the archive does, and the archives disagree for good
+ * reasons:
+ *
+ *   Falco         places each person by DESCENT — born a Falco or descended
+ *                 from one, married such a person, the family that person came
+ *                 from, or married into one of those. It had to: its old rule
+ *                 was "any surname that is not Falco", which put Mazza on the
+ *                 page with no Falco anywhere near it.
+ *   Blazevic      gates on an AHNENTAFEL NUMBER. Nothing is listed because of a
+ *                 name, so 19 families and 45 proven ancestors carry no
+ *                 inflation at all.
+ *   Defranceschi  groups by the NAME, correctly, because that archive's subject
+ *                 IS the name — it says outright there is no single
+ *                 Defranceschi family and that the name was coined many times.
+ *
+ * So the rule is not "never group by surname". It is that the grouping must
+ * match what the archive is about, and the archive says which. This component
+ * renders whatever labelled groups it is handed, in the order handed, and
+ * asserts nothing about why they are groups.
+ *
+ * Import by the PACKAGE SPECIFIER — no kit/ segment, the exports map adds it:
+ *   import Marriages from "@daviddef/archive-kit/components/Marriages.astro";
+ * A filesystem path to this same file does need it.
+ */
+const {
+  u = (p) => p,
+  chips = [],          // [{k,label,cls,note}] the archive's provenance vocabulary
+  metrics = [],        // [{n,label,href}]
+  spine = [],          // [{gen,genHref,a,b,kids,vias}] the direct line, if there is one
+  spineTitle = "The direct line",
+  spineNote = "",
+  groups = [],         // [{key,label,blurb,families:[]}] ARCHIVE-DEFINED, see above
+  thin = [],           // families too thin for a section of their own
+  thinTitle = "One and two at a time",
+  thinNote = "",
+  heldNotShown = [],   // [{surname,withheld}] every person of that name is living
+                       // NOTE a group may carry its own `thin` and `held` instead. It should:
+                       // how many of a family's people happen to be NAMED is a fact about the
+                       // living-people policy, not about how that family reaches this one, and
+                       // filing by size first put four of Falco's blood families in a leftovers
+                       // table and eight more in a footnote.
+  livingNote = "",
+  openAt = 8,          // a name list longer than this starts collapsed
+} = Astro.props;
+
+const person = (p) => p || {};
+/* The count in a group heading is every family in the group, not just the ones
+   big enough for a section of their own — a group that reads "0 families" above
+   its own thin table and its own withheld note is counting the wrong thing. */
+const gn = (g) => (typeof g.count === "number" ? g.count
+  : (g.families || []).length + (g.thin || []).length + (g.held || []).length);
+---
+<div class="mg">
+
+  {metrics.length ? (
+    <div class="mg-metrics">
+      {metrics.map((m) => (
+        <div class="card mg-metric">
+          <div class="mono mg-n">{m.href ? <a href={u(m.href)}>{m.n}</a> : m.n}</div>
+          <div class="small">{m.label}</div>
+        </div>
+      ))}
+    </div>
+  ) : null}
+
+  {chips.length ? (
+    <p class="small mg-legend">Every row says where it comes from. {chips.map((c, i) => (
+      <span>{i ? " · " : ""}<span class={"chip " + (c.cls || "")}>{c.label || c.k}</span> {c.note}</span>
+    ))}</p>
+  ) : null}
+
+  <slot name="highlight" />
+
+  {spine.length ? (
+    <section class="mg-spine">
+      <h2>{spineTitle}</h2>
+      {spineNote ? <p class="small" set:html={spineNote} /> : null}
+      <div class="scroll"><table>
+        <thead><tr><th>Gen</th><th>Married</th><th>Children</th><th>Known from</th></tr></thead>
+        <tbody>
+          {spine.map((c) => (
+            <tr>
+              <td class="mono">{c.genHref ? <a href={u(c.genHref)}>{c.gen}</a> : c.gen}</td>
+              <td>
+                {person(c.a).living
+                  ? <em class="dim">{person(c.a).name} <span class="small">— living, named only</span></em>
+                  : person(c.a).slug
+                    ? <a href={u("/people/" + person(c.a).slug + "/")}><strong>{person(c.a).name}</strong></a>
+                    : <strong>{person(c.a).name}</strong>}
+                <span class="dim"> × </span>
+                {person(c.b).living
+                  ? <em class="dim">{person(c.b).name} <span class="small">— living, named only</span></em>
+                  : person(c.b).slug
+                    ? <a href={u("/people/" + person(c.b).slug + "/")}><strong>{person(c.b).name}</strong></a>
+                    : <strong>{person(c.b).name}</strong>}
+              </td>
+              <td class="mono small">{c.kids || ""}</td>
+              <td class="small">{(c.vias || []).map((v) => (
+                <span class={"chip " + ((chips.find((x) => x.k === v) || {}).cls || "")}>{v}</span>))}</td>
+            </tr>))}
+        </tbody>
+      </table></div>
+    </section>
+  ) : null}
+
+  {groups.map((grp) => (
+    <section class="mg-group" id={"g-" + grp.key}>
+      <h2 class="mg-glabel">{grp.label}
+        <span class="small mono mg-gn">{gn(grp)} {gn(grp) === 1 ? "family" : "families"}</span></h2>
+      {grp.blurb ? <p class="mg-blurb" set:html={grp.blurb} /> : null}
+
+      {(grp.families || []).map((f) => (
+        <article class="mg-fam">
+          <h3 class="mg-fname">{f.surname}
+            <span class="small mono mg-fmeta">{f.n} named{f.withheld ? ` · ${f.withheld} living, withheld` : ""}</span></h3>
+
+          <p class="small mg-fline">
+            {f.span || ""}{f.places && f.places.length ? (f.span ? " · " : "") + f.places.join(" · ") : ""}
+            {f.registerHref ? <> · <a href={u(f.registerHref)}>every {f.surname} in the register →</a></> : null}
+            {f.writtenUp ? <> · <a href={u(f.writtenUp[0])}>the {f.writtenUp[1]} page →</a></> : null}
+          </p>
+
+          {f.story ? <p class="mg-story" set:html={f.story} /> : null}
+
+          {(f.marriages || []).length ? (
+            <p class="small mg-marr"><strong>Joined by marriage:</strong>{" "}
+              {f.marriages.map((m, i) => (<span>{i ? " · " : ""}
+                {m.whoSlug ? <a href={u("/people/" + m.whoSlug + "/")}>{m.who}</a> : m.who}
+                {" & "}
+                {m.toSlug ? <a href={u("/people/" + m.toSlug + "/")}>{m.to}</a> : m.to}
+                {m.living ? <span class="small dim"> (living)</span> : null}</span>))}</p>
+          ) : null}
+
+          {(f.people || []).length ? (
+            (f.people.length > openAt ? (
+              <details class="mg-det">
+                <summary class="small">{f.people.length} named — show every one</summary>
+                <div class="scroll"><table>
+                  <thead><tr><th>Name</th><th>Born</th><th>Died</th></tr></thead>
+                  <tbody>{f.people.map((p) => (
+                    <tr>
+                      <td>{p.slug ? <a href={u("/people/" + p.slug + "/")}>{p.name}</a> : p.name}</td>
+                      <td class="small mono">{[p.b, p.bp].filter(Boolean).join(" · ") || "—"}</td>
+                      <td class="small mono">{[p.d, p.dp].filter(Boolean).join(" · ") || "—"}</td>
+                    </tr>))}</tbody>
+                </table></div>
+              </details>
+            ) : (
+              <div class="scroll"><table>
+                <thead><tr><th>Name</th><th>Born</th><th>Died</th></tr></thead>
+                <tbody>{f.people.map((p) => (
+                  <tr>
+                    <td>{p.slug ? <a href={u("/people/" + p.slug + "/")}>{p.name}</a> : p.name}</td>
+                    <td class="small mono">{[p.b, p.bp].filter(Boolean).join(" · ") || "—"}</td>
+                    <td class="small mono">{[p.d, p.dp].filter(Boolean).join(" · ") || "—"}</td>
+                  </tr>))}</tbody>
+              </table></div>
+            ))
+          ) : null}
+
+          {f.note ? <p class="small mg-note" set:html={f.note} /> : null}
+        </article>
+      ))}
+
+      {(grp.thin || []).length ? (
+        <div class="mg-gthin">
+          <h3 class="small mg-sub">{grp.thinLabel || "Thinly held, and in this group all the same"}</h3>
+          <div class="scroll"><table>
+            <thead><tr><th>Surname</th><th>Who</th><th>When</th><th>Where</th><th></th></tr></thead>
+            <tbody>{grp.thin.map((g) => (
+              <tr>
+                <td><strong>{g.surname}</strong>{g.withheld
+                  ? <><br /><span class="small dim">{g.withheld} living, withheld</span></> : null}</td>
+                <td>{(g.people || []).map((p, i) => (<span>{i ? " · " : ""}
+                  {p.slug ? <a href={u("/people/" + p.slug + "/")}>{p.name}</a> : p.name}</span>))}</td>
+                <td class="small mono">{g.span || "—"}</td>
+                <td class="small">{(g.places || []).join(" · ") || "—"}</td>
+                <td class="small">{g.registerHref ? <a href={u(g.registerHref)}>register →</a> : null}</td>
+              </tr>))}</tbody>
+          </table></div>
+        </div>
+      ) : null}
+
+      {(grp.held || []).length ? (
+        <p class="small mg-gheld"><strong>{grp.held.length} more in this group are held but not
+        shown</strong>, because every person the archive has for that surname is living:{" "}
+        {grp.held.map((g, i) => (<span>{i ? " · " : ""}<strong>{g.surname}</strong>{" "}
+          <span class="mono">({g.withheld})</span></span>))}</p>
+      ) : null}
+    </section>
+  ))}
+
+  {thin.length ? (
+    <section class="mg-thin">
+      <h2>{thinTitle}</h2>
+      {thinNote ? <p set:html={thinNote} /> : null}
+      <div class="scroll"><table>
+        <thead><tr><th>Surname</th><th>Who</th><th>When</th><th>Where</th><th></th></tr></thead>
+        <tbody>
+          {thin.map((g) => (
+            <tr>
+              <td><strong>{g.surname}</strong>{g.withheld
+                ? <><br /><span class="small dim">{g.withheld} living, withheld</span></> : null}</td>
+              <td>{(g.people || []).map((p, i) => (<span>{i ? " · " : ""}
+                {p.slug ? <a href={u("/people/" + p.slug + "/")}>{p.name}</a> : p.name}</span>))}</td>
+              <td class="small mono">{g.span || "—"}</td>
+              <td class="small">{(g.places || []).join(" · ") || "—"}</td>
+              <td class="small">{g.registerHref ? <a href={u(g.registerHref)}>register →</a> : null}</td>
+            </tr>))}
+        </tbody>
+      </table></div>
+    </section>
+  ) : null}
+
+  {heldNotShown.length ? (
+    <section class="mg-held">
+      <h2>Families held but not shown</h2>
+      <p>For these surnames the archive holds people, and every one of them is living. Nothing is
+      published: no names, no dates. They are listed only so that a descendant searching for the
+      surname can see that the family <em>is</em> in the record, and ask.</p>
+      <p class="mg-heldlist">{heldNotShown.map((g, i) => (
+        <span>{i ? " · " : ""}<strong>{g.surname}</strong> <span class="small mono">({g.withheld})</span></span>))}</p>
+    </section>
+  ) : null}
+
+  {livingNote ? <p class="small mg-living" set:html={livingNote} /> : null}
+
+  <slot name="missing" />
+  <slot />
+</div>
+
+<style is:global>
+  /* is:global because a story or a note arrives through set:html and an archive
+     may hand this component markup Astro never saw, which therefore never gets
+     the scope attribute stamped on it. */
+  .mg-metrics { display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr));
+    gap:.6rem; margin:1rem 0; }
+  .mg-metric { padding:10px 14px; }
+  .mg-n { font-size:1.5rem; font-variant-numeric:tabular-nums; }
+  .mg-legend { margin:.4rem 0 1rem; }
+  .mg-group { margin:2.2rem 0 0; }
+  .mg-glabel { display:flex; align-items:baseline; gap:.6rem; flex-wrap:wrap;
+    border-bottom:1px solid var(--rule,#ddd); padding-bottom:.3rem; margin-bottom:.4rem; }
+  .mg-gn { font-weight:400; color:var(--ink-3,#777); }
+  .mg-blurb { margin:.2rem 0 1rem; color:var(--ink-2,#444); }
+  .mg-fam { margin:1.4rem 0; }
+  .mg-fname { margin-bottom:.15rem; }
+  .mg-fmeta { font-weight:400; margin-left:.5rem; color:var(--ink-3,#777); }
+  .mg-fline { color:var(--ink-3,#777); margin-bottom:.5rem; }
+  .mg-story { margin:.4rem 0 .5rem; }
+  .mg-marr { margin-bottom:.5rem; }
+  .mg-det > summary { cursor:pointer; color:var(--ink-3,#777); padding:.25rem 0; }
+  .mg-det[open] > summary { margin-bottom:.35rem; }
+  .mg-note { color:var(--ink-3,#777); margin-top:.4rem; }
+  .mg-heldlist { margin-top:.6rem; }
+  .mg-gthin { margin:1.2rem 0 .6rem; }
+  .mg-sub { color:var(--ink-3,#777); font-weight:600; margin-bottom:.35rem;
+    text-transform:uppercase; letter-spacing:.05em; }
+  .mg-gheld { color:var(--ink-3,#777); margin:.8rem 0 0; }
+  .mg-living { margin-top:1.2rem; }
+  @media (max-width:520px) { .mg-n { font-size:1.25rem; } }
+</style>
