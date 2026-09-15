@@ -356,11 +356,11 @@
     },
     {
       "n": 45,
-      "state": "next",
+      "state": "done",
       "owner": "six archive sessions",
       "since": "2026-09-15",
       "what": "Six archives cannot yet count their work list against anything",
-      "note": "Only **Blazevic** declares `accounts`. The others now print on every build what is going uncounted, and the blocker is nearly always the same: **no stable key on the register rows**. `D'Arcy` — errands 62, questions 11, searched 293, requests 8 files. `Defranceschi` — searched 273, errands 28. `Lerena` — errands 40. `Mazza` — searched 115. `Booyzen` — requests 8 files. **Falco is the special case: its `/searched/` page is hand-written prose with no data file behind it, so there is nothing to count against at all.** Adding a key is unglamorous and there is no way round it: a short stable string per row, never derived from the title, never reused when a row is retired."
+      "note": "Only **Blazevic** declares `accounts`. The others now print on every build what is going uncounted, and the blocker is nearly always the same: **no stable key on the register rows**. `D'Arcy` — errands 62, questions 11, searched 293, requests 8 files. `Defranceschi` — searched 273, errands 28. `Lerena` — errands 40. `Mazza` — searched 115. `Booyzen` — requests 8 files. **Falco is the special case: its `/searched/` page is hand-written prose with no data file behind it, so there is nothing to count against at all.** Adding a key is unglamorous and there is no way round it: a short stable string per row, never derived from the title, never reused when a row is retired. **Done 15 September.** **846 stable keys** assigned across seven register files and frozen in the data, so editing a title can never move one. Five archives now declare `accounts` and enforcement is on. The blocker after that was that switching it on fails the build on every outstanding item at once — **143 across four archives** — so the gate gained a **ratchet**: a list declares what it has not yet reconciled, the build fails only when the real number is higher, and each covering row lowers it by one. **Blazevic 12 of 12 covered; D'Arcy 68, Defranceschi 31, Mazza 24, Lerena 20, Booyzen 10 declared.** Falco has nothing machine-readable to count and that is its own row."
     },
     {
       "n": 46,
@@ -401,6 +401,22 @@
       "since": "2026-09-15",
       "what": "I broke the Defranceschi build by committing another session's menu entry",
       "note": "**My own fault and worth recording.** I staged `site/src/layouts/Base.astro` to ship a label change, and it carried another session's in-flight menu entry for `/graves-map/` — a page that exists in their working tree and is **not tracked in git**. CI built a menu link to a page that was not there: **2,502 broken links, one per page**. Removed the entry so main is green and left their untracked file alone for them to commit with its own menu line. The lesson is the one this estate keeps relearning: **staging a shared file by path stages whatever else is in it.**"
+    },
+    {
+      "n": 51,
+      "state": "next",
+      "owner": "five archive sessions",
+      "since": "2026-09-15",
+      "what": "153 outstanding items are declared but not yet covered by a row",
+      "note": "Every build now prints this archive's backlog and it can only go down. **D'Arcy 68** (55 open errands, 5 open questions, 8 drafted letters), **Defranceschi 31** (21 pending searches, 8 unsent errands, 2 letters), **Mazza 24**, **Lerena 20**, **Booyzen 10**. The work is to write rows that cover them and lower `unreconciled` by the same number. **A row may cover several items** — that is how Blazevic covers twelve with nine rows — so this is not 153 rows, it is as many rows as there are real pieces of work. The grouping and the ownership are each session's to decide, which is why they were not invented here."
+    },
+    {
+      "n": 52,
+      "state": "next",
+      "owner": "the Falco session",
+      "since": "2026-09-15",
+      "what": "Falco has no machine-readable list of outstanding work at all",
+      "note": "The other six have a `searched.json` or an `errands.json` with a state field, so their outstanding work can be counted. **Falco's `/searched/` page is hand-written prose** and its `register.json` is 11,923 records rather than a list of what is still wanted. There is nothing for the gate to count, so Falco is the one archive where a missing row still cannot be seen. It needs a real errands or pending-search list before the gate means anything there."
     }
   ]
 }
