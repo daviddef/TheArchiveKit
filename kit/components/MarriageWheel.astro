@@ -1,0 +1,134 @@
+---
+/* The families who married in, drawn.
+ *
+ * Written first in the Defranceschi archive, where it reads its own
+ * marriages.json and its own six origin groups. It is here because it never
+ * needed either: it draws LABELLED GROUPS OF NAMED THINGS WITH COUNTS, which is
+ * exactly the shape Marriages.astro is already handed. One data structure, two
+ * renderings — so an archive that can list its families can draw them, and no
+ * archive has to hand-roll a second copy of its own data to get a picture.
+ *
+ * Takes the same `groups` array as Marriages.astro. A group contributes its
+ * `families`, its `chips` and its `thin` — all three are families, they differ
+ * only in how much the archive knows about each — and the count on a spoke is
+ * whatever that entry counts: people named, ancestors, indexed marriages.
+ *
+ * Deliberately NOT interactive and not scripted. It is a picture of a shape, it
+ * has to be legible in a screenshot and in a printout, and the page under it
+ * already carries every name as text and as a link.
+ */
+const {
+  groups = [],
+  subject = "",          // the name in the middle
+  caption = "",          // the line under it
+  max = 64,              // beyond this a wheel is a smear; the page still lists them all
+} = Astro.props;
+
+const PALETTE = ["--r-venice", "--accent", "--terra", "--r-habsburg", "--r-italy", "--r-yugo"];
+
+/* Every family in a group, whatever the archive knows about it. */
+/* A family may carry its own `accent`, in which case the spoke takes it and the
+   ARRANGEMENT and the COLOUR say two different true things at once. The
+   Defranceschi archive needs exactly that: its sections are grouped by the
+   empire that held the town, while the families themselves are Venetian,
+   Slavic, Carnian or Austrian by origin — two readings of the same 74 names,
+   and it already had a second chart drawing the other one. */
+const membersOf = (g) => [
+  ...(g.families || []).map((f) => ({ name: f.surname, c: +f.n || 0, accent: f.accent })),
+  ...(g.thin || []).map((f) => ({ name: f.surname, c: +f.n || 0, accent: f.accent })),
+  ...(g.chips || []).map((c) => ({ name: c.name, c: +c.count || 0, accent: c.accent })),
+];
+
+const live = groups
+  .map((g, i) => ({ key: g.key, label: g.label, col: g.accent || PALETTE[i % PALETTE.length],
+                    members: membersOf(g).sort((a, b) => b.c - a.c) }))
+  .filter((g) => g.members.length);
+
+const total = live.reduce((a, g) => a + g.members.length, 0);
+/* When families bring their own colours, the ring positions and the colours
+   mean different things, and the key has to say both rather than one. */
+const { memberKey = [] } = Astro.props;
+const keyOf = memberKey;
+const tooMany = total > max;
+
+/* Geometry. The ring grows with how many spokes there are, so a wheel of twelve
+   and a wheel of seventy-eight are both readable rather than one being a smear
+   and the other three dots. */
+const R0 = Math.max(140, Math.min(300, 100 + total * 2.2));
+/* The padding is the longest label, not a guess: a wheel whose ring fits and
+   whose names are then clipped at the edge of the viewBox is worse than no
+   wheel. ~6.2px per character at 11.5px, plus the stagger and the dot. */
+const longest = live.reduce((n, g) => Math.max(n, ...g.members.map(
+  (m) => (m.name + (m.c > 2 ? " · " + m.c : "")).length)), 6);
+const PAD = Math.min(230, 60 + longest * 6.2);
+const CX = R0 + PAD, CY = R0 + PAD;
+const W = CX * 2, H = CY * 2;
+const GAP = 6;
+const rad = (d) => (d - 90) * Math.PI / 180;
+
+const arcs = [];
+let ang = -90;
+for (const g of live) {
+  const span = (360 - GAP * live.length) * g.members.length / total;
+  arcs.push({ ...g, from: ang, to: ang + span });
+  ang += span + GAP;
+}
+const nodes = [];
+for (const a of arcs) {
+  a.members.forEach((mem, i) => {
+    const t = a.members.length === 1 ? (a.from + a.to) / 2
+      : a.from + (a.to - a.from) * (i + 0.5) / a.members.length;
+    const r = R0 + (i % 2 === 0 ? 0 : 46) + Math.min(mem.c, 8) * 2;
+    nodes.push({ ...mem, t, x: CX + r * Math.cos(rad(t)), y: CY + r * Math.sin(rad(t)),
+                 flip: t > 90 && t < 270, col: mem.accent || a.col });
+  });
+}
+---
+{live.length && !tooMany ? (
+  <figure class="mw">
+    <div class="scroll">
+      <svg viewBox={`0 0 ${W} ${H}`} width={W} style={`max-width:100%;min-width:${Math.min(W, 640)}px;display:block`}
+           role="img" aria-label={`The families who married into the ${subject} line, grouped`}>
+        {nodes.map((n) => (
+          <line x1={CX} y1={CY} x2={n.x} y2={n.y} stroke-width="1"
+                style={`stroke:var(${n.col},currentColor);opacity:.32`} />
+        ))}
+        <circle cx={CX} cy={CY} r={R0 - 34} class="mw-hub" />
+        {nodes.map((n) => (
+          <circle cx={n.x} cy={n.y} r={2.5 + Math.sqrt(Math.max(n.c, 1)) * 1.5}
+                  style={`fill:var(${n.col},currentColor)`} />
+        ))}
+        {nodes.map((n) => (
+          <text x={n.x} y={n.y} font-size="11.5" dy="3.6" class="mw-lab"
+                text-anchor={n.flip ? "end" : "start"}
+                transform={`rotate(${n.flip ? n.t + 180 : n.t} ${n.x} ${n.y}) translate(${n.flip ? -9 : 9} 0)`}>
+            {n.name}{n.c > 2 ? ` · ${n.c}` : ""}
+          </text>
+        ))}
+        <text x={CX} y={CY - 4} text-anchor="middle" class="mw-name">{subject}</text>
+        {caption ? <text x={CX} y={CY + 16} text-anchor="middle" class="mw-cap">{caption}</text> : null}
+      </svg>
+    </div>
+    <figcaption class="small">
+      {keyOf.length ? (<div class="mw-k2">{keyOf.map((k, i) => (
+        <span>{i ? "  ·  " : ""}<span class="mw-key" style={`background:var(${k.col},currentColor)`}></span>
+          {k.label}</span>))}</div>) : null}
+      {live.map((g, i) => (
+        <span>{i ? "  ·  " : ""}<span class="mw-key" style={`background:var(${g.col},currentColor)`}></span>
+          {g.label} <span class="mono">{g.members.length}</span></span>
+      ))}
+    </figcaption>
+  </figure>
+) : null}
+
+<style is:global>
+  .mw { margin: 1.4rem 0 1.8rem; }
+  .mw-hub { fill: var(--bg-2, rgba(128,128,128,.08)); stroke: var(--rule, #ddd); stroke-width: 1; }
+  .mw-name { font-family: var(--serif, Georgia, serif); font-size: 19px; fill: var(--ink, currentColor); }
+  .mw-cap { font-family: var(--mono, ui-monospace, monospace); font-size: 10.5px; fill: var(--ink-3, #888); }
+  .mw-lab { fill: var(--ink-2, currentColor); }
+  .mw figcaption { margin-top: .5rem; color: var(--ink-3, #888); line-height: 1.9; }
+  .mw-k2 { margin-bottom: .25rem; }
+  .mw-key { display: inline-block; width: 9px; height: 9px; border-radius: 2px;
+    margin-right: .35rem; vertical-align: baseline; }
+</style>

@@ -1,4 +1,5 @@
 ---
+import MarriageWheel from "./MarriageWheel.astro";
 /* The couples and the families they came from, on one page.
  *
  * These were two pages in every archive that had them at all: a register of
@@ -51,9 +52,44 @@ const {
                        // table and eight more in a footnote.
   livingNote = "",
   openAt = 8,          // a name list longer than this starts collapsed
+  /* THE ORDER OF THIS PAGE IS THE COMPONENT'S, NOT THE ARCHIVE'S.
+     The first version of this rendered only the groups and let every archive
+     arrange its own metrics, chart and couples around them. Seven archives then
+     produced seven different pages that happened to share one section: one had
+     a metrics row, two had a chart, two had no couples register at all, and the
+     couples sat above the families on five and below on two. Passing the pieces
+     in as props instead means the shape cannot drift, because no archive is
+     arranging it any more. */
+  subject = "",        // the family name, for the middle of the wheel
+  wheel = true,        // draw the families; false where a chart would mislead
+  memberKey = [],      // [{label,col}] when families carry their own colours
+  couples = [],        // [{a,b,when,where,note,vias,kids,href}] the register
+  couplesTitle = "The couples",
+  couplesNote = "",
+  couplesGroupBy = null,   // optional (c) => "1800s" to break the register up
 } = Astro.props;
 
 const person = (p) => p || {};
+
+/* A column appears only where some row has something to put in it, so an
+   archive that knows dates but not places does not publish a column of dashes. */
+const anyWhen = couples.some((c) => c.when);
+const anyWhere = couples.some((c) => c.where);
+const anyKids = couples.some((c) => c.kids);
+const anyNote = couples.some((c) => c.note);
+const anyVia = couples.some((c) => (c.vias || []).length);
+
+const couplesGroups = (() => {
+  if (!couplesGroupBy) return [{ label: "", rows: couples }];
+  const out = [];
+  for (const c of couples) {
+    const k = couplesGroupBy(c);
+    let band = out.find((b) => b.label === k);
+    if (!band) out.push(band = { label: k, rows: [] });
+    band.rows.push(c);
+  }
+  return out;
+})();
 /* The count in a group heading is every family in the group, not just the ones
    big enough for a section of their own — a group that reads "0 families" above
    its own thin table and its own withheld note is counting the wrong thing. */
@@ -80,6 +116,9 @@ const gn = (g) => (typeof g.count === "number" ? g.count
   ) : null}
 
   <slot name="highlight" />
+
+  {wheel ? <MarriageWheel groups={groups} subject={subject} memberKey={memberKey}
+    caption={`${groups.reduce((a, g) => a + gn(g), 0)} families`} /> : null}
 
   {spine.length ? (
     <section class="mg-spine">
@@ -110,6 +149,51 @@ const gn = (g) => (typeof g.count === "number" ? g.count
             </tr>))}
         </tbody>
       </table></div>
+    </section>
+  ) : null}
+
+  {couples.length ? (
+    <section class="mg-couples">
+      <h2>{couplesTitle}</h2>
+      {couplesNote ? <p class="small" set:html={couplesNote} /> : null}
+      {couplesGroups.map((band) => (
+        <>
+          {band.label ? <h3 class="mg-band">{band.label}
+            <span class="small mono mg-bn">{band.rows.length}</span></h3> : null}
+          <div class="scroll"><table>
+            <thead><tr>
+              <th>Married</th>
+              {anyWhen ? <th>When</th> : null}
+              {anyWhere ? <th>Where</th> : null}
+              {anyKids ? <th>Children</th> : null}
+              {anyNote ? <th>What the record says</th> : null}
+              {anyVia ? <th>Known from</th> : null}
+            </tr></thead>
+            <tbody>{band.rows.map((c) => (
+              <tr>
+                <td>
+                  {person(c.a).living
+                    ? <em class="dim">{person(c.a).name} <span class="small">— living</span></em>
+                    : person(c.a).slug
+                      ? <a href={u("/people/" + person(c.a).slug + "/")}>{person(c.a).name}</a>
+                      : person(c.a).name}
+                  <span class="dim"> × </span>
+                  {person(c.b).living
+                    ? <em class="dim">{person(c.b).name} <span class="small">— living</span></em>
+                    : person(c.b).slug
+                      ? <a href={u("/people/" + person(c.b).slug + "/")}>{person(c.b).name}</a>
+                      : person(c.b).name}
+                </td>
+                {anyWhen ? <td class="small mono">{c.when || "—"}</td> : null}
+                {anyWhere ? <td class="small">{c.where || "—"}</td> : null}
+                {anyKids ? <td class="small mono">{c.kids || ""}</td> : null}
+                {anyNote ? <td class="small">{c.note ? <span set:html={c.note} /> : "—"}</td> : null}
+                {anyVia ? <td class="small">{(c.vias || []).map((v) => (
+                  <span class={"chip " + ((chips.find((x) => x.k === v) || {}).cls || "")}>{v}</span>))}</td> : null}
+              </tr>))}</tbody>
+          </table></div>
+        </>
+      ))}
     </section>
   ) : null}
 
@@ -278,6 +362,9 @@ const gn = (g) => (typeof g.count === "number" ? g.count
   /* is:global because a story or a note arrives through set:html and an archive
      may hand this component markup Astro never saw, which therefore never gets
      the scope attribute stamped on it. */
+  .mg-couples { margin:1.8rem 0; }
+  .mg-band { margin:1.2rem 0 .35rem; font-size:1rem; }
+  .mg-bn { font-weight:400; color:var(--ink-3,#777); margin-left:.4rem; }
   .mg-metrics { display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr));
     gap:.6rem; margin:1rem 0; }
   .mg-metric { padding:10px 14px; }
