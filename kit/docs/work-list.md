@@ -58,6 +58,40 @@ and `checkcovers.py` then refuses in **both** directions:
   stale, which is what happens when a pending row is finally retired and the
   work-list row pointing at it is left behind.
 
+### The backlog is a ratchet
+
+Turning this on in an archive that has never reconciled fails the build on
+every outstanding item at once — **143 of them across four archives** the first
+time it was tried. The only ways out would be writing 143 rows in one sitting
+or switching the gate off, and both are how a gate ends up disabled.
+
+So a work list declares what it has **not yet** reconciled:
+
+```json
+"unreconciled": 31
+```
+
+and the build fails only when the real number is **higher**. The backlog can
+never grow, the count prints on every build, and each covering row lets you
+lower the number by one. Too generous a declaration is caught the other way:
+when the real number falls, the gate names the figure to drop to.
+
+**Where the seven stand, 15 September 2026**
+
+| Archive | Outstanding | Covered | Backlog |
+|---|---|---|---|
+| Blažević | 12 | **12** | 0 |
+| D'Arcy | 68 | 0 | 68 |
+| Defranceschi | 31 | 0 | 31 |
+| Mazza | 24 | 0 | 24 |
+| Lerena | 20 | 0 | 20 |
+| Booyzen | 10 | 0 | 10 |
+| Falco | — | — | nothing machine-readable to count |
+
+Each of those numbers is now printed on every build of that archive. The work
+is to write rows that cover them and lower the figure — **a row may cover
+several items**, which is how Blažević covers twelve with nine rows.
+
 ### Two things about this that are deliberate
 
 **No fuzzy matching.** There is no guessing from titles. That register learned
