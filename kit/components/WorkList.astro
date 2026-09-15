@@ -71,11 +71,15 @@ const md = (s) => String(s ?? "")
   .replace(/«([^»]+)»/g, "<em>«$1»</em>");
 ---
 <div class="wl">
-  <div class="wl-tally">
+  <div class="wl-tally" role="group" aria-label="Show only one kind of item">
+    <button type="button" class="wl-pill on" data-wl="all" aria-pressed="true">
+      <b>All</b> {rows.length}
+    </button>
     {ORDER.map((k) => count(k) > 0 && (
-      <span class="wl-pill" style={`--c:${STATE[k][1]}`}>
+      <button type="button" class="wl-pill" data-wl={k} style={`--c:${STATE[k][1]}`}
+              aria-pressed="false">
         <b>{STATE[k][0]}</b> {count(k)}
-      </span>
+      </button>
     ))}
   </div>
 
@@ -85,7 +89,7 @@ const md = (s) => String(s ?? "")
 
   <div class="wl-rows">
     {rows.map((r) => (
-      <div class="wl-one" style={`border-left-color:${(STATE[r.state] || STATE.next)[1]}`}>
+      <div class="wl-one" data-state={r.state} style={`border-left-color:${(STATE[r.state] || STATE.next)[1]}`}>
         <div class="wl-lab">
           <span style={`color:${(STATE[r.state] || STATE.next)[1]}`}>
             {r.n ? r.n + ". " : ""}{(STATE[r.state] || STATE.next)[0]}
@@ -99,6 +103,8 @@ const md = (s) => String(s ?? "")
       </div>
     ))}
   </div>
+
+  <p class="wl-empty" hidden>Nothing in this archive is in that state.</p>
 
   {ring.length > 0 && (
     <div class="wl-ring">
@@ -114,11 +120,53 @@ const md = (s) => String(s ?? "")
   )}
 </div>
 
+<script is:inline>
+/* Filter by state. Every row is in the page and visible before this runs, so a
+   reader without JavaScript gets the whole list rather than an empty one — the
+   filter is a convenience, not the way the page works. */
+(function () {
+  var pills = [].slice.call(document.querySelectorAll(".wl-pill"));
+  var rows  = [].slice.call(document.querySelectorAll(".wl-one"));
+  var empty = document.querySelector(".wl-empty");
+  if (!pills.length || !rows.length) return;
+  function show(which) {
+    var n = 0;
+    rows.forEach(function (r) {
+      var on = which === "all" || r.getAttribute("data-state") === which;
+      r.hidden = !on;
+      if (on) n++;
+    });
+    if (empty) empty.hidden = n > 0;
+    pills.forEach(function (p) {
+      var on = p.getAttribute("data-wl") === which;
+      p.classList.toggle("on", on);
+      p.setAttribute("aria-pressed", on ? "true" : "false");
+    });
+    try {
+      var u = new URL(location.href);
+      which === "all" ? u.searchParams.delete("show") : u.searchParams.set("show", which);
+      history.replaceState(null, "", u);
+    } catch (e) { /* a filter is not worth breaking the page over */ }
+  }
+  pills.forEach(function (p) {
+    p.addEventListener("click", function () { show(p.getAttribute("data-wl")); });
+  });
+  var want = null;
+  try { want = new URLSearchParams(location.search).get("show"); } catch (e) { want = null; }
+  if (want && pills.some(function (p) { return p.getAttribute("data-wl") === want; })) show(want);
+})();
+</script>
+
 <style is:global>
   .wl-tally { display:flex; flex-wrap:wrap; gap:8px; margin-top:22px }
-  .wl-pill { font-family:var(--mono); font-size:11px; padding:4px 11px; border-radius:999px;
-             border:1px solid var(--rule); color:var(--ink-2) }
-  .wl-pill b { color:var(--c); font-weight:600 }
+  .wl-pill { font:inherit; font-family:var(--mono); font-size:11px; padding:5px 12px;
+             border-radius:999px; border:1px solid var(--rule); color:var(--ink-2);
+             background:transparent; cursor:pointer }
+  .wl-pill:hover { border-color:var(--ink-3) }
+  .wl-pill.on { border-color:var(--c,var(--ink-2)); background:var(--panel-2) }
+  .wl-pill[data-wl="all"].on { border-color:var(--ink-2) }
+  .wl-pill b { color:var(--c,var(--ink)); font-weight:600 }
+  .wl-empty { margin-top:20px; color:var(--ink-2); font-family:var(--sans) }
   .wl-none { margin-top:18px; font-family:var(--sans); color:var(--ink-2) }
   .wl-rows { margin-top:22px; display:flex; flex-direction:column; gap:14px }
   .wl-one { border-left:3px solid var(--rule); background:var(--panel);
