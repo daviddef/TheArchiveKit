@@ -1,6 +1,31 @@
 {
   "title": "The kit and the estate",
   "dek": "Work that belongs to no single archive: the shared components, the build gates, and anything that has to be true in all of them at once.",
+  "accounts": [
+    {
+      "prefix": "page",
+      "noun": "shared pages not yet on a shared shape",
+      "file": "shared-pages.json",
+      "rows": "rows",
+      "when": {
+        "state": "local"
+      },
+      "key": "key",
+      "label": "route"
+    },
+    {
+      "prefix": "part",
+      "noun": "shared pages only partly aligned",
+      "file": "shared-pages.json",
+      "rows": "rows",
+      "when": {
+        "state": "partial"
+      },
+      "key": "key",
+      "label": "route"
+    }
+  ],
+  "unreconciled": 0,
   "rows": [
     {
       "n": 1,
@@ -441,6 +466,62 @@
       "since": "2026-09-15",
       "what": "«Nothing covered» was the mechanism's age, not the archives' failing",
       "note": "Asked why no archive had anything covered, and the honest answer is that **`covers` is one day old**. Blazevic is 12 of 12 only because that session invented the field and wrote the entries by hand; every other list predates it entirely. Setting each ratchet to the full count was me recording the truth, not the archives failing a test — but it was also incurious, and **Falco proves it: the rows to cover all 32 of its items already existed** (n22 about the processetti, n13 about the harvested files) and needed one `covers` line each. **Luwinski is the same shape:** six of its fifteen sent letters already have a row that names them — n8, n25, n26, n56 and two on the estate. The other five archives are worth the same ten minutes before anyone writes a new row."
+    },
+    {
+      "n": 56,
+      "state": "running",
+      "owner": "this session",
+      "since": "2026-09-15",
+      "what": "Tier 1: the six pages every archive has and no two do alike",
+      "covers": [
+        "page:people",
+        "page:who",
+        "page:register",
+        "page:searched",
+        "page:corrections",
+        "page:open-questions"
+      ],
+      "note": "**/marriages/ is one of twenty-three shared routes and the only one finished.** These six are next because every archive has them, the job is identical on each, and the divergence is largest: **/people/ runs 2,634 to 50,004 words**, **/who/ 1,099 to 16,861**, **/register/ 9,025 to 356,720** (size is fair — Falco holds 11,923 records — the SHAPE is not), **/corrections/ has five different page titles**, **/searched/ is prose on Falco and a table everywhere else**, and **/open-questions/ is on a shared component in one archive of seven**. Same method as /marriages/: measure all seven first, promote the best one, let each archive keep its own rule and its own prose."
+    },
+    {
+      "n": 57,
+      "state": "next",
+      "owner": "this session",
+      "since": "2026-09-15",
+      "what": "Tier 2: the spine, the places, the sources, the name, the timeline, the change feed",
+      "covers": [
+        "page:direct-line",
+        "page:places",
+        "page:sources",
+        "page:name",
+        "part:timeline",
+        "page:changes",
+        "part:bloodline"
+      ],
+      "note": "**/changes/ is the worst spread in the estate — 378 to 53,386 words, 141×** — and a change feed is the same job everywhere. **/direct-line/ runs 441 to 11,136** and is the spine of every archive. **/timeline/ is three of seven** and `EraTimeline` already exists to carry the rest. **/bloodline/ is six of seven**; only Defranceschi still draws its own."
+    },
+    {
+      "n": 58,
+      "state": "next",
+      "owner": "this session",
+      "since": "2026-09-15",
+      "what": "Tier 3: the pages only some archives have",
+      "covers": [
+        "page:households",
+        "page:documents",
+        "page:gallery",
+        "page:graves",
+        "page:namesakes"
+      ],
+      "note": "**/households/ on five, /documents/ and /gallery/ on four, /graves/ and /namesakes/ on three.** Lower value because fewer archives are affected, and **/namesakes/ may stay local** — you and I already agreed Booyzen's is about a different subject. Worth doing after tier 2, and worth asking first whether the archives that lack these pages should have them at all."
+    },
+    {
+      "n": 59,
+      "state": "done",
+      "owner": "this session",
+      "since": "2026-09-15",
+      "what": "My own list declared nothing and covered nothing",
+      "note": "Asked to show my backlog and whether I use the same rule, and I did not. I put `accounts` on eight archives and left my own list exempt — **55 rows, no accounts, no covers, and the gate printing «nothing declared» on the kit's own list**. It is counted now, against `shared-pages.json`: a route that is not aligned is outstanding work and a row has to say which routes it answers for. **Twenty-three shared routes: five aligned, two partial, sixteen local.**"
     }
   ]
 }

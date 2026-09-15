@@ -1,0 +1,189 @@
+{
+  "note": "Every page that exists on more than one archive, and whether it has been given a shared shape. `state` is aligned, partial or local. This is what the cross-archive work list is counted against: a route that is not aligned is outstanding work, and a work-list row has to say which routes it answers for. Tier is the order I mean to do them in, not a claim about importance.",
+  "rows": [
+    {
+      "key": "marriages",
+      "route": "/marriages/",
+      "on": 7,
+      "state": "aligned",
+      "tier": 0,
+      "note": "Metrics, timeline, ranked chart, couples, families — one component, one order."
+    },
+    {
+      "key": "method",
+      "route": "/method/",
+      "on": 7,
+      "state": "aligned",
+      "tier": 0,
+      "note": "The five-word evidence ladder, shared since before this session."
+    },
+    {
+      "key": "worklist",
+      "route": "/worklist/",
+      "on": 7,
+      "state": "aligned",
+      "tier": 0,
+      "note": "One component, and now two gates behind it."
+    },
+    {
+      "key": "trees",
+      "route": "/trees/",
+      "on": 7,
+      "state": "aligned",
+      "tier": 0,
+      "note": "Shared."
+    },
+    {
+      "key": "atlas",
+      "route": "/atlas/",
+      "on": 6,
+      "state": "aligned",
+      "tier": 0,
+      "note": "Shared Atlas on all six that have it."
+    },
+    {
+      "key": "bloodline",
+      "route": "/bloodline/",
+      "on": 7,
+      "state": "partial",
+      "tier": 1,
+      "note": "Six of seven on the shared chart; **Defranceschi is the exception** and draws its own."
+    },
+    {
+      "key": "people",
+      "route": "/people/",
+      "on": 7,
+      "state": "local",
+      "tier": 1,
+      "note": "**2,634 to 50,004 words.** Every archive lists its people and no two do it alike. The biggest single win left."
+    },
+    {
+      "key": "who",
+      "route": "/who/",
+      "on": 7,
+      "state": "local",
+      "tier": 1,
+      "note": "**1,099 to 16,861 words**, 0 to 24 sections. The name namespace the estate agreed to call Every Name."
+    },
+    {
+      "key": "register",
+      "route": "/register/",
+      "on": 7,
+      "state": "local",
+      "tier": 1,
+      "note": "**9,025 to 356,720 words.** Size is legitimate — Falco holds 11,923 records — but the SHAPE is seven different answers."
+    },
+    {
+      "key": "searched",
+      "route": "/searched/",
+      "on": 7,
+      "state": "local",
+      "tier": 1,
+      "note": "What has been read. Falco's is prose and the rest are tables; that is also why its work list could not be counted."
+    },
+    {
+      "key": "corrections",
+      "route": "/corrections/",
+      "on": 7,
+      "state": "local",
+      "tier": 1,
+      "note": "**Five different page titles** and no shared shape. What an archive got wrong is the most estate-wide idea there is."
+    },
+    {
+      "key": "open-questions",
+      "route": "/open-questions/",
+      "on": 7,
+      "state": "local",
+      "tier": 1,
+      "note": "One of seven on a shared component. Ranked questions with a state — the same shape as a work list."
+    },
+    {
+      "key": "direct-line",
+      "route": "/direct-line/",
+      "on": 7,
+      "state": "local",
+      "tier": 2,
+      "note": "**441 to 11,136 words**, 1 to 12 sections. The spine of every archive."
+    },
+    {
+      "key": "places",
+      "route": "/places/",
+      "on": 7,
+      "state": "local",
+      "tier": 2,
+      "note": "Seven place registers, no shared shape, though the Atlas beneath them is shared."
+    },
+    {
+      "key": "sources",
+      "route": "/sources/",
+      "on": 7,
+      "state": "local",
+      "tier": 2,
+      "note": "**503 to 11,809 words.** What each archive rests on."
+    },
+    {
+      "key": "name",
+      "route": "/name/",
+      "on": 7,
+      "state": "local",
+      "tier": 2,
+      "note": "The name study. Deliberately local in CONTENT; the shape need not be."
+    },
+    {
+      "key": "timeline",
+      "route": "/timeline/",
+      "on": 7,
+      "state": "partial",
+      "tier": 2,
+      "note": "Three of seven on a shared component. EraTimeline now exists and could carry the rest."
+    },
+    {
+      "key": "changes",
+      "route": "/changes/",
+      "on": 6,
+      "state": "local",
+      "tier": 2,
+      "note": "**378 to 53,386 words — a 141x spread, the worst in the estate.** A change feed is the same job everywhere."
+    },
+    {
+      "key": "households",
+      "route": "/households/",
+      "on": 5,
+      "state": "local",
+      "tier": 3,
+      "note": "Five archives, no shared shape."
+    },
+    {
+      "key": "documents",
+      "route": "/documents/",
+      "on": 4,
+      "state": "local",
+      "tier": 3,
+      "note": "**559 to 53,148 words.**"
+    },
+    {
+      "key": "gallery",
+      "route": "/gallery/",
+      "on": 4,
+      "state": "local",
+      "tier": 3,
+      "note": "Four archives; two of them call it something else on the page."
+    },
+    {
+      "key": "graves",
+      "route": "/graves/",
+      "on": 3,
+      "state": "local",
+      "tier": 3,
+      "note": "Three archives."
+    },
+    {
+      "key": "namesakes",
+      "route": "/namesakes/",
+      "on": 3,
+      "state": "local",
+      "tier": 3,
+      "note": "Three archives, and two are about different subjects — this one may stay local."
+    }
+  ]
+}
