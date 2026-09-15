@@ -141,13 +141,41 @@ def undeclared_report(root, name):
     return 0
 
 
-def check(root, name):
-    wl = None
-    for rel in ("site/src/data/worklist.json", "worklist.json"):
-        p = os.path.join(root, rel)
-        if os.path.exists(p):
-            wl = p
+def find(root):
+    """The work list, and the REPO ROOT that declared paths resolve against.
+
+    npm runs these scripts from site/, so --root . is the site and not the
+    repository — while an archive's outstanding work (sources/, requests/) sits
+    beside the site, not inside it. Both are found by walking up from wherever
+    this was pointed, so it behaves the same whether a person runs it from the
+    repo root by hand or npm runs it from site/.
+    """
+    # Which pattern matched says where the repository root is: finding
+    # src/data/worklist.json means the directory searched IS the site, and the
+    # repo is its parent. Returning the site as the root was the first version
+    # of this, and it reported all fifteen of an archive's declarations as
+    # pointing at things that no longer existed — a gate accusing a correct list
+    # because it was standing in the wrong place.
+    here = os.path.abspath(root)
+    for _ in range(4):
+        for rel, up_levels in (("site/src/data/worklist.json", 0),
+                               ("src/data/worklist.json", 1),
+                               ("worklist.json", 0)):
+            p = os.path.join(here, rel)
+            if os.path.exists(p):
+                repo = here
+                for _ in range(up_levels):
+                    repo = os.path.dirname(repo)
+                return p, repo
+        up = os.path.dirname(here)
+        if up == here:
             break
+        here = up
+    return None, os.path.abspath(root)
+
+
+def check(root, name):
+    wl, root = find(root)
     if not wl:
         print(f"  FAIL  {name}: no worklist.json")
         return 1
