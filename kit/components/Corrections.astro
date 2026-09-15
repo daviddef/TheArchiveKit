@@ -1,0 +1,111 @@
+---
+/* What this archive got wrong, and what is true instead.
+ *
+ * The most estate-wide idea there is, and it had seven answers: five different
+ * page titles and no two data shapes alike. Falco says was/now, Defranceschi
+ * said/true, Lerena what_was_said/what_is_true, Booyzen the same pair as
+ * positional arrays, Blazevic record/tree. Every one of them means WHAT WAS
+ * PUBLISHED and WHAT IS TRUE, plus how it was caught and when.
+ *
+ * NOT A TABLE, deliberately. The first version of this put the pair in four
+ * columns and it was unreadable: these are sentences, sometimes paragraphs, and
+ * a correction that cannot be read is not a correction. The shape promoted here
+ * is the Falco one, which was already the best of the seven — a dated entry
+ * with the retraction above the truth.
+ *
+ * THE PAGE TITLES STAY. «For Michael», «What was taken back», «What This
+ * Archive Got Wrong» are an archive's own voice, and the estate settled that a
+ * menu label is shared while a page title need not be.
+ *
+ * Fields arrive as HTML, already rendered by the archive's own markdown helper,
+ * because every archive has a different one and a component that took raw
+ * markdown would be picking a winner.
+ *
+ *   rows  [{when, kind, sev, was, now, how, why, by, where, whereLabel,
+ *           extra, superseded:{label, href, note}}]
+ */
+const { rows = [], u = (p) => p, major = "major" } = Astro.props;
+const sevs = [...new Set(rows.map((r) => r.sev).filter(Boolean))];
+---
+<div class="cx">
+  {sevs.length > 1 ? (
+    <div class="cx-bar">
+      <span class="cx-lab">Show</span>
+      <button type="button" class="cx-opt on" data-v="">All <span class="mono">{rows.length}</span></button>
+      {sevs.map((s) => (
+        <button type="button" class="cx-opt" data-v={s}>{s}
+          <span class="mono">{rows.filter((r) => r.sev === s).length}</span></button>
+      ))}
+    </div>
+  ) : null}
+
+  {rows.map((r) => (
+    <section class="cx-e" data-sev={r.sev || ""} id={r.id || undefined}>
+      <div class="cx-h">
+        <span class="mono small">{r.when}</span>
+        {r.kind ? <span class={"chip " + (r.sev === major ? "dis" : "")}>{r.kind}</span> : null}
+        {r.sev === major ? <span class="chip doc">material</span> : null}
+      </div>
+      {r.superseded ? (
+        <p class="cx-sup"><span class="cx-t">superseded</span>
+          {r.superseded.note ? <Fragment set:html={r.superseded.note} /> : null}
+          {r.superseded.href
+            ? <a href={u(r.superseded.href)}>{r.superseded.label} →</a>
+            : <span>{r.superseded.label}</span>}</p>
+      ) : null}
+      {r.was ? <p class="cx-was"><span class="cx-t">was</span> <Fragment set:html={r.was} /></p> : null}
+      {r.now ? <p class="cx-now"><span class="cx-t">now</span> <strong><Fragment set:html={r.now} /></strong></p> : null}
+      {r.how ? <p class="small cx-how"><span class="cx-t">how</span> <Fragment set:html={r.how} /></p> : null}
+      {r.why ? <p class="cx-why"><Fragment set:html={r.why} /></p> : null}
+      {(r.by || r.where || r.extra) ? (
+        <p class="small cx-foot">
+          {r.by ? <span class="dim">Caught by {r.by}.</span> : null}
+          {r.where ? <> {r.by ? " · " : ""}<a href={u(r.where)}>{r.whereLabel || "Where it lives now →"}</a></> : null}
+          {r.extra ? <Fragment set:html={r.extra} /> : null}
+        </p>
+      ) : null}
+    </section>
+  ))}
+  <p class="cx-none small" hidden>Nothing at that level.</p>
+</div>
+
+<script>
+  document.querySelectorAll(".cx").forEach((box) => {
+    const entries = [...box.querySelectorAll(".cx-e")];
+    const none = box.querySelector(".cx-none");
+    box.querySelectorAll(".cx-opt").forEach((b) => {
+      b.addEventListener("click", () => {
+        box.querySelectorAll(".cx-opt").forEach((x) => x.classList.remove("on"));
+        b.classList.add("on");
+        const v = b.dataset.v || "";
+        let shown = 0;
+        for (const e of entries) {
+          const ok = !v || e.dataset.sev === v;
+          e.hidden = !ok;
+          if (ok) shown++;
+        }
+        if (none) none.hidden = shown > 0;
+      });
+    });
+  });
+</script>
+
+<style is:global>
+  .cx-bar { display:flex; flex-wrap:wrap; gap:.35rem; align-items:center; margin:1rem 0 .4rem; }
+  .cx-lab { font-size:9.5px; font-weight:600; letter-spacing:.11em; text-transform:uppercase;
+    color:var(--ink-3,#888); margin-right:.35rem; }
+  .cx-opt { font:inherit; font-size:.78rem; padding:.22rem .6rem; cursor:pointer;
+    color:var(--ink-2,inherit); background:transparent; border:1px solid var(--rule,#ccc);
+    border-radius:2px; display:inline-flex; gap:.4rem; align-items:baseline; }
+  .cx-opt.on { color:var(--accent,#963); border-color:var(--accent,#963);
+    background:var(--accent-wash,transparent); font-weight:600; }
+  .cx-e { border-top:1px solid var(--rule,#ddd); padding:.9rem 0 .8rem; }
+  .cx-h { display:flex; align-items:baseline; gap:.5rem; flex-wrap:wrap; margin-bottom:.4rem; }
+  .cx-t { display:inline-block; min-width:4.2rem; font-size:9.5px; font-weight:600;
+    letter-spacing:.11em; text-transform:uppercase; color:var(--ink-3,#888); }
+  .cx-was { color:var(--ink-3,#888); margin:.1rem 0; }
+  .cx-now { margin:.1rem 0; }
+  .cx-how, .cx-why { margin:.25rem 0 0; color:var(--ink-2,inherit); }
+  .cx-foot { margin-top:.35rem; color:var(--ink-3,#888); }
+  .cx-sup { margin:.1rem 0; color:var(--ink-3,#888); }
+</style>
