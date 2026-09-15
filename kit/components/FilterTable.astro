@@ -54,7 +54,13 @@ const {
         {f.options.length > (f.max ?? 7) ? (
           <select class="ft-sel">
             <option value="">{f.all || "All"}</option>
-            {f.options.map((o) => <option value={String(o.v)}>{o.label}</option>)}
+            {/* the key travels with the option here too, or a group whose
+                options test different keys silently loses them the moment it
+                grows past the button threshold */}
+            {f.options.map((o) => (
+              <option value={String(o.v)} data-k={o.k || f.key}
+                      set:html={String(o.label).replace(/<[^>]+>/g, "")} />
+            ))}
           </select>
         ) : (
           <div class="ft-opts">
@@ -146,8 +152,14 @@ const {
       q.addEventListener("input", apply);
     }
     box.querySelectorAll(".ft-sel").forEach((sel) => {
-      const key = sel.closest(".ft-facet").dataset.key;
-      sel.addEventListener("change", () => { picked[key] = sel.value; apply(); });
+      const wrap = sel.closest(".ft-facet");
+      const keys = (wrap.dataset.keys || wrap.dataset.key || "").split(/\s+/).filter(Boolean);
+      sel.addEventListener("change", () => {
+        for (const k of keys) picked[k] = "";
+        const opt = sel.selectedOptions[0];
+        if (sel.value) picked[(opt && opt.dataset.k) || wrap.dataset.key] = sel.value;
+        apply();
+      });
     });
     box.querySelectorAll(".ft-facet").forEach((f) => {
       const key = f.dataset.key;
