@@ -218,9 +218,24 @@ def check(root, name):
             keyf = acc.get("key", "key")
             labf = acc.get("label", "what")
             when = acc.get("when") or {}
-            for r in rows_of(load(p), acc.get("rows", "rows")):
-                if not isinstance(r, dict):
-                    continue
+            rws = [r for r in rows_of(load(p), acc.get("rows", "rows")) if isinstance(r, dict)]
+            keyed = sum(1 for r in rws if r.get(keyf) not in (None, ""))
+            # A DECLARED KEY THAT IS ON NO ROW IS AN ERROR, NOT A QUIET ZERO.
+            # The Mazza register is written by a build script, so keys added to
+            # the file by hand were wiped the next time it ran — and this gate
+            # skipped every unkeyed row and reported "nothing outstanding" for
+            # an archive with twenty-four outstanding searches. Silence where
+            # there should be a number is the whole fault this tool exists to
+            # end, and it had it too.
+            if rws and not keyed:
+                bad.append(f"{acc['file']}: declared key {keyf!r} is on 0 of {len(rws)} rows — "
+                           f"nothing can be counted. If this file is generated, the "
+                           f"generator has to write the key.")
+                continue
+            if rws and keyed < len(rws):
+                bad.append(f"{acc['file']}: declared key {keyf!r} is on only {keyed} of "
+                           f"{len(rws)} rows — the rest cannot be counted")
+            for r in rws:
                 k = r.get(keyf)
                 if k in (None, ""):
                     continue
