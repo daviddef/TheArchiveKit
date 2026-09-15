@@ -412,11 +412,11 @@
     },
     {
       "n": 52,
-      "state": "next",
+      "state": "done",
       "owner": "the Falco session",
       "since": "2026-09-15",
-      "what": "Falco has no machine-readable list of outstanding work at all",
-      "note": "The other six have a `searched.json` or an `errands.json` with a state field, so their outstanding work can be counted. **Falco's `/searched/` page is hand-written prose** and its `register.json` is 11,923 records rather than a list of what is still wanted. There is nothing for the gate to count, so Falco is the one archive where a missing row still cannot be seen. It needs a real errands or pending-search list before the gate means anything there."
+      "what": "Falco had plenty to count; I had not looked properly",
+      "note": "**I was wrong and it took a few minutes to disprove.** I recorded that Falco held nothing machine-readable. It holds `researchlog.json` with **29 of 40 research files flagged not finished**, and `data/antenati-processetti.tsv`, now published as `processetti.json` so the site and the gate can both read it. **Falco is 32 of 32 covered, backlog zero.** Re-counting corrected the list too: the processetti row said «258 volumes across four towns» and it is **378 across six** — San Felice a Cancello was not surveyed until 13 September and carries 57 alone, Arienzo holds 43 with zero name-indexed records, and three towns are still completely unexamined: **Moiano, Paolisi, San Felice a Cancello, 199 volumes between them**."
     },
     {
       "n": 53,
@@ -433,6 +433,14 @@
       "since": "2026-09-15",
       "what": "The gate itself reported «nothing outstanding» for an archive with 24",
       "note": "**Caught by watching the build output rather than trusting the exit code.** Mazza's `searched.json` is written from a TSV on every build, so the stable keys added to the JSON by hand were wiped the first time the build ran. The gate skipped every unkeyed row and printed **«0 of 0 outstanding items — nothing outstanding»** for an archive with **24 outstanding searches**, and exited 0. **Silence where there should be a number is the exact fault this tool exists to end, and it had it too.** Two fixes: an account whose declared key is on none of its rows now FAILS and names the likely cause, and a key on only some rows is reported with the count; and Mazza's key is now a column in the TSV, which is the record, passed through untouched by the generator. Checked the other archives for the same trap — D'Arcy's tool reads that file but does not write it, so Mazza was the only one."
+    },
+    {
+      "n": 55,
+      "state": "done",
+      "owner": "this session",
+      "since": "2026-09-15",
+      "what": "«Nothing covered» was the mechanism's age, not the archives' failing",
+      "note": "Asked why no archive had anything covered, and the honest answer is that **`covers` is one day old**. Blazevic is 12 of 12 only because that session invented the field and wrote the entries by hand; every other list predates it entirely. Setting each ratchet to the full count was me recording the truth, not the archives failing a test — but it was also incurious, and **Falco proves it: the rows to cover all 32 of its items already existed** (n22 about the processetti, n13 about the harvested files) and needed one `covers` line each. **Luwinski is the same shape:** six of its fifteen sent letters already have a row that names them — n8, n25, n26, n56 and two on the estate. The other five archives are worth the same ten minutes before anyone writes a new row."
     }
   ]
 }
