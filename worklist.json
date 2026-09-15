@@ -337,6 +337,22 @@
       "since": "2026-09-15",
       "what": "Compared all seven navigations route by route",
       "note": "**`/who/` — the page this estate agreed to call «Every Name» — is built and live on all seven and was in the menu on five.** Falco had renamed it from `/names/` and never added it; Booyzen never added it at all. Both had been reachable by URL and by search the whole time and invisible to anyone using the navigation. Also normalised: «What Changed»/«What changed» (four sites to two, lowercase wins and matches «Our line, drawn») and Booyzen's «The Documents» → «Documents». **Everything else that differs, differs on purpose:** `/lines/` is three different pages about three different things, Booyzen's `/namesakes/` really is about forenames, and the extra menu groups — D'Arcy's four, Blazevic's Documents and Origins, Defranceschi's «Go there», Lerena's «The work» — are local content, not drift. The shared spine is **Start · Our line · People & places · Evidence** on all seven, with «The families» on six."
+    },
+    {
+      "n": 43,
+      "state": "done",
+      "owner": "this session",
+      "since": "2026-09-15",
+      "what": "Compared all seven footers; one said nothing about living people",
+      "note": "**The Mazza archive holds 334 living people — the most in the estate — and its footer said nothing about them.** The rule itself was stated three ways across the seven: «named, name and relationship only», «appear by name only, no dates no places no photographs», and «excluded from this build». All seven run the same gate, `--policy named-bare`, which is *named and nothing more*. Six now carry one sentence; Booyzen and Blazevic add that they currently hold none. **D'Arcy is a real exception and now says so on purpose** — it drops living people at the boundary in `lib/people.js` before the data is written, so its build carries neither their dates nor their names, which is stricter than the estate rule. Also fixed: the D'Arcy footer claimed «one of six archives» and named five, two paragraphs below a ring that reads seven from the shared file; and the Blazevic footer linked `/corrections/` under «What changed», which is the menu's label for `/changes/`. Every footer now carries Sources · Method · Open questions · Corrections, with local extras kept."
+    },
+    {
+      "n": 44,
+      "state": "next",
+      "owner": "the Blazevic session",
+      "since": "2026-09-15",
+      "what": "Two pages titled «What changed» and «What Changed»",
+      "note": "`/changes/` renders **What changed** and `/corrections/` renders **What Changed** — two different pages whose titles differ by one capital letter. Found while aligning the footers, because the footer linked one of them under the other's menu label. The footer link now reads «Corrections», so nothing points the wrong way any more, **but the two page titles are still a coin-flip for a reader** and for anything that lists titles. One of them needs a different name."
     }
   ]
 }
