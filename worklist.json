@@ -297,6 +297,38 @@
       "since": "2026-09-15",
       "what": "Present the descent categories on the page, then roll the merged page to all seven",
       "note": "The data now carries `reach` and `reachCount` per family; the page still shows the old flat list. Rebuild `married-in.astro` around the four categories, merge it with `/marriages/` as the prototype showed — descriptions, collapsible name lists, links to people pages, provenance chips, metrics, living collapsed — and then **carry that same page to all seven archives**, which is the point of the exercise and the user's explicit ask. Each archive keeps its own rule for what «reaches the family»: Blazevic's ahnentafel gate and Defranceschi's name-is-the-subject are both correct as they stand and must not be flattened into Falco's descent test."
+    },
+    {
+      "n": 38,
+      "state": "done",
+      "owner": "this session",
+      "since": "2026-09-15",
+      "what": "One marriages page, the same shape, on all seven archives",
+      "note": "`/marriages/` everywhere, labelled **The Marriages**, built on a shared `Marriages.astro`. The component renders labelled groups and **asserts nothing about why they are groups**, because the archives disagree for good reasons and each is right about itself: **Falco** and **Mazza** place a family by descent (their subject is a family); **Defranceschi** and **Lerena** group by origin and by status (their subject is a name); **Blazevic** and **D'Arcy** gate on an ahnentafel number; **Booyzen** reads back the line it has already assigned to each person. Old addresses redirect: `/married-in` on Falco, Defranceschi and Blazevic, `/families` on Mazza."
+    },
+    {
+      "n": 39,
+      "state": "next",
+      "owner": "the D'Arcy session",
+      "since": "2026-09-15",
+      "what": "A numbered ancestor loses their ahnentafel number through lib/people.js",
+      "note": "`add()` merges the family record over the ancestor record, and **every member in families.json carries an explicit `ahn: null`** — so anyone who is both a numbered ancestor and a member of a family comes out of `byId` with no number. Found because grouping 13 families by the generation they enter the line put **all 13** in «not on the direct line» and the page still looked correct. The marriages page now reads the number from ancestors.json, which owns it, but **anything else reading `byId(...).ahn` has the same hole**. `p.ancestor` survives the merge and is safe."
+    },
+    {
+      "n": 40,
+      "state": "next",
+      "owner": "the Booyzen session",
+      "since": "2026-09-15",
+      "what": "Only the Booyzen line is numbered; the ten lines that married in are not",
+      "note": "All 136 people on the Booyzen line carry a generation, 2 to 7. The other ten lines — **190 people, more than the name itself holds** — carry none, so they cannot be ordered by when they arrived. The page says so rather than hiding it. Worth deciding whether that is a gap to fill or a policy to state: a first attempt grouped by generation regardless and **silently dropped every line without a number**, rendering one family out of eleven on a page that otherwise looked entirely correct."
+    },
+    {
+      "n": 41,
+      "state": "next",
+      "owner": "the Mazza session",
+      "since": "2026-09-15",
+      "what": "Seven Mazza surnames cannot be reached from the family at all",
+      "note": "The new descent test returns **blood 14 · married 17 · kin 37 · second 49 · unconnected 7**. The seven are the useful output — they are in the archive and no parent, child or spouse edge connects them to the line — and they only appear because the rule is capable of returning no. Each is a thread to pull or a record to remove."
     }
   ]
 }
