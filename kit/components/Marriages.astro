@@ -1,5 +1,5 @@
 ---
-import MarriageWheel from "./MarriageWheel.astro";
+import MarriageChart from "./MarriageChart.astro";
 /* The couples and the families they came from, on one page.
  *
  * These were two pages in every archive that had them at all: a register of
@@ -62,7 +62,7 @@ const {
      arranging it any more. */
   subject = "",        // the family name, for the middle of the wheel
   wheel = true,        // draw the families; false where a chart would mislead
-  memberKey = [],      // [{label,col}] when families carry their own colours
+  chartUnit = "",      // what a bar counts, in this archive's own words
   couples = [],        // [{a,b,when,where,note,vias,kids,href}] the register
   couplesTitle = "The couples",
   couplesNote = "",
@@ -117,8 +117,7 @@ const gn = (g) => (typeof g.count === "number" ? g.count
 
   <slot name="highlight" />
 
-  {wheel ? <MarriageWheel groups={groups} subject={subject} memberKey={memberKey}
-    caption={`${groups.reduce((a, g) => a + gn(g), 0)} families`} /> : null}
+  {wheel ? <MarriageChart groups={groups} subject={subject} unit={chartUnit} /> : null}
 
   {spine.length ? (
     <section class="mg-spine">

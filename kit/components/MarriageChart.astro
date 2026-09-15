@@ -1,0 +1,114 @@
+---
+/* The families who married in, ranked.
+ *
+ * This replaces a radial wheel, and the reason is worth keeping. The wheel was
+ * lifted from the archive with seventy-four in-law surnames, where a ring is a
+ * reasonable shape. At THIRTEEN it was indefensible: a large empty hole in the
+ * middle, every name set sideways or upside down, the type shrunk to fit a
+ * circumference nothing needed, and most of a wide page unused. A chart that
+ * only works at one size is not a shared component, it is a lucky fit.
+ *
+ * A ranked bar reads at any count. The name is horizontal and at a size a
+ * person can actually read; the bar is the count, so the comparison a reader
+ * wants is the length of a line rather than the area of a dot, which is the
+ * one comparison the eye is reliably good at; and the rows fill the width
+ * instead of a circle's worth of empty middle.
+ *
+ * It takes the same `groups` array as Marriages.astro — families, thin
+ * families and chips are all families, differing only in how much the archive
+ * knows about each.
+ *
+ * Deliberately no script and no interaction: it has to read in a screenshot
+ * and on paper, and every name here is already a link in the page below.
+ */
+const {
+  groups = [],
+  subject = "",
+  perGroup = 12,       // the largest in each group get a bar; the rest are counted
+  unit = "",           // what a number is, said once
+} = Astro.props;
+
+const PALETTE = ["--r-venice", "--accent", "--terra", "--r-habsburg", "--r-italy", "--r-yugo"];
+
+const membersOf = (g) => [
+  ...(g.families || []).map((f) => ({ name: f.surname, c: +f.n || 0, accent: f.accent })),
+  ...(g.thin || []).map((f) => ({ name: f.surname, c: +f.n || 0, accent: f.accent })),
+  ...(g.chips || []).map((c) => ({ name: c.name, c: +c.count || 0, accent: c.accent })),
+];
+
+const live = groups
+  .map((g, i) => {
+    const all = membersOf(g).sort((a, b) => b.c - a.c || a.name.localeCompare(b.name));
+    return {
+      key: g.key, label: g.label, col: g.accent || PALETTE[i % PALETTE.length],
+      rows: all.slice(0, perGroup), hidden: Math.max(0, all.length - perGroup),
+      all: all.length, sum: all.reduce((a, x) => a + x.c, 0),
+    };
+  })
+  .filter((g) => g.all);
+
+/* One scale across every group, so a bar means the same thing wherever it is.
+   Two bars of the same length in different sections being different numbers is
+   the classic way a chart like this lies. */
+const max = Math.max(1, ...live.flatMap((g) => g.rows.map((r) => r.c)));
+const pct = (n) => Math.max(n > 0 ? 2.5 : 0, (n / max) * 100);
+---
+{live.length ? (
+  <figure class="mc">
+    <div class="mc-cols">
+      {live.map((g) => (
+        <section class="mc-g">
+          <h3 class="mc-h">
+            <span class="mc-sw" style={`background:var(${g.col},currentColor)`}></span>
+            {g.label}
+            <span class="mc-n mono">{g.all}</span>
+          </h3>
+          <ol class="mc-list">
+            {g.rows.map((r) => (
+              <li class="mc-row">
+                <span class="mc-name">{r.name}</span>
+                <span class="mc-track">
+                  <span class="mc-bar" style={`width:${pct(r.c)}%;background:var(${r.accent || g.col},currentColor)`}></span>
+                </span>
+                <span class="mc-c mono">{r.c || ""}</span>
+              </li>
+            ))}
+          </ol>
+          {g.hidden ? (
+            <p class="mc-more small">and <strong>{g.hidden}</strong> more, all named below</p>
+          ) : null}
+        </section>
+      ))}
+    </div>
+    <figcaption class="small">
+      {subject ? <strong>{subject}</strong> : null}
+      {subject ? " — " : ""}the families who joined this one{unit ? `, by ${unit}` : ""}.
+      Every one of them is named in full further down the page.
+    </figcaption>
+  </figure>
+) : null}
+
+<style is:global>
+  .mc { margin: 1.4rem 0 1.8rem; }
+  .mc-cols { display: grid; gap: 1.1rem 2.2rem;
+    grid-template-columns: repeat(auto-fit, minmax(310px, 1fr)); }
+  .mc-g { break-inside: avoid; }
+  .mc-h { display: flex; align-items: baseline; gap: .45rem; margin: 0 0 .45rem;
+    font-size: .95rem; font-weight: 600; }
+  .mc-sw { width: 9px; height: 9px; border-radius: 2px; flex: 0 0 auto; }
+  .mc-n { margin-left: auto; font-weight: 400; color: var(--ink-3, #888); font-size: .8rem; }
+  .mc-list { list-style: none; margin: 0; padding: 0; }
+  .mc-row { display: grid; grid-template-columns: minmax(6.5rem, 10rem) 1fr 2.4rem;
+    align-items: center; gap: .55rem; padding: .11rem 0; }
+  .mc-name { font-size: .88rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .mc-track { height: 9px; background: var(--rule, rgba(128,128,128,.22)); border-radius: 2px; }
+  .mc-bar { display: block; height: 100%; border-radius: 2px; opacity: .85; }
+  .mc-c { font-size: .78rem; text-align: right; color: var(--ink-2, currentColor);
+    font-variant-numeric: tabular-nums; }
+  .mc-more { color: var(--ink-3, #888); margin: .3rem 0 0; }
+  .mc figcaption { margin-top: .9rem; color: var(--ink-3, #888); }
+  @media (max-width: 420px) {
+    .mc-row { grid-template-columns: minmax(5rem, 7.5rem) 1fr 2rem; gap: .4rem; }
+    .mc-name { font-size: .82rem; }
+  }
+</style>
