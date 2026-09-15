@@ -29,14 +29,25 @@
    in its own direction, which is a true statement about it, and the caption
    says how many there are. Nothing is hidden and the cluster is legible.
 
-     places   [{ lat, lon, n }] — the archive's own atlas data
+   WHAT IT WAS MISSING was not geography, it was names. A reader met sixty
+   green dots in an empty box and had no way in: no town, no region, no reason
+   to look twice. Every place in this data already carries a name, a count and
+   the archive's own regional grouping, and none of that was drawn.
+
+   So the largest places are now labelled — as many as fit without a collision,
+   biggest first — and the dots take their colour from the `cat` the archive
+   itself assigned, with a legend. That is the archive's own structure made
+   visible, not a projection borrowed from somewhere else.
+
+     places   [{ lat, lon, n, name, cat }] — the archive's own atlas data
      href     where the picture leads
      label    the line underneath
+     names    how many places to label (default 7, 0 to turn off)
 */
-const { places = [], href, label } = Astro.props;
+const { places = [], href, label, names = 7 } = Astro.props;
 const pts = places.filter((p) => typeof p.lat === "number" && typeof p.lon === "number");
 
-const W = 520, H = 200, PAD = 14;
+const W = 560, H = 230, PAD = 16;
 const q = (arr, p) => {
   const a = [...arr].sort((x, y) => x - y);
   const i = (a.length - 1) * p;
@@ -90,6 +101,8 @@ const densest = (arr, share) => {
 };
 
 let view = null, outside = 0;
+const labels = [];
+let cats = [], catIndex = new Map();
 if (pts.length) {
   const lats = pts.map((p) => p.lat), lons = pts.map((p) => p.lon);
   const k = Math.cos(q(lats, 0.5) * Math.PI / 180) || 1;
@@ -129,8 +142,34 @@ if (pts.length) {
     const cy2 = Math.min(H - PAD / 2, Math.max(PAD / 2, y));
     const off = cx2 !== x || cy2 !== y;
     if (off) outside++;
-    return { x: cx2, y: cy2, off, r: 2.2 + 4.6 * Math.sqrt((p.n || 0) / most) };
+    return { x: cx2, y: cy2, off, n: p.n || 0, name: p.name, cat: p.cat,
+             r: 2.2 + 4.6 * Math.sqrt((p.n || 0) / most) };
   });
+
+  /* Label the biggest places, and only where the label will not land on one
+     already written. Greedy, biggest first, because if only six names fit they
+     should be the six that account for the most people — and a picture with
+     six names on it is readable where the same picture with none is not. */
+  const taken = [];
+  const clear = (b) => !taken.some((t) =>
+    b.x < t.x2 && b.x2 > t.x && b.y < t.y2 && b.y2 > t.y);
+  for (const d of [...view].sort((a, b) => b.n - a.n)) {
+    if (labels.length >= names) break;
+    if (!d.name || d.off) continue;
+    const w = Math.min(d.name.length * 5.1 + 6, 96);
+    const right = d.x + d.r + 4 + w < W - PAD;
+    const bx = right ? d.x + d.r + 4 : d.x - d.r - 4 - w;
+    const box = { x: bx, x2: bx + w, y: d.y - 6, y2: d.y + 6 };
+    if (bx < PAD / 2 || !clear(box)) continue;
+    taken.push(box);
+    labels.push({ x: right ? bx : bx + w, y: d.y + 3.4, text: d.name, anchor: right ? "start" : "end" });
+  }
+
+  /* The regions are the archive's own, so the legend is too. */
+  const seen = new Map();
+  for (const d of view) if (d.cat) seen.set(d.cat, (seen.get(d.cat) || 0) + 1);
+  cats = [...seen.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5).map(([c], i) => [c, i]);
+  catIndex = new Map(cats);
 }
 /* said plainly under the picture rather than left for the reader to wonder at */
 const note = outside
@@ -141,9 +180,20 @@ const note = outside
   <a class="spark" href={href} aria-label={label || "Open the atlas"}>
     <svg viewBox={`0 0 ${W} ${H}`} width="100%" role="img" aria-hidden="true">
       {view.map((p) => (
-        <circle cx={p.x} cy={p.y} r={p.r} class={p.off ? "spark-dot is-off" : "spark-dot"} />
+        <circle cx={p.x} cy={p.y} r={p.r}
+                class={`spark-dot c${catIndex.get(p.cat) ?? 0}${p.off ? " is-off" : ""}`} />
+      ))}
+      {labels.map((l) => (
+        <text x={l.x} y={l.y} text-anchor={l.anchor} class="spark-n">{l.text}</text>
       ))}
     </svg>
+    {cats.length > 1 && (
+      <div class="spark-key">
+        {cats.map(([c, i]) => (
+          <span><i class={`sk c${i}`}></i>{c}</span>
+        ))}
+      </div>
+    )}
     {label && <div class="spark-l">{label}</div>}
     {note && <div class="spark-l spark-off">{note}</div>}
   </a>
@@ -159,6 +209,25 @@ const note = outside
   .spark svg { display: block; }
   .spark-dot { fill: var(--accent); fill-opacity: .62; }
   .spark:hover .spark-dot { fill-opacity: .85; }
+  /* the regions are the archive's own; the palette is the house one */
+  .spark-dot.c0 { fill: var(--accent); }
+  .spark-dot.c1 { fill: var(--terra); }
+  .spark-dot.c2 { fill: var(--ochre); }
+  .spark-dot.c3 { fill: var(--accent-2, var(--accent)); }
+  .spark-dot.c4 { fill: var(--ink-2); }
+  .spark-n {
+    font-family: var(--sans); font-size: 9.5px; fill: var(--ink-2);
+    paint-order: stroke; stroke: var(--panel); stroke-width: 2.6px; stroke-linejoin: round;
+  }
+  .spark-key {
+    display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 9px;
+    font-family: var(--mono); font-size: 10px; color: var(--ink-3);
+  }
+  .spark-key span { display: inline-flex; align-items: center; gap: 5px; }
+  .spark-key .sk { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
+  .sk.c0 { background: var(--accent); } .sk.c1 { background: var(--terra); }
+  .sk.c2 { background: var(--ochre); } .sk.c3 { background: var(--accent-2, var(--accent)); }
+  .sk.c4 { background: var(--ink-2); }
   /* A place on the edge is not at the edge — it is somewhere past it, in that
      direction. Hollow, so it cannot be misread as a town that is really there. */
   .spark-dot.is-off {
