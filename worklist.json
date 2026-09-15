@@ -196,19 +196,19 @@
     },
     {
       "n": 25,
-      "state": "next",
+      "state": "done",
       "owner": "David",
       "since": "2026-09-15",
       "what": "Four pages sit in a different menu group depending on the archive",
-      "note": "`/australia` is under **Leaving** on one and **Our line** on another; `/brisbane` **Leaving** vs **People & places**; `/gallery/` **Evidence** vs **The work**; `/namesakes/` **People & places** vs **The work**. A reader who learns where something lives on one site should find it in the same place on the next. Each needs one decision, then it applies to all seven. `/name` is the deliberate exception and stays as it is."
+      "note": "**Done 15 September.** Settled by comparing every navigation route by route. `/marriages/` moved to «People & places» with the other six. The rest turned out not to be drift: `/australia` and `/brisbane` sit in D'Arcy's own **Australia** group, `/diaspora`, `/journeys` and `/walk` in Defranceschi's **Go there**, and `/namesakes/` is in «People & places» on Booyzen because Booyzen has no «The name» group at all. `/name` stays the deliberate exception."
     },
     {
       "n": 26,
-      "state": "next",
+      "state": "done",
       "owner": "David",
       "since": "2026-09-15",
       "what": "Six shared pages carry genuinely different names",
-      "note": "Four of the original ten were only case or an article and are settled — the estate writes menu labels in sentence case (257 of 368, and every archive's own majority), so «What Changed» → «What changed», «Photograph These» → «Photograph these», «What We Cannot Close», «The Namesakes» → «Namesakes».\n\nThe six left are a decision about voice, not a tidy-up: `/people/` is **The People** on one archive and **Nine lives in full** on another; `/who/` is **Every Name** and **Everyone, a page each**; `/gallery/` is **Gallery** and **The Plates**; `/lines` is **The Lines** and **The Four Quarters**; `/married-in/` is **Married In** and **The families they married**; `/australia` is **Australia** and **Arrival, 1826**. Worth deciding whether a shared page keeps one name everywhere, or the archive's own voice wins."
+      "note": "**Done 15 September.** The six were page TITLES, not menu labels, and the problem was larger than six: the same estate route carried a different title on nearly every site — five for `/corrections/`, five for `/searched/`, four for `/who/`, three for `/direct-line/`. **The canonical name is now one string per route, used as both the menu label and the page title**, chosen by counting all fourteen slots per route (seven menus, seven titles) rather than by preference, with the names decided directly kept as decided. **125 of 130 slots align.** The five that do not are deliberate archive voice — «For Michael», «What was taken back», «What This Archive Got Wrong», «The Search Register», «The Names» — and the rule behind that is worth keeping: a menu label is estate-wide so a reader learns it once; a page title may carry the archive's own voice."
     },
     {
       "n": 27,
@@ -292,11 +292,11 @@
     },
     {
       "n": 37,
-      "state": "next",
+      "state": "done",
       "owner": "this session",
       "since": "2026-09-15",
       "what": "Present the descent categories on the page, then roll the merged page to all seven",
-      "note": "The data now carries `reach` and `reachCount` per family; the page still shows the old flat list. Rebuild `married-in.astro` around the four categories, merge it with `/marriages/` as the prototype showed — descriptions, collapsible name lists, links to people pages, provenance chips, metrics, living collapsed — and then **carry that same page to all seven archives**, which is the point of the exercise and the user's explicit ask. Each archive keeps its own rule for what «reaches the family»: Blazevic's ahnentafel gate and Defranceschi's name-is-the-subject are both correct as they stand and must not be flattened into Falco's descent test."
+      "note": "The data now carries `reach` and `reachCount` per family; the page still shows the old flat list. Rebuild `married-in.astro` around the four categories, merge it with `/marriages/` as the prototype showed — descriptions, collapsible name lists, links to people pages, provenance chips, metrics, living collapsed — and then **carry that same page to all seven archives**, which is the point of the exercise and the user's explicit ask. Each archive keeps its own rule for what «reaches the family»: Blazevic's ahnentafel gate and Defranceschi's name-is-the-subject are both correct as they stand and must not be flattened into Falco's descent test. **Done 15 September.** All seven carry `/marriages/`, each with its own rule for what reaches the family."
     },
     {
       "n": 38,
@@ -348,11 +348,11 @@
     },
     {
       "n": 44,
-      "state": "next",
+      "state": "done",
       "owner": "the Blazevic session",
       "since": "2026-09-15",
       "what": "Two pages titled «What changed» and «What Changed»",
-      "note": "`/changes/` renders **What changed** and `/corrections/` renders **What Changed** — two different pages whose titles differ by one capital letter. Found while aligning the footers, because the footer linked one of them under the other's menu label. The footer link now reads «Corrections», so nothing points the wrong way any more, **but the two page titles are still a coin-flip for a reader** and for anything that lists titles. One of them needs a different name."
+      "note": "`/changes/` renders **What changed** and `/corrections/` renders **What Changed** — two different pages whose titles differ by one capital letter. Found while aligning the footers, because the footer linked one of them under the other's menu label. The footer link now reads «Corrections», so nothing points the wrong way any more, **but the two page titles are still a coin-flip for a reader** and for anything that lists titles. One of them needs a different name. **Done 15 September** as part of the title pass: `/corrections/` is now titled «Corrections», so the two pages no longer share a name."
     }
   ]
 }
