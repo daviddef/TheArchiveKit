@@ -44,8 +44,25 @@
      label    the line underneath
      names    how many places to label (default 7, 0 to turn off)
 */
-const { places = [], href, label, names = 7 } = Astro.props;
+import { outlinesIn } from "../lib/outlines.js";
+/* `names` was seven, from before there was any geography to place them
+   against. With a coast under them a reader can use far more of them, and the
+   labeller already refuses any name that would collide, so asking for more
+   costs nothing where there is no room. */
+const { places = [], href, label, names = 14, coast = true } = Astro.props;
 const pts = places.filter((p) => typeof p.lat === "number" && typeof p.lon === "number");
+
+/* THE COASTLINE. This component argued for two versions that an archive which
+   has not got a coastline should not draw one, and that was the wrong call: a
+   reader looking at fifty-nine dots in an empty box cannot tell the Kvarner
+   from the Karoo. The land is not this archive's claim to make or withhold —
+   it is where the places are, and it is the one thing that makes a scatter of
+   dots into somewhere.
+   
+   Natural Earth 50m, public domain, decoded AT BUILD TIME and clipped to this
+   frame, so a page about one mountain county ships that county's coast and not
+   a world atlas. Drawn faintly and behind everything: it is the ground, not
+   the subject. */
 
 const W = 560, H = 230, PAD = 16;
 const q = (arr, p) => {
@@ -100,7 +117,7 @@ const densest = (arr, share) => {
   return best;
 };
 
-let view = null, outside = 0;
+let view = null, outside = 0, frame = null, coastPaths = [], borderPaths = [];
 const labels = [];
 let cats = [], catIndex = new Map();
 if (pts.length) {
@@ -134,6 +151,35 @@ if (pts.length) {
   const scale = Math.min((W - PAD * 2) / spanX, (H - PAD * 2) / spanY);
   const cx = ((lo0 + lo1) / 2) * k, cy = (la0 + la1) / 2;
   const most = Math.max(1, ...pts.map((p) => p.n || 0));
+
+  /* The frame in degrees, inverted from the projection above, so the outline
+     lands in exactly the same space as the dots rather than near it. */
+  frame = {
+    w: (cx - (W / 2) / scale) / k, e: (cx + (W / 2) / scale) / k,
+    s: cy - (H / 2) / scale, n: cy + (H / 2) / scale,
+  };
+  const px = (lon, lat) => [W / 2 + (lon * k - cx) * scale, H / 2 - (lat - cy) * scale];
+  if (coast) {
+    const o = outlinesIn(frame);
+    /* A ring that crosses the antimeridian would otherwise be drawn as one
+       stripe straight across the picture. */
+    const toPaths = (rings) => {
+      const out = [];
+      for (const r of rings) {
+        let d = "", prev = null;
+        for (const [lon, lat] of r) {
+          if (prev !== null && Math.abs(lon - prev) > 180) { out.push(d); d = ""; }
+          const [x, y] = px(lon, lat);
+          d += (d ? "L" : "M") + x.toFixed(1) + " " + y.toFixed(1);
+          prev = lon;
+        }
+        if (d) out.push(d);
+      }
+      return out.filter((d) => d.indexOf("L") > 0);
+    };
+    coastPaths = toPaths(o.land);
+    borderPaths = toPaths(o.borders);
+  }
 
   view = pts.map((p) => {
     const x = W / 2 + (p.lon * k - cx) * scale;
@@ -195,6 +241,13 @@ const note = outside
 {view && (
   <a class="spark" href={href} aria-label={label || "Open the atlas"}>
     <svg viewBox={`0 0 ${W} ${H}`} width="100%" role="img" aria-hidden="true">
+      <defs><clipPath id="ps-frame"><rect x="0" y="0" width={W} height={H} /></clipPath></defs>
+      {coastPaths.length || borderPaths.length ? (
+        <g clip-path="url(#ps-frame)">
+          {coastPaths.map((d) => <path d={d} class="ps-coast" />)}
+          {borderPaths.map((d) => <path d={d} class="ps-border" />)}
+        </g>
+      ) : null}
       {view.map((p) => (
         <circle cx={p.x} cy={p.y} r={p.r}
                 class={`spark-dot c${catIndex.get(p.cat) ?? 0}${p.off ? " is-off" : ""}`} />
@@ -223,6 +276,13 @@ const note = outside
   }
   .spark:hover { border-color: var(--accent); }
   .spark svg { display: block; }
+  /* The ground, not the subject: visible enough to place a dot, faint enough
+     that the dots still read as the content. */
+  .ps-coast { fill: var(--ink, currentColor); fill-opacity: .085;
+    stroke: var(--ink-3, currentColor); stroke-opacity: .55; stroke-width: .8;
+    stroke-linejoin: round; }
+  .ps-border { fill: none; stroke: var(--ink-3, currentColor); stroke-opacity: .26;
+    stroke-width: .6; stroke-dasharray: 2.5 2.5; }
   .spark-dot { fill: var(--accent); fill-opacity: .62; }
   .spark:hover .spark-dot { fill-opacity: .85; }
   /* the regions are the archive's own; the palette is the house one */
