@@ -425,6 +425,14 @@
       "since": "2026-09-15",
       "what": "Nine of Luwinski's fifteen sent letters are on no work-list row",
       "note": "**This is the failure the gate was written after, sitting unseen in the eighth archive.** Fifteen letters have gone out and nine are mentioned nowhere on the list: the **Porto death record for Ivone**, the **Schubin/Szubin records**, the **Sauerbaum records**, the **Transvaal case files** (WLD 1950/1948, 497/1951, 2368/1951), **Kurt and the Leibholz brothers in Berlin**, **estate MHG 7584/69**, the **Mozambique recruitment-district records**, **Ivone's 1924 birth certificate**, and the **rates/MHG 10245 enquiry**. Six others do have a row that mentions them — n8, n25, n26, n56 and two against the estate — and those want a `covers` entry, which is a judgement for this session rather than a guess from outside. No key had to be invented: every letter already carries its Gmail thread id."
+    },
+    {
+      "n": 54,
+      "state": "done",
+      "owner": "this session",
+      "since": "2026-09-15",
+      "what": "The gate itself reported «nothing outstanding» for an archive with 24",
+      "note": "**Caught by watching the build output rather than trusting the exit code.** Mazza's `searched.json` is written from a TSV on every build, so the stable keys added to the JSON by hand were wiped the first time the build ran. The gate skipped every unkeyed row and printed **«0 of 0 outstanding items — nothing outstanding»** for an archive with **24 outstanding searches**, and exited 0. **Silence where there should be a number is the exact fault this tool exists to end, and it had it too.** Two fixes: an account whose declared key is on none of its rows now FAILS and names the likely cause, and a key on only some rows is reported with the count; and Mazza's key is now a column in the TSV, which is the record, passed through untouched by the generator. Checked the other archives for the same trap — D'Arcy's tool reads that file but does not write it, so Mazza was the only one."
     }
   ]
 }
