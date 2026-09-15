@@ -252,19 +252,19 @@
     },
     {
       "n": 32,
-      "state": "next",
+      "state": "done",
       "owner": "this session",
       "since": "2026-09-15",
       "what": "The work list has no way to notice a row that is missing",
-      "note": "Found by the Blazevic session, not by the gate. Five letters had been sent; four were on the list and each looked fine in isolation. The fifth — DAR Ispostava u Senju, the nil return that named the three doors the other three letters went through — was absent entirely, so the list showed four letters and hid the one that generated three of them. **checkworklist.py validates rows that exist and can never see one that does not.** It needs to count the list against something outside it: letters against `requests/sent/`, corrections against corrections.json, and so on. Same failure class as a register over-reporting what is outstanding, in the other direction."
+      "note": "Found by the Blazevic session, not by the gate. Five letters had been sent; four were on the list and each looked fine in isolation. The fifth — DAR Ispostava u Senju, the nil return that named the three doors the other three letters went through — was absent entirely, so the list showed four letters and hid the one that generated three of them. **checkworklist.py validates rows that exist and can never see one that does not.** It needs to count the list against something outside it: letters against `requests/sent/`, corrections against corrections.json, and so on. Same failure class as a register over-reporting what is outstanding, in the other direction. **Done 15 September.** `checkcovers.py` is in the kit and runs on all seven builds. An archive declares where its outstanding work lives; a row declares what it answers for; the gate refuses in both directions — work with no row, and a row pointing at something gone. Verified against the Blazevic data (same 12 items, same 7 and 5) and **both failure directions tested rather than assumed**. No fuzzy matching, deliberately. An archive that declares nothing gets a note naming what is uncounted rather than a quiet pass."
     },
     {
       "n": 33,
-      "state": "next",
+      "state": "done",
       "owner": "this session",
       "since": "2026-09-15",
       "what": "Some sessions adopted the work list without the step that keeps it honest",
-      "note": "The Blazevic session is the one to copy: it re-counts its own rows against the evidence on disk rather than trusting what it wrote. Sessions that only append rows will drift the way every hand-kept register in this estate has. The prompt should say to reconcile, not just to record."
+      "note": "The Blazevic session is the one to copy: it re-counts its own rows against the evidence on disk rather than trusting what it wrote. Sessions that only append rows will drift the way every hand-kept register in this estate has. The prompt should say to reconcile, not just to record. **Done 15 September.** The convention now lives in a file — `kit/docs/work-list.md`, linked from the README — rather than in a component docstring and a chat window. It says to reconcile, shows how to declare `accounts`, and carries a table of where each archive stands so the gap is visible rather than remembered."
     },
     {
       "n": 34,
@@ -353,6 +353,14 @@
       "since": "2026-09-15",
       "what": "Two pages titled «What changed» and «What Changed»",
       "note": "`/changes/` renders **What changed** and `/corrections/` renders **What Changed** — two different pages whose titles differ by one capital letter. Found while aligning the footers, because the footer linked one of them under the other's menu label. The footer link now reads «Corrections», so nothing points the wrong way any more, **but the two page titles are still a coin-flip for a reader** and for anything that lists titles. One of them needs a different name. **Done 15 September** as part of the title pass: `/corrections/` is now titled «Corrections», so the two pages no longer share a name."
+    },
+    {
+      "n": 45,
+      "state": "next",
+      "owner": "six archive sessions",
+      "since": "2026-09-15",
+      "what": "Six archives cannot yet count their work list against anything",
+      "note": "Only **Blazevic** declares `accounts`. The others now print on every build what is going uncounted, and the blocker is nearly always the same: **no stable key on the register rows**. `D'Arcy` — errands 62, questions 11, searched 293, requests 8 files. `Defranceschi` — searched 273, errands 28. `Lerena` — errands 40. `Mazza` — searched 115. `Booyzen` — requests 8 files. **Falco is the special case: its `/searched/` page is hand-written prose with no data file behind it, so there is nothing to count against at all.** Adding a key is unglamorous and there is no way round it: a short stable string per row, never derived from the title, never reused when a row is retired."
     }
   ]
 }

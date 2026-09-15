@@ -19,6 +19,12 @@ CSS is **not** copied. Each archive's stylesheet is its own; the kit only
 checks that the blocks it needs are present (`.ev-documented`, `.ladder`,
 `.ring`, `--ev-inferred`) and says so when one is missing.
 
+## The work list
+
+Eight archives keep one list in one shape — what is being **done**, as opposed
+to what is known. The convention, the two gates, and the reconciliation step
+that sessions keep skipping: **[kit/docs/work-list.md](kit/docs/work-list.md)**.
+
 ## Using it
 
     python3 sync.py --check     # say what has drifted, change nothing
