@@ -64,7 +64,14 @@ const pts = places.filter((p) => typeof p.lat === "number" && typeof p.lon === "
    a world atlas. Drawn faintly and behind everything: it is the ground, not
    the subject. */
 
-const W = 560, H = 230, PAD = 16;
+/* The box used to be a fixed 560x230 whatever the data looked like. The Falco
+   places cover 0.19 degrees of longitude and 0.24 of latitude — TALLER than
+   wide — so forcing them into a letterbox left two thirds of it empty and
+   squeezed thirteen towns into the middle. The width is fixed, the height
+   follows the ground the points actually cover, clamped so it can neither
+   become a strip nor a tower. */
+const W = 560, PAD = 16;
+let H = 230;
 const q = (arr, p) => {
   const a = [...arr].sort((x, y) => x - y);
   const i = (a.length - 1) * p;
@@ -117,7 +124,8 @@ const densest = (arr, share) => {
   return best;
 };
 
-let view = null, outside = 0, frame = null, coastPaths = [], borderPaths = [];
+let view = null, outside = 0, frame = null, coastPaths = [], borderPaths = [],
+    provincePaths = [], riverPaths = [];
 const labels = [];
 let cats = [], catIndex = new Map();
 if (pts.length) {
@@ -148,6 +156,7 @@ if (pts.length) {
   // a single place, or places all at one spot, still needs a box with width
   const spanX = Math.max((lo1 - lo0) * k, 0.02);
   const spanY = Math.max(la1 - la0, 0.02);
+  H = Math.round(Math.min(430, Math.max(190, (W - PAD * 2) * (spanY / spanX) + PAD * 2)));
   const scale = Math.min((W - PAD * 2) / spanX, (H - PAD * 2) / spanY);
   const cx = ((lo0 + lo1) / 2) * k, cy = (la0 + la1) / 2;
   const most = Math.max(1, ...pts.map((p) => p.n || 0));
@@ -179,6 +188,8 @@ if (pts.length) {
     };
     coastPaths = toPaths(o.land);
     borderPaths = toPaths(o.borders);
+    provincePaths = toPaths(o.provinces);
+    riverPaths = toPaths(o.rivers);
   }
 
   view = pts.map((p) => {
@@ -242,9 +253,11 @@ const note = outside
   <a class="spark" href={href} aria-label={label || "Open the atlas"}>
     <svg viewBox={`0 0 ${W} ${H}`} width="100%" role="img" aria-hidden="true">
       <defs><clipPath id="ps-frame"><rect x="0" y="0" width={W} height={H} /></clipPath></defs>
-      {coastPaths.length || borderPaths.length ? (
+      {coastPaths.length || borderPaths.length || provincePaths.length || riverPaths.length ? (
         <g clip-path="url(#ps-frame)">
           {coastPaths.map((d) => <path d={d} class="ps-coast" />)}
+          {riverPaths.map((d) => <path d={d} class="ps-river" />)}
+          {provincePaths.map((d) => <path d={d} class="ps-prov" />)}
           {borderPaths.map((d) => <path d={d} class="ps-border" />)}
         </g>
       ) : null}
@@ -283,6 +296,13 @@ const note = outside
     stroke-linejoin: round; }
   .ps-border { fill: none; stroke: var(--ink-3, currentColor); stroke-opacity: .26;
     stroke-width: .6; stroke-dasharray: 2.5 2.5; }
+  /* A provincial line is fainter than a national one and a river fainter still:
+     they are there so a small frame is somewhere rather than empty, not to
+     compete with the dots. */
+  .ps-prov { fill: none; stroke: var(--ink-3, currentColor); stroke-opacity: .55;
+    stroke-width: .7; stroke-dasharray: 3 2; }
+  .ps-river { fill: none; stroke: var(--accent, currentColor); stroke-opacity: .30;
+    stroke-width: .7; stroke-linecap: round; }
   .spark-dot { fill: var(--accent); fill-opacity: .62; }
   .spark:hover .spark-dot { fill-opacity: .85; }
   /* the regions are the archive's own; the palette is the house one */

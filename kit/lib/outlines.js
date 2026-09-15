@@ -8,6 +8,14 @@
  * Only the rings that INTERSECT a given frame are decoded and emitted, so a
  * page showing one mountain county ships that county's coast and nothing else.
  * The reader never downloads a world atlas to look at Senj.
+ *
+ * FOUR LAYERS, BECAUSE A COAST IS NOT ALWAYS THERE. The Falco frame is the
+ * densest cluster of its places: 26 km by 16 km of inland Campania. There is no
+ * coastline in it and no national border either, so the map drew an empty box —
+ * correctly, and uselessly. Province lines and rivers are what exists at that
+ * size, and for this family the provincial boundary is not decoration: Arienzo
+ * is Caserta, Arpaia is Benevento, and four kilometres and that line are the
+ * whole story of how the two towns married.
  */
 import RAW from "../data/outlines.json";
 
@@ -101,5 +109,14 @@ export function outlinesIn(frame, tol) {
     }
     return out;
   };
-  return { land: pick(RAW.land), borders: pick(RAW.borders) };
+  /* PROVINCE LINES AND RIVERS ONLY WHERE THEY MEAN SOMETHING. They exist for a
+     frame too small to hold a coast; on a frame that spans continents they are
+     noise and, worse, bulk — the Mazza map reaches from Sicily to Brisbane to
+     Buenos Aires and pulled in 11,776 province paths, all of them illegible at
+     that size. Past a few degrees the coast and the national borders are the
+     only honest geography anyway. */
+  const wide = (e - w) > 8;
+  return { land: pick(RAW.land), borders: pick(RAW.borders),
+           provinces: wide ? [] : pick(RAW.provinces || []),
+           rivers: wide ? [] : pick(RAW.rivers || []) };
 }
