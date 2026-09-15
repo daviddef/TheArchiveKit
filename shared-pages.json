@@ -77,9 +77,9 @@
       "key": "searched",
       "route": "/searched/",
       "on": 7,
-      "state": "local",
+      "state": "partial",
       "tier": 1,
-      "note": "What has been read. Falco's is prose and the rest are tables; that is also why its work list could not be counted."
+      "note": "**Four of seven on the shared Searched** — Defranceschi, D'Arcy, Blazevic, Mazza, 835 searches between them. One model, four spellings. **The outcome words stay the archive's**: hit/yield/nothing/found/pending, yield/null/empty/blocked, +partly, done/outstanding/not-yet/superseded — those are different judgements about what a search DID, not synonyms. Tags survived, which needed a multi-value facet (a row carries several and a reader clicks one). D'Arcy keeps the thing no one else records: whether a null had a control that could have disproved it. **Falco and Lerena have no searched.json** — Falco's page is prose, which is also why its work list could not be counted."
     },
     {
       "key": "corrections",
@@ -93,9 +93,9 @@
       "key": "open-questions",
       "route": "/open-questions/",
       "on": 7,
-      "state": "local",
+      "state": "partial",
       "tier": 1,
-      "note": "One of seven on a shared component. Ranked questions with a state — the same shape as a work list."
+      "note": "**Two of seven, and that is the ceiling until the others extract their questions.** Only Defranceschi (q/status/known/needed) and D'Arcy (q/state/rank/settles/tried) hold questions as DATA; **Falco, Booyzen, Blazevic, Lerena and Mazza write them as prose**, so they cannot adopt this until somebody turns them into rows — research work belonging to each archive, not something to guess from outside. The shape is: the question, what is known, what has been tried, and **the specific record that would answer it**. That last field is what makes it a queue rather than a list of regrets. D'Arcy also ages a question and marks anything past thirty days."
     },
     {
       "key": "direct-line",

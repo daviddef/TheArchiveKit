@@ -29,6 +29,12 @@ const outcomes = [...new Set(rows.map((r) => r.outcome).filter(Boolean))];
    reader click one; the rest pass none and get no tag filter. */
 const tags = [...new Set(rows.flatMap((r) => r.tags || []))].sort();
 const nothing = rows.filter((r) => nil.includes(r.outcome)).length;
+/* u() prefixes the archive's base path, which is right for an internal path and
+   wrong for everything else: running an external URL through it produced links
+   like /TheDefranceski/https://www.myheritage.com/ — 254 of them, caught by the
+   build gate rather than by looking at the page. Only internal paths get based. */
+const href = (h) => !h ? "" : (/^(https?:)?\/\//.test(h) || h.startsWith("mailto:") ? h : u(h));
+const ext = (h) => /^(https?:)?\/\//.test(String(h || ""));
 const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;");
 ---
 <FilterTable
@@ -49,9 +55,15 @@ const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;");
     facets: { outcome: r.outcome || "", tags: (r.tags || []).join(" ") },
     cells: [
       esc(r.when || ""),
-      (r.href ? `<a href="${u(r.href)}">${esc(r.src)}</a>` : esc(r.src)) +
+      (r.href
+        ? `<a href="${href(r.href)}"${ext(r.href) ? ' rel="noopener" target="_blank"' : ""}>${esc(r.src)}</a>`
+        : esc(r.src)) +
         (r.outcome ? ` <span class="chip">${esc(r.outcome)}</span>` : ""),
-      esc(r.what || ""),
-      esc(r.got || "") + (r.extra ? ` <span class="dim">${r.extra}</span>` : ""),
+      /* `what` and `got` arrive as HTML the archive has already rendered and
+         BASED with its own helpers. Escaping them here turned a markdown link
+         inside a result into literal text and, worse, an unbased one into a
+         link outside the site root — the build gate caught both. */
+      r.what || "",
+      (r.got || "") + (r.extra ? ` <span class="dim">${r.extra}</span>` : ""),
     ],
   }))} />

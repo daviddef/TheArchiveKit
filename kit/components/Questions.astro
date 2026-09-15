@@ -18,6 +18,13 @@
  */
 const { rows = [], u = (p) => p, unit = "questions" } = Astro.props;
 const states = [...new Set(rows.map((r) => r.state).filter(Boolean))];
+/* u() prefixes the archive's base path, which is right for an internal path and
+   wrong for everything else: running an external URL through it produced links
+   like /TheDefranceski/https://www.myheritage.com/ — 254 of them, caught by the
+   build gate rather than by looking at the page. Only internal paths get based. */
+const href = (h) => !h ? "" : (/^(https?:)?\/\//.test(h) || h.startsWith("mailto:") ? h : u(h));
+const ext = (h) => /^(https?:)?\/\//.test(String(h || ""));
+
 ---
 <div class="qs">
   {states.length > 1 ? (
@@ -47,7 +54,7 @@ const states = [...new Set(rows.map((r) => r.state).filter(Boolean))];
       {(r.since || r.href) ? (
         <p class="small qs-foot">
           {r.since ? <span class="dim">Open since {r.since}.</span> : null}
-          {r.href ? <> {r.since ? " · " : ""}<a href={u(r.href)}>{r.hrefLabel || "Where it stands →"}</a></> : null}
+          {r.href ? <> {r.since ? " · " : ""}<a href={href(r.href)} rel={ext(r.href) ? "noopener" : null}>{r.hrefLabel || "Where it stands →"}</a></> : null}
         </p>
       ) : null}
     </section>

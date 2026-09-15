@@ -26,6 +26,13 @@
  */
 const { rows = [], u = (p) => p, major = "major" } = Astro.props;
 const sevs = [...new Set(rows.map((r) => r.sev).filter(Boolean))];
+/* u() prefixes the archive's base path, which is right for an internal path and
+   wrong for everything else: running an external URL through it produced links
+   like /TheDefranceski/https://www.myheritage.com/ — 254 of them, caught by the
+   build gate rather than by looking at the page. Only internal paths get based. */
+const href = (h) => !h ? "" : (/^(https?:)?\/\//.test(h) || h.startsWith("mailto:") ? h : u(h));
+const ext = (h) => /^(https?:)?\/\//.test(String(h || ""));
+
 ---
 <div class="cx">
   {sevs.length > 1 ? (
@@ -50,7 +57,7 @@ const sevs = [...new Set(rows.map((r) => r.sev).filter(Boolean))];
         <p class="cx-sup"><span class="cx-t">superseded</span>
           {r.superseded.note ? <Fragment set:html={r.superseded.note} /> : null}
           {r.superseded.href
-            ? <a href={u(r.superseded.href)}>{r.superseded.label} →</a>
+            ? <a href={href(r.superseded.href)}>{r.superseded.label} →</a>
             : <span>{r.superseded.label}</span>}</p>
       ) : null}
       {r.was ? <p class="cx-was"><span class="cx-t">was</span> <Fragment set:html={r.was} /></p> : null}
@@ -60,7 +67,7 @@ const sevs = [...new Set(rows.map((r) => r.sev).filter(Boolean))];
       {(r.by || r.where || r.extra) ? (
         <p class="small cx-foot">
           {r.by ? <span class="dim">Caught by {r.by}.</span> : null}
-          {r.where ? <> {r.by ? " · " : ""}<a href={u(r.where)}>{r.whereLabel || "Where it lives now →"}</a></> : null}
+          {r.where ? <> {r.by ? " · " : ""}<a href={href(r.where)} rel={ext(r.where) ? "noopener" : null}>{r.whereLabel || "Where it lives now →"}</a></> : null}
           {r.extra ? <Fragment set:html={r.extra} /> : null}
         </p>
       ) : null}
