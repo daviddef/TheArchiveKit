@@ -14,4 +14,5 @@ ROOT="$(dirname "$KIT")"
 OUT="${HOME}/board.html"
 [ "$1" = "-o" ] && OUT="$2"
 python3 "$KIT/kit/tools/worklist_rollup.py" --root "$ROOT" --out "$OUT"
-command -v open >/dev/null 2>&1 && [ "$1" != "-o" ] && open "$OUT"
+if [ "$1" != "-o" ] && command -v open >/dev/null 2>&1; then open "$OUT"; fi
+exit 0
