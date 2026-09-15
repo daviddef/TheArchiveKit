@@ -28,6 +28,7 @@ const {
   marks = [],       // [[year, label]] — the things that happened TO them
   from, to,         // the span; taken from the data when not given
   what = "",        // what a dot is, for the caption
+  maxLanes = 14,    // beyond this, events are counted rather than named
 } = Astro.props;
 
 const pts = points
@@ -40,33 +41,56 @@ const TO = to ?? (pts.length ? Math.ceil(Math.max(...pts.map((p) => p.y)) / 10) 
 const W = 940, X0 = 70, X1 = W - 25;
 const x = (y) => X0 + (y - FROM) * ((X1 - X0) / Math.max(1, TO - FROM));
 
-const wide = (t, px) => String(t).length * px * 0.55 + 10;
-const fit = (items, gap) => {
-  const ends = [];
+const wide = (t, px) => String(t).length * px * 0.58 + 12;
+
+/* FLIP FIRST, THEN PLACE. A label that would run off the right edge is drawn
+   leftward from its dot, so it occupies [x - w, x] and not [x, x + w]. The
+   first version decided that AFTER choosing the lane, so every flipped label
+   was placed against an interval it does not occupy and collided with whatever
+   sat to its left — which is what put two names on top of each other all
+   down the right-hand half of the Falco chart. Rows are reserved by the
+   interval the label ACTUALLY covers. */
+const fit = (items, gap, right) => {
+  const rows = [];
   return items.map((it) => {
+    const flip = it.x + it.w > right;
+    const l = flip ? it.x - it.w - 16 : it.x;
+    const r2 = flip ? it.x : it.x + it.w;
     let r = 0;
-    while (ends[r] != null && ends[r] > it.x - gap) r++;
-    ends[r] = it.x + it.w;
-    return { ...it, row: r };
+    for (;;) {
+      const used = rows[r] || (rows[r] = []);
+      if (!used.some(([a, b]) => l < b + gap && r2 + gap > a)) { used.push([l, r2]); break; }
+      r++;
+    }
+    return { ...it, row: r, flip };
   });
 };
 
 const inSpan = (y) => y >= FROM && y <= TO;
 const markItems = fit(marks.filter(([y]) => inSpan(y)).map(([y, l]) => ({
   y, l, x: x(y) + 4, w: wide(`${y} ${l}`, 9.5),
-})), 4).map((m) => ({ ...m, flip: m.x + m.w > X1 }));
+})), 4, X1);
 
 const MARKY = 66, MARKLH = 12;
 const MARKROWS = Math.max(0, ...markItems.map((m) => m.row + 1));
 const TOP = (eras.length || markItems.length ? MARKY + MARKROWS * MARKLH + 22 : 40);
 const LH = 22;
 
-const placed = fit(pts.map((p) => ({
+/* A DENSE SERIES IS COUNTED, NOT NAMED. Greedy placement gives every label a
+   clear lane, and with 362 dated acts that is 180 lanes and a drawing 4,132
+   pixels tall — technically correct and of no use to anybody. Beyond maxLanes
+   an event keeps its dot, in a band under the named ones, and loses its label.
+   Nothing is dropped and nothing is moved along the year axis; what goes is
+   the name, and the caption says how many. */
+const all = fit(pts.map((p) => ({
   p, x: x(p.y) + 8, w: wide(`${p.label} · ${p.sub ?? p.y}`, 11),
-})), 10).map((it) => ({ ...it.p, lane: it.row, flip: it.x + it.w > X1 }));
+})), 10, X1).map((it) => ({ ...it.p, lane: it.row, flip: it.flip }));
 
+const placed = all.filter((p) => p.lane < maxLanes);
+const unnamed = all.filter((p) => p.lane >= maxLanes);
 const LANES = Math.max(1, ...placed.map((p) => p.lane + 1));
-const H = TOP + LANES * LH + 66;
+const BANDH = unnamed.length ? 26 : 0;
+const H = TOP + LANES * LH + BANDH + 66;
 const ticks = (() => {
   const step = [5, 10, 20, 25, 50, 100].find((s) => (TO - FROM) / s <= 9) || 200;
   const out = [];
@@ -102,6 +126,16 @@ const ticks = (() => {
                   text-anchor={p.flip ? "end" : "start"} class="et-lab">{p.label}<tspan class="et-sub"> · {p.sub ?? p.y}</tspan></text>
           </g>
         ))}
+        {unnamed.length ? (
+          <g>
+            {unnamed.map((p) => (
+              <circle cx={x(p.y)} cy={TOP + LANES * LH + 10} r="2.2" class="et-dot" style="opacity:.5" />
+            ))}
+            <text x={X0} y={TOP + LANES * LH + 26} font-size="9.5" class="et-tick">
+              and {unnamed.length} more at these years, too close together to name
+            </text>
+          </g>
+        ) : null}
         <line x1={X0} y1={H - 42} x2={X1} y2={H - 42} class="et-axis" stroke-width="1" />
         {ticks.map((t) => (
           <g>
