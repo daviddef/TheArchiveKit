@@ -233,6 +233,22 @@
    "since": "2026-09-15",
    "what": "All 368 menu items compared, seven archives side by side",
    "note": "55 pages more than one archive carries, 185 unique to one. Only four sit in the wrong group and ten carry inconsistent names — both now rows of their own above. The 185 are listed rather than flagged: they are what makes each archive its own."
+  },
+  {
+   "n": 30,
+   "state": "blocked",
+   "owner": "the Luwinski session",
+   "since": "2026-09-15",
+   "what": "Luwinski does not run the estate's main build gate",
+   "note": "Its package.json has **check:living** and **check:worklist** but no **check:kit** — so `checkarchive.py`, which catches dead links, broken anchors, a missing sitemap and pages nothing links to, has never run on that archive. Every other archive gates on it. One line in package.json: `python3 node_modules/@daviddef/archive-kit/kit/tools/checkarchive.py --dist dist`."
+  },
+  {
+   "n": 31,
+   "state": "blocked",
+   "owner": "the Luwinski session",
+   "since": "2026-09-15",
+   "what": "Luwinski publishes an empty search index, so its search finds nothing",
+   "note": "`/searchindex.json` is published but empty. Found by running the gate above by hand — which is the argument for wiring it: this has been live and invisible, and the archive's search box returns nothing for every query."
   }
  ]
 }
