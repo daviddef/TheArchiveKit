@@ -92,11 +92,11 @@
   },
   {
    "n": 12,
-   "state": "next",
+   "state": "done",
    "owner": "this session",
    "since": "2026-09-15",
-   "what": "Falco and D'Arcy link /about without a trailing slash",
-   "note": "Every click costs a 301. Defranceschi's /about/ does not. Trivial, and worth doing while the menus are being touched."
+   "what": "151 of 368 menu links resolved a redirect before a page",
+   "note": "It was not two links, it was **151** — 67 of D'Arcy's 72, 50 of Falco's 54, 33 of Mazza's 40. These sites build in directory format, so a path without a trailing slash is a 301 before the page: a wasted round trip on every click, on most of the navigation, on most of the archives. Confirmed live before touching anything. **Zero redirecting menu links across all seven now**, and the link checker confirms none of the new paths is dead."
   },
   {
    "n": 13,
@@ -207,8 +207,8 @@
    "state": "next",
    "owner": "David",
    "since": "2026-09-15",
-   "what": "Ten pages carry a different name depending on the archive",
-   "note": "Some are only capitalisation — «What Changed» against «What changed», «Photograph These» against «Photograph these». Some are genuinely different words for the same page: `/people/` is **The People** on one archive and **Nine lives in full** on another; `/who/` is **Every Name** and **Everyone, a page each**; `/gallery/` is **Gallery** and **The Plates**. Worth deciding whether a shared page keeps one name everywhere, or whether the archive's own voice wins."
+   "what": "Six shared pages carry genuinely different names",
+   "note": "Four of the original ten were only case or an article and are settled — the estate writes menu labels in sentence case (257 of 368, and every archive's own majority), so «What Changed» → «What changed», «Photograph These» → «Photograph these», «What We Cannot Close», «The Namesakes» → «Namesakes».\n\nThe six left are a decision about voice, not a tidy-up: `/people/` is **The People** on one archive and **Nine lives in full** on another; `/who/` is **Every Name** and **Everyone, a page each**; `/gallery/` is **Gallery** and **The Plates**; `/lines` is **The Lines** and **The Four Quarters**; `/married-in/` is **Married In** and **The families they married**; `/australia` is **Australia** and **Arrival, 1826**. Worth deciding whether a shared page keeps one name everywhere, or the archive's own voice wins."
   },
   {
    "n": 27,
