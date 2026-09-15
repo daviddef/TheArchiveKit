@@ -15,7 +15,15 @@
      events  draw the family's own events above the lanes
 */
 
-const { sov, events = true } = Astro.props;
+const { sov, events = true, label } = Astro.props;
+/* The description read "Sovereignty over Central Istria, Senj and Vinodol,
+   Carnia and Dalmatia" on every archive that drew this, because it was written
+   when only one archive did. A screen reader on any other archive was told
+   about the wrong family's country. */
+const aria = label
+  || `Who ruled ${sov.lanes.map((l) => l.label).join(", ")} between `
+     + `${sov.scale.from} and ${sov.scale.to}, with this family's own events above `
+     + "the lanes and the events they lived through below";
 
 const X0=90, X1=980, MID=490;
 const x = (y) => y<=1800 ? X0+(y-1200)*((MID-X0)/600) : MID+(y-1800)*((X1-MID)/226);
@@ -36,7 +44,7 @@ const world = sov.world || [];
 ---
 <div class="scroll">
 <svg viewBox={`0 0 1000 ${H}`} width="1000" style="min-width:940px;display:block" role="img"
-     aria-label="Sovereignty over Central Istria, Senj and Vinodol, Carnia and Dalmatia from 1200, with the family's own events above the lanes and the regional and political events they lived through below">
+     aria-label={aria}>
 
   {events && <>
     <line x1={X0} y1="44" x2={X1} y2="44" style="stroke:var(--rule-strong)" stroke-width="1"/>

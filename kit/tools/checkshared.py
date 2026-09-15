@@ -30,6 +30,25 @@ import os, re, sys, glob, json, hashlib, argparse, collections
 
 SEEN = ".shared-components.json"
 
+# Names that are duplicated ON PURPOSE, with the reason. A guard that reports a
+# settled decision every time it runs teaches people to skim it, and the next
+# real fork goes past unread. Each entry is a judgement somebody made once; it
+# is written here so it does not have to be made again from memory.
+LOCAL_ON_PURPOSE = {
+    "Motif.astro":
+        "Three files, 6-19% alike, sharing almost no ornament: Booyzen draws a "
+        "koppie, thorn, windpump, gable, awl and wagon; Defranceschi an arcade, "
+        "helm, loom, pomegranate and tablet; Lerena a horse and a star. There is "
+        "no shared drawing to promote, only a shared idea, and the wrapper would "
+        "be larger than the thing it wraps. Rule.astro takes the ornament as a "
+        "slot precisely so the kit never has to know about any of them.",
+    "P.astro":
+        "Byte-identical in Falco and Mazza, and it resolves a link through each "
+        "archive's own lib/url.js and links.js. Promoting it means 275 call sites "
+        "passing a resolver through a prop to save 2.2KB, and the two local files "
+        "it depends on stay local either way.",
+}
+
 
 def wraps(path, name):
     """True if this local file defers to the kit component of the same name."""
@@ -64,19 +83,22 @@ def main():
 
     dup = {n: v for n, v in owned.items() if len(v) > 1}
     wrapped = {n for n, v in dup.items() if all(w for _, _, _, w in v)}
+    settled = {n for n in dup if n in LOCAL_ON_PURPOSE}
     partial = sorted(n for n, v in dup.items()
                      if n not in wrapped and any(w for _, _, _, w in v))
     in_kit_too = sorted(n for n in dup if n in kit and n not in wrapped)
 
     total = sum(sz for v in dup.values() for _, _, sz, _ in v)
     drifted = [n for n, v in dup.items()
-               if n not in wrapped and len({h for _, h, _, _ in v}) > 1]
+               if n not in wrapped and n not in settled
+               and len({h for _, h, _, _ in v}) > 1]
 
     print(f"  {len(dup)} component name(s) in more than one archive, {total/1024:.0f}KB in total")
     for n in sorted(dup, key=lambda n: -sum(sz for _, _, sz, _ in dup[n])):
         v = dup[n]
         same = len({h for _, h, _, _ in v}) == 1
-        mark = "wrapper  " if n in wrapped else "identical" if same else "DRIFTED "
+        mark = ("wrapper  " if n in wrapped else "on purpose" if n in settled
+                else "identical" if same else "DRIFTED ")
         who = ", ".join(f"{arch.replace(' Family','')} {sz/1024:.1f}KB" for arch, _, sz, _ in v)
         print(f"    {mark}  {n:<22} {len(v)} copies — {who}")
     if wrapped:
@@ -85,9 +107,11 @@ def main():
     if partial:
         print(f"  HALF DONE  {', '.join(partial)} — some archives wrap the kit "
               f"component, others still carry their own")
+    for n in sorted(settled):
+        print(f"    why {n} stays local: {LOCAL_ON_PURPOSE[n]}")
     if in_kit_too:
         print(f"  also in the kit, so the local copies are shadowing it: {', '.join(in_kit_too)}")
-    forkable = len(dup) - len(wrapped)
+    forkable = len(dup) - len(wrapped) - len(settled)
     print(f"  {len(drifted)} of {forkable} have drifted — same name, different behaviour")
 
     if a.fail_on_new:
@@ -102,8 +126,13 @@ def main():
             json.dump(now, open(path, "w"), indent=1, sort_keys=True)
             print(f"  baseline written to {SEEN} — {len(now)} known")
             return 0
-        new = sorted(n for n in now if n not in known)
-        grew = sorted(n for n in now if n in known and now[n] > known[n])
+        # A WRAPPER gaining a copy is another archive adopting the shared
+        # component, which is the direction this check exists to push in —
+        # failing on it would punish the fix. Where only some archives wrap,
+        # `wrapped` is False and the growth is still caught.
+        new = sorted(n for n in now if n not in known and n not in wrapped)
+        grew = sorted(n for n in now if n in known and now[n] > known[n]
+                      and n not in wrapped)
         if new or grew:
             for n in new:
                 print(f"  FAIL  {n} has been copied into a second archive "
