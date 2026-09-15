@@ -1,0 +1,129 @@
+---
+/* Dated events, laid over who was in charge.
+ *
+ * Written in the Defranceschi archive as a marriage timeline and promoted
+ * because the idea is not about marriages: it is "here is what this family was
+ * doing, and here is what was happening to them while they did it". Read left
+ * to right and the politics change under the same households.
+ *
+ * WHAT A DOT IS, is the archive's to say. Four of the seven have real marriage
+ * dates — Falco 366 indexed acts, D'Arcy 130, Defranceschi 31, Booyzen 18 —
+ * and three do not, so those plot what they actually have and the caption says
+ * so. A chart that quietly plotted births while claiming marriages would be
+ * worse than no chart.
+ *
+ * NOTHING IS PLACED WITHOUT ASKING WHETHER IT FITS. Both halves of the
+ * original overlapped, and for the same reason twice: a position was taken
+ * from the INDEX rather than from the width of the label. Eight political
+ * marks all wrote on one line, so three events a few pixels apart printed on
+ * top of each other; and the dots were dealt to lanes round-robin, `i % LANES`,
+ * which takes no account of the year, so two names a year apart collided.
+ * Everything here is placed greedily into the first row or lane where the
+ * label clears what is already there, and a label that will not fit makes the
+ * drawing taller rather than being written over something.
+ */
+const {
+  points = [],      // [{label, year, sub}] — sub is printed dim after the label
+  eras = [],        // [[from, to, label, cssVar]]
+  marks = [],       // [[year, label]] — the things that happened TO them
+  from, to,         // the span; taken from the data when not given
+  what = "",        // what a dot is, for the caption
+} = Astro.props;
+
+const pts = points
+  .map((p) => ({ ...p, y: +String(p.year).match(/\d{4}/)?.[0] }))
+  .filter((p) => p.y)
+  .sort((a, b) => a.y - b.y);
+
+const FROM = from ?? (pts.length ? Math.floor(Math.min(...pts.map((p) => p.y)) / 10) * 10 : 1800);
+const TO = to ?? (pts.length ? Math.ceil(Math.max(...pts.map((p) => p.y)) / 10) * 10 : 1900);
+const W = 940, X0 = 70, X1 = W - 25;
+const x = (y) => X0 + (y - FROM) * ((X1 - X0) / Math.max(1, TO - FROM));
+
+const wide = (t, px) => String(t).length * px * 0.55 + 10;
+const fit = (items, gap) => {
+  const ends = [];
+  return items.map((it) => {
+    let r = 0;
+    while (ends[r] != null && ends[r] > it.x - gap) r++;
+    ends[r] = it.x + it.w;
+    return { ...it, row: r };
+  });
+};
+
+const inSpan = (y) => y >= FROM && y <= TO;
+const markItems = fit(marks.filter(([y]) => inSpan(y)).map(([y, l]) => ({
+  y, l, x: x(y) + 4, w: wide(`${y} ${l}`, 9.5),
+})), 4).map((m) => ({ ...m, flip: m.x + m.w > X1 }));
+
+const MARKY = 66, MARKLH = 12;
+const MARKROWS = Math.max(0, ...markItems.map((m) => m.row + 1));
+const TOP = (eras.length || markItems.length ? MARKY + MARKROWS * MARKLH + 22 : 40);
+const LH = 22;
+
+const placed = fit(pts.map((p) => ({
+  p, x: x(p.y) + 8, w: wide(`${p.label} · ${p.sub ?? p.y}`, 11),
+})), 10).map((it) => ({ ...it.p, lane: it.row, flip: it.x + it.w > X1 }));
+
+const LANES = Math.max(1, ...placed.map((p) => p.lane + 1));
+const H = TOP + LANES * LH + 66;
+const ticks = (() => {
+  const step = [5, 10, 20, 25, 50, 100].find((s) => (TO - FROM) / s <= 9) || 200;
+  const out = [];
+  for (let y = Math.ceil(FROM / step) * step; y <= TO; y += step) out.push(y);
+  return out;
+})();
+---
+{pts.length ? (
+  <figure class="et">
+    <div class="scroll">
+      <svg viewBox={`0 0 ${W} ${H}`} width={W} style={`max-width:100%;min-width:${Math.min(W, 860)}px;display:block`}
+           role="img" aria-label={`${pts.length} dated events between ${FROM} and ${TO}, against the politics of the period`}>
+        {eras.filter(([a, b]) => b > FROM && a < TO).map(([a, b, l, c]) => (
+          <g>
+            <rect x={x(Math.max(a, FROM))} y="30" width={x(Math.min(b, TO)) - x(Math.max(a, FROM))}
+                  height="22" style={`fill:var(${c},currentColor);opacity:.85`} />
+            {x(Math.min(b, TO)) - x(Math.max(a, FROM)) > 70 && (
+              <text x={x(Math.max(a, FROM)) + 7} y="45" font-size="10" class="et-era">{l}</text>)}
+          </g>
+        ))}
+        {markItems.map(({ y, l, row, flip }) => (
+          <g>
+            <line x1={x(y)} y1="52" x2={x(y)} y2={TOP + LANES * LH} class="et-rule"
+                  stroke-width="1" stroke-dasharray="2 4" />
+            <text x={x(y) + (flip ? -4 : 4)} y={MARKY + row * MARKLH} font-size="9.5"
+                  text-anchor={flip ? "end" : "start"} class="et-mark">{y} {l}</text>
+          </g>
+        ))}
+        {placed.map((p) => (
+          <g>
+            <circle cx={x(p.y)} cy={TOP + p.lane * LH} r="3.6" class="et-dot" />
+            <text x={x(p.y) + (p.flip ? -8 : 8)} y={TOP + p.lane * LH + 4} font-size="11"
+                  text-anchor={p.flip ? "end" : "start"} class="et-lab">{p.label}<tspan class="et-sub"> · {p.sub ?? p.y}</tspan></text>
+          </g>
+        ))}
+        <line x1={X0} y1={H - 42} x2={X1} y2={H - 42} class="et-axis" stroke-width="1" />
+        {ticks.map((t) => (
+          <g>
+            <line x1={x(t)} y1={H - 42} x2={x(t)} y2={H - 36} class="et-axis" stroke-width="1" />
+            <text x={x(t)} y={H - 22} text-anchor="middle" font-size="10" class="et-tick">{t}</text>
+          </g>
+        ))}
+      </svg>
+    </div>
+    {what ? <figcaption class="small">{what}</figcaption> : null}
+  </figure>
+) : null}
+
+<style is:global>
+  .et { margin: 1.2rem 0 1.6rem; }
+  .et-era { fill: var(--band-label, #14171c); font-family: var(--sans, system-ui); }
+  .et-rule { stroke: var(--ochre, #d8a657); opacity: .45; }
+  .et-mark { fill: var(--ochre, #d8a657); font-family: var(--mono, ui-monospace, monospace); }
+  .et-dot { fill: var(--terra, var(--accent, currentColor)); }
+  .et-lab { fill: var(--ink, currentColor); font-family: var(--sans, system-ui); }
+  .et-sub { fill: var(--ink-3, #8d8a85); }
+  .et-axis { stroke: var(--rule-strong, #4a4f57); }
+  .et-tick { fill: var(--ink-3, #8d8a85); font-family: var(--mono, ui-monospace, monospace); }
+  .et figcaption { margin-top: .6rem; color: var(--ink-3, #8d8a85); }
+</style>
