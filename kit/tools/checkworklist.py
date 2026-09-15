@@ -95,7 +95,17 @@ def main():
     a = ap.parse_args()
 
     targets = []
+    # The cross-archive session keeps its list too, at the kit repo root: the
+    # work that belongs to no single archive is exactly the work that went
+    # untracked longest, so it is not exempt from the rule it is enforcing.
+    kit_own = os.path.join(a.root, "worklist.json")
+    if not a.all and os.path.exists(kit_own) and not os.path.exists(
+            os.path.join(a.root, "src", "data", "worklist.json")):
+        targets.append((kit_own, "the kit & estate"))
     if a.all:
+        kp = os.path.join(a.root, "Archive Kit", "worklist.json")
+        if os.path.exists(kp):
+            targets.append((kp, "the kit & estate"))
         for p in sorted(glob.glob(os.path.join(a.root, "*", "site", "src", "data", "worklist.json"))):
             targets.append((p, os.path.relpath(p, a.root).split(os.sep)[0]))
         for d in sorted(glob.glob(os.path.join(a.root, "*", "site"))):
@@ -103,7 +113,7 @@ def main():
             p = os.path.join(d, "src", "data", "worklist.json")
             if not os.path.exists(p):
                 targets.append((p, name))
-    else:
+    elif not targets:
         targets.append((os.path.join(a.root, "src", "data", "worklist.json"), "this archive"))
 
     bad, warn = [], []
