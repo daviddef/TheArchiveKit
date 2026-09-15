@@ -1,0 +1,57 @@
+---
+import FilterTable from "./FilterTable.astro";
+/* What has been read, and what it did not turn up.
+ *
+ * The register of negative results, and the one page that separates "we have
+ * not looked" from "it is not there". Four archives had it in almost the same
+ * shape and did not know: Defranceschi src/what/when/outcome/got, D'Arcy the
+ * same minus dest, Blazevic the same plus what it missed, Mazza source/scope/
+ * result/status. One model, four spellings.
+ *
+ * THE OUTCOME VOCABULARY IS THE ARCHIVE'S. Defranceschi says hit, yield,
+ * nothing, found, pending; D'Arcy yield, null, empty, blocked; Blazevic adds
+ * partial; Mazza grades done, outstanding, not-yet, superseded. Those are
+ * different judgements about what a search DID, not different words for one
+ * thing, and flattening them to a shared five would be inventing a finding.
+ * Whatever an archive uses becomes the filter.
+ *
+ * The count that matters is on the page: how many searches returned nothing.
+ * An archive that only records its hits is not keeping a register, it is
+ * keeping a highlight reel.
+ *
+ *   rows  [{when, src, what, got, outcome, href, extra}]
+ *   nil   which outcome words mean "returned nothing", for the count
+ */
+const { rows = [], u = (p) => p, nil = [], unit = "searches" } = Astro.props;
+const outcomes = [...new Set(rows.map((r) => r.outcome).filter(Boolean))];
+/* Tags are the archive's own vocabulary for what a search was ABOUT, as
+   distinct from what it returned. Two archives tag their register and let a
+   reader click one; the rest pass none and get no tag filter. */
+const tags = [...new Set(rows.flatMap((r) => r.tags || []))].sort();
+const nothing = rows.filter((r) => nil.includes(r.outcome)).length;
+const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;");
+---
+<FilterTable
+  unit={unit}
+  columns={[{ label: "When", cls: "small mono" }, { label: "What was read" },
+            { label: "Looked for" }, { label: "What came back" }]}
+  facets={[
+    ...(outcomes.length > 1 ? [{ key: "outcome", label: "Outcome", all: "Any",
+      options: outcomes.map((o) => ({ v: o, label: `${o} (${rows.filter((r) => r.outcome === o).length})` })) }] : []),
+    ...(tags.length > 1 ? [{ key: "tags", label: "About", all: "Anything", multi: true,
+      options: tags.map((t) => ({ v: t, label: t })) }] : []),
+  ]}
+  note={nothing
+    ? `<strong>${nothing}</strong> of these ${rows.length} returned nothing, and that is the point of the page: a source that came back empty is the difference between «we have not looked» and «it is not there».`
+    : `${rows.length} ${unit}. A source that returns nothing is evidence too — it is the difference between «we have not looked» and «it is not there».`}
+  rows={rows.map((r) => ({
+    hay: [r.src, r.what, r.got, r.when, r.outcome, ...(r.tags || [])].filter(Boolean).join(" ").toLowerCase(),
+    facets: { outcome: r.outcome || "", tags: (r.tags || []).join(" ") },
+    cells: [
+      esc(r.when || ""),
+      (r.href ? `<a href="${u(r.href)}">${esc(r.src)}</a>` : esc(r.src)) +
+        (r.outcome ? ` <span class="chip">${esc(r.outcome)}</span>` : ""),
+      esc(r.what || ""),
+      esc(r.got || "") + (r.extra ? ` <span class="dim">${r.extra}</span>` : ""),
+    ],
+  }))} />

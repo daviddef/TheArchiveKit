@@ -38,7 +38,7 @@ const {
   id = "ft",
 } = Astro.props;
 ---
-<div class="ft" data-ft={id}>
+<div class="ft" data-ft={id} data-multi={facets.filter((f) => f.multi).map((f) => f.key).join(" ")}>
   {fold ? <script type="application/json" class="ft-fold" set:html={JSON.stringify(fold)} /> : null}
   <div class="ft-bar">
     <label class="ft-search">
@@ -114,6 +114,7 @@ const {
     const ofEl = box.querySelector(".ft-of");
     const emptyEl = box.querySelector(".ft-empty");
     const picked = {};
+    const MULTI = new Set((box.dataset.multi || "").split(/\s+/).filter(Boolean));
 
     let MAP = null;
     const foldEl = box.querySelector(".ft-fold");
@@ -130,7 +131,16 @@ const {
         const text = MAP ? (r.dataset.folded || "") : (r.dataset.hay || "");
         let ok = !needle || text.includes(needle);
         if (ok) for (const k in picked) {
-          if (picked[k] && (r.dataset[k] || "") !== picked[k]) { ok = false; break; }
+          if (!picked[k]) continue;
+          const have = r.dataset[k] || "";
+          /* A MULTI facet holds a set: a row carries several tags and matches
+             if it carries this one. Defranceschi and Blazevic both tag their
+             search register and let a reader click a tag, and a one-value-per-
+             key model would have dropped that on the way to the shared table. */
+          const multi = MULTI.has(k);
+          if (multi ? !(" " + have + " ").includes(" " + picked[k] + " ") : have !== picked[k]) {
+            ok = false; break;
+          }
         }
         r.hidden = !ok;
         if (ok) shown++;
