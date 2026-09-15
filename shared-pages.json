@@ -69,9 +69,9 @@
       "key": "register",
       "route": "/register/",
       "on": 7,
-      "state": "local",
+      "state": "partial",
       "tier": 1,
-      "note": "**9,025 to 356,720 words.** Size is legitimate — Falco holds 11,923 records — but the SHAPE is seven different answers."
+      "note": "**Two of seven on the shared Register** — Falco (12,034 records) and Blazevic (1,466), which were near-identical forks. **Size is legitimate and stays**: an archive that has read more registers has more records, and equalising them would mean deleting evidence. The SHAPE is what is shared. The per-surname sections became a facet. **The Falco page is also 1.9 MB smaller than the one deployed** — both pages duplicated every row's text into an attribute for the search to read; the script reads the row instead. **Defranceschi, Booyzen and D'Arcy hold a register in a different shape** (id/says/place, positional arrays, grouped by surname) and need reading before they move. Mazza and Lerena have none."
     },
     {
       "key": "searched",
