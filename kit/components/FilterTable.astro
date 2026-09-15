@@ -24,6 +24,14 @@
  *   note     a line under the controls, before the table
  */
 const {
+  /* Optional variant → canonical map, applied to BOTH the query and the row
+     text, word by word. The Blazevic register folds spellings this way so that
+     "zubrin" finds Žubrinić, Xubrinich and Zubrinich alike and "Joannis" finds
+     every Ivan — behaviour that a plain substring search would have quietly
+     thrown away when that page moved onto this component. Emitted as JSON next
+     to the table rather than inlined into the script, so the script stays one
+     bundled module shared by every table on the page. */
+  fold = null,
   columns = [], rows = [], facets = [], note = "",
   empty = "Nothing matches that.",
   unit = "rows",
@@ -31,21 +39,31 @@ const {
 } = Astro.props;
 ---
 <div class="ft" data-ft={id}>
+  {fold ? <script type="application/json" class="ft-fold" set:html={JSON.stringify(fold)} /> : null}
   <div class="ft-bar">
     <label class="ft-search">
       <span class="ft-lab">Search</span>
       <input type="search" class="ft-q" placeholder={`Filter ${rows.length.toLocaleString()} ${unit}…`}
              autocomplete="off" spellcheck="false" />
     </label>
+    {/* Buttons while they fit; a select beyond that. Mazza facets by surname and
+        has 124 of them — a row of 124 buttons is not a filter, it is a wall. */}
     {facets.map((f) => (
       <div class="ft-facet" data-key={f.key}>
         <span class="ft-lab">{f.label}</span>
-        <div class="ft-opts">
-          <button type="button" class="ft-opt on" data-v="">All</button>
-          {f.options.map((o) => (
-            <button type="button" class="ft-opt" data-v={String(o.v)}>{o.label}</button>
-          ))}
-        </div>
+        {f.options.length > (f.max ?? 7) ? (
+          <select class="ft-sel">
+            <option value="">{f.all || "All"}</option>
+            {f.options.map((o) => <option value={String(o.v)}>{o.label}</option>)}
+          </select>
+        ) : (
+          <div class="ft-opts">
+            <button type="button" class="ft-opt on" data-v="">{f.all || "All"}</button>
+            {f.options.map((o) => (
+              <button type="button" class="ft-opt" data-v={String(o.v)}>{o.label}</button>
+            ))}
+          </div>
+        )}
       </div>
     ))}
   </div>
@@ -85,11 +103,20 @@ const {
     const emptyEl = box.querySelector(".ft-empty");
     const picked = {};
 
+    let MAP = null;
+    const foldEl = box.querySelector(".ft-fold");
+    if (foldEl) { try { MAP = JSON.parse(foldEl.textContent); } catch (e) { MAP = null; } }
+    const fold = (t) => !MAP ? t
+      : t.toLowerCase().split(/[^\p{L}\p{N}]+/u).map((w) => MAP[w] || w).join(" ").trim();
+    if (MAP) for (const r of rows) r.dataset.folded = fold(r.dataset.hay || "");
+
     const apply = () => {
-      const needle = (q && q.value || "").trim().toLowerCase();
+      const raw = (q && q.value || "").trim().toLowerCase();
+      const needle = MAP ? fold(raw) : raw;
       let shown = 0;
       for (const r of rows) {
-        let ok = !needle || (r.dataset.hay || "").includes(needle);
+        const text = MAP ? (r.dataset.folded || "") : (r.dataset.hay || "");
+        let ok = !needle || text.includes(needle);
         if (ok) for (const k in picked) {
           if (picked[k] && (r.dataset[k] || "") !== picked[k]) { ok = false; break; }
         }
@@ -103,8 +130,19 @@ const {
         : " · everything is listed; the filters only narrow it";
       if (emptyEl) emptyEl.hidden = shown > 0;
     };
+    apply();
 
-    if (q) q.addEventListener("input", apply);
+    /* ?q= in the address bar pre-fills the box. The Mazza page did this and it
+       is how every "every X in the register →" link on the estate arrives. */
+    if (q) {
+      const pre = new URLSearchParams(location.search).get("q");
+      if (pre) q.value = pre;
+      q.addEventListener("input", apply);
+    }
+    box.querySelectorAll(".ft-sel").forEach((sel) => {
+      const key = sel.closest(".ft-facet").dataset.key;
+      sel.addEventListener("change", () => { picked[key] = sel.value; apply(); });
+    });
     box.querySelectorAll(".ft-facet").forEach((f) => {
       const key = f.dataset.key;
       f.querySelectorAll(".ft-opt").forEach((b) => {
@@ -134,6 +172,9 @@ const {
     color:var(--ink-2,inherit); background:transparent;
     border:1px solid var(--rule,#ccc); border-radius:2px; }
   .ft-opt:hover { border-color:var(--accent,#963); }
+  .ft-sel { font:inherit; font-size:.82rem; padding:.3rem .4rem; color:var(--ink,inherit);
+    background:var(--bg-2,transparent); border:1px solid var(--rule,#ccc); border-radius:3px;
+    max-width:14rem; }
   .ft-opt.on { color:var(--accent,#963); border-color:var(--accent,#963);
     background:var(--accent-wash,transparent); font-weight:600; }
   .ft-count { margin:.2rem 0 .1rem; font-variant-numeric:tabular-nums; }
