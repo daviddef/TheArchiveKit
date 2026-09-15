@@ -40,9 +40,8 @@ const { work, u = (p) => p, here } = Astro.props;
            base if not given, because a component that needs a prop to avoid
            linking to the page it is already on will get it wrong somewhere. */
 const BASE = (import.meta.env.BASE_URL || "/").replace(/\/$/, "");
-const mine = here || (Object.values(RING).find((r) => r && r.base === BASE) || {}).key;
-const ring = Object.values(RING)
-  .filter((r) => r && r.url && r.key !== mine)
+const ring = (RING.archives || [])
+  .filter((r) => r.url && r.base !== BASE && r.key !== here)
   .sort((x, y) => x.name.localeCompare(y.name));
 
 const STATE = {
