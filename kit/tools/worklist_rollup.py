@@ -8,6 +8,12 @@ single page — so the board cannot disagree with the archives, because it IS th
 archives.
 
   python3 worklist_rollup.py --root /path/to/Projects --out board.html
+  open board.html
+
+Emits a COMPLETE page, not a fragment. It used to emit a fragment that somebody
+then wrapped by hand, which meant the board only existed when two steps were run
+in the right order by the one person who knew about them — the same failure it
+was written to end.
 """
 import os, re, sys, json, glob, html, argparse, datetime
 
@@ -20,6 +26,68 @@ STATE = {
 }
 ORDER = ["blocked", "running", "next", "done", "struck"]
 E = lambda s: html.escape(str(s or ""))
+
+PAGE_HEAD = """<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The Estate Board</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Libre+Franklin:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+:root{--paper:#FAF8F3;--panel:#FFF;--panel-2:#F2EDE2;--ink:#1D1B16;--ink-2:#514A3E;--ink-3:#857C6C;
+--rule:#DED6C6;--accent:#1F5C6B;--bad:#9B3319;
+--serif:"EB Garamond",Georgia,serif;--sans:"Libre Franklin",system-ui,sans-serif;--mono:"IBM Plex Mono",ui-monospace,Menlo,monospace}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--paper:#171613;--panel:#1F1D19;--panel-2:#26241F;
+--ink:#F0EADF;--ink-2:#C3BAAA;--ink-3:#8E8474;--rule:#36322B;--accent:#6FB3C0;--bad:#E0755A}}
+:root[data-theme="dark"]{--paper:#171613;--panel:#1F1D19;--panel-2:#26241F;--ink:#F0EADF;--ink-2:#C3BAAA;
+--ink-3:#8E8474;--rule:#36322B;--accent:#6FB3C0;--bad:#E0755A}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.56;margin:0}
+.wrap{max-width:900px;margin:0 auto;padding:0 24px}
+header.top{border-bottom:2px solid var(--ink);padding:46px 0 22px}
+.eyebrow{font-size:11.5px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-3);margin:0 0 14px}
+h1{font-family:var(--serif);font-weight:600;font-size:clamp(34px,6vw,54px);line-height:1.05;margin:0 0 14px}
+h1 em{font-style:italic;color:var(--accent)}
+.standfirst{font-size:18.5px;color:var(--ink-2);margin:0;max-width:64ch}
+h2{font-family:var(--serif);font-weight:600;font-size:clamp(23px,3.2vw,30px);margin:44px 0 6px;
+padding-bottom:9px;border-bottom:1.5px solid var(--ink)}
+h3{font-family:var(--mono);font-size:11.5px;font-weight:600;letter-spacing:.13em;text-transform:uppercase;
+color:var(--ink-2);margin:26px 0 10px}
+h3 .c{color:var(--ink-3);font-weight:400;margin-left:6px}
+p{margin:0 0 13px;max-width:70ch}
+strong,b{font-weight:600;color:var(--ink)}
+.tally{display:grid;grid-template-columns:repeat(auto-fit,minmax(104px,1fr));border:1px solid var(--rule);
+border-radius:5px;overflow:hidden;margin:24px 0}
+.tal{padding:13px 15px;border-right:1px solid var(--rule);background:var(--panel)}
+.tal:last-child{border-right:0}
+.tal .n{font-family:var(--serif);font-size:30px;font-weight:600;line-height:1}
+.tal .l{font-size:12px;color:var(--ink-3);margin-top:5px;display:block}
+.one{border-left:3px solid var(--rule);background:var(--panel);padding:11px 15px;margin-bottom:11px;border-radius:0 3px 3px 0}
+.lab{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3)}
+.what{margin:7px 0 0;font-size:16.5px;font-weight:600;line-height:1.35}
+.note-p{margin-top:5px;font-size:14.5px;color:var(--ink-2);line-height:1.6;max-width:70ch}
+.note{border-left:3px solid var(--accent);background:var(--panel);padding:13px 17px;margin:20px 0;max-width:70ch}
+.note.bad{border-left-color:var(--bad)}
+ul.done{margin:0 0 18px;padding-left:20px;max-width:70ch}
+ul.done li{font-size:14.5px;color:var(--ink-2);margin-bottom:5px}
+ul.done li.struck{text-decoration:line-through;color:var(--ink-3)}
+.m{font-family:var(--mono);font-size:.85em;background:var(--panel-2);padding:1px 5px;border-radius:3px}
+footer{margin-top:50px;border-top:2px solid var(--ink);padding:18px 0 54px;font-family:var(--mono);font-size:12px;color:var(--ink-3)}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style></head><body>
+<header class="top"><div class="wrap">
+<h1>The estate board,<br><em>and nothing else</em></h1>
+<p class="standfirst">Every archive keeps one work list. This reads all of them and is generated, so
+it cannot disagree with the archives &mdash; it is the archives. Edit the lists, not this page.</p>
+</div></header>
+<section><div class="wrap">
+"""
+PAGE_FOOT = """</div></section>
+<footer><div class="wrap"><p>Rebuild with
+<span class="m">python3 kit/tools/worklist_rollup.py --root . --out board.html</span></p></div></footer>
+</body></html>
+"""
+
 
 
 def md(s):
@@ -117,7 +185,7 @@ def main():
             P.append("<li%s>%s</li>" % (" class='struck'" if r.get("state") == "struck" else "",
                                         E(r.get("what"))))
         P.append("</ul>")
-    open(a.out, "w", encoding="utf-8").write("\n".join(P))
+    open(a.out, "w", encoding="utf-8").write(PAGE_HEAD + "\n".join(P) + PAGE_FOOT)
     print("  %d archives, %d rows, %d open, %d without a list → %s"
           % (len(archives), len(rows), len(openrows), len(missing), a.out))
     return 0
