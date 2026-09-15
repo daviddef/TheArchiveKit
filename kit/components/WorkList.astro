@@ -1,0 +1,100 @@
+---
+/* What is being done, as opposed to what is known.
+ *
+ * Every other register in these archives answers "what do we know" — searched,
+ * open questions, gaps, errands, corrections. None of them answered "what is
+ * being DONE", so that lived in a chat window, which is the one place that does
+ * not survive the session. Written first in the Defranceschi archive; this is
+ * that page, shared, so eight archives keep the same list in the same shape
+ * instead of eight people each inventing one.
+ *
+ * Two fields beyond what that first version carried, and both exist because the
+ * question being asked of this estate is "what is waiting on ME":
+ *
+ *   owner   who has to move it — this archive's own session, another archive's,
+ *           or a person. An item with no owner is how a list becomes wallpaper.
+ *   since   the date it was raised, so an item that has been Blocked for five
+ *           weeks looks different from one raised this morning.
+ *
+ *     work  the archive's worklist.json
+ *     u     its url helper, so links inside a note resolve
+ */
+const { work, u = (p) => p } = Astro.props;
+
+const STATE = {
+  running: ["Running", "#1E5F8C", "a machine or a person is at it now"],
+  next:    ["Next",    "#E9A020", "ready to start"],
+  blocked: ["Blocked", "#B04A16", "waiting on a person or an institution"],
+  done:    ["Done",    "#12703F", "finished and published"],
+  struck:  ["Struck",  "#7A7A7A", "founded on a mistake, kept rather than deleted"],
+};
+const ORDER = ["running", "next", "blocked", "done", "struck"];
+const rows = work.rows || [];
+const count = (k) => rows.filter((r) => r.state === k).length;
+const open = rows.filter((r) => !["done", "struck"].includes(r.state));
+
+/* An item nobody has touched for a long time is the thing this page exists to
+   surface, so it is marked rather than left to be noticed. */
+const DAY = 864e5;
+const stale = (r) => {
+  if (!r.since || ["done", "struck"].includes(r.state)) return 0;
+  const d = Math.floor((Date.now() - Date.parse(r.since)) / DAY);
+  return Number.isFinite(d) && d > 30 ? d : 0;
+};
+const md = (s) => String(s ?? "")
+  .replace(/&/g, "&amp;").replace(/</g, "&lt;")
+  .replace(/\[([^\]]+)\]\((\/[^)]*)\)/g, (_, t, h) => `<a href="${u(h)}">${t}</a>`)
+  .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+  .replace(/«([^»]+)»/g, "<em>«$1»</em>");
+---
+<div class="wl">
+  <div class="wl-tally">
+    {ORDER.map((k) => count(k) > 0 && (
+      <span class="wl-pill" style={`--c:${STATE[k][1]}`}>
+        <b>{STATE[k][0]}</b> {count(k)}
+      </span>
+    ))}
+  </div>
+
+  {open.length === 0 && rows.length > 0 && (
+    <p class="wl-none">Nothing is open on this archive. Everything below is finished.</p>
+  )}
+
+  <div class="wl-rows">
+    {rows.map((r) => (
+      <div class="wl-one" style={`border-left-color:${(STATE[r.state] || STATE.next)[1]}`}>
+        <div class="wl-lab">
+          <span style={`color:${(STATE[r.state] || STATE.next)[1]}`}>
+            {r.n ? r.n + ". " : ""}{(STATE[r.state] || STATE.next)[0]}
+          </span>
+          <span class="wl-dim"> — {(STATE[r.state] || STATE.next)[2]}</span>
+          {r.owner && <span class="wl-owner">{r.owner}</span>}
+          {stale(r) > 0 && <span class="wl-stale">{stale(r)} days</span>}
+        </div>
+        <p class="wl-what">{r.state === "struck" ? <s>{r.what}</s> : r.what}</p>
+        {r.note && <div class="wl-note" set:html={md(r.note)} />}
+      </div>
+    ))}
+  </div>
+</div>
+
+<style is:global>
+  .wl-tally { display:flex; flex-wrap:wrap; gap:8px; margin-top:22px }
+  .wl-pill { font-family:var(--mono); font-size:11px; padding:4px 11px; border-radius:999px;
+             border:1px solid var(--rule); color:var(--ink-2) }
+  .wl-pill b { color:var(--c); font-weight:600 }
+  .wl-none { margin-top:18px; font-family:var(--sans); color:var(--ink-2) }
+  .wl-rows { margin-top:22px; display:flex; flex-direction:column; gap:14px }
+  .wl-one { border-left:3px solid var(--rule); background:var(--panel);
+            padding:12px 16px; border-radius:0 3px 3px 0 }
+  .wl-lab { font-family:var(--mono); font-size:10.5px; letter-spacing:.06em;
+            text-transform:uppercase; display:flex; flex-wrap:wrap; gap:8px; align-items:baseline }
+  .wl-dim { color:var(--ink-3) }
+  .wl-owner { margin-left:auto; color:var(--ink-2); border:1px solid var(--rule);
+              border-radius:999px; padding:2px 9px; text-transform:none; letter-spacing:.02em }
+  .wl-stale { color:#B04A16 }
+  .wl-what { margin:8px 0 0; font-size:17px; font-weight:600; line-height:1.35 }
+  .wl-note { margin-top:6px; font-size:14.5px; color:var(--ink-2); line-height:1.6; max-width:70ch }
+  .wl-note a { color:inherit }
+  @media (max-width:600px){ .wl-owner { margin-left:0 } }
+</style>
