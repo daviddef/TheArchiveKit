@@ -49,7 +49,7 @@ const {
     {/* Buttons while they fit; a select beyond that. Mazza facets by surname and
         has 124 of them — a row of 124 buttons is not a filter, it is a wall. */}
     {facets.map((f) => (
-      <div class="ft-facet" data-key={f.key}>
+      <div class="ft-facet" data-key={f.key} data-keys={[...new Set((f.options||[]).map(o=>o.k||f.key))].join(" ")}>
         <span class="ft-lab">{f.label}</span>
         {f.options.length > (f.max ?? 7) ? (
           <select class="ft-sel">
@@ -59,8 +59,14 @@ const {
         ) : (
           <div class="ft-opts">
             <button type="button" class="ft-opt on" data-v="">{f.all || "All"}</button>
+            {/* An option may name its OWN key. Falco's first group is five
+                different booleans — my line, in my tree, in a household,
+                attached, living — offered as one row of buttons, which is not
+                one key with five values and would have come out as five
+                separate facets if this only understood that shape. */}
             {f.options.map((o) => (
-              <button type="button" class="ft-opt" data-v={String(o.v)}>{o.label}</button>
+              <button type="button" class="ft-opt" data-v={String(o.v)}
+                      data-k={o.k || f.key} set:html={o.label} />
             ))}
           </div>
         )}
@@ -149,7 +155,9 @@ const {
         b.addEventListener("click", () => {
           f.querySelectorAll(".ft-opt").forEach((x) => x.classList.remove("on"));
           b.classList.add("on");
-          picked[key] = b.dataset.v || "";
+          /* clear every key this group can set, then set the chosen one */
+          f.querySelectorAll(".ft-opt").forEach((x) => { picked[x.dataset.k || key] = ""; });
+          if (b.dataset.v) picked[b.dataset.k || key] = b.dataset.v;
           apply();
         });
       });
