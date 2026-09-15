@@ -20,11 +20,11 @@
   },
   {
    "n": 3,
-   "state": "next",
+   "state": "done",
    "owner": "every archive session",
    "since": "2026-09-15",
    "what": "Keep a worklist.json, so this board stops being written by hand",
-   "note": "Eight of nine archives keep no work list. Until they do, nothing can show what they are carrying — which is the whole failure this exists to end. Schema and gate are in the kit: `kit/tools/checkworklist.py`."
+   "note": "Nine of ten archives now keep one, all calling the kit's gate rather than a forked copy, and every row of the 186 carries an owner and a date. The children's site is the exception and arguably should be — it is written for a six-year-old, not a research register. Adopted in about an hour, from one archive to nine."
   },
   {
    "n": 4,
@@ -193,6 +193,46 @@
    "since": "2026-09-15",
    "what": "The front-page drawings, specified rather than left in a chat",
    "note": "`kit/docs/front-page-drawings.md` holds the schema for the sovereignty timeline and the rivers diagram, the two strict shape rules that left one archive's file inert for weeks, and the reason the place picture draws no coastline. Kept in the repository beside the components, because a published page and a chat window are the two places a spec does not survive."
+  },
+  {
+   "n": 25,
+   "state": "next",
+   "owner": "David",
+   "since": "2026-09-15",
+   "what": "Four pages sit in a different menu group depending on the archive",
+   "note": "`/australia` is under **Leaving** on one and **Our line** on another; `/brisbane` **Leaving** vs **People & places**; `/gallery/` **Evidence** vs **The work**; `/namesakes/` **People & places** vs **The work**. A reader who learns where something lives on one site should find it in the same place on the next. Each needs one decision, then it applies to all seven. `/name` is the deliberate exception and stays as it is."
+  },
+  {
+   "n": 26,
+   "state": "next",
+   "owner": "David",
+   "since": "2026-09-15",
+   "what": "Ten pages carry a different name depending on the archive",
+   "note": "Some are only capitalisation — «What Changed» against «What changed», «Photograph These» against «Photograph these». Some are genuinely different words for the same page: `/people/` is **The People** on one archive and **Nine lives in full** on another; `/who/` is **Every Name** and **Everyone, a page each**; `/gallery/` is **Gallery** and **The Plates**. Worth deciding whether a shared page keeps one name everywhere, or whether the archive's own voice wins."
+  },
+  {
+   "n": 27,
+   "state": "blocked",
+   "owner": "five archive sessions",
+   "since": "2026-09-15",
+   "what": "The front pages run 1,486 to 5,080 words",
+   "note": "A 3.4× spread. The structure is aligned now — same order, same slots — but Defranceschi carries two large diagrams and nearly 5,100 words where Mazza has one small drawing and under 1,500. That gap is **writing and data**, not layout, and closing it is each archive's own work rather than something to be evened out from outside."
+  },
+  {
+   "n": 28,
+   "state": "done",
+   "owner": "this session",
+   "since": "2026-09-15",
+   "what": "The seven front pages now run in one order, with the drawing framed the same way",
+   "note": "Two archives introduced their picture with a heading and a line on how to read it; five dropped a bare dot-plot in with a caption, which is why one read as dots in a void. All seven now go hero, the rule with its chips, three doors, one framed drawing, the archive's own sections, established, numbers, missing, the ring. Verified on the built pages. **The middle stays different on purpose** — it is the reason each site is worth reading."
+  },
+  {
+   "n": 29,
+   "state": "done",
+   "owner": "this session",
+   "since": "2026-09-15",
+   "what": "All 368 menu items compared, seven archives side by side",
+   "note": "55 pages more than one archive carries, 185 unique to one. Only four sit in the wrong group and ten carry inconsistent names — both now rows of their own above. The 185 are listed rather than flagged: they are what makes each archive its own."
   }
  ]
 }
