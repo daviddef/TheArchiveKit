@@ -361,6 +361,46 @@
       "since": "2026-09-15",
       "what": "Six archives cannot yet count their work list against anything",
       "note": "Only **Blazevic** declares `accounts`. The others now print on every build what is going uncounted, and the blocker is nearly always the same: **no stable key on the register rows**. `D'Arcy` — errands 62, questions 11, searched 293, requests 8 files. `Defranceschi` — searched 273, errands 28. `Lerena` — errands 40. `Mazza` — searched 115. `Booyzen` — requests 8 files. **Falco is the special case: its `/searched/` page is hand-written prose with no data file behind it, so there is nothing to count against at all.** Adding a key is unglamorous and there is no way round it: a short stable string per row, never derived from the title, never reused when a row is retired."
+    },
+    {
+      "n": 46,
+      "state": "done",
+      "owner": "this session",
+      "since": "2026-09-15",
+      "what": "The marriages page really is one shape now, not one shared section",
+      "note": "The user was right that the first rollout had not done this. **Measured afterwards: one archive had a metrics row and six had none; two had a chart and five had none; two had no register of couples at all; and the couples sat above the families on five and below on two.** Only the families section was shared. The order is no longer any archive's to arrange — metrics, chart, spine, couples and families are props rendered in that order by the component. **Blazevic and Mazza had no couples register and now do**: Blazevic's is built from its own ahnentafel (a father and mother are always consecutive numbers, so the 19 families are the wives' side of exactly those marriages) and Mazza's from the spouse edges the families section was already reading."
+    },
+    {
+      "n": 47,
+      "state": "done",
+      "owner": "this session",
+      "since": "2026-09-15",
+      "what": "The radial wheel is gone; the families are ranked bars",
+      "note": "Correct complaint, and the D'Arcy page showed it plainly: **at 13 families the wheel was a large empty hole with every name set sideways or upside down**, type shrunk to fit a circumference nothing needed, most of a wide page unused. It came from the archive with 74 in-law names, where a ring is reasonable — **a chart that works at one size is not a shared component, it is a lucky fit.** Replaced with ranked bars: horizontal names, one scale across all groups, rows filling the width, checked at 13 and at 74 rather than at one."
+    },
+    {
+      "n": 48,
+      "state": "done",
+      "owner": "this session",
+      "since": "2026-09-15",
+      "what": "The place map has real coastlines, and the two archives without one have a map",
+      "note": "The component argued twice that an archive without a coastline should not draw one; **that was wrong and the user overruled it**. Natural Earth 50m, public domain, decoded at build time and clipped to each frame — 600 KB in the kit, nothing extra to the reader. Two things had to be got right: **Douglas–Peucker cannot be fed a closed ring** (first and last points coincide, every distance computes as zero, the coast collapsed to four paths reading `M202.4 165.6 L202.4 165.6`), and a ring crossing the antimeridian has to be broken. Labels 7 → 14. **Falco and Defranceschi had no map at all and now do** — Falco's 13 places from atlas-data.json, Defranceschi's 49 from `coords:[lat,lon]`, and borders matter there because the whole argument is which empire held which town."
+    },
+    {
+      "n": 49,
+      "state": "next",
+      "owner": "this session",
+      "since": "2026-09-15",
+      "what": "The home pages still differ in what they carry, beyond the map",
+      "note": "With the map now on all seven, what is left: **the front pages run 1,568 words (Mazza) to 5,224 (Defranceschi), a 3.3× spread**. The rivers diagram is on five of seven (**not Blazevic, not Mazza**); «Elsewhere in the archive» is on five (**not Blazevic, not Lerena**); section counts run 6 to 9. The shared spine — «What this archive has established», «The archive in numbers», «What is still missing» — is on all seven. The user's own framing is the test: *this much real estate could be telling us more*."
+    },
+    {
+      "n": 50,
+      "state": "done",
+      "owner": "this session",
+      "since": "2026-09-15",
+      "what": "I broke the Defranceschi build by committing another session's menu entry",
+      "note": "**My own fault and worth recording.** I staged `site/src/layouts/Base.astro` to ship a label change, and it carried another session's in-flight menu entry for `/graves-map/` — a page that exists in their working tree and is **not tracked in git**. CI built a menu link to a page that was not there: **2,502 broken links, one per page**. Removed the entry so main is green and left their untracked file alone for them to commit with its own menu line. The lesson is the one this estate keeps relearning: **staging a shared file by path stages whatever else is in it.**"
     }
   ]
 }
