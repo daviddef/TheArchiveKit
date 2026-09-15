@@ -249,6 +249,30 @@
    "since": "2026-09-15",
    "what": "Luwinski publishes an empty search index, so its search finds nothing",
    "note": "`/searchindex.json` is published but empty. Found by running the gate above by hand — which is the argument for wiring it: this has been live and invisible, and the archive's search box returns nothing for every query."
+  },
+  {
+   "n": 32,
+   "state": "next",
+   "owner": "this session",
+   "since": "2026-09-15",
+   "what": "The work list has no way to notice a row that is missing",
+   "note": "Found by the Blazevic session, not by the gate. Five letters had been sent; four were on the list and each looked fine in isolation. The fifth — DAR Ispostava u Senju, the nil return that named the three doors the other three letters went through — was absent entirely, so the list showed four letters and hid the one that generated three of them. **checkworklist.py validates rows that exist and can never see one that does not.** It needs to count the list against something outside it: letters against `requests/sent/`, corrections against corrections.json, and so on. Same failure class as a register over-reporting what is outstanding, in the other direction."
+  },
+  {
+   "n": 33,
+   "state": "next",
+   "owner": "this session",
+   "since": "2026-09-15",
+   "what": "Some sessions adopted the work list without the step that keeps it honest",
+   "note": "The Blazevic session is the one to copy: it re-counts its own rows against the evidence on disk rather than trusting what it wrote. Sessions that only append rows will drift the way every hand-kept register in this estate has. The prompt should say to reconcile, not just to record."
+  },
+  {
+   "n": 34,
+   "state": "done",
+   "owner": "this session",
+   "since": "2026-09-15",
+   "what": "Audited whether the other archives group married-in families by surname",
+   "note": "Only **Falco** is at fault, and only because it is the one asserting a relationship it has not tested: its rule is «any surname in the tree that is not Falco», with no descent check. **Blazevic** groups by surname but gates membership on an ahnentafel number, so nothing is listed because of a name — 19 families, 45 proven ancestors, zero inflation. **Defranceschi** groups by surname correctly, because that archive's subject IS the name: it says outright that there is no single Defranceschi family and that the name was invented independently many times over. Mazza and D'Arcy list surnames as a census and claim nothing. The rule is not «never group by surname» — it is that the grouping must match what the archive is about."
   }
  ]
 }
