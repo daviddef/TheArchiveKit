@@ -76,7 +76,7 @@ never grow, the count prints on every build, and each covering row lets you
 lower the number by one. Too generous a declaration is caught the other way:
 when the real number falls, the gate names the figure to drop to.
 
-**Where the seven stand, 15 September 2026**
+**Where the eight stand, 15 September 2026**
 
 | Archive | Outstanding | Covered | Backlog |
 |---|---|---|---|
@@ -86,6 +86,7 @@ when the real number falls, the gate names the figure to drop to.
 | Mazza | 24 | 0 | 24 |
 | Lerena | 20 | 0 | 20 |
 | Booyzen | 10 | 0 | 10 |
+| Luwinski | 33 | 0 | 33 |
 | Falco | — | — | nothing machine-readable to count |
 
 Each of those numbers is now printed on every build of that archive. The work

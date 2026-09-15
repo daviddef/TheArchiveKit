@@ -405,10 +405,10 @@
     {
       "n": 51,
       "state": "next",
-      "owner": "five archive sessions",
+      "owner": "six archive sessions",
       "since": "2026-09-15",
-      "what": "153 outstanding items are declared but not yet covered by a row",
-      "note": "Every build now prints this archive's backlog and it can only go down. **D'Arcy 68** (55 open errands, 5 open questions, 8 drafted letters), **Defranceschi 31** (21 pending searches, 8 unsent errands, 2 letters), **Mazza 24**, **Lerena 20**, **Booyzen 10**. The work is to write rows that cover them and lower `unreconciled` by the same number. **A row may cover several items** — that is how Blazevic covers twelve with nine rows — so this is not 153 rows, it is as many rows as there are real pieces of work. The grouping and the ownership are each session's to decide, which is why they were not invented here."
+      "what": "186 outstanding items are declared but not yet covered by a row",
+      "note": "Every build now prints this archive's backlog and it can only go down. **D'Arcy 68** (55 open errands, 5 open questions, 8 drafted letters), **Defranceschi 31** (21 pending searches, 8 unsent errands, 2 letters), **Mazza 24**, **Lerena 20**, **Booyzen 10**, **Luwinski 33**. The work is to write rows that cover them and lower `unreconciled` by the same number. **A row may cover several items** — that is how Blazevic covers twelve with nine rows — so this is not 153 rows, it is as many rows as there are real pieces of work. The grouping and the ownership are each session's to decide, which is why they were not invented here."
     },
     {
       "n": 52,
@@ -417,6 +417,14 @@
       "since": "2026-09-15",
       "what": "Falco has no machine-readable list of outstanding work at all",
       "note": "The other six have a `searched.json` or an `errands.json` with a state field, so their outstanding work can be counted. **Falco's `/searched/` page is hand-written prose** and its `register.json` is 11,923 records rather than a list of what is still wanted. There is nothing for the gate to count, so Falco is the one archive where a missing row still cannot be seen. It needs a real errands or pending-search list before the gate means anything there."
+    },
+    {
+      "n": 53,
+      "state": "next",
+      "owner": "the Luwinski session",
+      "since": "2026-09-15",
+      "what": "Nine of Luwinski's fifteen sent letters are on no work-list row",
+      "note": "**This is the failure the gate was written after, sitting unseen in the eighth archive.** Fifteen letters have gone out and nine are mentioned nowhere on the list: the **Porto death record for Ivone**, the **Schubin/Szubin records**, the **Sauerbaum records**, the **Transvaal case files** (WLD 1950/1948, 497/1951, 2368/1951), **Kurt and the Leibholz brothers in Berlin**, **estate MHG 7584/69**, the **Mozambique recruitment-district records**, **Ivone's 1924 birth certificate**, and the **rates/MHG 10245 enquiry**. Six others do have a row that mentions them — n8, n25, n26, n56 and two against the estate — and those want a `covers` entry, which is a judgement for this session rather than a guess from outside. No key had to be invented: every letter already carries its Gmail thread id."
     }
   ]
 }
