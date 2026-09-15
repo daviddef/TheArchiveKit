@@ -32,7 +32,7 @@
       "owner": "the Falco session",
       "since": "2026-09-15",
       "what": "All thirteen Falco places carry n=0",
-      "note": "Nothing to size a dot by or rank a name by, so that archive has no front-page place picture while five others do. A data fix, not a component fix."
+      "note": "Nothing to size a dot by or rank a name by, so that archive has no front-page place picture while five others do. A data fix, not a component fix. **This matters more than it did.** The front page now carries a place map on all seven, and **the size of a dot is how many people stand in that place** — so on Falco every one of the thirteen draws at the minimum size and the sizing says nothing. The map is still worth having for the geography; the counts are not there."
     },
     {
       "n": 5,
@@ -215,8 +215,8 @@
       "state": "blocked",
       "owner": "five archive sessions",
       "since": "2026-09-15",
-      "what": "The front pages run 1,486 to 5,080 words",
-      "note": "A 3.4× spread. The structure is aligned now — same order, same slots — but Defranceschi carries two large diagrams and nearly 5,100 words where Mazza has one small drawing and under 1,500. That gap is **writing and data**, not layout, and closing it is each archive's own work rather than something to be evened out from outside."
+      "what": "The front pages run 1,679 to 5,502 words",
+      "note": "A 3.4× spread. The structure is aligned now — same order, same slots — but Defranceschi carries two large diagrams and nearly 5,100 words where Mazza has one small drawing and under 1,500. That gap is **writing and data**, not layout, and closing it is each archive's own work rather than something to be evened out from outside. **Re-measured 15 September: the spread has not closed, it has moved — 1,679 (Mazza) to 5,502 (Defranceschi), still 3.3×.** All seven now carry the same five sections, so this is purely how much is written under them."
     },
     {
       "n": 28,
@@ -392,7 +392,7 @@
       "owner": "this session",
       "since": "2026-09-15",
       "what": "The home pages still differ in what they carry, beyond the map",
-      "note": "With the map now on all seven, what is left: **the front pages run 1,568 words (Mazza) to 5,224 (Defranceschi), a 3.3× spread**. The rivers diagram is on five of seven (**not Blazevic, not Mazza**); «Elsewhere in the archive» is on five (**not Blazevic, not Lerena**); section counts run 6 to 9. The shared spine — «What this archive has established», «The archive in numbers», «What is still missing» — is on all seven. The user's own framing is the test: *this much real estate could be telling us more*."
+      "note": "**Re-measured after the chart went on all seven.** The five shared sections are now on every archive. What still differs: **the rivers diagram is on five of seven** (not Blazevic, not Mazza) and **«Elsewhere in the archive» on five** (not Blazevic, not Lerena), both blocked on n7/n8 data; section counts run 8 to 10; and the word spread is n27. Nothing here is drift I can close from this session — it is either data another session owns or an editorial call about length."
     },
     {
       "n": 50,
