@@ -18,6 +18,15 @@
  *
  *     work  the archive's worklist.json
  *     u     its url helper, so links inside a note resolve
+ *
+ * Import it by the PACKAGE SPECIFIER, which has no kit/ in it because the
+ * exports map adds one:
+ *
+ *   import WorkList from "@daviddef/archive-kit/components/WorkList.astro";
+ *
+ * A filesystem path to this same file does need it —
+ * node_modules/@daviddef/archive-kit/kit/components/WorkList.astro — and that
+ * asymmetry has already caught one reader.
  */
 const { work, u = (p) => p } = Astro.props;
 
