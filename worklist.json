@@ -640,27 +640,27 @@
     },
     {
       "n": 74,
-      "state": "next",
+      "state": "done",
       "owner": "this session",
       "since": "2026-09-16",
       "what": "EveryName still answers to a prop it has outgrown",
-      "note": "`unit` was the old name for what is now `counts`, kept so Falco would not break mid-change. Falco is the only caller still using it. Migrate that one page and drop the alias, before a second archive copies the deprecated spelling out of it."
+      "note": "`unit` was the old name for what is now `counts`, kept so Falco would not break mid-change. Falco is the only caller still using it. Migrate that one page and drop the alias, before a second archive copies the deprecated spelling out of it.\n\n**Done 16 September.** Falco migrated to `counts`, the alias removed. The new test caught the removal within seconds, which is what it is for: the case that asserted the old name now asserts that a page still passing it falls back to bearers rather than silently counting the wrong thing under the right heading."
     },
     {
       "n": 75,
-      "state": "next",
+      "state": "done",
       "owner": "this session",
       "since": "2026-09-16",
       "what": "Three pages list names and a reader cannot tell which to use",
-      "note": "/people/ is the tree's people, /who/ is every name, /register/ is one row per source line. **Only D'Arcy prints a sentence saying so**, and it is the clearest thing on that page. The other six leave a reader to work it out from three menu entries that all sound like a list of names."
+      "note": "/people/ is the tree's people, /who/ is every name, /register/ is one row per source line. **Only D'Arcy prints a sentence saying so**, and it is the clearest thing on that page. The other six leave a reader to work it out from three menu entries that all sound like a list of names.\n\n**Done 16 September.** `NameLists.astro` on all twenty-one pages, with the one you are standing in marked. D'Arcy's wording is the source; the prose stays each archive's to change. \n\n**Two of my own traps on the way, both already in this list's history.** The insertion matched `<Base[^>]*?>`, and Booyzen's dek holds `rows.map(r => r.n)` — so the regex stopped at that arrow's `>` and put the strip inside the attribute. Worse, the check I wrote to catch it tested that the text before ended in `>`, which `r =>` does: **a verification that cannot fail is not a verification.** Redone with a scan that tracks brace depth and quoting, and proved by building all seven rather than by grep. \n\nThen `git add` with a pathspec matching no file staged NOTHING in six repos — the same trap as the earlier six-repo miss, and I had again sent stderr to /dev/null. The files were on disk and built; only Lerena's reached HEAD. Each path is now added singly, and the result checked against HEAD rather than against the exit code."
     },
     {
       "n": 76,
-      "state": "next",
+      "state": "done",
       "owner": "this session",
       "since": "2026-09-16",
       "what": "Blazevic's register says «family tree» and then «MyHeritage family tree»",
-      "note": "The source column prints the kind as a label and then the source text underneath, and on this archive the two overlap on every tree row. Pre-existing and small, but it is 1,282 rows of it. Either the label or the prefix should go."
+      "note": "The source column prints the kind as a label and then the source text underneath, and on this archive the two overlap on every tree row. Pre-existing and small, but it is 1,282 rows of it. Either the label or the prefix should go.\n\n**Done 16 September, and fixed in the component rather than on the one archive.** A label the source text already contains is an echo and is dropped; where it is not contained it stays, because «read in the register» beside «Senj marriages p.348 no.2» is doing real work. Blazevic's 1,282 tree rows stop saying it twice."
     },
     {
       "n": 77,
@@ -680,11 +680,11 @@
     },
     {
       "n": 79,
-      "state": "next",
+      "state": "done",
       "owner": "this session",
       "since": "2026-09-16",
       "what": "tr[hidden] is left to the user-agent while tbody[hidden] was said out loud",
-      "note": "A hidden chunk gets an explicit `display:none` because `[hidden]` is a single attribute selector and loses to anything a site sets on `tbody`. **The rows themselves were never given the same protection**, and every filter in the estate depends on `r.hidden = true` actually hiding the row. It has not broken, which means no theme sets a competing `tr` rule today — that is luck, not design, across seven themes."
+      "note": "A hidden chunk gets an explicit `display:none` because `[hidden]` is a single attribute selector and loses to anything a site sets on `tbody`. **The rows themselves were never given the same protection**, and every filter in the estate depends on `r.hidden = true` actually hiding the row. It has not broken, which means no theme sets a competing `tr` rule today — that is luck, not design, across seven themes.\n\n**Done 16 September.** Checked first: **no archive theme sets a `tr` display rule**, so nothing was broken - which is luck rather than design across seven themes, so `tr.ft-row[hidden]{display:none}` is now said explicitly, as `tbody[hidden]` already was."
     },
     {
       "n": 80,
