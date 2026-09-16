@@ -44,6 +44,22 @@ const {
   unit = "rows",
   id = "ft",
 } = Astro.props;
+/* A LONG TABLE IS LAID OUT IN BLOCKS THE BROWSER CAN SKIP. Booyzen's register
+   split 7,620 rows into fourteen sections and gave each one content-visibility,
+   so the browser only lays out what you have scrolled to; moving it onto one
+   flat table would have thrown that away, on the second-largest page in the
+   estate. Several <tbody> in one <table> is valid HTML and is how it survives.
+
+   Per-CHUNK, not per-row. Applying it to twelve thousand individual rows makes
+   twelve thousand containment contexts and needs a height estimate for each,
+   and rows here are not a uniform height - the name cell runs to two lines when
+   there is a chip under it. A wrong estimate is the bug Booyzen's own comment
+   warns about: the browser collapses what is off-screen and the scrollbar
+   jumps as you scroll. A block of 200 averages that out. */
+const CHUNK = 200;
+const chunks = rows.length > CHUNK * 2
+  ? Array.from({ length: Math.ceil(rows.length / CHUNK) }, (_, i) => rows.slice(i * CHUNK, i * CHUNK + CHUNK))
+  : [rows];
 ---
 <div class="ft" data-ft={id} data-multi={facets.filter((f) => f.multi).map((f) => f.key).join(" ")}>
   {fold ? <script type="application/json" class="ft-fold" set:html={JSON.stringify(fold)} /> : null}
@@ -96,16 +112,18 @@ const {
   <div class="scroll">
     <table class="ft-table">
       <thead><tr>{columns.map((c) => <th class={c.cls || ""}>{c.label}</th>)}</tr></thead>
-      <tbody>
-        {rows.map((r) => (
-          <tr class="ft-row" data-hay={r.hay || undefined}
-              {...Object.fromEntries((facets || []).map((f) => ["data-" + f.key, String((r.facets || {})[f.key] ?? "")]))}>
-            {r.cells.map((c, i) => (
-              <td class={(columns[i] && columns[i].cls) || ""} set:html={c} />
-            ))}
-          </tr>
-        ))}
-      </tbody>
+      {chunks.map((chunk) => (
+        <tbody class={chunks.length > 1 ? "ft-chunk" : ""}>
+          {chunk.map((r) => (
+            <tr class="ft-row" data-hay={r.hay || undefined}
+                {...Object.fromEntries((facets || []).map((f) => ["data-" + f.key, String((r.facets || {})[f.key] ?? "")]))}>
+              {r.cells.map((c, i) => (
+                <td class={(columns[i] && columns[i].cls) || ""} set:html={c} />
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      ))}
     </table>
   </div>
   <p class="ft-empty small" hidden>{empty}</p>
@@ -120,6 +138,14 @@ const {
     for (const r of rows) {
       if (r.dataset.hay === undefined) r.dataset.hay = (r.textContent || "").toLowerCase();
     }
+    /* A chunk reserves its estimated height while the browser has not laid it
+       out, so a chunk whose every row is filtered away would leave nine
+       thousand pixels of nothing behind. Booyzen hid its empty sections for
+       exactly this reason and the same is needed here. Rows are resolved to
+       their chunk once, not on every keystroke. */
+    const chunks = [...box.querySelectorAll("tbody.ft-chunk")];
+    const chunkOf = new Map(chunks.map((c, i) => [c, i]));
+    const owner = rows.map((r) => chunkOf.get(r.parentElement));
     const nEl = box.querySelector(".ft-n");
     const ofEl = box.querySelector(".ft-of");
     const emptyEl = box.querySelector(".ft-empty");
@@ -137,7 +163,13 @@ const {
       const raw = (q && q.value || "").trim().toLowerCase();
       const needle = MAP ? fold(raw) : raw;
       let shown = 0;
-      for (const r of rows) {
+      const live = chunks.map(() => 0);
+      /* Indexed, not for..of with indexOf: looking each row up in the array to
+         find its chunk is O(n squared), and on the 12,034-row Falco register
+         that is 145 million comparisons per keystroke - slower than the layout
+         this is here to avoid. */
+      for (let i = 0; i < rows.length; i++) {
+        const r = rows[i];
         const text = MAP ? (r.dataset.folded || "") : (r.dataset.hay || "");
         let ok = !needle || text.includes(needle);
         if (ok) for (const k in picked) {
@@ -153,8 +185,9 @@ const {
           }
         }
         r.hidden = !ok;
-        if (ok) shown++;
+        if (ok) { shown++; if (owner[i] !== undefined) live[owner[i]]++; }
       }
+      for (let i = 0; i < chunks.length; i++) chunks[i].hidden = !live[i];
       if (nEl) nEl.textContent = shown.toLocaleString();
       const filtered = needle || Object.values(picked).some(Boolean);
       if (ofEl) ofEl.textContent = filtered
@@ -169,7 +202,14 @@ const {
     if (q) {
       const pre = new URLSearchParams(location.search).get("q");
       if (pre) q.value = pre;
-      q.addEventListener("input", apply);
+      /* Debounced past a couple of thousand rows, which is Booyzen's number:
+         under that the filter is imperceptible and a delay is just lag. */
+      if (rows.length > 2000) {
+        let t;
+        q.addEventListener("input", () => { clearTimeout(t); t = setTimeout(apply, 120); });
+      } else {
+        q.addEventListener("input", apply);
+      }
     }
     box.querySelectorAll(".ft-sel").forEach((sel) => {
       const wrap = sel.closest(".ft-facet");
@@ -198,6 +238,12 @@ const {
 </script>
 
 <style is:global>
+  /* Plain length first: browsers from Chrome 85 to 110 support
+     content-visibility but cannot parse the "auto" keyword in
+     contain-intrinsic-size, and with no usable estimate they collapse every
+     off-screen block to nothing. Booyzen found this and it is kept. */
+  tbody.ft-chunk { content-visibility:auto; contain-intrinsic-size:9000px;
+    contain-intrinsic-size:auto 9000px; }
   .ft-bar { display:flex; flex-wrap:wrap; gap:.9rem 1.4rem; align-items:flex-end;
     margin:.9rem 0 .6rem; }
   .ft-lab { display:block; font-size:9.5px; font-weight:600; letter-spacing:.11em;
