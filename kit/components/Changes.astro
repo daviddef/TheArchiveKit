@@ -1,0 +1,103 @@
+---
+/* What changed, most recent first.
+ *
+ * The widest spread in the estate — 378 words on one archive against 53,386 on
+ * another, a 141x gap for what is the same job everywhere: a dated note saying
+ * what was done and what it turned up. Four of the seven keep one, and only the
+ * shape differed. Falco lists 118 commits flat; Defranceschi, D'Arcy and Lerena
+ * group by day, which is the better read and is what this does.
+ *
+ * TWO FIELDS, NOT ONE. «What was done» and «what was found» are different
+ * things and the archives that separate them are right to: reading a register
+ * for six hours and finding nothing is a day's work and no discovery, and a
+ * feed that only records discoveries quietly rewrites the effort. Where an
+ * archive has only one of the two, only one is shown.
+ *
+ *   days  [{when, entries:[{title, did, found, href, kind}]}]
+ *          did/found arrive as HTML the archive has already rendered
+ */
+const { days = [], u = (p) => p, unit = "days" } = Astro.props;
+const kinds = [...new Set(days.flatMap((d) => (d.entries || []).map((e) => e.kind)).filter(Boolean))];
+const total = days.reduce((a, d) => a + (d.entries || []).length, 0);
+const ext = (h) => /^(https?:)?\/\//.test(String(h || ""));
+---
+<div class="ch">
+  {kinds.length > 1 ? (
+    <div class="ch-bar">
+      <span class="ch-lab">Show</span>
+      <button type="button" class="ch-opt on" data-v="">All <span class="mono">{total}</span></button>
+      {kinds.map((k) => (
+        <button type="button" class="ch-opt" data-v={k}>{k}
+          <span class="mono">{days.reduce((a, d) => a + (d.entries || []).filter((e) => e.kind === k).length, 0)}</span></button>
+      ))}
+    </div>
+  ) : null}
+
+  {days.map((d) => (
+    <section class="ch-day">
+      <h3 class="ch-when">{d.when}
+        <span class="small mono ch-n">{(d.entries || []).length}</span></h3>
+      {(d.entries || []).map((e) => (
+        <article class="ch-e" data-kind={e.kind || ""}>
+          <h4 class="ch-t">
+            {e.href
+              ? <a href={ext(e.href) ? e.href : u(e.href)} rel={ext(e.href) ? "noopener" : null}
+                   set:html={e.title} />
+              : <span set:html={e.title} />}
+            {e.kind ? <span class="chip">{e.kind}</span> : null}
+          </h4>
+          {e.did ? <p class="ch-did"><span class="ch-k">did</span> <Fragment set:html={e.did} /></p> : null}
+          {e.found ? <p class="ch-found"><span class="ch-k">found</span> <Fragment set:html={e.found} /></p> : null}
+        </article>
+      ))}
+    </section>
+  ))}
+  <p class="ch-none small" hidden>Nothing of that kind.</p>
+</div>
+
+<script>
+  document.querySelectorAll(".ch").forEach((box) => {
+    const entries = [...box.querySelectorAll(".ch-e")];
+    const days = [...box.querySelectorAll(".ch-day")];
+    const none = box.querySelector(".ch-none");
+    box.querySelectorAll(".ch-opt").forEach((b) => {
+      b.addEventListener("click", () => {
+        box.querySelectorAll(".ch-opt").forEach((x) => x.classList.remove("on"));
+        b.classList.add("on");
+        const v = b.dataset.v || "";
+        let shown = 0;
+        for (const e of entries) {
+          const ok = !v || e.dataset.kind === v;
+          e.hidden = !ok;
+          if (ok) shown++;
+        }
+        /* a day with nothing left in it goes too, or the feed becomes a list of
+           empty dates */
+        for (const d of days) d.hidden = ![...d.querySelectorAll(".ch-e")].some((e) => !e.hidden);
+        if (none) none.hidden = shown > 0;
+      });
+    });
+  });
+</script>
+
+<style is:global>
+  .ch-bar { display:flex; flex-wrap:wrap; gap:.35rem; align-items:center; margin:1rem 0 .5rem; }
+  .ch-lab { font-size:9.5px; font-weight:600; letter-spacing:.11em; text-transform:uppercase;
+    color:var(--ink-3,#888); margin-right:.35rem; }
+  .ch-opt { font:inherit; font-size:.78rem; padding:.22rem .6rem; cursor:pointer;
+    color:var(--ink-2,inherit); background:transparent; border:1px solid var(--rule,#ccc);
+    border-radius:2px; display:inline-flex; gap:.4rem; align-items:baseline; }
+  .ch-opt.on { color:var(--accent,#963); border-color:var(--accent,#963);
+    background:var(--accent-wash,transparent); font-weight:600; }
+  .ch-day { margin:1.5rem 0 0; }
+  .ch-when { display:flex; align-items:baseline; gap:.5rem; margin:0 0 .3rem;
+    font-size:.95rem; border-bottom:1px solid var(--rule,#ddd); padding-bottom:.25rem; }
+  .ch-n { font-weight:400; color:var(--ink-3,#888); margin-left:auto; }
+  .ch-e { padding:.55rem 0; border-bottom:1px solid var(--rule,rgba(128,128,128,.14)); }
+  .ch-t { margin:0 0 .2rem; font-size:.95rem; font-weight:600;
+    display:flex; align-items:baseline; gap:.5rem; flex-wrap:wrap; }
+  .ch-k { display:inline-block; min-width:3.1rem; font-size:9.5px; font-weight:600;
+    letter-spacing:.11em; text-transform:uppercase; color:var(--ink-3,#888); }
+  .ch-did { margin:.12rem 0; color:var(--ink-2,inherit); }
+  .ch-found { margin:.12rem 0; }
+</style>
