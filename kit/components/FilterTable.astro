@@ -244,8 +244,15 @@ const chunks = sized && rows.length > CHUNK * 2
     /* ?q= in the address bar pre-fills the box. The Mazza page did this and it
        is how every "every X in the register →" link on the estate arrives. */
     if (q) {
+      /* AND APPLY IT. The prefill has set the box since it was written and never
+         filtered the table, because apply() had already run above and nothing
+         called it again. Every «Every record naming X →» link on every person
+         page in the estate therefore landed on the whole register - 7,620 rows
+         on Booyzen - with the name sitting inert in the search box until the
+         reader typed a character. The evidence was keyed to the person, the
+         page pointed at it, and the pointer did nothing. */
       const pre = new URLSearchParams(location.search).get("q");
-      if (pre) q.value = pre;
+      if (pre) { q.value = pre; apply(); }
       /* Debounced past a couple of thousand rows, which is Booyzen's number:
          under that the filter is imperceptible and a delay is just lag. */
       if (rows.length > 2000) {
