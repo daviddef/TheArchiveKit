@@ -60,7 +60,13 @@ const echoes = (label, src) => {
 ---
 <FilterTable
   unit={unit}
-  columns={[{ label: "Name" }, { label: "What the source says" }, { label: "Source", cls: "small" }]}
+  /* Widths are what let the long registers be chunked into boxes the browser
+     can skip: a table can only be split if every chunk sizes its columns the
+     same way, which needs them declared rather than measured from contents.
+     Falco's 12,045 rows and Booyzen's 7,620 are the pages that need it. */
+  columns={[{ label: "Name", w: "22%" },
+            { label: "What the source says", w: "52%" },
+            { label: "Source", cls: "small", w: "26%" }]}
   facets={[
     ...(surnames.length > 1 ? [{ key: "sur", label: "Surname", all: `All ${surnames.length} surnames`,
       options: surnames.map(([s, n]) => ({ v: s, label: `${s} (${n})` })) }] : []),

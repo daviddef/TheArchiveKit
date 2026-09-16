@@ -46,28 +46,46 @@ const {
   unit = "rows",
   id = "ft",
 } = Astro.props;
-/* THIS TABLE IS LAID OUT WHOLE, AND THAT IS NOT WHAT IT SAID BEFORE.
+/* A LONG TABLE IS BROKEN INTO BOXES THE BROWSER CAN SKIP - and it took two
+   attempts, because the first one did nothing.
 
-   Booyzen's register split 7,620 rows into fourteen <section>s and gave each
-   one content-visibility, so the browser laid out only what you had scrolled
-   to. Flattening the sections into one table with a facet is the better page -
-   a reader gets one spelling in a click and the search runs across all of them
-   - but the optimisation did NOT come with it, and the comment here used to
-   claim it had. Several <tbody> in one <table> is valid HTML; it is not several
-   boxes to a layout engine.
+   Booyzen's register split 7,620 rows into fourteen <section>s, each with its
+   OWN table, and gave each one content-visibility. Flattening those into one
+   table with a facet is the better page. The first attempt at keeping the
+   optimisation split the rows into several <tbody> inside that one table, and
+   measured in a browser it skipped NOTHING: a plain off-screen <div> fires
+   contentvisibilityautostatechange with skipped:true, and a tbody 23,000px
+   below the fold fires nothing, with either table-layout. Several <tbody> in
+   one <table> is valid HTML; it is not several boxes to a layout engine.
 
-   Measured in a browser rather than reasoned about, on D'Arcy's 473-row people
-   table at a 900px viewport: a plain off-screen <div> with content-visibility
-   fires contentvisibilityautostatechange with skipped:true, and the tbody
-   chunks 12,000 and 23,000px below the fold fire NOTHING - not with
-   table-layout:auto and not with table-layout:fixed. Their heights are
-   available at first paint, which is the same thing said another way. The
-   fourteen sections worked because each held its own table in a block box.
+   So each chunk is a <div> again - a real block box - holding its own <table>.
+   What makes them read as one table rather than as a stack of them is a shared
+   <colgroup> and table-layout:fixed, so every chunk sizes its columns to the
+   same declared widths instead of to its own contents. That is why chunking
+   only happens when the caller has declared a width for every column: without
+   them, fixed layout would spread the columns evenly and a register of names
+   and sentences would look wrong. No widths, no chunking, one table - which is
+   what almost every table in the estate gets.
 
-   So the chunking is gone rather than left in place looking like it does
-   something. Getting it back means a table per chunk sharing one colgroup, and
-   that is a row on the work list, not a comment. The debounce stays: that was
-   never in doubt. */
+   The heading row is real in the first chunk and screen-reader-only in the
+   rest, so a reader sees one header and assistive technology gets one per
+   table, which is what each table needs to be navigable.
+
+   The reserved height is measured and proportional: a D'Arcy register chunk of
+   200 rows is 17,043 to 22,673px against the 9,000 a first guess reserved, and
+   its median row is 97px rather than the 45 that guess came from. Each chunk
+   reserves its own row count times `rowPx`. The `auto` keyword then replaces
+   the estimate with the real height once the browser has laid the chunk out,
+   so it only has to be close for the first paint. */
+const { rowPx = 85 } = Astro.props;
+const CHUNK = 200;
+/* Fixed layout needs a width for every column; without them the columns would
+   be spread evenly and a register of names and sentences would look wrong. */
+const sized = columns.length > 0 && columns.every((c) => c.w);
+const chunks = sized && rows.length > CHUNK * 2
+  ? Array.from({ length: Math.ceil(rows.length / CHUNK) }, (_, i) => rows.slice(i * CHUNK, i * CHUNK + CHUNK))
+  : [rows];
+
 ---
 <div class="ft" data-ft={id} data-multi={facets.filter((f) => f.multi).map((f) => f.key).join(" ")}>
   {fold ? <script type="application/json" class="ft-fold" set:html={JSON.stringify(fold)} /> : null}
@@ -118,19 +136,27 @@ const {
   {note ? <p class="small ft-note" set:html={note} /> : null}
 
   <div class="scroll">
-    <table class="ft-table">
-      <thead><tr>{columns.map((c) => <th class={c.cls || ""}>{c.label}</th>)}</tr></thead>
-      <tbody>
-        {rows.map((r) => (
-          <tr class="ft-row" data-hay={r.hay || undefined} data-extra={r.extraHay || undefined}
-              {...Object.fromEntries((facets || []).map((f) => ["data-" + f.key, String((r.facets || {})[f.key] ?? "")]))}>
-            {r.cells.map((c, i) => (
-              <td class={(columns[i] && columns[i].cls) || ""} set:html={c} />
+    {chunks.map((chunk, ci) => (
+      <div class={chunks.length > 1 ? "ft-chunk" : ""}
+           style={chunks.length > 1 ? `contain-intrinsic-size:auto ${chunk.length * rowPx}px` : undefined}>
+        <table class={"ft-table" + (sized ? " ft-fixed" : "")}>
+          {sized ? <colgroup>{columns.map((c) => <col style={`width:${c.w}`} />)}</colgroup> : null}
+          <thead class={ci > 0 ? "vh" : ""}>
+            <tr>{columns.map((c) => <th class={c.cls || ""}>{c.label}</th>)}</tr>
+          </thead>
+          <tbody>
+            {chunk.map((r) => (
+              <tr class="ft-row" data-hay={r.hay || undefined} data-extra={r.extraHay || undefined}
+                  {...Object.fromEntries((facets || []).map((f) => ["data-" + f.key, String((r.facets || {})[f.key] ?? "")]))}>
+                {r.cells.map((c, i) => (
+                  <td class={(columns[i] && columns[i].cls) || ""} set:html={c} />
+                ))}
+              </tr>
             ))}
-          </tr>
-        ))}
-      </tbody>
-    </table>
+          </tbody>
+        </table>
+      </div>
+    ))}
   </div>
   <p class="ft-empty small" hidden>{empty}</p>
 </div>
@@ -244,6 +270,14 @@ const {
 </script>
 
 <style is:global>
+  .ft-chunk { content-visibility:auto; }
+  .ft-fixed { table-layout:fixed; width:100%; }
+  /* The chunks must read as one table: no gap, and only the first keeps a top
+     border of its own. */
+  .ft-chunk + .ft-chunk .ft-table { border-top:0; }
+  .ft-chunk .ft-table { margin:0; }
+  .vh { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0);
+    clip-path:inset(50%); white-space:nowrap; }
   /* Every filter in this estate works by setting `hidden` on a row, and the UA
      rule [hidden]{display:none} is a single attribute selector that loses to
      anything a site sets on `tr`. No theme here sets one today - checked across
