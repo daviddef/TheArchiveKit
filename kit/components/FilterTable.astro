@@ -46,37 +46,28 @@ const {
   unit = "rows",
   id = "ft",
 } = Astro.props;
-/* A LONG TABLE IS LAID OUT IN BLOCKS THE BROWSER CAN SKIP. Booyzen's register
-   split 7,620 rows into fourteen sections and gave each one content-visibility,
-   so the browser only lays out what you have scrolled to; moving it onto one
-   flat table would have thrown that away, on the second-largest page in the
-   estate. Several <tbody> in one <table> is valid HTML and is how it survives.
+/* THIS TABLE IS LAID OUT WHOLE, AND THAT IS NOT WHAT IT SAID BEFORE.
 
-   Per-CHUNK, not per-row. Applying it to twelve thousand individual rows makes
-   twelve thousand containment contexts and needs a height estimate for each,
-   and rows here are not a uniform height - the name cell runs to two lines when
-   there is a chip under it. A wrong estimate is the bug Booyzen's own comment
-   warns about: the browser collapses what is off-screen and the scrollbar
-   jumps as you scroll. A block of 200 averages that out.
+   Booyzen's register split 7,620 rows into fourteen <section>s and gave each
+   one content-visibility, so the browser laid out only what you had scrolled
+   to. Flattening the sections into one table with a facet is the better page -
+   a reader gets one spelling in a click and the search runs across all of them
+   - but the optimisation did NOT come with it, and the comment here used to
+   claim it had. Several <tbody> in one <table> is valid HTML; it is not several
+   boxes to a layout engine.
 
-   THE ESTIMATE IS MEASURED AND PROPORTIONAL, because the first one was neither.
-   It was a flat 9,000px per chunk, reasoned from a 45px row. Opened in a
-   browser, a D'Arcy register chunk is 17,043 to 22,673px and its median row is
-   97px - the estimate was out by half, which is exactly the jumping scrollbar
-   it was meant to prevent. Worse, a flat number is wrong at both ends: the last
-   chunk holds whatever is left over, and 54 rows were reserving 9,000px for a
-   real 5,193.
+   Measured in a browser rather than reasoned about, on D'Arcy's 473-row people
+   table at a 900px viewport: a plain off-screen <div> with content-visibility
+   fires contentvisibilityautostatechange with skipped:true, and the tbody
+   chunks 12,000 and 23,000px below the fold fire NOTHING - not with
+   table-layout:auto and not with table-layout:fixed. Their heights are
+   available at first paint, which is the same thing said another way. The
+   fourteen sections worked because each held its own table in a block box.
 
-   So each chunk reserves its OWN row count times `rowPx`. Measured on D'Arcy:
-   the register runs about 100px a row and the people table about 68, so the
-   default sits between them and a page with squatter rows can say so. The
-   `auto` keyword then replaces the guess with the real height once the browser
-   has laid the chunk out, so this only has to be close for the first paint. */
-const CHUNK = 200;
-const { rowPx = 85 } = Astro.props;
-const chunks = rows.length > CHUNK * 2
-  ? Array.from({ length: Math.ceil(rows.length / CHUNK) }, (_, i) => rows.slice(i * CHUNK, i * CHUNK + CHUNK))
-  : [rows];
+   So the chunking is gone rather than left in place looking like it does
+   something. Getting it back means a table per chunk sharing one colgroup, and
+   that is a row on the work list, not a comment. The debounce stays: that was
+   never in doubt. */
 ---
 <div class="ft" data-ft={id} data-multi={facets.filter((f) => f.multi).map((f) => f.key).join(" ")}>
   {fold ? <script type="application/json" class="ft-fold" set:html={JSON.stringify(fold)} /> : null}
@@ -129,21 +120,16 @@ const chunks = rows.length > CHUNK * 2
   <div class="scroll">
     <table class="ft-table">
       <thead><tr>{columns.map((c) => <th class={c.cls || ""}>{c.label}</th>)}</tr></thead>
-      {chunks.map((chunk) => (
-        <tbody class={chunks.length > 1 ? "ft-chunk" : ""}
-               style={chunks.length > 1
-                 ? `contain-intrinsic-size:auto ${chunk.length * rowPx}px`
-                 : undefined}>
-          {chunk.map((r) => (
-            <tr class="ft-row" data-hay={r.hay || undefined} data-extra={r.extraHay || undefined}
-                {...Object.fromEntries((facets || []).map((f) => ["data-" + f.key, String((r.facets || {})[f.key] ?? "")]))}>
-              {r.cells.map((c, i) => (
-                <td class={(columns[i] && columns[i].cls) || ""} set:html={c} />
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      ))}
+      <tbody>
+        {rows.map((r) => (
+          <tr class="ft-row" data-hay={r.hay || undefined} data-extra={r.extraHay || undefined}
+              {...Object.fromEntries((facets || []).map((f) => ["data-" + f.key, String((r.facets || {})[f.key] ?? "")]))}>
+            {r.cells.map((c, i) => (
+              <td class={(columns[i] && columns[i].cls) || ""} set:html={c} />
+            ))}
+          </tr>
+        ))}
+      </tbody>
     </table>
   </div>
   <p class="ft-empty small" hidden>{empty}</p>
@@ -168,14 +154,6 @@ const chunks = rows.length > CHUNK * 2
         r.dataset.hay = ((r.textContent || "") + " " + (r.dataset.extra || "")).toLowerCase();
       }
     }
-    /* A chunk reserves its estimated height while the browser has not laid it
-       out, so a chunk whose every row is filtered away would leave nine
-       thousand pixels of nothing behind. Booyzen hid its empty sections for
-       exactly this reason and the same is needed here. Rows are resolved to
-       their chunk once, not on every keystroke. */
-    const chunks = [...box.querySelectorAll("tbody.ft-chunk")];
-    const chunkOf = new Map(chunks.map((c, i) => [c, i]));
-    const owner = rows.map((r) => chunkOf.get(r.parentElement));
     const nEl = box.querySelector(".ft-n");
     const ofEl = box.querySelector(".ft-of");
     const emptyEl = box.querySelector(".ft-empty");
@@ -193,7 +171,6 @@ const chunks = rows.length > CHUNK * 2
       const raw = (q && q.value || "").trim().toLowerCase();
       const needle = MAP ? fold(raw) : raw;
       let shown = 0;
-      const live = chunks.map(() => 0);
       /* Indexed, not for..of with indexOf: looking each row up in the array to
          find its chunk is O(n squared), and on the 12,034-row Falco register
          that is 145 million comparisons per keystroke - slower than the layout
@@ -215,9 +192,8 @@ const chunks = rows.length > CHUNK * 2
           }
         }
         r.hidden = !ok;
-        if (ok) { shown++; if (owner[i] !== undefined) live[owner[i]]++; }
+        if (ok) shown++;
       }
-      for (let i = 0; i < chunks.length; i++) chunks[i].hidden = !live[i];
       if (nEl) nEl.textContent = shown.toLocaleString();
       const filtered = needle || Object.values(picked).some(Boolean);
       if (ofEl) ofEl.textContent = filtered
@@ -268,18 +244,6 @@ const chunks = rows.length > CHUNK * 2
 </script>
 
 <style is:global>
-  /* Plain length first: browsers from Chrome 85 to 110 support
-     content-visibility but cannot parse the "auto" keyword in
-     contain-intrinsic-size, and with no usable estimate they collapse every
-     off-screen block to nothing. Booyzen found this and it is kept. */
-  /* The per-chunk inline style carries the real estimate; this is the floor a
-     browser gets if that style is stripped. */
-  tbody.ft-chunk { content-visibility:auto; contain-intrinsic-size:17000px; }
-  /* The UA rule [hidden]{display:none} is a single attribute selector and loses
-     to anything a site sets on tbody. Said explicitly, because a chunk that
-     fails to hide leaves nine thousand pixels of blank in the middle of a
-     filtered table. */
-  tbody.ft-chunk[hidden] { display:none; }
   .ft-bar { display:flex; flex-wrap:wrap; gap:.9rem 1.4rem; align-items:flex-end;
     margin:.9rem 0 .6rem; }
   .ft-lab { display:block; font-size:9.5px; font-weight:600; letter-spacing:.11em;
