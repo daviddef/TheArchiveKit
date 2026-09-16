@@ -167,34 +167,46 @@ const chunks = sized && rows.length > CHUNK * 2
   document.querySelectorAll(".ft").forEach((box) => {
     const q = box.querySelector(".ft-q");
     const rows = [...box.querySelectorAll(".ft-row")];
-    for (const r of rows) {
-      /* Derived from the row, plus whatever the archive says is searchable but
-         not on screen. A whole second copy of the row's text was costing 386 KB
-         on the Falco people page and 705 KB on Booyzen's - but it was NOT
-         waste: 63% of it duplicated what the cells already say, and the rest
-         bought real search. Falco's rows are findable by the register image
-         they came off, Booyzen's by the titles of the pages that mention them,
-         Blazevic's by the full county-and-opcina place name the cell truncates.
-         Deleting the lot would have quietly broken all three. */
-      if (r.dataset.hay === undefined) {
-        r.dataset.hay = ((r.textContent || "") + " " + (r.dataset.extra || "")).toLowerCase();
-      }
-    }
     const nEl = box.querySelector(".ft-n");
     const ofEl = box.querySelector(".ft-of");
     const emptyEl = box.querySelector(".ft-empty");
     const picked = {};
     const MULTI = new Set((box.dataset.multi || "").split(/\s+/).filter(Boolean));
-
     let MAP = null;
     const foldEl = box.querySelector(".ft-fold");
     if (foldEl) { try { MAP = JSON.parse(foldEl.textContent); } catch (e) { MAP = null; } }
     const fold = (t) => !MAP ? t
       : t.toLowerCase().split(/[^\p{L}\p{N}]+/u).map((w) => MAP[w] || w).join(" ").trim();
-    if (MAP) for (const r of rows) r.dataset.folded = fold(r.dataset.hay || "");
+
+    /* THE HAYSTACK IS NOT BUILT UNTIL SOMEBODY SEARCHES, and that is not a
+       micro-optimisation - it is the difference between the chunks above being
+       skippable and not.
+
+       Reading `textContent` on every row at load renders every row, which
+       permanently defeats the content-visibility on the chunks holding them.
+       Proved rather than reasoned: a chunk cloned verbatim and appended where
+       nothing touches its text fires contentvisibilityautostatechange with
+       skipped:true, while the original - whose rows this loop had read - fires
+       nothing at all, ever. The two optimisations were cancelling each other
+       and neither was visible in the markup.
+
+       Deferred, both work. Nothing reads a row until the first keystroke or the
+       first facet click, and a reader who only looks never pays for either. */
+    let built = false;
+    const build = () => {
+      if (built) return;
+      built = true;
+      for (const r of rows) {
+        if (r.dataset.hay === undefined) {
+          r.dataset.hay = ((r.textContent || "") + " " + (r.dataset.extra || "")).toLowerCase();
+        }
+      }
+      if (MAP) for (const r of rows) r.dataset.folded = fold(r.dataset.hay || "");
+    };
 
     const apply = () => {
       const raw = (q && q.value || "").trim().toLowerCase();
+      if (raw || Object.values(picked).some(Boolean)) build();
       const needle = MAP ? fold(raw) : raw;
       let shown = 0;
       /* Indexed, not for..of with indexOf: looking each row up in the array to
