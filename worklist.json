@@ -125,11 +125,14 @@
     },
     {
       "n": 13,
-      "state": "next",
+      "state": "done",
       "owner": "four archive sessions",
       "since": "2026-09-15",
       "what": "Four archives have no About page at all",
-      "note": "Booyzen, Blazevic, Mazza and Lerena. Three of seven tell a reader what the archive is and who made it; four do not."
+      "note": "Booyzen, Blazevic, Mazza and Lerena. Three of seven tell a reader what the archive is and who made it; four do not.\n\n**Done 17 September.** Booyzen, Blazevic, Mazza and Lerena now have one, in the menu after Home where the other three put it, with their holdings counted from their own data: Blazevic 1,230 people and 1,466 records, Booyzen 346 and 7,620, Mazza 592 people and 128 corrections offered to the tree, Lerena 278 of the name with 22 connected to the line. **Each says plainly that nobody has written who made it or why**, and nothing was invented to fill that. Four sentences are owed by the archives.",
+      "covers": [
+        "part:about"
+      ]
     },
     {
       "n": 14,

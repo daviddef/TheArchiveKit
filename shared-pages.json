@@ -2,6 +2,21 @@
   "note": "Every page that exists on more than one archive, and whether it has been given a shared shape. `state` is aligned, partial or local. This is what the cross-archive work list is counted against: a route that is not aligned is outstanding work, and a work-list row has to say which routes it answers for. Tier is the order I mean to do them in, not a claim about importance.",
   "rows": [
     {
+      "key": "about",
+      "route": "/about/",
+      "tier": 1,
+      "state": "partial",
+      "component": "About",
+      "on": 7,
+      "note": "**Four of seven on the shared About; three wrote their own before it existed.** Falco, Defranceschi and D'Arcy had one and four did not, which meant four archives asked a reader to trust them without saying who was asking. The three agreed on the substance without agreeing on the headings: what it is willing to say, what it holds, how it is built, and what it gets wrong. Everything on the shared page is **counted at build time** - people, places, records, corrections - so it cannot go stale the way a typed number does; the five words and the living-people rule are the estate's. **WHAT IS NOT DERIVABLE IS WHO MADE IT AND WHY, and the component refuses to invent it**: an archive that has not written its opening gets a plain statement that it has not, addressed to whoever maintains it. A fabricated provenance on a page whose whole subject is provenance would be the worst thing in the estate. **All four say so today** - that is four sentences owed by the archives, not by me.",
+      "using": 4,
+      "drawingTheirOwn": [
+        "Falco",
+        "Defranceski",
+        "D'Arcy"
+      ]
+    },
+    {
       "key": "marriages",
       "route": "/marriages/",
       "on": 7,
