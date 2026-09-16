@@ -244,6 +244,11 @@ const {
 </script>
 
 <style is:global>
+  /* Every filter in this estate works by setting `hidden` on a row, and the UA
+     rule [hidden]{display:none} is a single attribute selector that loses to
+     anything a site sets on `tr`. No theme here sets one today - checked across
+     all seven - which is luck rather than design, so it is said explicitly. */
+  tr.ft-row[hidden] { display:none; }
   .ft-bar { display:flex; flex-wrap:wrap; gap:.9rem 1.4rem; align-items:flex-end;
     margin:.9rem 0 .6rem; }
   .ft-lab { display:block; font-size:9.5px; font-weight:600; letter-spacing:.11em;

@@ -26,12 +26,12 @@ import FilterTable from "./FilterTable.astro";
  *   names   [{slug, name, n, detail}]  detail is optional, shown beside the name
  *   u       the archive's url helper
  *   counts  what n counts: "people" (bearers), "records", "mentions", …
+ *           (`unit` was the old spelling and is gone; Falco was its last caller)
  *   noun    what the rows are, for the count line ("names")
  */
-const { names = [], u = (p) => p, unit, counts, noun = "names",
+const { names = [], u = (p) => p, counts, noun = "names",
         detailLabel = "What the record says" } = Astro.props;
-/* `unit` is the old name for this prop and still works. */
-const what = counts ?? unit ?? "people";
+const what = counts ?? "people";
 const bearers = what === "people";
 /* "people" does not end in s, so stripping one leaves "more than one people".
    The three words this estate actually uses are spelled out; anything else an

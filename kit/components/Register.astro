@@ -46,6 +46,17 @@ for (const r of rows) if (r.kind) byKind[r.kind] = (byKind[r.kind] || 0) + 1;
 const kinds = Object.entries(byKind).sort((a, b) => b[1] - a[1]);
 const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;");
 const ext = (h) => /^(https?:)?\/\//.test(String(h || ""));
+/* A LABEL THE SOURCE ALREADY SAYS IS AN ECHO, NOT A LABEL. Blazevic's tree rows
+   printed "family tree" and then "MyHeritage family tree" underneath, on all
+   1,282 of them, because the kind word and the source text overlap for that one
+   kind and not for the others - "read in the register" beside "Senj marriages
+   p.348 no.2" is doing real work. So the label is dropped only where the source
+   already contains it. */
+const echoes = (label, src) => {
+  const a = String(label ?? "").trim().toLowerCase();
+  const b = String(src ?? "").toLowerCase();
+  return !!a && b.includes(a);
+};
 ---
 <FilterTable
   unit={unit}
@@ -65,9 +76,13 @@ const ext = (h) => /^(https?:)?\/\//.test(String(h || ""));
       (r.href ? `<a href="${u(r.href)}">${esc(r.name)}</a>` : esc(r.name)) +
         (r.chip ? `<br><span class="chip doc">${esc(r.chip)}</span>` : ""),
       r.detail || "",
-      (r.sourceHref
+      ((r.sourceHref
         ? `<a href="${r.sourceHref}"${ext(r.sourceHref) ? ' rel="noopener"' : ""}>${esc(r.sourceLabel || "source")} ↗</a>`
-        : esc(r.sourceLabel || "")) +
-        (r.source ? `<br><span style="color:var(--ink-3)">${esc(r.source)}</span>` : ""),
+        : (echoes(r.sourceLabel, r.source) ? "" : esc(r.sourceLabel || ""))) +
+        (r.source
+          ? (echoes(r.sourceLabel, r.source) && !r.sourceHref
+              ? `<span style="color:var(--ink-3)">${esc(r.source)}</span>`
+              : `<br><span style="color:var(--ink-3)">${esc(r.source)}</span>`)
+          : "")),
     ],
   }))} />

@@ -53,8 +53,14 @@ const CASES = [
   ["EveryName counting records claims no bearers", "kit/components/EveryName.astro",
     { names: [], counts: "records" }, ["one", "bearers"],
     (g) => g.one === "record" && g.bearers === false],
-  ["EveryName still answers to the old prop name", "kit/components/EveryName.astro",
-    { names: [], unit: "records" }, ["what"], (g) => g.what === "records"],
+  /* `unit` was the old spelling of `counts` and is gone. A page still passing
+     it must fall back to bearers rather than silently counting the wrong thing
+     under the right heading - which is the failure this whole component is
+     about. */
+  ["EveryName ignores the retired prop rather than half-honouring it",
+    "kit/components/EveryName.astro",
+    { names: [], unit: "records" }, ["what", "bearers"],
+    (g) => g.what === "people" && g.bearers === true],
 
   /* The evidence ladder leak: a word not among the five must not be graded. */
   ["Timeline grades documented", "kit/components/Timeline.astro",
