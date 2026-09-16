@@ -13,10 +13,23 @@
  *
  * Living people get a name and nothing else, as everywhere.
  *
- *   rows  [{gen, name, spouse, href, born, bornPlace, died, diedPlace,
- *           living, weak, weakNote, note, confidence}]
+ * A HOUSEHOLD IS NOT A LIST OF FACTS ABOUT ONE MAN. Defranceschi's spine is
+ * built on two rows of a Status Animarum, and a book of souls registers
+ * households: a man, his wife, and every child with a date under him. Rendering
+ * only the man would have thrown away the argument the page is making. So a row
+ * may carry its house, its Latin form, its trade, the sources under it, and -
+ * through the optional `Plate` component - the pages of register that prove it.
+ *
+ * `Plate` is passed as a component rather than markup because an archive's
+ * plate renderer is its own; the spine only says where in the row it goes.
+ *
+ *   rows  [{gen, name, latin, spouse, href, born, bornPlace, died, diedPlace,
+ *           trade, living, weak, weakNote, note, confidence,
+ *           household: {label, members: [{name, dates, line, note}]},
+ *           sources: [{label}], plates: [id]}]
+ *   Plate  optional component rendered as <Plate ids={row.plates} />
  */
-const { rows = [], u = (p) => p, label = "Generation" } = Astro.props;
+const { rows = [], u = (p) => p, label = "Generation", Plate } = Astro.props;
 const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;");
 ---
 <ol class="sp">
@@ -28,12 +41,14 @@ const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;");
           {g.href ? <a href={u(g.href)}>{g.name}</a> : g.name}
           {g.spouse ? <span class="sp-sp"> and {g.spouse}</span> : null}
         </h3>
+        {g.latin ? <p class="sp-lat">{g.latin}</p> : null}
         {g.living ? (
           <p class="sp-f"><span class="chip doc">living — named only</span></p>
         ) : (
           <p class="sp-f">
             {g.born ? <><span class="sp-k">born</span>{g.born}{g.bornPlace ? ", " + g.bornPlace : ""}</> : null}
             {g.died ? <><span class="sp-k">died</span>{g.died}{g.diedPlace ? ", " + g.diedPlace : ""}</> : null}
+            {g.trade ? <><span class="sp-k">trade</span>{g.trade}</> : null}
             {g.confidence ? <span class="chip">{g.confidence}</span> : null}
           </p>
         )}
@@ -41,7 +56,24 @@ const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;");
           <p class="sp-w"><strong>The joint here will not bear weight.</strong>{" "}
             {g.weakNote ? <Fragment set:html={g.weakNote} /> : "The tree asserts it and no record names the father."}</p>
         ) : null}
+        {g.household && (g.household.members || []).length ? (
+          <div class="sp-house">
+            <p class="sp-hl">{g.household.label || "In the house"}</p>
+            <p class="sp-kids">
+              {g.household.members.map((m) => (
+                <span class={"sp-kid" + (m.line ? " sp-line" : "")} title={m.note || undefined}>
+                  {m.name}{m.dates ? <i>{m.dates}</i> : null}</span>
+              ))}
+            </p>
+          </div>
+        ) : null}
         {g.note ? <p class="sp-note" set:html={g.note} /> : null}
+        {(g.sources || []).length ? (
+          <p class="sp-src mono">{g.sources.map((x, i) => <>{i > 0 ? " \u00b7 " : ""}{x.label ?? x}</>)}</p>
+        ) : null}
+        {Plate && (g.plates || []).length ? (
+          <div class="sp-plates"><Plate ids={g.plates} cols={g.plates.length} /></div>
+        ) : null}
       </div>
     </li>
   ))}
@@ -63,6 +95,18 @@ const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;");
   .sp-k { display:inline-block; min-width:3rem; font-size:9.5px; font-weight:600;
     letter-spacing:.11em; text-transform:uppercase; color:var(--ink-3,#888); margin-right:.15rem; }
   .sp-f { margin:.1rem 0; display:flex; flex-wrap:wrap; gap:.15rem .8rem; align-items:baseline; }
+  .sp-lat { margin:0 0 .25rem; font-style:italic; color:var(--ink-3,#888); font-size:.9rem; }
+  .sp-house { margin:.6rem 0 0; padding:.55rem .7rem; border:1px solid var(--rule,#ddd);
+    border-radius:3px; }
+  .sp-hl { margin:0 0 .35rem; font-size:9.5px; font-weight:600; letter-spacing:.11em;
+    text-transform:uppercase; color:var(--ink-3,#888); }
+  .sp-kids { margin:0; display:flex; flex-wrap:wrap; gap:.3rem .5rem; }
+  .sp-kid { font-size:.88rem; border:1px solid var(--rule,#ddd); border-radius:2px;
+    padding:.12rem .45rem; }
+  .sp-kid i { color:var(--ink-3,#888); font-size:.8em; margin-left:.35rem; font-style:normal; }
+  .sp-line { border-color:var(--accent,#963); font-weight:600; }
+  .sp-src { margin:.4rem 0 0; font-size:.8rem; color:var(--ink-3,#888); }
+  .sp-plates { margin:.7rem 0 0; max-width:700px; }
   .sp-w { margin:.4rem 0 0; color:var(--terra,#c55); }
   .sp-note { margin:.35rem 0 0; color:var(--ink-2,inherit); }
   @media (max-width:560px) { .sp-g { grid-template-columns:1fr; gap:.15rem 0; } }
