@@ -141,9 +141,9 @@
       "key": "changes",
       "route": "/changes/",
       "on": 6,
-      "state": "partial",
+      "state": "aligned",
       "tier": 2,
-      "note": "**Four of six on the shared Changes** — the 141× spread, 378 words against 53,386, for the same job. **Two fields, not one**: what was DONE and what was FOUND are different things, and a feed that records only discoveries quietly rewrites the effort of a day spent reading a register that held nothing. **Booyzen, Blazevic and Mazza keep no change feed at all.**"
+      "note": "All six that keep one are on the shared feed. Mazza has no such page. Booyzen sets withdrawals beside findings on the day they happened and that arrangement was kept for all six; the strikethrough table stays on /corrections/."
     },
     {
       "key": "households",
