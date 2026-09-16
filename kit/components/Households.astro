@@ -22,7 +22,12 @@
  * Living children get a name and nothing else, as everywhere in this estate.
  *
  *   rows  [{ head, headHref, spouse, spouseHref, married, born, where, via,
- *            note, children: [{name, href, living, note}] }]
+ *            note, children: [{name, href, living, note, via, dates}] }]
+ *
+ * A CHILD CARRIES ITS OWN VIA. Booyzen records not only how the household is
+ * known but how each child was placed in it, and a child the family tree
+ * asserts should not look like a child a baptism names. Printed after the name
+ * where it differs from the household's own word.
  *   sort  "size" ranks by children, "given" keeps the archive's order
  *   search  a box over the couple, the year, the place and every child's name.
  *           D'Arcy had one and nobody else did. The haystack is read off each
@@ -98,9 +103,12 @@ const empty = list.filter((r) => !r.kids.length).length;
         {r.kids.length ? (
           <p class="hh-kids">
             {r.kids.map((c) => (
-              c.href && !c.living
-                ? <a class="hh-kid" href={href(c.href)} title={c.note || undefined}>{c.name}</a>
-                : <span class={"hh-kid" + (c.living ? " hh-living" : "")} title={c.note || undefined}>{c.name}</span>
+              <span class={"hh-kid" + (c.living ? " hh-living" : "") + (c.via && c.via !== r.via ? " hh-soft" : "")}
+                    title={c.note || undefined}>
+                {c.href && !c.living ? <a href={href(c.href)}>{c.name}</a> : c.name}
+                {c.dates ? <i>{c.dates}</i> : null}
+                {c.via && c.via !== r.via ? <em>{c.via}</em> : null}
+              </span>
             ))}
           </p>
         ) : <p class="hh-none small">No children recorded under this couple.</p>}
@@ -181,7 +189,12 @@ const empty = list.filter((r) => !r.kids.length).length;
   .hh-kids { display:flex; flex-wrap:wrap; gap:.3rem .4rem; margin:.55rem 0 0; }
   .hh-kid { font-size:.88rem; border:1px solid var(--rule,#ddd); border-radius:2px;
     padding:.12rem .45rem; text-decoration:none; color:inherit; }
-  a.hh-kid:hover { border-color:var(--accent,#963); color:var(--accent,#963); }
+  .hh-kid a { text-decoration:none; color:inherit; }
+  .hh-kid:hover { border-color:var(--accent,#963); }
+  .hh-kid:hover a { color:var(--accent,#963); }
+  .hh-kid i { color:var(--ink-3,#888); font-size:.82em; margin-left:.3rem; font-style:normal; }
+  .hh-kid em { color:var(--ink-3,#888); font-size:.78em; margin-left:.3rem; font-style:normal; }
+  .hh-soft { border-style:dashed; }
   .hh-living { border-style:dashed; color:var(--ink-3,#888); }
   .hh-none { margin:.5rem 0 0; color:var(--ink-3,#888); font-style:italic; }
   .hh-caveat { margin:1.2rem 0 0; color:var(--ink-3,#888); max-width:70ch; }
