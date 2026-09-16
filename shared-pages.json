@@ -61,9 +61,9 @@
       "key": "who",
       "route": "/who/",
       "on": 7,
-      "state": "partial",
+      "state": "aligned",
       "tier": 1,
-      "note": "**Five of seven on the shared EveryName.** Three were byte-identical apart from the import line; Falco and Booyzen differed only in wording. **The other two are a different page under the same label**: Defranceschi's /who/ is a PERSON index grouped by letter and D'Arcy's is the people it met in documents and had nowhere to put — witnesses, constables, surgeons. That is for you to settle, not for a component to paper over."
+      "note": "All seven on the shared EveryName. The two that looked like a different page were not: Defranceschi and D'Arcy both keep ONE ENTRY PER NAME, keyed by a name-slug - 1,118 entries for 1,118 distinct names, 169 for 169 - and both called each entry a PERSON in their prose, which is the merge this estate says everywhere else that it does not do. Two men called Giovanni Defranceschi have one entry, and it is an entry for the name. WHAT n COUNTS DIFFERS AND DECIDES WHAT MAY BE SAID: bearers on Booyzen, Blazevic, Mazza and Lerena, records on Falco and D'Arcy, mentions on Defranceschi. The 'held by more than one person' reading is offered only where the number supports it; elsewhere the page says plainly that the count is not a count of people. Falco was already declaring this correctly and nobody else was. D'Arcy keeps what makes its page its own - the witnesses, constables and surgeons it had nowhere else to put - and its line of record text is a column."
     },
     {
       "key": "register",
