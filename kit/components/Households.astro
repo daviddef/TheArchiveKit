@@ -24,13 +24,19 @@
  *   rows  [{ head, headHref, spouse, spouseHref, married, born, where, via,
  *            note, children: [{name, href, living, note}] }]
  *   sort  "size" ranks by children, "given" keeps the archive's order
+ *   search  a box over the couple, the year, the place and every child's name.
+ *           D'Arcy had one and nobody else did. The haystack is read off each
+ *           card's own text rather than written into an attribute beside it -
+ *           the same duplication cost 1.9MB on the Falco register before it was
+ *           taken out.
  *   caveat  own wording, or false where the page draws two of these and the
  *           warning has already been given once
  */
 const {
   rows = [], u = (p) => p, sort = "size", caveat,
-  childNoun = "children", unit = "households",
+  childNoun = "children", unit = "households", search,
 } = Astro.props;
+const showSearch = search ?? rows.length >= 12;
 
 const list = rows.map((r, i) => ({ ...r, i, kids: r.children || [] }));
 const ordered = sort === "size"
@@ -51,6 +57,14 @@ const empty = list.filter((r) => !r.kids.length).length;
     {list.length} {unit} &middot; {total} {childNoun}
     {empty ? ` · ${empty} with none recorded` : ""}
   </p>
+
+  {showSearch ? (
+    <div class="hh-search">
+      <label class="hh-lab" for={`hhq-${list.length}`}>Search</label>
+      <input id={`hhq-${list.length}`} class="hh-q" type="search" autocomplete="off"
+             placeholder="A surname, a year, a place, a child…" />
+    </div>
+  ) : null}
 
   {vias.length > 1 ? (
     <div class="hh-bar">
@@ -107,18 +121,30 @@ const empty = list.filter((r) => !r.kids.length).length;
   document.querySelectorAll(".hh").forEach((box) => {
     const hs = [...box.querySelectorAll(".hh-h")];
     const none = box.querySelector(".hh-empty");
+    const count = box.querySelector(".hh-count");
+    const total = count ? count.textContent : "";
+    const q = box.querySelector(".hh-q");
+    let via = "";
+    const apply = () => {
+      const terms = ((q && q.value) || "").trim().toLowerCase().split(/\s+/).filter(Boolean);
+      let shown = 0;
+      for (const h of hs) {
+        const hay = h.dataset.hay || (h.dataset.hay = h.textContent.toLowerCase());
+        const ok = (!via || h.dataset.via === via) && terms.every((t) => hay.includes(t));
+        h.hidden = !ok;
+        if (ok) shown++;
+      }
+      if (none) none.hidden = shown > 0;
+      if (count) count.textContent = (terms.length || via)
+        ? shown + " of " + hs.length + " shown" : total;
+    };
+    if (q) q.addEventListener("input", apply);
     box.querySelectorAll(".hh-opt").forEach((b) => {
       b.addEventListener("click", () => {
         box.querySelectorAll(".hh-opt").forEach((x) => x.classList.remove("on"));
         b.classList.add("on");
-        const v = b.dataset.v || "";
-        let shown = 0;
-        for (const h of hs) {
-          const ok = !v || h.dataset.via === v;
-          h.hidden = !ok;
-          if (ok) shown++;
-        }
-        if (none) none.hidden = shown > 0;
+        via = b.dataset.v || "";
+        apply();
       });
     });
   });
@@ -126,6 +152,11 @@ const empty = list.filter((r) => !r.kids.length).length;
 
 <style is:global>
   .hh-count { color:var(--ink-3,#888); margin:1rem 0 .2rem; }
+  .hh-search { margin:.8rem 0 .2rem; }
+  .hh-search .hh-lab { display:block; margin-bottom:.3rem; }
+  .hh-q { width:100%; max-width:56ch; padding:.55rem .7rem; font:inherit; font-size:1rem;
+    border:1px solid var(--rule-strong,#bbb); border-radius:3px;
+    background:var(--ground,#fff); color:inherit; }
   .hh-bar { display:flex; flex-wrap:wrap; gap:.35rem; align-items:center; margin:.5rem 0 .2rem; }
   .hh-lab { font-size:9.5px; font-weight:600; letter-spacing:.11em; text-transform:uppercase;
     color:var(--ink-3,#888); margin-right:.35rem; }
