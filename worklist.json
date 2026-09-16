@@ -490,13 +490,8 @@
       "since": "2026-09-15",
       "what": "Tier 2: the spine, the places, the sources, the name, the timeline, the change feed",
       "covers": [
-        "part:changes",
-        "part:places",
-        "part:direct-line",
-        "page:sources",
-        "page:name",
-        "part:timeline",
-        "part:bloodline"
+        "part:sources",
+        "part:name"
       ],
       "note": "**/changes/ is the worst spread in the estate — 378 to 53,386 words, 141×** — and a change feed is the same job everywhere. **/direct-line/ runs 441 to 11,136** and is the spine of every archive. **/timeline/ is three of seven** and `EraTimeline` already exists to carry the rest. **/bloodline/ is six of seven**; only Defranceschi still draws its own. **Three done 16 September: /changes/, /places/, /direct-line/.** **/sources/ is blocked the same way /open-questions/ was** — only two of seven hold their sources as data and Booyzen writes 664 lines of it inline, so it needs extraction by those sessions first. Left here: /name/, and finishing /timeline/ and /bloodline/."
     },
@@ -507,13 +502,9 @@
       "since": "2026-09-15",
       "what": "Tier 3: the pages only some archives have",
       "covers": [
-        "page:households",
-        "page:documents",
-        "page:gallery",
-        "page:graves",
-        "page:namesakes"
+        "part:households"
       ],
-      "note": "**/households/ on five, /documents/ and /gallery/ on four, /graves/ and /namesakes/ on three.** Lower value because fewer archives are affected, and **/namesakes/ may stay local** — you and I already agreed Booyzen's is about a different subject. Worth doing after tier 2, and worth asking first whether the archives that lack these pages should have them at all."
+      "note": "**/households/ on five, /documents/ and /gallery/ on four, /graves/ and /namesakes/ on three.** Lower value because fewer archives are affected, and **/namesakes/ may stay local** — you and I already agreed Booyzen's is about a different subject. Worth doing after tier 2, and worth asking first whether the archives that lack these pages should have them at all.\n\n**Split, 16 September 2026.** The four pages this row used to cover now have rows of their own, because «the pages only some archives have» turned out to be four different problems and one of them may not be a problem at all."
     },
     {
       "n": 59,
@@ -522,6 +513,186 @@
       "since": "2026-09-15",
       "what": "My own list declared nothing and covered nothing",
       "note": "Asked to show my backlog and whether I use the same rule, and I did not. I put `accounts` on eight archives and left my own list exempt — **55 rows, no accounts, no covers, and the gate printing «nothing declared» on the kit's own list**. It is counted now, against `shared-pages.json`: a route that is not aligned is outstanding work and a row has to say which routes it answers for. **Twenty-three shared routes: five aligned, two partial, sixteen local.**"
+    },
+    {
+      "n": 60,
+      "state": "next",
+      "owner": "this session",
+      "since": "2026-09-16",
+      "what": "The /people/ hay is 976 KB on Falco and nobody has looked at it since the register was fixed",
+      "note": "The register pages stopped writing every row's text a second time into a `data-hay` attribute and Booyzen's fell 4,045 KB to 3,148. **All seven /people/ pages still do it**: 976 KB of `data-hay` in the built Falco output, 749 KB Booyzen, 189 KB Blazevic. It is **not purely redundant** — Booyzen's hay carries `p.l`, the line, which is a facet value and is not printed in the row — so this is not a delete. FilterTable should take an `extraHay` for the few fields that are genuinely off-screen and derive the rest, which is the shape the register already proved."
+    },
+    {
+      "n": 61,
+      "state": "next",
+      "owner": "this session",
+      "since": "2026-09-16",
+      "what": "Tier 3: /documents/, on the four archives that keep one",
+      "note": "**559 to 53,148 words** for the same job. Four archives; no shared shape yet. The likely core is a plate with a date, what it is, what it says and where the original lives — Falco already keys its dated plates that way for the timeline.",
+      "covers": [
+        "page:documents"
+      ]
+    },
+    {
+      "n": 62,
+      "state": "next",
+      "owner": "this session",
+      "since": "2026-09-16",
+      "what": "Tier 3: /gallery/, and the two archives that call it something else",
+      "note": "Four archives keep one and **two of them use a different word on the page than in the menu**, which is the same defect /who/ had: one label over different things. Settle the label before the shape.",
+      "covers": [
+        "page:gallery"
+      ]
+    },
+    {
+      "n": 63,
+      "state": "next",
+      "owner": "this session",
+      "since": "2026-09-16",
+      "what": "Tier 3: /graves/, on the three archives that keep one",
+      "note": "Three archives. Nudgee, West Park and the Senj plots are each a burial register with a plot, a name as the register wrote it, and a name as the family wrote it — Mazza already records the difference between those two, and it is the interesting column.",
+      "covers": [
+        "page:graves"
+      ]
+    },
+    {
+      "n": 64,
+      "state": "next",
+      "owner": "this session",
+      "since": "2026-09-16",
+      "what": "Tier 3: decide whether /namesakes/ stays local",
+      "note": "Three archives and **two of them are about different subjects** — one means people named after an ancestor, the other means unrelated bearers of the surname. That is the /who/ problem again. It may be right to leave this local, but it should be a decision written down rather than a gap left open.",
+      "covers": [
+        "page:namesakes"
+      ]
+    },
+    {
+      "n": 65,
+      "state": "next",
+      "owner": "this session",
+      "since": "2026-09-16",
+      "what": "A gate for numbers typed into prose",
+      "note": "Three times in one session a page asserted a count its own data contradicted: Mazza said «three of the twenty-seven» over **102** rows, D'Arcy said «the pattern in the eight above» and invited «a ninth» over **32**, and D'Arcy's register printed a button reading 381 that filtered to **360**. Every one was caught by hand while doing something else. A number written into a paragraph does not move when the data does. A check that reads the numerals out of a page's prose and asks whether any of them match a count the same page computes would catch the class."
+    },
+    {
+      "n": 66,
+      "state": "next",
+      "owner": "this session",
+      "since": "2026-09-16",
+      "what": "contain-intrinsic-size:9000px is an estimate I never measured",
+      "note": "The chunked register reserves 9,000 px for each block of 200 rows, on the arithmetic that a row is about 45 px. **That number was reasoned, not measured.** A wrong estimate is precisely the bug Booyzen's own comment warns about: the browser collapses what is off-screen and the scrollbar jumps as you scroll. Measure a real chunk on each of the five registers — Falco's rows are the tallest, since a chip sits under the name — and set it from that, or per archive."
+    },
+    {
+      "n": 67,
+      "state": "blocked",
+      "owner": "this session",
+      "since": "2026-09-16",
+      "what": "Three archives carry no living flag at all, and the gate reports a bare 0",
+      "note": "Booyzen, Blazevic and Lerena flag **0 living in the data**; Falco flags 105, Mazza 334, Defranceschi 26, D'Arcy 4. For Booyzen the zero is honest — only one person in 346 was born after 1946 and she died the same day. But **no row in those three carries the flag at all**, so the only guard is the 80-year date rule, and a living person entered with no birth date would pass both. The gate should distinguish «the rule was applied and found none» from «the flag is not in use here», the same distinction that made it report «0 of 0 — nothing outstanding» for an archive with 24."
+    },
+    {
+      "n": 68,
+      "state": "blocked",
+      "owner": "this session",
+      "since": "2026-09-16",
+      "what": "Falco's register has eleven kinds and the tail of five may be one thing",
+      "note": "swept 7,385 · index 3,252 · household 394 · tree 290 · cited 172 · **record 157 · parish 148 · civil 128 · burial 15 · file 9**. The last five are 457 rows that all appear to mean «a document was read», and eleven options makes the new «Known from» filter a select rather than a row of buttons. **The vocabulary is Falco's and must not be flattened from outside** — but it is worth asking that archive whether the tail is one kind."
+    },
+    {
+      "n": 69,
+      "state": "blocked",
+      "owner": "this session",
+      "since": "2026-09-16",
+      "what": "Defranceschi's coverage gate is failing",
+      "note": "`searched.json: declared key 'key' is on only 289 of 294 rows`. The five are the Findmypast rows that session is adding right now — there is an untracked findmypast.astro in its tree. **Theirs to key, and the gate is doing exactly what it was built to do.** Track it until it clears; do not edit under a live session."
+    },
+    {
+      "n": 70,
+      "state": "blocked",
+      "owner": "this session",
+      "since": "2026-09-16",
+      "what": "Sixty-two outstanding items across three archives sit on no work-list row",
+      "note": "Booyzen **0 of 10**, Lerena **0 of 20**, D'Arcy **36 of 68**. The ratchet lets these pass rather than red-lining the build, which was the point — but three archives have now been at zero reconciled for long enough that the ratchet is doing the work the rows should. Falco 32/32, Blazevic 11/11 and Mazza 23/23 show it is achievable."
+    },
+    {
+      "n": 71,
+      "state": "blocked",
+      "owner": "this session",
+      "since": "2026-09-16",
+      "what": "A search outcome is not a claim grade, and the estate has no rule saying so",
+      "note": "Mazza's timeline carried **40 rows** whose evidence slot held `negative`, `method`, `index only` or `candidate` — none of them among the five words the estate grades with, and three of them describing what a SEARCH did rather than how well a claim is held. They rendered as `ev-negative` and friends: classes with no styling anywhere, wearing the authority of the ladder. The component now prints an ungraded word plainly instead. **Whether those rows belong on the ladder is Mazza's** — but the estate should say once, in the method, that a search outcome and a claim grade are different columns."
+    },
+    {
+      "n": 72,
+      "state": "blocked",
+      "owner": "this session",
+      "since": "2026-09-16",
+      "what": "D'Arcy's /who/ counts 169 names and calls them 169 people",
+      "note": "«There are 224 people named in records… the other 169 are not in this family at all — and they get a page here.» There are **169 name-entries**, keyed by name-slug. The arithmetic only holds if no two of those 169 share a name, which is plausible from that archive's own counts but is **a research check, not a UI one**."
+    },
+    {
+      "n": 73,
+      "state": "next",
+      "owner": "this session",
+      "since": "2026-09-16",
+      "what": "No kit component has a test, and two bugs this session would have been caught by one",
+      "note": "Everything is verified by building an archive and grepping the HTML, which is why «No name here appears in more than one **people**» reached a built page, and why `ev-candidate` — a class with no styling in any theme — rendered 40 times before anyone noticed. A harness that renders each component against a fixture and asserts on the output would be cheap: there are 34 components and most take a plain array."
+    },
+    {
+      "n": 74,
+      "state": "next",
+      "owner": "this session",
+      "since": "2026-09-16",
+      "what": "EveryName still answers to a prop it has outgrown",
+      "note": "`unit` was the old name for what is now `counts`, kept so Falco would not break mid-change. Falco is the only caller still using it. Migrate that one page and drop the alias, before a second archive copies the deprecated spelling out of it."
+    },
+    {
+      "n": 75,
+      "state": "next",
+      "owner": "this session",
+      "since": "2026-09-16",
+      "what": "Three pages list names and a reader cannot tell which to use",
+      "note": "/people/ is the tree's people, /who/ is every name, /register/ is one row per source line. **Only D'Arcy prints a sentence saying so**, and it is the clearest thing on that page. The other six leave a reader to work it out from three menu entries that all sound like a list of names."
+    },
+    {
+      "n": 76,
+      "state": "next",
+      "owner": "this session",
+      "since": "2026-09-16",
+      "what": "Blazevic's register says «family tree» and then «MyHeritage family tree»",
+      "note": "The source column prints the kind as a label and then the source text underneath, and on this archive the two overlap on every tree row. Pre-existing and small, but it is 1,282 rows of it. Either the label or the prefix should go."
+    },
+    {
+      "n": 77,
+      "state": "next",
+      "owner": "this session",
+      "since": "2026-09-16",
+      "what": "The kit has thirty-four components and no index",
+      "note": "Why each exists, what it replaced and which archives use it lives in the component headers and in commit messages. Those headers are the best documentation in this estate and nothing gathers them. A generated index — name, one line, callers — would also make the next «is there already a component for this?» a lookup rather than a grep."
+    },
+    {
+      "n": 78,
+      "state": "next",
+      "owner": "this session",
+      "since": "2026-09-16",
+      "what": "The chunked table has never been tested at its own boundary",
+      "note": "Chunking starts above 400 rows (`CHUNK * 2`). Falco 12,038 and Booyzen 7,620 are far above it and Lerena's 278 is far below. **Nothing in the estate has been built at 400 to 800 rows**, which is where a one-or-two-chunk page either works or reserves 9,000 px for a block holding 3 rows. D'Arcy's 854-row register is the nearest and should be looked at on screen."
+    },
+    {
+      "n": 79,
+      "state": "next",
+      "owner": "this session",
+      "since": "2026-09-16",
+      "what": "tr[hidden] is left to the user-agent while tbody[hidden] was said out loud",
+      "note": "A hidden chunk gets an explicit `display:none` because `[hidden]` is a single attribute selector and loses to anything a site sets on `tbody`. **The rows themselves were never given the same protection**, and every filter in the estate depends on `r.hidden = true` actually hiding the row. It has not broken, which means no theme sets a competing `tr` rule today — that is luck, not design, across seven themes."
+    },
+    {
+      "n": 80,
+      "state": "next",
+      "owner": "this session",
+      "since": "2026-09-16",
+      "what": "The estate's own read-across has no scheduled repeat",
+      "note": "Every count in shared-pages.json — 5 of 7, 4 of 5, 503 to 11,809 words — was measured once, by hand, on the day it was written. **One of them was already wrong**: the note said Mazza had no corrections when it holds 102 in 39 groups, which made me call a conversion blocked that was not. The register is the thing this work is counted against and it decays silently. A script that re-derives the per-row counts and flags any that have moved would keep it honest."
     }
   ]
 }
