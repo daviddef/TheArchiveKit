@@ -576,11 +576,11 @@
     },
     {
       "n": 66,
-      "state": "next",
+      "state": "done",
       "owner": "this session",
       "since": "2026-09-16",
       "what": "contain-intrinsic-size:9000px is an estimate I never measured",
-      "note": "The chunked register reserves 9,000 px for each block of 200 rows, on the arithmetic that a row is about 45 px. **That number was reasoned, not measured.** A wrong estimate is precisely the bug Booyzen's own comment warns about: the browser collapses what is off-screen and the scrollbar jumps as you scroll. Measure a real chunk on each of the five registers — Falco's rows are the tallest, since a chip sits under the name — and set it from that, or per archive."
+      "note": "The chunked register reserves 9,000 px for each block of 200 rows, on the arithmetic that a row is about 45 px. **That number was reasoned, not measured.** A wrong estimate is precisely the bug Booyzen's own comment warns about: the browser collapses what is off-screen and the scrollbar jumps as you scroll. Measure a real chunk on each of the five registers — Falco's rows are the tallest, since a chip sits under the name — and set it from that, or per archive.\n\n**Done 16 September, and it found something bigger.** Measured in a browser: a D'Arcy register chunk of 200 rows is **17,043 to 22,673px** against the 9,000 reserved, and the median row is **97px** not the 45 I had reasoned — out by half, which is the jumping scrollbar the reservation exists to prevent. A flat number was also wrong at the other end: the last chunk holds the remainder, and 54 rows were reserving 9,000px for a real 5,193. \n\nI made it proportional and measured — and then found the reservation was holding space for something the browser was never skipping. See the row below."
     },
     {
       "n": 67,
@@ -672,11 +672,11 @@
     },
     {
       "n": 78,
-      "state": "next",
+      "state": "done",
       "owner": "this session",
       "since": "2026-09-16",
       "what": "The chunked table has never been tested at its own boundary",
-      "note": "Chunking starts above 400 rows (`CHUNK * 2`). Falco 12,038 and Booyzen 7,620 are far above it and Lerena's 278 is far below. **Nothing in the estate has been built at 400 to 800 rows**, which is where a one-or-two-chunk page either works or reserves 9,000 px for a block holding 3 rows. D'Arcy's 854-row register is the nearest and should be looked at on screen."
+      "note": "Chunking starts above 400 rows (`CHUNK * 2`). Falco 12,038 and Booyzen 7,620 are far above it and Lerena's 278 is far below. **Nothing in the estate has been built at 400 to 800 rows**, which is where a one-or-two-chunk page either works or reserves 9,000 px for a block holding 3 rows. D'Arcy's 854-row register is the nearest and should be looked at on screen.\n\n**Done 16 September.** D'Arcy's 854-row register (5 chunks) and 473-row people table (3) were opened at a 900px viewport. The boundary behaves — but the chunking itself turned out to do nothing at any size, so the boundary was never the interesting question."
     },
     {
       "n": 79,
@@ -712,6 +712,22 @@
       "since": "2026-09-16",
       "what": "The bloodline chart could only be dragged sideways",
       "note": "Raised from the Lerena session: the SVG is drawn at a fixed 1,354px into a 1,022px box. **That was a choice, not an accident** — the stage is `overflow:auto` with a max-height, so the chart was meant to be scrolled like a large drawing — but it is the wrong choice at that ratio. 1,354 into 1,022 is 75%, which still leaves a 113px name box and legible text, and no scrollbar. It now fills its box and scales down, with a floor at 70% below which the stage scrolls as before; a phone is always under the floor. \n\nThe centring of short columns was reported with it and **is left alone**: the empty band beside a column of thirteen is inherent to the layout, since height is set by the tallest column, so a one-person column has twelve rows of nothing whatever you do. Top-aligning moves that band, it does not remove it. \n\n**Fixed in the kit and rolled to all seven, not pinned on the one archive that reported it.** The same component rendering two ways across the estate is the drift the kit exists to stop."
+    },
+    {
+      "n": 83,
+      "state": "done",
+      "owner": "this session",
+      "since": "2026-09-16",
+      "what": "content-visibility on a tbody never skips, and the comment said it did",
+      "note": "Booyzen's register split 7,620 rows into fourteen `<section>`s, each with its own table, and gave each one `content-visibility`. Flattening those into one table with a surname facet is the better page — one click instead of two hundred headings, and the search runs across all of them — **but the optimisation did not survive the move, and the comment I wrote claimed it had.** Several `<tbody>` in one `<table>` is valid HTML; it is not several boxes to a layout engine. \n\nMeasured, not reasoned: on D'Arcy's people table at a 900px viewport, a plain off-screen `<div>` fires `contentvisibilityautostatechange` with `skipped:true`, while the tbody chunks 12,000 and 23,000px below the fold fire **nothing** — with `table-layout:auto` and with `fixed`. Their heights are all available at first paint, which is the same fact said another way. \n\nTwo earlier attempts to measure this were worthless and it is worth writing down why: the first ran in a **hidden pane where `window.innerHeight` was 0**, so «near the viewport» was degenerate; the second used `checkVisibility({contentVisibilityAuto:true})`, which this engine appears to ignore — it returned the same answer for a control div that the event later proved *was* being skipped. A measurement that cannot distinguish the two cases is not a measurement. \n\nThe chunking, the per-chunk estimate and the empty-chunk hiding are all removed rather than left looking useful. The debounce stays; that was never in doubt."
+    },
+    {
+      "n": 84,
+      "state": "next",
+      "owner": "this session",
+      "since": "2026-09-16",
+      "what": "Give the long tables their skipping back: a table per chunk, one colgroup",
+      "note": "The 12,038-row Falco register and the 7,620-row Booyzen one are laid out whole, because `content-visibility` does nothing on a `<tbody>`. The shape that works is the one Booyzen already had — **a block box per chunk, each holding its own table** — with a shared `<colgroup>` and `table-layout:fixed` so the columns still line up between them, and the header rendered once above. That keeps the one searchable table a reader sees while giving the engine boxes it can skip. Worth doing only for the two pages over about 5,000 rows; below that the whole table lays out fast enough that this is complexity for nothing."
     }
   ]
 }
