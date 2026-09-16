@@ -244,6 +244,11 @@ const chunks = rows.length > CHUNK * 2
      off-screen block to nothing. Booyzen found this and it is kept. */
   tbody.ft-chunk { content-visibility:auto; contain-intrinsic-size:9000px;
     contain-intrinsic-size:auto 9000px; }
+  /* The UA rule [hidden]{display:none} is a single attribute selector and loses
+     to anything a site sets on tbody. Said explicitly, because a chunk that
+     fails to hide leaves nine thousand pixels of blank in the middle of a
+     filtered table. */
+  tbody.ft-chunk[hidden] { display:none; }
   .ft-bar { display:flex; flex-wrap:wrap; gap:.9rem 1.4rem; align-items:flex-end;
     margin:.9rem 0 .6rem; }
   .ft-lab { display:block; font-size:9.5px; font-weight:600; letter-spacing:.11em;
