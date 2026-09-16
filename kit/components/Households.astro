@@ -24,6 +24,8 @@
  *   rows  [{ head, headHref, spouse, spouseHref, married, born, where, via,
  *            note, children: [{name, href, living, note}] }]
  *   sort  "size" ranks by children, "given" keeps the archive's order
+ *   caveat  own wording, or false where the page draws two of these and the
+ *           warning has already been given once
  */
 const {
   rows = [], u = (p) => p, sort = "size", caveat,
@@ -93,12 +95,12 @@ const empty = list.filter((r) => !r.kids.length).length;
   </div>
   <p class="hh-empty small" hidden>None known that way.</p>
 
-  <p class="hh-caveat small">
+  {caveat === false ? null : <p class="hh-caveat small">
     {caveat ? <Fragment set:html={caveat} /> : <>A household here is a reconstruction, not a document.
     It says these people are recorded as the children of this couple. It does not claim they all lived
     under one roof, or that the list is complete &mdash; infant deaths in particular go unrecorded in a
     tree built from indexes.</>}
-  </p>
+  </p>}
 </div>
 
 <script>
