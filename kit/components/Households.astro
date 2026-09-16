@@ -1,0 +1,155 @@
+---
+/* A couple and the children recorded under them.
+ *
+ * Five archives publish this and all five agreed on the substance while
+ * agreeing on nothing else: Mazza writes {name, born, place, children},
+ * D'Arcy {a, aSlug, b, bSlug, married, where, kids}, Booyzen builds them out of
+ * a kin module. Underneath is one unit - THE SHAPE A REGISTER ACTUALLY RECORDS,
+ * which is not the shape of a pedigree. A pedigree keeps one child per
+ * generation and throws the rest away.
+ *
+ * HOW THE HOUSEHOLD IS KNOWN IS PART OF THE HOUSEHOLD. Booyzen was alone in
+ * recording it - direct line, a record read here, inferred, the family tree -
+ * and that is the difference between a household and a guess about one. It is a
+ * filter here, so a reader can ask for only the ones a document supports.
+ *
+ * A HOUSEHOLD IS A RECONSTRUCTION AND SAYS SO. Mazza's page carries the warning
+ * and it belongs on all five: these people are recorded as the children of this
+ * couple. It does not claim they lived under one roof, or that the list is
+ * complete - infant deaths in particular go unrecorded in a tree built from
+ * indexes. The archive passes its own wording, or takes this one.
+ *
+ * Living children get a name and nothing else, as everywhere in this estate.
+ *
+ *   rows  [{ head, headHref, spouse, spouseHref, married, born, where, via,
+ *            note, children: [{name, href, living, note}] }]
+ *   sort  "size" ranks by children, "given" keeps the archive's order
+ */
+const {
+  rows = [], u = (p) => p, sort = "size", caveat,
+  childNoun = "children", unit = "households",
+} = Astro.props;
+
+const list = rows.map((r, i) => ({ ...r, i, kids: r.children || [] }));
+const ordered = sort === "size"
+  ? [...list].sort((a, b) => b.kids.length - a.kids.length || a.i - b.i)
+  : list;
+const total = list.reduce((a, r) => a + r.kids.length, 0);
+const vias = [...new Set(list.map((r) => r.via).filter(Boolean))];
+const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;");
+const ext = (h) => /^(https?:)?\/\//.test(String(h || ""));
+const href = (h) => (!h ? "" : ext(h) ? h : u(h));
+/* An empty household is still a household - a couple with nothing recorded
+   under them is a finding, not a blank row - but it is not what a reader
+   scanning for the largest is looking for, so it is counted and shown last. */
+const empty = list.filter((r) => !r.kids.length).length;
+---
+<div class="hh">
+  <p class="hh-count small mono">
+    {list.length} {unit} &middot; {total} {childNoun}
+    {empty ? ` · ${empty} with none recorded` : ""}
+  </p>
+
+  {vias.length > 1 ? (
+    <div class="hh-bar">
+      <span class="hh-lab">Known from</span>
+      <button type="button" class="hh-opt on" data-v="">All <span class="mono">{list.length}</span></button>
+      {vias.map((v) => (
+        <button type="button" class="hh-opt" data-v={v}>{v}
+          <span class="mono">{list.filter((r) => r.via === v).length}</span></button>
+      ))}
+    </div>
+  ) : null}
+
+  <div class="hh-list">
+    {ordered.map((r) => (
+      <article class="hh-h" data-via={r.via || ""}>
+        <h3 class="hh-c">
+          {r.headHref ? <a href={href(r.headHref)} set:html={esc(r.head)} /> : <span set:html={esc(r.head)} />}
+          {r.spouse ? <>
+            <span class="hh-and"> and </span>
+            {r.spouseHref ? <a href={href(r.spouseHref)} set:html={esc(r.spouse)} /> : <span set:html={esc(r.spouse)} />}
+          </> : null}
+          <span class="hh-k mono">{r.kids.length}</span>
+        </h3>
+        <p class="hh-f small">
+          {r.married ? <><span class="hh-lk">married</span>{r.married}</> : null}
+          {r.born ? <><span class="hh-lk">head born</span>{r.born}</> : null}
+          {r.where ? <><span class="hh-lk">at</span>{r.where}</> : null}
+          {r.via ? <span class="chip">{r.via}</span> : null}
+        </p>
+        {r.note ? <p class="hh-note small" set:html={r.note} /> : null}
+        {r.kids.length ? (
+          <p class="hh-kids">
+            {r.kids.map((c) => (
+              c.href && !c.living
+                ? <a class="hh-kid" href={href(c.href)} title={c.note || undefined}>{c.name}</a>
+                : <span class={"hh-kid" + (c.living ? " hh-living" : "")} title={c.note || undefined}>{c.name}</span>
+            ))}
+          </p>
+        ) : <p class="hh-none small">No children recorded under this couple.</p>}
+      </article>
+    ))}
+  </div>
+  <p class="hh-empty small" hidden>None known that way.</p>
+
+  <p class="hh-caveat small">
+    {caveat ? <Fragment set:html={caveat} /> : <>A household here is a reconstruction, not a document.
+    It says these people are recorded as the children of this couple. It does not claim they all lived
+    under one roof, or that the list is complete &mdash; infant deaths in particular go unrecorded in a
+    tree built from indexes.</>}
+  </p>
+</div>
+
+<script>
+  document.querySelectorAll(".hh").forEach((box) => {
+    const hs = [...box.querySelectorAll(".hh-h")];
+    const none = box.querySelector(".hh-empty");
+    box.querySelectorAll(".hh-opt").forEach((b) => {
+      b.addEventListener("click", () => {
+        box.querySelectorAll(".hh-opt").forEach((x) => x.classList.remove("on"));
+        b.classList.add("on");
+        const v = b.dataset.v || "";
+        let shown = 0;
+        for (const h of hs) {
+          const ok = !v || h.dataset.via === v;
+          h.hidden = !ok;
+          if (ok) shown++;
+        }
+        if (none) none.hidden = shown > 0;
+      });
+    });
+  });
+</script>
+
+<style is:global>
+  .hh-count { color:var(--ink-3,#888); margin:1rem 0 .2rem; }
+  .hh-bar { display:flex; flex-wrap:wrap; gap:.35rem; align-items:center; margin:.5rem 0 .2rem; }
+  .hh-lab { font-size:9.5px; font-weight:600; letter-spacing:.11em; text-transform:uppercase;
+    color:var(--ink-3,#888); margin-right:.35rem; }
+  .hh-opt { font:inherit; font-size:.78rem; padding:.22rem .6rem; cursor:pointer;
+    color:var(--ink-2,inherit); background:transparent; border:1px solid var(--rule,#ccc);
+    border-radius:2px; display:inline-flex; gap:.4rem; align-items:baseline; }
+  .hh-opt.on { color:var(--accent,#963); border-color:var(--accent,#963);
+    background:var(--accent-wash,transparent); font-weight:600; }
+  .hh-list { display:flex; flex-direction:column; gap:.7rem; margin-top:1rem; }
+  .hh-h { border:1px solid var(--rule,#ddd); border-radius:3px; padding:.7rem .85rem; }
+  .hh-c { margin:0; font-size:1.02rem; line-height:1.3; font-weight:600;
+    display:flex; align-items:baseline; gap:.3rem; flex-wrap:wrap; }
+  .hh-c a { text-decoration:none; color:inherit; }
+  .hh-c a:hover { color:var(--accent,#963); }
+  .hh-and { font-weight:400; color:var(--ink-2,inherit); }
+  .hh-k { margin-left:auto; color:var(--ink-3,#888); font-weight:400; font-size:.85rem; }
+  .hh-f { margin:.3rem 0 0; display:flex; flex-wrap:wrap; gap:.1rem .8rem; align-items:baseline;
+    color:var(--ink-2,inherit); }
+  .hh-lk { display:inline-block; font-size:9.5px; font-weight:600; letter-spacing:.11em;
+    text-transform:uppercase; color:var(--ink-3,#888); margin-right:.25rem; }
+  .hh-note { margin:.35rem 0 0; color:var(--ink-2,inherit); }
+  .hh-kids { display:flex; flex-wrap:wrap; gap:.3rem .4rem; margin:.55rem 0 0; }
+  .hh-kid { font-size:.88rem; border:1px solid var(--rule,#ddd); border-radius:2px;
+    padding:.12rem .45rem; text-decoration:none; color:inherit; }
+  a.hh-kid:hover { border-color:var(--accent,#963); color:var(--accent,#963); }
+  .hh-living { border-style:dashed; color:var(--ink-3,#888); }
+  .hh-none { margin:.5rem 0 0; color:var(--ink-3,#888); font-style:italic; }
+  .hh-caveat { margin:1.2rem 0 0; color:var(--ink-3,#888); max-width:70ch; }
+</style>
