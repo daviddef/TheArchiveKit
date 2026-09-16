@@ -21,11 +21,31 @@
  * because every archive has a different one and a component that took raw
  * markdown would be picking a winner.
  *
- *   rows  [{when, kind, sev, was, now, how, why, by, where, whereLabel,
+ * TWO DIMENSIONS, BECAUSE THE ARCHIVES FILTER BY DIFFERENT THINGS. Falco and
+ * Defranceschi by severity, Booyzen by CAUSE - a list mistaken for a
+ * population, a search written up as wider than it was - and Mazza by what the
+ * correction is ABOUT, in 39 kinds, while also grading each one. Those are not
+ * the same axis and one control cannot carry both. Past seven options the
+ * control becomes a select, because 39 buttons is a wall, not a filter.
+ *
+ *   rows  [{when, who, kind, sev, was, now, how, why, by, where, whereLabel,
  *           extra, superseded:{label, href, note}}]
  */
-const { rows = [], u = (p) => p, major = "major" } = Astro.props;
-const sevs = [...new Set(rows.map((r) => r.sev).filter(Boolean))];
+const { rows = [], u = (p) => p, major = "major",
+        kindLabel = "About", sevLabel = "Show" } = Astro.props;
+const tally = (k) => {
+  const m = new Map();
+  for (const r of rows) if (r[k]) m.set(r[k], (m.get(r[k]) || 0) + 1);
+  return [...m.entries()].sort((a, b) => b[1] - a[1] || String(a[0]).localeCompare(String(b[0])));
+};
+const sevs = tally("sev");
+const kinds = tally("kind");
+/* One control only where there is something to choose between, and only where
+   the chip is not already saying it on every row. */
+const groups = [
+  ...(sevs.length > 1 ? [{ key: "sev", label: sevLabel, opts: sevs }] : []),
+  ...(kinds.length > 1 ? [{ key: "kind", label: kindLabel, opts: kinds }] : []),
+];
 /* u() prefixes the archive's base path, which is right for an internal path and
    wrong for everything else: running an external URL through it produced links
    like /TheDefranceski/https://www.myheritage.com/ — 254 of them, caught by the
@@ -35,21 +55,30 @@ const ext = (h) => /^(https?:)?\/\//.test(String(h || ""));
 
 ---
 <div class="cx">
-  {sevs.length > 1 ? (
-    <div class="cx-bar">
-      <span class="cx-lab">Show</span>
-      <button type="button" class="cx-opt on" data-v="">All <span class="mono">{rows.length}</span></button>
-      {sevs.map((s) => (
-        <button type="button" class="cx-opt" data-v={s}>{s}
-          <span class="mono">{rows.filter((r) => r.sev === s).length}</span></button>
-      ))}
+  {groups.map((g) => (
+    <div class="cx-bar" data-key={g.key}>
+      <span class="cx-lab">{g.label}</span>
+      {g.opts.length > 7 ? (
+        <select class="cx-sel" aria-label={g.label}>
+          <option value="">All {rows.length}</option>
+          {g.opts.map(([v, n]) => <option value={v}>{v} ({n})</option>)}
+        </select>
+      ) : (
+        <>
+          <button type="button" class="cx-opt on" data-v="">All <span class="mono">{rows.length}</span></button>
+          {g.opts.map(([v, n]) => (
+            <button type="button" class="cx-opt" data-v={v}>{v} <span class="mono">{n}</span></button>
+          ))}
+        </>
+      )}
     </div>
-  ) : null}
+  ))}
 
   {rows.map((r) => (
-    <section class="cx-e" data-sev={r.sev || ""} id={r.id || undefined}>
+    <section class="cx-e" data-sev={r.sev || ""} data-kind={r.kind || ""} id={r.id || undefined}>
       <div class="cx-h">
-        <span class="mono small">{r.when}</span>
+        {r.when ? <span class="mono small">{r.when}</span> : null}
+        {r.who ? <strong class="cx-who">{r.who}</strong> : null}
         {r.kind ? <span class={"chip " + (r.sev === major ? "dis" : "")}>{r.kind}</span> : null}
         {r.sev === major ? <span class="chip doc">material</span> : null}
       </div>
@@ -80,19 +109,34 @@ const ext = (h) => /^(https?:)?\/\//.test(String(h || ""));
   document.querySelectorAll(".cx").forEach((box) => {
     const entries = [...box.querySelectorAll(".cx-e")];
     const none = box.querySelector(".cx-none");
-    box.querySelectorAll(".cx-opt").forEach((b) => {
-      b.addEventListener("click", () => {
-        box.querySelectorAll(".cx-opt").forEach((x) => x.classList.remove("on"));
-        b.classList.add("on");
-        const v = b.dataset.v || "";
-        let shown = 0;
-        for (const e of entries) {
-          const ok = !v || e.dataset.sev === v;
-          e.hidden = !ok;
-          if (ok) shown++;
+    /* The two controls narrow together rather than replacing one another: a
+       reader asking for the birth-date corrections that are only probable is
+       asking one question, not two. Each bar clears only its own key. */
+    const picked = {};
+    const apply = () => {
+      let shown = 0;
+      for (const e of entries) {
+        let ok = true;
+        for (const k in picked) {
+          if (picked[k] && (e.dataset[k] || "") !== picked[k]) { ok = false; break; }
         }
-        if (none) none.hidden = shown > 0;
+        e.hidden = !ok;
+        if (ok) shown++;
+      }
+      if (none) none.hidden = shown > 0;
+    };
+    box.querySelectorAll(".cx-bar").forEach((bar) => {
+      const key = bar.dataset.key;
+      bar.querySelectorAll(".cx-opt").forEach((b) => {
+        b.addEventListener("click", () => {
+          bar.querySelectorAll(".cx-opt").forEach((x) => x.classList.remove("on"));
+          b.classList.add("on");
+          picked[key] = b.dataset.v || "";
+          apply();
+        });
       });
+      const sel = bar.querySelector(".cx-sel");
+      if (sel) sel.addEventListener("change", () => { picked[key] = sel.value || ""; apply(); });
     });
   });
 </script>
@@ -106,6 +150,9 @@ const ext = (h) => /^(https?:)?\/\//.test(String(h || ""));
     border-radius:2px; display:inline-flex; gap:.4rem; align-items:baseline; }
   .cx-opt.on { color:var(--accent,#963); border-color:var(--accent,#963);
     background:var(--accent-wash,transparent); font-weight:600; }
+  .cx-sel { font:inherit; font-size:.8rem; padding:.22rem .45rem; border:1px solid var(--rule,#ccc);
+    border-radius:2px; background:var(--ground,#fff); color:inherit; max-width:34ch; }
+  .cx-who { font-size:.95rem; }
   .cx-e { border-top:1px solid var(--rule,#ddd); padding:.9rem 0 .8rem; }
   .cx-h { display:flex; align-items:baseline; gap:.5rem; flex-wrap:wrap; margin-bottom:.4rem; }
   .cx-t { display:inline-block; min-width:4.2rem; font-size:9.5px; font-weight:600;
