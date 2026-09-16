@@ -19,6 +19,8 @@
  * would be deciding what each archive is about.
  *
  *   columns  [{label, cls}]
+ *   rows  a row may set `extraHay` for text it wants searchable but does not
+ *         print; `hay` overrides the derivation entirely and is the old way
  *   rows     [{cells:[…], hay, facets:{key:value}, href}]  cells may be HTML
  *
  * `hay` IS OPTIONAL AND SHOULD BE LEFT OUT ON A LONG TABLE. It is a lowercase
@@ -115,7 +117,7 @@ const chunks = rows.length > CHUNK * 2
       {chunks.map((chunk) => (
         <tbody class={chunks.length > 1 ? "ft-chunk" : ""}>
           {chunk.map((r) => (
-            <tr class="ft-row" data-hay={r.hay || undefined}
+            <tr class="ft-row" data-hay={r.hay || undefined} data-extra={r.extraHay || undefined}
                 {...Object.fromEntries((facets || []).map((f) => ["data-" + f.key, String((r.facets || {})[f.key] ?? "")]))}>
               {r.cells.map((c, i) => (
                 <td class={(columns[i] && columns[i].cls) || ""} set:html={c} />
@@ -136,7 +138,17 @@ const chunks = rows.length > CHUNK * 2
     const q = box.querySelector(".ft-q");
     const rows = [...box.querySelectorAll(".ft-row")];
     for (const r of rows) {
-      if (r.dataset.hay === undefined) r.dataset.hay = (r.textContent || "").toLowerCase();
+      /* Derived from the row, plus whatever the archive says is searchable but
+         not on screen. A whole second copy of the row's text was costing 386 KB
+         on the Falco people page and 705 KB on Booyzen's - but it was NOT
+         waste: 63% of it duplicated what the cells already say, and the rest
+         bought real search. Falco's rows are findable by the register image
+         they came off, Booyzen's by the titles of the pages that mention them,
+         Blazevic's by the full county-and-opcina place name the cell truncates.
+         Deleting the lot would have quietly broken all three. */
+      if (r.dataset.hay === undefined) {
+        r.dataset.hay = ((r.textContent || "") + " " + (r.dataset.extra || "")).toLowerCase();
+      }
     }
     /* A chunk reserves its estimated height while the browser has not laid it
        out, so a chunk whose every row is filtered away would leave nine
