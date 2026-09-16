@@ -79,7 +79,7 @@
       "on": 7,
       "state": "partial",
       "tier": 1,
-      "note": "**Four of seven on the shared Searched** — Defranceschi, D'Arcy, Blazevic, Mazza, 835 searches between them. One model, four spellings. **The outcome words stay the archive's**: hit/yield/nothing/found/pending, yield/null/empty/blocked, +partly, done/outstanding/not-yet/superseded — those are different judgements about what a search DID, not synonyms. Tags survived, which needed a multi-value facet (a row carries several and a reader clicks one). D'Arcy keeps the thing no one else records: whether a null had a control that could have disproved it. **Falco and Lerena have no searched.json** — Falco's page is prose, which is also why its work list could not be counted."
+      "note": "**Four of seven on the shared Searched** — Defranceschi, D'Arcy, Blazevic, Mazza, 835 searches between them. One model, four spellings. **The outcome words stay the archive's**: hit/yield/nothing/found/pending, yield/null/empty/blocked, +partly, done/outstanding/not-yet/superseded — those are different judgements about what a search DID, not synonyms. Tags survived, which needed a multi-value facet (a row carries several and a reader clicks one). D'Arcy keeps the thing no one else records: whether a null had a control that could have disproved it. **Falco and Lerena have no searched.json** — Falco's page is prose, which is also why its work list could not be counted. BOOYZEN IS BLOCKED TOO, and differently: it holds its page as data - 104 dated session write-ups - but with NO OUTCOME FIELD on any of them, and the shared register turns on exactly that. Writing outcome words from outside would be inventing findings. All three blocks are now on their own archives' work lists."
     },
     {
       "key": "corrections",
@@ -95,7 +95,7 @@
       "on": 7,
       "state": "partial",
       "tier": 1,
-      "note": "**Two of seven, and that is the ceiling until the others extract their questions.** Only Defranceschi (q/status/known/needed) and D'Arcy (q/state/rank/settles/tried) hold questions as DATA; **Falco, Booyzen, Blazevic, Lerena and Mazza write them as prose**, so they cannot adopt this until somebody turns them into rows — research work belonging to each archive, not something to guess from outside. The shape is: the question, what is known, what has been tried, and **the specific record that would answer it**. That last field is what makes it a queue rather than a list of regrets. D'Arcy also ages a question and marks anything past thirty days."
+      "note": "**Two of seven, and that is the ceiling until the others extract their questions.** Only Defranceschi (q/status/known/needed) and D'Arcy (q/state/rank/settles/tried) hold questions as DATA; **Falco, Booyzen, Blazevic, Lerena and Mazza write them as prose**, so they cannot adopt this until somebody turns them into rows — research work belonging to each archive, not something to guess from outside. The shape is: the question, what is known, what has been tried, and **the specific record that would answer it**. That last field is what makes it a queue rather than a list of regrets. D'Arcy also ages a question and marks anything past thirty days. Written onto the five archives' own work lists on 16 September 2026, so the block is visible to the sessions that can clear it and not only in this register."
     },
     {
       "key": "direct-line",
@@ -117,9 +117,9 @@
       "key": "sources",
       "route": "/sources/",
       "on": 7,
-      "state": "local",
+      "state": "partial",
       "tier": 2,
-      "note": "**503 to 11,809 words.** What each archive rests on."
+      "note": "Two of seven hold sources as DATA - Falco and Defranceschi. The other five write them inline: Booyzen 674 lines (the largest in the estate), Lerena 205, D'Arcy 168, Blazevic 129, Mazza 70. Nothing about the content need change; the shape is what blocks it. On those five archives' work lists since 16 September 2026."
     },
     {
       "key": "name",
