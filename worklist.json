@@ -485,20 +485,20 @@
     },
     {
       "n": 57,
-      "state": "next",
+      "state": "running",
       "owner": "this session",
       "since": "2026-09-15",
       "what": "Tier 2: the spine, the places, the sources, the name, the timeline, the change feed",
       "covers": [
-        "page:direct-line",
-        "page:places",
+        "part:changes",
+        "part:places",
+        "part:direct-line",
         "page:sources",
         "page:name",
         "part:timeline",
-        "page:changes",
         "part:bloodline"
       ],
-      "note": "**/changes/ is the worst spread in the estate — 378 to 53,386 words, 141×** — and a change feed is the same job everywhere. **/direct-line/ runs 441 to 11,136** and is the spine of every archive. **/timeline/ is three of seven** and `EraTimeline` already exists to carry the rest. **/bloodline/ is six of seven**; only Defranceschi still draws its own."
+      "note": "**/changes/ is the worst spread in the estate — 378 to 53,386 words, 141×** — and a change feed is the same job everywhere. **/direct-line/ runs 441 to 11,136** and is the spine of every archive. **/timeline/ is three of seven** and `EraTimeline` already exists to carry the rest. **/bloodline/ is six of seven**; only Defranceschi still draws its own. **Three done 16 September: /changes/, /places/, /direct-line/.** **/sources/ is blocked the same way /open-questions/ was** — only two of seven hold their sources as data and Booyzen writes 664 lines of it inline, so it needs extraction by those sessions first. Left here: /name/, and finishing /timeline/ and /bloodline/."
     },
     {
       "n": 58,

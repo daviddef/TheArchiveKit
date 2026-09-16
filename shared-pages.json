@@ -101,17 +101,17 @@
       "key": "direct-line",
       "route": "/direct-line/",
       "on": 7,
-      "state": "local",
+      "state": "partial",
       "tier": 2,
-      "note": "**441 to 11,136 words**, 1 to 12 sections. The spine of every archive."
+      "note": "**Three of seven on the shared Spine** — only Falco, D'Arcy and Blazevic hold a spine as data; the rest compute it or write it as prose. **The shared part is the mark on the joint that will not bear weight**, which all three were drawing by hand. Blazevic went from one marked joint to five, because four generations carry no source of any kind; D'Arcy dashes eleven of fifteen it repeats from the tree rather than defends. Nothing local was lost: D'Arcy's corrections still sit on the generation they belong to."
     },
     {
       "key": "places",
       "route": "/places/",
       "on": 7,
-      "state": "local",
+      "state": "partial",
       "tier": 2,
-      "note": "Seven place registers, no shared shape, though the Atlas beneath them is shared."
+      "note": "**Five of seven on the shared Places** — all seven hold the register, no two agreed on the words. The count is the point: the atlas draws where the family was, this says how much of it each place holds. **The Falco page now states its own n=0 problem** — «13 places, and not one of them has a person counted into it yet» — which had been an open row for days and invisible on the page it concerns. Defranceschi and Booyzen hold coordinates and prose rather than counts."
     },
     {
       "key": "sources",
@@ -141,9 +141,9 @@
       "key": "changes",
       "route": "/changes/",
       "on": 6,
-      "state": "local",
+      "state": "partial",
       "tier": 2,
-      "note": "**378 to 53,386 words — a 141x spread, the worst in the estate.** A change feed is the same job everywhere."
+      "note": "**Four of six on the shared Changes** — the 141× spread, 378 words against 53,386, for the same job. **Two fields, not one**: what was DONE and what was FOUND are different things, and a feed that records only discoveries quietly rewrites the effort of a day spent reading a register that held nothing. **Booyzen, Blazevic and Mazza keep no change feed at all.**"
     },
     {
       "key": "households",
