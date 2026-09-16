@@ -1,0 +1,106 @@
+---
+/* What this archive is, what it will not say, and how to tell it it is wrong.
+ *
+ * Three of the seven had one and four did not, which means four archives asked
+ * a reader to trust them without saying who was asking. The three that had one
+ * agreed on the substance without agreeing on the headings: what it is willing
+ * to say and what it is not; what it holds; how it is built; and what it gets
+ * wrong — Falco's «the five rules», Defranceschi's «successes and failings
+ * both», D'Arcy's «what it is willing to say, and what it is not».
+ *
+ * MOST OF THIS PAGE IS DERIVABLE AND SHOULD BE. The counts are the archive's
+ * own data, the ladder is the five words all seven share, and the rule on
+ * living people is one sentence that is the same everywhere. Typing any of it
+ * by hand is how «three of the twenty-seven» came to sit on a page holding a
+ * hundred and two.
+ *
+ * WHAT IS NOT DERIVABLE IS WHO MADE IT AND WHY, and this component will not
+ * invent that. An archive that has not written its own opening gets a plain
+ * statement that it has not, addressed to whoever maintains it — not a
+ * paragraph of plausible sentences in somebody else's voice. A fabricated
+ * provenance on a page whose whole subject is provenance would be the worst
+ * thing in the estate.
+ *
+ *   holds     [{n, what, href}]  what the archive actually has, counted
+ *   rests     HTML: what the evidence comes from
+ *   built     HTML: how the site is made, if the archive wants to say
+ *   wrong     HTML: how to tell it it is wrong; defaults to the corrections link
+ *   living    the archive's own wording, or the estate's default
+ *   <slot>    the archive's own opening words. Nothing is written for it.
+ */
+const { holds = [], rests, built, wrong, living, u = (p) => p, name } = Astro.props;
+const has = (x) => x != null && String(x).trim() !== "";
+---
+<div class="ab">
+  <section class="ab-s">
+    <h2>What this is</h2>
+    {Astro.slots.has("default")
+      ? <div class="ab-own"><slot /></div>
+      : <p class="ab-todo"><strong>This archive has not said who made it or why.</strong>
+          The rest of this page is counted from its own data and is true; this part is not
+          written, and nothing has been invented to fill it. Whoever maintains
+          {name ? ` ${name}` : " this archive"} should write it.</p>}
+  </section>
+
+  {holds.length ? (
+    <section class="ab-s">
+      <h2>What it holds</h2>
+      <ul class="ab-holds">
+        {holds.map((h) => (
+          <li>
+            <b class="mono">{typeof h.n === "number" ? h.n.toLocaleString() : h.n}</b>
+            {h.href ? <a href={u(h.href)}>{h.what}</a> : <span>{h.what}</span>}
+          </li>
+        ))}
+      </ul>
+      <p class="ab-c small">Counted from the archive's own data when the page was built, not typed in.</p>
+    </section>
+  ) : null}
+
+  <section class="ab-s">
+    <h2>What it is willing to say</h2>
+    <p>Every claim carries one of five words, and they mean the same thing on all seven of
+      these archives: <b>documented</b>, a record was read and it says this; <b>probable</b>, the
+      evidence points one way and nothing points the other; <b>inferred</b>, reasoned from what is
+      known rather than witnessed in a record; <b>family</b>, told or remembered and not sourced;
+      <b>disputed</b>, two sources disagree and neither has been ruled out.
+      <a href={u("/method/")}>The method &rarr;</a></p>
+    <p class="ab-live">{living ?? "Living people are named and nothing more — no dates, no places, no photographs. Anyone whose death is not recorded and who would be under eighty is treated as living."}</p>
+  </section>
+
+  {has(rests) ? (
+    <section class="ab-s"><h2>What the evidence comes from</h2>
+      <div class="ab-p"><Fragment set:html={rests} /></div></section>
+  ) : null}
+
+  {has(built) ? (
+    <section class="ab-s"><h2>How it is built</h2>
+      <div class="ab-p"><Fragment set:html={built} /></div></section>
+  ) : null}
+
+  <section class="ab-s">
+    <h2>How to tell it it is wrong</h2>
+    {has(wrong)
+      ? <div class="ab-p"><Fragment set:html={wrong} /></div>
+      : <p>Every correction this archive has had to make to itself is published, with what caused
+          it, and the page where the mistake was made still carries it rather than quietly losing
+          it. If you find another, it belongs there.
+          <a href={u("/corrections/")}>What it got wrong &rarr;</a></p>}
+  </section>
+</div>
+
+<style is:global>
+  .ab-s { margin:0 0 1.8rem; }
+  .ab-s h2 { margin:0 0 .5rem; }
+  .ab-p p:first-child, .ab-own p:first-child { margin-top:0; }
+  .ab-todo { padding:.7rem .85rem; border:1px dashed var(--terra,#c55); border-radius:3px;
+    color:var(--ink-2,inherit); }
+  .ab-holds { list-style:none; margin:.6rem 0 0; padding:0; display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:.5rem .9rem; }
+  .ab-holds li { display:flex; gap:.6rem; align-items:baseline; border-bottom:1px solid
+    var(--rule,rgba(128,128,128,.14)); padding-bottom:.35rem; }
+  .ab-holds b { font-size:1.05rem; }
+  .ab-c { color:var(--ink-3,#888); margin:.7rem 0 0; }
+  .ab-live { color:var(--ink-2,inherit); }
+  @media (max-width:520px) { .ab-holds { grid-template-columns:1fr; } }
+</style>
