@@ -1,0 +1,174 @@
+---
+/* Every dated thing an archive can stand behind, in order.
+ *
+ * All seven keep this page and no two kept it the same way. Booyzen drew a
+ * scale strip and then an annotated vertical list; Lerena wrote a four-column
+ * table; Mazza built the list out of the record files so a new reading appears
+ * the moment it is recorded; Falco plotted generations against coverage;
+ * D'Arcy drew the regimes and NOT the family; Defranceschi and Blazevic drew
+ * sovereignty lanes. Seven answers to one question.
+ *
+ * THE CHART IS NOT THE PART TO STANDARDISE. A family that crossed a border
+ * without moving is telling a different story from one that stayed put under
+ * four flags, and SovereigntyTimeline and EraTimeline both say something true
+ * that the other cannot. So the chart arrives through the `chart` slot and
+ * belongs to the archive. What every one of these pages then does — the same
+ * dated events, in order, each with what it rests on — is what this owns.
+ *
+ * A DATE AND A SOURCE ARE DIFFERENT COLUMNS. Lerena was right to print what
+ * each row rests on beside the row, and four of the others dropped it, which
+ * turns a sourced chronology into a story. Where an archive has the source it
+ * is shown; where it does not, the row is still a row, and the absence shows.
+ *
+ *   events  [{ year, when, title, what, kind, level, source, href, tags, big }]
+ *           `when` is the printed date (a day, a month, a bare year);
+ *           `year` is what it sorts and counts on. `tags` are [{label, href}].
+ *   u       this archive's base-path helper
+ *
+ * Living people reach this page as a name and a relationship. Nothing here
+ * prints a date it was not given, and no row is dropped for lacking one.
+ */
+const { events = [], u = (p) => p, noun = "dated events" } = Astro.props;
+
+const yearOf = (e) => {
+  if (e.year != null && String(e.year).match(/\d/)) return Number(String(e.year).match(/\d{4}/)?.[0] ?? e.year);
+  const m = String(e.when ?? "").match(/\b(1[0-9]\d\d|20\d\d)\b/);
+  return m ? Number(m[1]) : null;
+};
+const rows = events
+  .map((e) => ({ ...e, y: yearOf(e) }))
+  .sort((a, b) => (a.y ?? 9999) - (b.y ?? 9999) || String(a.when ?? "").localeCompare(String(b.when ?? "")));
+
+const kinds = [...new Set(rows.map((r) => r.kind).filter(Boolean))];
+const ext = (h) => /^(https?:)?\/\//.test(String(h || ""));
+const href = (h) => (!h ? "" : ext(h) || String(h).startsWith("mailto:") ? h : u(h));
+const dated = rows.filter((r) => r.y != null);
+const lo = dated.length ? dated[0].y : null;
+const hi = dated.length ? dated[dated.length - 1].y : null;
+
+/* Decade headings only help when there are enough rows to get lost in. Under
+   that, they outnumber the events they are meant to be organising. */
+const GROUP = rows.length >= 24;
+const decade = (y) => (y == null ? "Undated" : `${Math.floor(y / 10) * 10}s`);
+const blocks = [];
+for (const r of rows) {
+  const k = GROUP ? decade(r.y) : "";
+  const last = blocks[blocks.length - 1];
+  if (last && last.k === k) last.rows.push(r);
+  else blocks.push({ k, rows: [r] });
+}
+---
+<div class="tl">
+  <slot name="chart" />
+
+  <p class="tl-count small mono">
+    {rows.length} {noun}{lo != null && hi != null ? ` · ${lo}–${hi}` : ""}
+    {rows.length - dated.length > 0 ? ` · ${rows.length - dated.length} undated` : ""}
+  </p>
+
+  {kinds.length > 1 ? (
+    <div class="tl-bar">
+      <span class="tl-lab">Show</span>
+      <button type="button" class="tl-opt on" data-v="">All <span class="mono">{rows.length}</span></button>
+      {kinds.map((k) => (
+        <button type="button" class="tl-opt" data-v={k}>{k}
+          <span class="mono">{rows.filter((r) => r.kind === k).length}</span></button>
+      ))}
+    </div>
+  ) : null}
+
+  <div class="tl-line">
+    {blocks.map((b) => (
+      <section class="tl-blk">
+        {b.k ? <h3 class="tl-dec"><span>{b.k}</span><span class="small mono tl-n">{b.rows.length}</span></h3> : null}
+        {b.rows.map((r) => (
+          <article class={"tl-ev" + (r.big ? " big" : "")} data-kind={r.kind || ""}>
+            <div class="tl-when">
+              <span class="mono tl-yr">{r.when ?? r.year ?? "—"}</span>
+              {r.kind ? <span class="tl-kind">{r.kind}</span> : null}
+              {r.level ? <span class={`ev ev-${r.level}`}>{r.level}</span> : null}
+            </div>
+            <div class="tl-what">
+              <h4 class="tl-t">
+                {r.href
+                  ? <a href={href(r.href)} rel={ext(r.href) ? "noopener" : null} set:html={r.title} />
+                  : <span set:html={r.title} />}
+              </h4>
+              {r.what ? <p class="tl-w"><Fragment set:html={r.what} /></p> : null}
+              {(r.tags || []).length ? (
+                <p class="tl-tags">
+                  {(r.tags || []).map((t) => (
+                    t.href ? <a class="plink" href={href(t.href)}>{t.label}</a>
+                           : <span class="plink">{t.label}</span>
+                  ))}
+                </p>
+              ) : null}
+              {r.source ? <p class="tl-src"><span class="tl-k">on</span> <Fragment set:html={r.source} /></p> : null}
+            </div>
+          </article>
+        ))}
+      </section>
+    ))}
+  </div>
+  <p class="tl-none small" hidden>Nothing of that kind.</p>
+</div>
+
+<script>
+  document.querySelectorAll(".tl").forEach((box) => {
+    const evs = [...box.querySelectorAll(".tl-ev")];
+    const blks = [...box.querySelectorAll(".tl-blk")];
+    const none = box.querySelector(".tl-none");
+    box.querySelectorAll(".tl-opt").forEach((b) => {
+      b.addEventListener("click", () => {
+        box.querySelectorAll(".tl-opt").forEach((x) => x.classList.remove("on"));
+        b.classList.add("on");
+        const v = b.dataset.v || "";
+        let shown = 0;
+        for (const e of evs) {
+          const ok = !v || e.dataset.kind === v;
+          e.hidden = !ok;
+          if (ok) shown++;
+        }
+        /* a decade with nothing left in it goes too, or the chronology becomes
+           a list of empty decades */
+        for (const s of blks) s.hidden = ![...s.querySelectorAll(".tl-ev")].some((e) => !e.hidden);
+        if (none) none.hidden = shown > 0;
+      });
+    });
+  });
+</script>
+
+<style is:global>
+  .tl-count { color:var(--ink-3,#888); margin:1rem 0 .2rem; }
+  .tl-bar { display:flex; flex-wrap:wrap; gap:.35rem; align-items:center; margin:.5rem 0 .2rem; }
+  .tl-lab { font-size:9.5px; font-weight:600; letter-spacing:.11em; text-transform:uppercase;
+    color:var(--ink-3,#888); margin-right:.35rem; }
+  .tl-opt { font:inherit; font-size:.78rem; padding:.22rem .6rem; cursor:pointer;
+    color:var(--ink-2,inherit); background:transparent; border:1px solid var(--rule,#ccc);
+    border-radius:2px; display:inline-flex; gap:.4rem; align-items:baseline; }
+  .tl-opt.on { color:var(--accent,#963); border-color:var(--accent,#963);
+    background:var(--accent-wash,transparent); font-weight:600; }
+  .tl-line { border-left:2px solid var(--rule,#ddd); margin-top:1rem; }
+  .tl-dec { display:flex; align-items:baseline; gap:.5rem; margin:1.5rem 0 .4rem;
+    padding:0 0 .25rem 1.6rem; font-size:.95rem; border-bottom:1px solid var(--rule,#ddd); }
+  .tl-blk:first-child .tl-dec { margin-top:.4rem; }
+  .tl-n { font-weight:400; color:var(--ink-3,#888); margin-left:auto; }
+  .tl-ev { position:relative; padding:0 0 1.5rem 1.6rem; }
+  .tl-ev::before { content:""; position:absolute; left:-7px; top:.45rem; width:11px; height:11px;
+    border-radius:50%; background:var(--ground,#fff); border:2px solid var(--accent,#963); }
+  .tl-ev.big::before { background:var(--terra,var(--accent,#963)); border-color:var(--terra,var(--accent,#963));
+    width:13px; height:13px; left:-8px; }
+  .tl-when { display:flex; align-items:baseline; gap:.7rem; flex-wrap:wrap; }
+  .tl-yr { font-size:.8rem; color:var(--ink-2,inherit); }
+  .tl-kind { font-size:9.5px; letter-spacing:.11em; text-transform:uppercase; color:var(--ink-3,#888);
+    border:1px solid var(--rule,#ccc); border-radius:999px; padding:2px 8px; }
+  .tl-t { margin:.25rem 0 0; font-size:1.05rem; line-height:1.28; font-weight:600; }
+  .tl-ev.big .tl-t { font-size:1.2rem; }
+  .tl-t a { text-decoration:none; color:inherit; }
+  .tl-t a:hover { color:var(--accent,#963); }
+  .tl-w { margin:.3rem 0 0; color:var(--ink-2,inherit); max-width:70ch; }
+  .tl-tags { display:flex; flex-wrap:wrap; gap:6px; margin-top:.5rem; }
+  .tl-src { margin:.35rem 0 0; font-size:.85rem; color:var(--ink-3,#888); max-width:70ch; }
+  .tl-k { display:inline-block; font-size:9.5px; font-weight:600; letter-spacing:.11em;
+    text-transform:uppercase; color:var(--ink-3,#888); margin-right:.2rem; }
+</style>
