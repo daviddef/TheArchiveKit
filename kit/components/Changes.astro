@@ -13,8 +13,14 @@
  * feed that only records discoveries quietly rewrites the effort. Where an
  * archive has only one of the two, only one is shown.
  *
- *   days  [{when, entries:[{title, did, found, href, kind}]}]
+ *   days  [{when, id, entries:[{title, did, found, href, kind}]}]
  *          did/found arrive as HTML the archive has already rendered
+ *
+ * `id` is optional and exists because three of these archives put a table of
+ * contents at the top of the page and link down to each day. Without it those
+ * links point at nothing - Lerena shipped five dangling anchors on /changes/
+ * for exactly as long as nobody ran a link checker over them. Same omission,
+ * and same fix, as Corrections.astro.
  */
 const { days = [], u = (p) => p, unit = "days" } = Astro.props;
 const kinds = [...new Set(days.flatMap((d) => (d.entries || []).map((e) => e.kind)).filter(Boolean))];
@@ -34,7 +40,7 @@ const ext = (h) => /^(https?:)?\/\//.test(String(h || ""));
   ) : null}
 
   {days.map((d) => (
-    <section class="ch-day">
+    <section class="ch-day" id={d.id}>
       <h3 class="ch-when">{d.when}
         <span class="small mono ch-n">{(d.entries || []).length}</span></h3>
       {(d.entries || []).map((e) => (
