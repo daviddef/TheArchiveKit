@@ -516,11 +516,11 @@
     },
     {
       "n": 60,
-      "state": "next",
+      "state": "done",
       "owner": "this session",
       "since": "2026-09-16",
       "what": "The /people/ hay is 976 KB on Falco and nobody has looked at it since the register was fixed",
-      "note": "The register pages stopped writing every row's text a second time into a `data-hay` attribute and Booyzen's fell 4,045 KB to 3,148. **All seven /people/ pages still do it**: 976 KB of `data-hay` in the built Falco output, 749 KB Booyzen, 189 KB Blazevic. It is **not purely redundant** — Booyzen's hay carries `p.l`, the line, which is a facet value and is not printed in the row — so this is not a delete. FilterTable should take an `extraHay` for the few fields that are genuinely off-screen and derive the rest, which is the shape the register already proved."
+      "note": "The register pages stopped writing every row's text a second time into a `data-hay` attribute and Booyzen's fell 4,045 KB to 3,148. **All seven /people/ pages still do it**: 976 KB of `data-hay` in the built Falco output, 749 KB Booyzen, 189 KB Blazevic. It is **not purely redundant** — Booyzen's hay carries `p.l`, the line, which is a facet value and is not printed in the row — so this is not a delete. FilterTable should take an `extraHay` for the few fields that are genuinely off-screen and derive the rest, which is the shape the register already proved.\n\n**Done 16 September, and the row's own premise was wrong.** It said most of the haystack duplicates rendered text. Measured against each row's own text, that is true of only two of the six: Mazza's 19 KB and Defranceschi's are wholly redundant and are gone. The other four were buying real search — Falco's rows are findable by the register image they came off, Booyzen's by the titles of the pages that mention them, Blazevic's by the born-place its cell does not print, because that cell shows one of two places. **Deleting the lot would have quietly broken all three.** FilterTable takes an `extraHay` for the off-screen part and derives the rest. \n\nBooyzen 1,073 KB to 655. Falco's hay 386 KB to 180 of extra. Blazevic 57 KB to 3. \n\n**The first measurement was wrong too**, and in the direction that would have kept waste: counting whitespace tokens made 235 Defranceschi words look off-screen because the haystack held raw markdown — «**index» is not «index» to a tokeniser — while the cells had it rendered. Ignoring punctuation, one word of 1,206 rows is genuinely absent."
     },
     {
       "n": 61,
@@ -704,6 +704,14 @@
       ],
       "what": "Mazza and Lerena keep a register after all, and neither is on the shared shape",
       "note": "The row was closed on a note claiming they had none. **Mazza assembles its register out of seven data files** — scilla-reads, sicilian-acts, qld-bdm, sicily-reads, findmypast, ships, nudgee — so it cannot fall behind the reading, which is the best reason of the seven for keeping one. **Lerena builds one from people.json**, 278 rows with a status and a source URL on each. Neither imports Register; Mazza's page imports Evidence, which is a chip and not a register, and that is what made the first count read six of seven instead of five.\n\n**Done 16 September.** Both converted. Mazza's 226 records across seven sources are one searchable list with the source as a filter, and each cell keeps its own heading. Lerena's 278 join on the shape they were already almost in; its seventy spelling headings became the surname facet. **Seven of seven.**"
+    },
+    {
+      "n": 82,
+      "state": "done",
+      "owner": "this session",
+      "since": "2026-09-16",
+      "what": "The bloodline chart could only be dragged sideways",
+      "note": "Raised from the Lerena session: the SVG is drawn at a fixed 1,354px into a 1,022px box. **That was a choice, not an accident** — the stage is `overflow:auto` with a max-height, so the chart was meant to be scrolled like a large drawing — but it is the wrong choice at that ratio. 1,354 into 1,022 is 75%, which still leaves a 113px name box and legible text, and no scrollbar. It now fills its box and scales down, with a floor at 70% below which the stage scrolls as before; a phone is always under the floor. \n\nThe centring of short columns was reported with it and **is left alone**: the empty band beside a column of thirteen is inherent to the layout, since height is set by the tallest column, so a one-person column has twelve rows of nothing whatever you do. Top-aligning moves that band, it does not remove it. \n\n**Fixed in the kit and rolled to all seven, not pinned on the one archive that reported it.** The same component rendering two ways across the estate is the drift the kit exists to stop."
     }
   ]
 }
