@@ -1,0 +1,84 @@
+---
+import FilterTable from "./FilterTable.astro";
+/* Where they are buried, and who lies together.
+ *
+ * Three archives keep this and each holds it at a different grain: Falco a row
+ * per PERSON with the plot inside a sentence, Defranceschi a row per GRAVE with
+ * the cemetery and a Find a Grave link, D'Arcy a row per PLACE with the people
+ * in it. One fact at three magnifications.
+ *
+ * THE PLACE IS THE ROW, which is D'Arcy's shape, because it is the only one of
+ * the three that can hold the finding the other two cannot state: WHO LIES
+ * TOGETHER. A shared plot is not a coincidence of geography, it is a family
+ * decision, and D'Arcy is the archive that noticed - «where more than one of
+ * them lies» is the first heading on its page. Falco's four consecutive Nudgee
+ * plots holding four Italian great-grandparents, buried in the order they died,
+ * is the same finding written as prose somewhere else.
+ *
+ * THE NAME THE REGISTER WROTE IS KEPT APART FROM THE NAME THE FAMILY USED.
+ * Mazza records both and they differ often enough to matter - a burial clerk
+ * hearing a name once is how a spelling enters the record and never leaves. An
+ * archive that has only one name passes one.
+ *
+ *   rows  [{ place, where, country, plot, shared, href, note,
+ *            people: [{name, href, life, as}] }]
+ *          `as` is how that burial register wrote the name, where it differs
+ *          `shared` marks a plot holding more than one of this family
+ */
+const { rows = [], u = (p) => p, unit = "burial places" } = Astro.props;
+
+const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;");
+const ext = (h) => /^(https?:)?\/\//.test(String(h || ""));
+const href = (h) => (!h ? "" : ext(h) ? h : u(h));
+
+const people = rows.reduce((a, r) => a + (r.people || []).length, 0);
+const together = rows.filter((r) => r.shared || (r.people || []).length > 1);
+const countries = [...new Set(rows.map((r) => r.country).filter(Boolean))]
+  .map((c) => [c, rows.filter((r) => r.country === c).length])
+  .sort((a, b) => b[1] - a[1]);
+const anyPlot = rows.some((r) => r.plot);
+const anyAs = rows.some((r) => (r.people || []).some((p) => p.as));
+---
+<FilterTable
+  unit={unit}
+  columns={[
+    { label: "Where" },
+    { label: "Who lies there" },
+    ...(anyPlot ? [{ label: "Plot", cls: "small mono" }] : []),
+  ]}
+  facets={[
+    ...(countries.length > 1 ? [{ key: "country", label: "Country", all: `All ${rows.length}`,
+      options: countries.map(([c, n]) => ({ v: c, label: `${c} (${n})` })) }] : []),
+    ...(together.length ? [{ key: "shared", label: "Lying together", all: "Anywhere",
+      options: [{ v: "1", label: `More than one of them (${together.length})` }] }] : []),
+  ]}
+  note={`<strong>${people.toLocaleString()}</strong> burials in <strong>${rows.length.toLocaleString()}</strong> places`
+    + (together.length
+      ? `, and <strong>${together.length}</strong> of those places hold more than one of this family. A shared plot is a decision somebody made.`
+      : `. No plot here holds more than one of them.`)
+    + (anyAs ? " Where a burial register wrote a name differently from the family, both are given." : "")}
+  rows={rows.map((r) => ({
+    facets: { country: r.country || "", shared: (r.shared || (r.people || []).length > 1) ? "1" : "0" },
+    extraHay: [r.country, r.where].filter(Boolean).join(" ").toLowerCase(),
+    cells: [
+      (r.href ? `<a href="${href(r.href)}"${ext(r.href) ? ' rel="noopener"' : ""}>${esc(r.place)}</a>` : esc(r.place)) +
+        (r.where ? `<div class="small dim">${esc(r.where)}</div>` : "") +
+        (r.note ? `<div class="small dim">${r.note}</div>` : ""),
+      `<span class="gv-p">` + (r.people || []).map((p) =>
+        `<span class="gv-one">` +
+        (p.href ? `<a href="${href(p.href)}">${esc(p.name)}</a>` : esc(p.name)) +
+        (p.life ? `<i>${esc(p.life)}</i>` : "") +
+        (p.as && p.as !== p.name ? `<em>entered as ${esc(p.as)}</em>` : "") +
+        `</span>`).join("") + `</span>`,
+      ...(anyPlot ? [esc(r.plot || "")] : []),
+    ],
+  }))} />
+
+<style is:global>
+  .gv-p { display:flex; flex-wrap:wrap; gap:.3rem .4rem; }
+  .gv-one { font-size:.9rem; border:1px solid var(--rule,#ddd); border-radius:2px; padding:.12rem .45rem; }
+  .gv-one a { text-decoration:none; color:inherit; }
+  .gv-one:hover { border-color:var(--accent,#963); }
+  .gv-one i { color:var(--ink-3,#888); font-size:.82em; margin-left:.3rem; font-style:normal; }
+  .gv-one em { display:block; color:var(--terra,#c55); font-size:.78em; font-style:normal; }
+</style>
