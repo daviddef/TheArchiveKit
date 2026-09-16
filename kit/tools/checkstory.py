@@ -35,6 +35,13 @@ ARCHIVE = {
     "mazza": "Mazza Family", "prostamo": "Mazza Family",
     "arena": "Mazza Family", "polistena": "Mazza Family",
 }
+# LUWINSKI IS DELIBERATELY NOT HERE, and this is the note that stops somebody
+# adding it. There are eight archives in the estate and ten families on the
+# children's site, and the eighth archive is not one of them: the four cousins
+# are not descended from the Luwinskis. A page that exists to tell four children
+# where they come from is the wrong place for a family they did not come from,
+# however much research it holds. The absence is the decision, not an oversight.
+
 # the four families that share one archive draw on one spine between them, so a
 # rung count cannot be compared for those; only the photograph claim can.
 SHARES_A_SPINE = {"mazza", "prostamo", "arena", "polistena"}
