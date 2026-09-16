@@ -535,13 +535,13 @@
     },
     {
       "n": 62,
-      "state": "next",
+      "state": "done",
       "owner": "this session",
       "since": "2026-09-16",
       "what": "Tier 3: /gallery/, and the two archives that call it something else",
-      "note": "Four archives keep one and **two of them use a different word on the page than in the menu**, which is the same defect /who/ had: one label over different things. Settle the label before the shape.",
+      "note": "Four archives keep one and **two of them use a different word on the page than in the menu**, which is the same defect /who/ had: one label over different things. Settle the label before the shape.\n\n**Done 16 September, and the premise was wrong.** The two that «call it something else» differ only in PAGE TITLE, which this estate settled long ago is each archive's own; the menu says Gallery on all four. What was actually worth fixing was that two had a lightbox and two did not, and that two write real alt text and two pass the title as both.",
       "covers": [
-        "page:gallery"
+        "part:gallery"
       ]
     },
     {

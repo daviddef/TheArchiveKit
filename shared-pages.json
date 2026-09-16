@@ -254,16 +254,17 @@
       "key": "gallery",
       "route": "/gallery/",
       "on": 4,
-      "state": "local",
+      "state": "partial",
       "tier": 3,
-      "note": "Four archives; two of them call it something else on the page.",
+      "note": "Three of four on the shared Gallery — Falco 78 plates, Booyzen 200, Defranceschi 162. The menu says «Gallery» on all four and the page titles differ («The Plate Room», «The plates»), which is the settled rule and not a defect. **ALT TEXT IS NOT A CAPTION and two of the four knew it** — Booyzen and D'Arcy write a sentence for a screen reader distinct from the one under the plate; Falco and Defranceschi pass their title as both, and the component asks for alt rather than pretending. **A plate room you cannot open a plate in is worse than none**: two had a lightbox and two did not, so it is in the component and all of them have it. Width and height are kept where recorded, because a gallery of two hundred without them moves under the reader as it loads. **D'ARCY IS THE EXCEPTION AND SHOULD STAY ONE**: it holds two plates, each with a paragraph of analysis beneath it, and its own dek says the shortness of the page is the finding. A two-cell grid is worse than two essays.",
       "using": 0,
       "drawingTheirOwn": [
         "Falco",
         "Defranceski",
         "Booyzen",
         "D'Arcy"
-      ]
+      ],
+      "component": "Gallery"
     },
     {
       "key": "graves",
