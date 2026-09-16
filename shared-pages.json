@@ -45,9 +45,9 @@
       "key": "bloodline",
       "route": "/bloodline/",
       "on": 7,
-      "state": "partial",
+      "state": "aligned",
       "tier": 1,
-      "note": "Six of seven on the shared chart; **Defranceschi is the exception** and draws its own."
+      "note": "All seven on the shared chart."
     },
     {
       "key": "people",
@@ -133,9 +133,9 @@
       "key": "timeline",
       "route": "/timeline/",
       "on": 7,
-      "state": "partial",
+      "state": "aligned",
       "tier": 2,
-      "note": "Three of seven on a shared component. EraTimeline now exists and could carry the rest."
+      "note": "All seven on the shared chronology. The chart above it stays each archive's - sovereignty lanes, political bands and Falco's read-coverage band each say something the others cannot - but the dated events, their grouping, their filter and the source beside each row are now one shape."
     },
     {
       "key": "changes",
