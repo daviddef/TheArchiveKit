@@ -1,0 +1,58 @@
+---
+import FilterTable from "./FilterTable.astro";
+/* Every place this archive can put a person in.
+ *
+ * All seven hold one and no two agreed on the words: place/n, name/count,
+ * name/born/died/buried, n/k/r/w. Underneath it is the same register — A PLACE
+ * AND HOW MANY PEOPLE ARE IN IT — with a region, a span of years or a set of
+ * spellings where the archive has them.
+ *
+ * The count is the point, and it is why this page is not the atlas. The atlas
+ * draws where the family was; this says how much of the family each place
+ * actually holds, which is the difference between a pin and evidence. Falco is
+ * the archive where that shows: thirteen places, every one of them n=0, because
+ * nothing has been counted into them yet.
+ *
+ * A column only appears where some row has something to put in it, so an
+ * archive that records a region but no span does not publish a column of
+ * dashes.
+ *
+ *   rows  [{name, href, n, where, span, variants, note}]
+ */
+const { rows = [], u = (p) => p, unit = "places", countLabel = "People" } = Astro.props;
+const anyN = rows.some((r) => r.n != null);
+const anyWhere = rows.some((r) => r.where);
+const anySpan = rows.some((r) => r.span);
+const anyNote = rows.some((r) => r.note);
+const wheres = [...new Set(rows.map((r) => r.where).filter(Boolean))].sort();
+const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;");
+const total = rows.reduce((a, r) => a + (+r.n || 0), 0);
+---
+<FilterTable
+  unit={unit}
+  columns={[
+    { label: "Place" },
+    ...(anyN ? [{ label: countLabel, cls: "mono" }] : []),
+    ...(anyWhere ? [{ label: "Region", cls: "small" }] : []),
+    ...(anySpan ? [{ label: "Span", cls: "small mono" }] : []),
+    ...(anyNote ? [{ label: "What it is", cls: "small" }] : []),
+  ]}
+  facets={wheres.length > 1 ? [{ key: "where", label: "Region", all: "Everywhere",
+    options: wheres.map((w) => ({ v: w, label: `${w} (${rows.filter((r) => r.where === w).length})` })) }] : []}
+  note={anyN
+    ? (total
+      ? `<strong>${rows.length}</strong> places holding <strong>${total.toLocaleString()}</strong> people between them. The atlas draws where the family was; this says how much of it each place actually holds.`
+      : `<strong>${rows.length}</strong> places, and <strong>not one of them has a person counted into it yet</strong>. The places are right; the counting has not been done.`)
+    : `<strong>${rows.length}</strong> places this archive can put a person in.`}
+  rows={rows.map((r) => ({
+    facets: { where: r.where || "" },
+    cells: [
+      (r.href ? `<a href="${u(r.href)}">${esc(r.name)}</a>` : esc(r.name)) +
+        (r.variants && r.variants.length
+          ? `<br><span class="small dim">also written ${r.variants.map(esc).join(" · ")}</span>` : ""),
+      ...(anyN ? [r.n != null ? String(r.n) : ""] : []),
+      ...(anyWhere ? [esc(r.where || "")] : []),
+      ...(anySpan ? [esc(r.span || "")] : []),
+      ...(anyNote ? [r.note || ""] : []),
+    ],
+  }))} />
