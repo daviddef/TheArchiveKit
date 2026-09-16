@@ -664,11 +664,11 @@
     },
     {
       "n": 77,
-      "state": "next",
+      "state": "done",
       "owner": "this session",
       "since": "2026-09-16",
       "what": "The kit has thirty-four components and no index",
-      "note": "Why each exists, what it replaced and which archives use it lives in the component headers and in commit messages. Those headers are the best documentation in this estate and nothing gathers them. A generated index — name, one line, callers — would also make the next «is there already a component for this?» a lookup rather than a grep."
+      "note": "Why each exists, what it replaced and which archives use it lives in the component headers and in commit messages. Those headers are the best documentation in this estate and nothing gathers them. A generated index — name, one line, callers — would also make the next «is there already a component for this?» a lookup rather than a grep.\n\n**Done 17 September.** `kit/tools/components.py` writes `kit/docs/components.md`: every component's own first sentence, which archives call it, and which other components draw with it. **Forty components; every one has a caller.** Twenty-six are on all seven archives - that is the shared core, and it is larger than it looked from inside. \n\nIt earned itself on the first run by raising two questions the existing tools then answered. `Questions` showed three callers where the register said two - **Falco had cleared its own /open-questions/ block**, its second after /searched/, and the note had been stale for a day. And three archives keep a local `Rule.astro` while also importing the kit's, which looks exactly like a fork - `checkshared.py` already knew it is not: they are WRAPPERS, deferring to the kit and keeping only the ornaments each archive alone draws, a koppie against an arcade against a horse. \n\nWhat it cannot know is whether a component SHOULD have more callers. One caller may be a fork waiting to happen or may be right; that is a reading, and shared-pages.json is where it is written down."
     },
     {
       "n": 78,
