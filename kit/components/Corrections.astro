@@ -28,7 +28,7 @@
  * the same axis and one control cannot carry both. Past seven options the
  * control becomes a select, because 39 buttons is a wall, not a filter.
  *
- *   rows  [{when, who, kind, sev, was, now, how, why, by, where, whereLabel,
+ *   rows  [{when, who (HTML, so it can link), kind, sev, was, now, how, why, by, where, whereLabel,
  *           extra, superseded:{label, href, note}}]
  */
 const { rows = [], u = (p) => p, major = "major",
@@ -78,7 +78,7 @@ const ext = (h) => /^(https?:)?\/\//.test(String(h || ""));
     <section class="cx-e" data-sev={r.sev || ""} data-kind={r.kind || ""} id={r.id || undefined}>
       <div class="cx-h">
         {r.when ? <span class="mono small">{r.when}</span> : null}
-        {r.who ? <strong class="cx-who">{r.who}</strong> : null}
+        {r.who ? <strong class="cx-who" set:html={r.who} /> : null}
         {r.kind ? <span class={"chip " + (r.sev === major ? "dis" : "")}>{r.kind}</span> : null}
         {r.sev === major ? <span class="chip doc">material</span> : null}
       </div>
