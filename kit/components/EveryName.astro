@@ -7,37 +7,58 @@ import FilterTable from "./FilterTable.astro";
  * drift, which is the thing the kit exists to stop. Falco and Booyzen differed
  * only in wording.
  *
- * It does not cover all seven, and that is a finding rather than a gap. The
- * Defranceschi /who/ is a PERSON index grouped by letter and the D'Arcy one is
- * the people it met in documents and had nowhere else to put — witnesses,
- * constables, surgeons. Three different pages under one menu label, which is
- * for the archives to settle, not for this component to paper over.
+ * All seven now. The two that looked like different pages were not: both keep
+ * ONE ENTRY PER NAME, keyed by a name-slug — 1,118 entries for 1,118 distinct
+ * names on Defranceschi, 169 for 169 on D'Arcy — and both called each entry a
+ * PERSON in their prose. On an estate whose oldest rule is that it never merges
+ * records on a name, that wording asserts the merge the rule forbids: two men
+ * called Giovanni Defranceschi get one entry, and the page called it a man.
  *
- * The distinction it draws is the estate's oldest rule: A NAME IS NOT A PERSON.
- * The names held by more than one are the ones a reader goes wrong on, so the
- * count is what the page is sorted and filtered by.
+ * WHAT n COUNTS IS NOT THE SAME EVERYWHERE, and it decides what may be said.
+ * Where it counts BEARERS, the names held by more than one are the ones a
+ * reader goes wrong on and the page says so — that is the estate's oldest rule
+ * doing its job. Where it counts mentions or records, the same sentence would
+ * be false: twelve mentions of a name is not twelve people, and a page that
+ * offered "held by more than one person" over that number would be inventing
+ * the very merge this rule exists to prevent. So the claim is only made where
+ * the number supports it.
  *
- *   names  [{slug, name, n}]  n = how many bore it
- *   u      the archive's url helper
- *   unit   what n counts, in this archive's words ("people", "records")
+ *   names   [{slug, name, n, detail}]  detail is optional, shown beside the name
+ *   u       the archive's url helper
+ *   counts  what n counts: "people" (bearers), "records", "mentions", …
+ *   noun    what the rows are, for the count line ("names")
  */
-const { names = [], u = (p) => p, unit = "people", noun = "names" } = Astro.props;
+const { names = [], u = (p) => p, unit, counts, noun = "names",
+        detailLabel = "What the record says" } = Astro.props;
+/* `unit` is the old name for this prop and still works. */
+const what = counts ?? unit ?? "people";
+const bearers = what === "people";
+const one = what.replace(/s$/, "");
+const anyDetail = names.some((n) => n.detail);
 const shared = names.filter((n) => n.n > 1);
+const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;");
 ---
 <FilterTable
   unit={noun}
-  columns={[{ label: "Name" }, { label: unit === "records" ? "Records" : "People", cls: "mono" }]}
-  facets={shared.length ? [{ key: "many", label: "Held by", options: [
-    { v: "1", label: `More than one ${unit === "records" ? "record" : "person"}` },
-    { v: "0", label: "Only one" }] }] : []}
+  columns={[
+    { label: "Name" },
+    ...(anyDetail ? [{ label: detailLabel, cls: "small" }] : []),
+    { label: what.charAt(0).toUpperCase() + what.slice(1), cls: "mono" },
+  ]}
+  facets={shared.length ? [{ key: "many", label: bearers ? "Held by" : "Appears in", options: [
+    { v: "1", label: `More than one ${one}` },
+    { v: "0", label: `One ${one} only` }] }] : []}
   note={shared.length
-    ? `<strong>${shared.length.toLocaleString()}</strong> of these ${noun} belong to more than one ${unit === "records" ? "record" : "person"}. Those are the ones where a reader can go wrong.`
-    : `No name here is held by more than one ${unit === "records" ? "record" : "person"}.`}
+    ? (bearers
+      ? `<strong>${shared.length.toLocaleString()}</strong> of these ${noun} belong to more than one person. Those are the ones where a reader can go wrong: <strong>a name is not a person</strong>, and this archive does not join two of them without a record that says to.`
+      : `<strong>${shared.length.toLocaleString()}</strong> of these ${noun} appear in more than one ${one}. That is a count of ${what}, <strong>not of people</strong> — one name can be two men and this archive does not join them without a record that says to.`)
+    : `No name here appears in more than one ${one}.`}
   rows={names.map((n) => ({
-    hay: n.name.toLowerCase(),
+    hay: (n.name + " " + (n.detail || "")).toLowerCase(),
     facets: { many: n.n > 1 ? "1" : "0" },
     cells: [
-      `<a href="${u(`/who/${n.slug}/`)}">${n.name}</a>`,
+      `<a href="${u(`/who/${n.slug}/`)}">${esc(n.name)}</a>`,
+      ...(anyDetail ? [n.detail || ""] : []),
       n.n > 1 ? String(n.n) : "",
     ],
   }))} />
