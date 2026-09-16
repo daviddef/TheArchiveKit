@@ -142,3 +142,26 @@ them from `site/` or a person runs them from the repo root.
 The cross-archive session keeps its list at the kit repo root. The work that
 belongs to no single archive is exactly the work that went untracked longest, so
 it is not exempt from the rule it is enforcing.
+
+## A count belongs in an expression, not in a sentence
+
+Three pages in one afternoon were found asserting a number their own data
+contradicted: Mazza said «three of the twenty-seven are marked candidate or
+flagged» over **102** rows, D'Arcy said «the pattern in the eight above» and
+invited «a ninth» over **32**, and D'Arcy's register printed a button reading
+381 that filtered to **360**. Every one was written true and went stale when
+the data grew.
+
+**A gate for this was attempted four ways and cannot be built.** Comparing
+«N of M» against a page's row count flags 1,817 claims of 1,843, because prose
+says «Wedding of 1920». Narrowing to phrasings that point at the page's own
+list flags three, and all three are honest sentences. The information the check
+needs — which number refers to which list — is not in the text.
+
+So it is a convention instead, and it is cheap:
+
+- Write `{rows.length}`, not «a hundred and two».
+- Where a sentence needs a subset, compute the subset: `{soft} of the {total}`.
+- An ordinal that continues a list is arithmetic too: `a {ord(n + 1)}`.
+
+A number typed into a paragraph does not move when the data does.

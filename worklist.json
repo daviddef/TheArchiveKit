@@ -568,11 +568,11 @@
     },
     {
       "n": 65,
-      "state": "next",
+      "state": "done",
       "owner": "this session",
       "since": "2026-09-16",
-      "what": "A gate for numbers typed into prose",
-      "note": "Three times in one session a page asserted a count its own data contradicted: Mazza said «three of the twenty-seven» over **102** rows, D'Arcy said «the pattern in the eight above» and invited «a ninth» over **32**, and D'Arcy's register printed a button reading 381 that filtered to **360**. Every one was caught by hand while doing something else. A number written into a paragraph does not move when the data does. A check that reads the numerals out of a page's prose and asks whether any of them match a count the same page computes would catch the class."
+      "what": "A gate for numbers typed into prose — tried four ways, cannot be built",
+      "note": "Three times in one session a page asserted a count its own data contradicted: Mazza said «three of the twenty-seven» over **102** rows, D'Arcy said «the pattern in the eight above» and invited «a ninth» over **32**, and D'Arcy's register printed a button reading 381 that filtered to **360**. Every one was caught by hand while doing something else. A number written into a paragraph does not move when the data does. A check that reads the numerals out of a page's prose and asks whether any of them match a count the same page computes would catch the class.\n\n**16 September: this cannot be done, and the evidence is worth keeping so nobody tries it again.** Four designs, measured against all seven built archives:\n\n1. «N of M» compared against the page's own row count — **1,817 of 1,843 flagged**, because prose says «Wedding of 1920» and «baptism of 1864».\n2. Only phrasings that point at the page's own list («the N above», «of these N») — 8 examined, **3 flagged, all three false**: seven children on a death notice, a legitimate reference to all 121 households when 60 are drawn, and a link saying the REGISTER lists 12,149.\n3. Spelled-out numbers beside the page's own unit noun — **7 of 7 flagged, all false** («all five records» in a note about one finding).\n4. An advisory listing of pages that compute a count and also spell a number — **1,256 numbers across 133 pages**, which nobody will audit.\n\nThe information the check needs — which number refers to which list — is not in the text. **The discipline is the answer, not a gate**: a count belongs in an expression, not typed into a sentence. That is what was done to Mazza's «three of the twenty-seven» over 102 rows and D'Arcy's «the eight above» over 32, and it is now written into the work-list convention."
     },
     {
       "n": 66,
