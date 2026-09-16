@@ -33,7 +33,11 @@ const { names = [], u = (p) => p, unit, counts, noun = "names",
 /* `unit` is the old name for this prop and still works. */
 const what = counts ?? unit ?? "people";
 const bearers = what === "people";
-const one = what.replace(/s$/, "");
+/* "people" does not end in s, so stripping one leaves "more than one people".
+   The three words this estate actually uses are spelled out; anything else an
+   archive passes falls back to dropping a trailing s. */
+const SINGULAR = { people: "person", records: "record", mentions: "mention" };
+const one = SINGULAR[what] || what.replace(/s$/, "");
 const anyDetail = names.some((n) => n.detail);
 const shared = names.filter((n) => n.n > 1);
 const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;");
@@ -52,7 +56,9 @@ const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;");
     ? (bearers
       ? `<strong>${shared.length.toLocaleString()}</strong> of these ${noun} belong to more than one person. Those are the ones where a reader can go wrong: <strong>a name is not a person</strong>, and this archive does not join two of them without a record that says to.`
       : `<strong>${shared.length.toLocaleString()}</strong> of these ${noun} appear in more than one ${one}. That is a count of ${what}, <strong>not of people</strong> — one name can be two men and this archive does not join them without a record that says to.`)
-    : `No name here appears in more than one ${one}.`}
+    : (bearers
+      ? `No name here is held by more than one person.`
+      : `No name here appears in more than one ${one}.`)}
   rows={names.map((n) => ({
     hay: (n.name + " " + (n.detail || "")).toLowerCase(),
     facets: { many: n.n > 1 ? "1" : "0" },
