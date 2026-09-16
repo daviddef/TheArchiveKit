@@ -62,13 +62,30 @@ const dated = rows.filter((r) => r.y != null);
 const lo = dated.length ? dated[0].y : null;
 const hi = dated.length ? dated[dated.length - 1].y : null;
 
-/* Decade headings only help when there are enough rows to get lost in. Under
-   that, they outnumber the events they are meant to be organising. */
+/* HEADINGS ARE GROUPING, NOT DECORATION, so the span picks the unit rather
+   than the unit being assumed. Decades are right for a hundred events over two
+   centuries and wrong for forty-six spread across eight hundred years, where
+   they produce more headings than events and read as a list of empty decades.
+   The smallest unit whose groups actually hold something wins; under 24 rows
+   nothing is grouped at all, because then the headings outnumber what they
+   are meant to be organising. */
 const GROUP = rows.length >= 24;
-const decade = (y) => (y == null ? "Undated" : `${Math.floor(y / 10) * 10}s`);
+const UNITS = [10, 25, 50, 100, 250];
+let unit = UNITS[UNITS.length - 1];
+if (GROUP && dated.length) {
+  for (const n of UNITS) {
+    const seen = new Set(dated.map((r) => Math.floor(r.y / n)));
+    if (seen.size <= Math.max(2, rows.length / 2.5)) { unit = n; break; }
+  }
+}
+const band = (y) => {
+  if (y == null) return "Undated";
+  const a = Math.floor(y / unit) * unit;
+  return unit === 10 ? `${a}s` : `${a}\u2013${a + unit - 1}`;
+};
 const blocks = [];
 for (const r of rows) {
-  const k = GROUP ? decade(r.y) : "";
+  const k = GROUP ? band(r.y) : "";
   const last = blocks[blocks.length - 1];
   if (last && last.k === k) last.rows.push(r);
   else blocks.push({ k, rows: [r] });
