@@ -1,228 +1,69 @@
 ---
-/* Spine — one family line drawn as a channel of places.
-
-   Promoted from the Defranceski archive unchanged but for its imports: it
-   needed nothing archive-specific except the url helper, which is now the
-   kit's. So it takes exactly one prop, `s`, the line file itself, and any
-   archive that can shape its line into stops/joins/people gets the drawing.
-
-   The minimum is one array: stops, each {place}. years, gloss, kind, joins and
-   people are all optional and each is omitted from the output when absent, so
-   an archive whose line is only a list of places in order still draws honestly
-   rather than drawing empty scaffolding around the gaps.
-
-   Places run left to right in the order the line actually moved through them.
-   Beneath each stop: the people born there, numbered by generation.
-   Above each stop: the families that married in, each dropping from its own town.
-   Nothing here asserts a join that the line's own data does not already carry. */
-import { u } from "../lib/url.js";
-import arch from "../data/archives.json";
-const A = Object.fromEntries(arch.archives.map(a => [a.key, a]));
-const { s } = Astro.props;
-
-const N = s.stops.length;
-const band = s.band || null;
-const inBand = (i) => band && i >= band.from && i <= band.to;
-const at = (arr, i) => (arr || []).filter(x => x.at === i);
-const KIND = {
-  origin:  "var(--ink-3)",
-  anchor:  "var(--accent)",
-  move:    "var(--terra)",
-  rupture: "var(--terra)",
-  stop:    "var(--accent-2)",
-  end:     "var(--ink-2)",
-};
+/* The direct line, generation by generation.
+ *
+ * The page every archive tells its own story on, so the PROSE stays where it
+ * is. What is shared is the chain: a numbered generation, the couple, what is
+ * known of their dates and places, and — the thing that makes this an archive
+ * rather than a pedigree — A MARK ON THE JOINT THAT CANNOT BEAR WEIGHT.
+ *
+ * Falco stops at generation one and says so; Blazevic marks generation three as
+ * the joint the tree asserts and the records do not. Both were drawing that by
+ * hand in their own way. A spine without it is a claim; with it, it is
+ * evidence with a gap named in the middle.
+ *
+ * Living people get a name and nothing else, as everywhere.
+ *
+ *   rows  [{gen, name, spouse, href, born, bornPlace, died, diedPlace,
+ *           living, weak, weakNote, note, confidence}]
+ */
+const { rows = [], u = (p) => p, label = "Generation" } = Astro.props;
+const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;");
 ---
-<div class="sp" style={`--n:${N}`}>
-  {s.lede && <p class="sp-lede">{s.lede}</p>}
+<ol class="sp">
+  {rows.map((g) => (
+    <li class={"sp-g" + (g.weak ? " sp-weak" : "")} id={"gen-" + g.gen}>
+      <div class="sp-n"><span class="mono">{label} {g.gen}</span></div>
+      <div class="sp-b">
+        <h3 class="sp-h">
+          {g.href ? <a href={u(g.href)}>{g.name}</a> : g.name}
+          {g.spouse ? <span class="sp-sp"> and {g.spouse}</span> : null}
+        </h3>
+        {g.living ? (
+          <p class="sp-f"><span class="chip doc">living — named only</span></p>
+        ) : (
+          <p class="sp-f">
+            {g.born ? <><span class="sp-k">born</span>{g.born}{g.bornPlace ? ", " + g.bornPlace : ""}</> : null}
+            {g.died ? <><span class="sp-k">died</span>{g.died}{g.diedPlace ? ", " + g.diedPlace : ""}</> : null}
+            {g.confidence ? <span class="chip">{g.confidence}</span> : null}
+          </p>
+        )}
+        {g.weak ? (
+          <p class="sp-w"><strong>The joint here will not bear weight.</strong>{" "}
+            {g.weakNote ? <Fragment set:html={g.weakNote} /> : "The tree asserts it and no record names the father."}</p>
+        ) : null}
+        {g.note ? <p class="sp-note" set:html={g.note} /> : null}
+      </div>
+    </li>
+  ))}
+</ol>
 
-  {band && <p class="sp-band"><i class="sp-bs"></i>{band.label}</p>}
-
-  <div class="sp-scroll">
-    <div class="sp-grid">
-      {s.stops.map((st, i) => (
-        <>
-          {/* ---- lane 1 · the families that married in ---- */}
-          <div class="sp-up">
-            {at(s.joins, i).map(j => (
-              <div class={`sp-join${j.open ? " open" : ""}`}>
-                {j.from   && <div class="sp-jt">{j.from}</div>}
-                {j.family && <div class="sp-jf">{j.family}</div>}
-                {j.person && <div class="sp-jp">{j.person}</div>}
-                {j.born   && <div class="sp-jb">{j.born}</div>}
-                {j.note   && <div class="sp-jn">{j.note}</div>}
-                {j.gen != null && <div class="sp-jg">joins at generation {j.gen}</div>}
-                {j.arch && A[j.arch] &&
-                  <a class="sp-jx" href={A[j.arch].url}>
-                    {A[j.arch].name.replace("The ", "").replace(" Archive", "")} archive →
-                  </a>}
-              </div>
-            ))}
-          </div>
-
-          {/* ---- lane 2 · the channel ---- */}
-          <div class={`sp-ch${inBand(i) ? " band" : ""}`}
-               style={`--c:${KIND[st.kind] || KIND.stop};--l:${i === 0 ? "22px" : "0"};--r:${i === N - 1 ? "calc(100% - 22px)" : "0"}`}>
-            <span class="sp-dot"></span>
-          </div>
-
-          {/* ---- lane 3 · the place ---- */}
-          <div class={`sp-head${inBand(i) ? " band" : ""}`} style={`--c:${KIND[st.kind] || KIND.stop}`}>
-            <div class="sp-pl">{st.place}</div>
-            {st.years && <div class="sp-yr">{st.years}</div>}
-            {st.gloss && <div class="sp-gl">{st.gloss}</div>}
-          </div>
-
-          {/* ---- lane 4 · who was born here ---- */}
-          <div class="sp-dn">
-            {at(s.people, i).map(p => (
-              <div class={`sp-p${p.conf ? " c-" + p.conf : ""}`}>
-                <span class="sp-g">{p.gen}</span>
-                <span class="sp-pn">{p.name}</span>
-                {p.d && <span class="sp-pd">{p.d}</span>}
-                {p.what && <span class="sp-pw">{p.what}</span>}
-              </div>
-            ))}
-          </div>
-        </>
-      ))}
-    </div>
-  </div>
-
-  <p class="sp-key">
-    <span class="k"><i class="sw" style="background:var(--accent)"></i>where the line stood longest</span>
-    <span class="k"><i class="sw" style="background:var(--terra)"></i>a move, or a rupture</span>
-    <span class="k"><i class="sw dash"></i>a family that married in</span>
-    <span class="k"><i class="sw num">7</i>generation, counted from the oldest man on the line</span>
-    {s.confkey && <>
-      <span class="k"><i class="sw" style="background:var(--accent)"></i>documented</span>
-      <span class="k"><i class="sw" style="background:var(--ochre)"></i>inferred</span>
-      <span class="k"><i class="sw dash"></i>the family's own account</span>
-    </>}
-  </p>
-
-  {s.strands && s.strands.length > 0 && (
-    <div class="sp-str">
-      <div class="sp-strh">Same ground, and what it is worth</div>
-      {s.strands.map(x => (
-        <a class={`sp-s ${x.kind}`} href={u(x.href)}>
-          <div class="sp-sh">
-            <span class="sp-sl">{x.label}</span>
-            <span class="sp-sg">{x.gen}</span>
-            <span class="sp-sk">
-              {x.kind === "proved" ? "proved kin" : x.kind === "open" ? "read, not proved" : "not joined to this line"}
-            </span>
-          </div>
-          <div class="sp-sn">{x.note}</div>
-        </a>
-      ))}
-    </div>
-  )}
-</div>
-
-<style>
-.sp{margin:22px 0 6px}
-.sp-lede{font-family:var(--sans);font-size:14px;line-height:1.62;color:var(--ink-2);
-  max-width:82ch;margin:0 0 20px;border-left:2px solid var(--rule-strong);padding-left:16px}
-
-.sp-scroll{overflow-x:auto;overflow-y:hidden;padding-bottom:10px;
-  -webkit-overflow-scrolling:touch}
-.sp-grid{display:grid;grid-auto-flow:column;
-  grid-auto-columns:252px;
-  grid-template-rows:auto 40px auto auto;
-  width:max-content}
-
-/* lane 1 — tributaries */
-.sp-up{display:flex;flex-direction:column;justify-content:flex-end;gap:10px;
-  padding:0 10px 0 10px;align-self:end}
-.sp-join{position:relative;border:1px solid var(--rule);border-radius:2px;
-  background:var(--accent-wash);padding:9px 11px 10px;margin-bottom:16px}
-.sp-join.open{border-style:dashed;background:none}
-.sp-join::after{content:"";position:absolute;left:22px;top:100%;width:0;height:16px;
-  border-left:1px dashed var(--rule-strong)}
-.sp-jt{font-family:var(--sans);font-size:10px;font-weight:600;letter-spacing:.12em;
-  text-transform:uppercase;color:var(--ink-3)}
-.sp-jf{font-family:var(--serif);font-size:16px;line-height:1.2;margin-top:3px;color:var(--ink)}
-.sp-jp{font-family:var(--sans);font-size:12.5px;line-height:1.4;margin-top:5px;color:var(--ink-2)}
-.sp-jb{font-family:var(--mono);font-size:11px;color:var(--ink-3);margin-top:2px;
-  font-variant-numeric:tabular-nums}
-.sp-jn{font-family:var(--sans);font-size:11.5px;line-height:1.5;color:var(--ink-3);margin-top:6px}
-.sp-jg{font-family:var(--sans);font-size:10px;font-weight:600;letter-spacing:.1em;
-  text-transform:uppercase;color:var(--ink-3);margin-top:8px}
-.sp-jx{display:block;font-family:var(--sans);font-size:11.5px;margin-top:6px;text-decoration:none}
-.sp-jx:hover{text-decoration:underline}
-
-/* lane 2 — the channel */
-.sp-ch{position:relative}
-.sp-ch::before{content:"";position:absolute;top:50%;left:var(--l);right:var(--r);
-  height:3px;margin-top:-1.5px;background:var(--rule-strong)}
-.sp-ch.band::before{background:var(--accent);height:5px;margin-top:-2.5px}
-.sp-dot{position:absolute;top:50%;left:22px;width:13px;height:13px;margin:-6.5px 0 0 -6.5px;
-  border-radius:50%;background:var(--ground);border:3px solid var(--c);box-sizing:border-box}
-
-/* lane 3 — the place */
-.sp-head{position:relative;padding:12px 14px 4px}
-.sp-head::before{content:"";position:absolute;left:22px;top:0;bottom:0;
-  border-left:1px dashed var(--rule);pointer-events:none}
-.sp-head.band::before{border-left-color:var(--accent);opacity:.5}
-.sp-head.band{background:linear-gradient(var(--accent-wash),transparent)}
-.sp-band{display:flex;align-items:center;gap:9px;margin:0 0 12px;
-  font-family:var(--sans);font-size:10.5px;font-weight:600;letter-spacing:.12em;
-  text-transform:uppercase;color:var(--accent)}
-.sp-bs{width:24px;height:5px;border-radius:2px;background:var(--accent);flex:none}
-.sp-pl{margin-left:14px;font-family:var(--serif);font-size:19px;line-height:1.15;color:var(--ink)}
-.sp-yr{margin-left:14px;font-family:var(--mono);font-size:11.5px;color:var(--c);margin-top:4px;
-  font-variant-numeric:tabular-nums}
-.sp-gl{margin-left:14px;font-family:var(--sans);font-size:11.5px;line-height:1.5;color:var(--ink-3);margin-top:6px}
-
-/* lane 4 — who was born here */
-.sp-dn{position:relative;display:flex;flex-direction:column;gap:8px;padding:14px 14px 0}
-.sp-dn::before{content:"";position:absolute;left:22px;top:0;bottom:14px;
-  border-left:1px dashed var(--rule);pointer-events:none}
-.sp-p{position:relative;margin-left:14px;border-left:2px solid var(--rule-strong);padding:1px 0 1px 11px}
-.sp-g{display:inline-block;min-width:19px;height:19px;line-height:17px;text-align:center;
-  border:1px solid var(--accent);border-radius:50%;color:var(--accent);background:var(--accent-wash);
-  font-family:var(--mono);font-size:11px;margin-bottom:4px}
-.sp-pn{display:block;font-family:var(--serif);font-size:15px;line-height:1.25;color:var(--ink)}
-.sp-pd{display:block;font-family:var(--mono);font-size:11px;color:var(--ink-3);margin-top:2px;
-  font-variant-numeric:tabular-nums}
-.sp-pw{display:block;font-family:var(--sans);font-size:11.5px;line-height:1.5;
-  color:var(--ink-2);margin-top:4px}
-.sp-p.c-doc{border-left-color:var(--accent)}
-.sp-p.c-inf{border-left-color:var(--ochre)}
-.sp-p.c-lore{border-left-color:var(--rule-strong);border-left-style:dashed}
-
-/* key */
-.sp-key{display:flex;flex-wrap:wrap;gap:10px 22px;margin:18px 0 0;
-  font-family:var(--sans);font-size:11.5px;color:var(--ink-3)}
-.sp-key .k{display:inline-flex;align-items:center;gap:7px}
-.sp-key .sw{width:15px;height:4px;border-radius:2px;background:var(--rule-strong);flex:none}
-.sp-key .sw.dash{height:0;border-top:1px dashed var(--rule-strong);border-radius:0}
-.sp-key .sw.num{width:17px;height:17px;border-radius:50%;background:var(--accent-wash);
-  border:1px solid var(--accent);color:var(--accent);font-family:var(--mono);font-size:10px;
-  line-height:15px;text-align:center}
-
-/* strands */
-.sp-str{margin-top:26px;border-top:1px solid var(--rule);padding-top:16px}
-.sp-strh{font-family:var(--sans);font-size:10.5px;font-weight:600;letter-spacing:.14em;
-  text-transform:uppercase;color:var(--ink-3);margin-bottom:12px}
-.sp-s{display:block;text-decoration:none;border-left:3px solid var(--rule-strong);
-  padding:8px 0 8px 15px;margin-bottom:12px}
-.sp-s.proved{border-left-color:var(--accent)}
-.sp-s.open{border-left-color:var(--ochre);border-left-style:dashed}
-.sp-s.not-joined{border-left-color:var(--rule-strong);border-left-style:dashed}
-.sp-sh{display:flex;flex-wrap:wrap;align-items:baseline;gap:10px}
-.sp-sl{font-family:var(--serif);font-size:16px;color:var(--ink)}
-.sp-sg{font-family:var(--mono);font-size:11px;color:var(--ink-3)}
-.sp-sk{font-family:var(--sans);font-size:10px;font-weight:600;letter-spacing:.1em;
-  text-transform:uppercase;color:var(--ink-3)}
-.sp-s.proved .sp-sk{color:var(--accent)}
-.sp-s.open .sp-sk{color:var(--ochre)}
-.sp-sn{font-family:var(--sans);font-size:13px;line-height:1.6;color:var(--ink-2);
-  margin-top:5px;max-width:86ch}
-.sp-s:hover .sp-sl{text-decoration:underline}
-
-@media (max-width:720px){
-  .sp-grid{grid-auto-columns:216px}
-}
+<style is:global>
+  .sp { list-style:none; margin:1.2rem 0; padding:0; }
+  .sp-g { display:grid; grid-template-columns:7.5rem 1fr; gap:0 1.2rem;
+    border-left:2px solid var(--rule,#ddd); padding:0 0 1.3rem 1.2rem; margin-left:.4rem;
+    position:relative; }
+  .sp-g::before { content:""; position:absolute; left:-5px; top:.45rem; width:8px; height:8px;
+    border-radius:50%; background:var(--rule-strong,#bbb); }
+  .sp-weak { border-left-style:dashed; border-left-color:var(--terra,#c55); }
+  .sp-weak::before { background:var(--terra,#c55); }
+  .sp-n .mono { font-size:9.5px; font-weight:600; letter-spacing:.11em; text-transform:uppercase;
+    color:var(--ink-3,#888); }
+  .sp-h { margin:0 0 .25rem; font-size:1.05rem; }
+  .sp-sp { font-weight:400; color:var(--ink-2,inherit); }
+  .sp-k { display:inline-block; min-width:3rem; font-size:9.5px; font-weight:600;
+    letter-spacing:.11em; text-transform:uppercase; color:var(--ink-3,#888); margin-right:.15rem; }
+  .sp-f { margin:.1rem 0; display:flex; flex-wrap:wrap; gap:.15rem .8rem; align-items:baseline; }
+  .sp-w { margin:.4rem 0 0; color:var(--terra,#c55); }
+  .sp-note { margin:.35rem 0 0; color:var(--ink-2,inherit); }
+  @media (max-width:560px) { .sp-g { grid-template-columns:1fr; gap:.15rem 0; } }
 </style>
