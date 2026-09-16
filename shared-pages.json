@@ -69,9 +69,9 @@
       "key": "register",
       "route": "/register/",
       "on": 7,
-      "state": "partial",
+      "state": "aligned",
       "tier": 1,
-      "note": "**Two of seven on the shared Register** — Falco (12,034 records) and Blazevic (1,466), which were near-identical forks. **Size is legitimate and stays**: an archive that has read more registers has more records, and equalising them would mean deleting evidence. The SHAPE is what is shared. The per-surname sections became a facet. **The Falco page is also 1.9 MB smaller than the one deployed** — both pages duplicated every row's text into an attribute for the search to read; the script reads the row instead. **Defranceschi, Booyzen and D'Arcy hold a register in a different shape** (id/says/place, positional arrays, grouped by surname) and need reading before they move. Mazza and Lerena have none."
+      "note": "All five that keep one are on the shared Register - Falco 12,038, Booyzen 7,620, Defranceschi 1,508, Blazevic 1,466, D'Arcy 854. Mazza and Lerena have none. SIZE IS LEGITIMATE AND STAYS; the shape is what is shared. Two things came out of the five. D'Arcy and Defranceschi had each built a filter for how a record is known, and all five carried the field - it is the 'Known from' facet now, and the vocabularies stay apart because 'above a graft' and 'same name, not joined' are findings about different problems. Booyzen's content-visibility and debounce are in the shared table, per block of 200 rows, so they survive its fourteen sections becoming a facet. Moving D'Arcy found a fault: it read the source SENTENCE rather than the kind FIELD, and 21 medieval records - Berkeley Castle Muniments, Library of Birmingham MS 3549, Hertfordshire Archives, TBGAS - were shown to readers as somebody's family tree on the page whose stated purpose is telling those apart. Booyzen's page went 4,045 KB to 3,148."
     },
     {
       "key": "searched",
