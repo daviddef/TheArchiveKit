@@ -1,0 +1,83 @@
+---
+/* What this archive reproduces whole, and where each one came from.
+ *
+ * D'Arcy's page states the reason better than a comment can: «an archive that
+ * only summarises its documents is asking to be trusted. These are reproduced
+ * whole, so you can disagree with what has been made of them.»
+ *
+ * Four archives keep a page under this label and they are not four versions of
+ * one page. Booyzen reproduces 110 documents, each with the image, a
+ * transcription and an argument — 53,000 words, and the largest single thing in
+ * the estate. D'Arcy reproduces one eulogy in three parts. Falco indexes 56
+ * register plates and points at the repository that holds them. Mazza's page is
+ * 133 photographs grouped by person, which is a GALLERY under a documents
+ * label, and it moved to the gallery component rather than being bent to fit
+ * here.
+ *
+ * SO THIS IS THE INDEX, NOT THE READER. The reproductions stay where they are,
+ * written by hand, because that is the archive's work and a component that
+ * flattened 110 arguments into 110 cards would be destroying the thing it was
+ * sent to tidy. What every one of them needs is the same: a way in, in the
+ * order the events happened rather than the order they were read. Booyzen had
+ * built one; the other two had not.
+ *
+ * WHETHER THE IMAGE WAS READ IS PART OF THE ENTRY. Booyzen's note says every
+ * one has been read from the image «unless the entry says otherwise», which is
+ * the difference between a source this archive has seen and one it is repeating.
+ * Where an archive records it, it is marked.
+ *
+ *   rows  [{ year, title, what, href, source, unread }]
+ *          href may be an anchor on this page or a route elsewhere
+ */
+const { rows = [], u = (p) => p, unit = "documents",
+        note = "in the order the events happened rather than the order they were read" } = Astro.props;
+
+const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;");
+const ext = (h) => /^(https?:)?\/\//.test(String(h || ""));
+const href = (h) => (!h ? "" : ext(h) || String(h).startsWith("#") ? h : u(h));
+const dated = rows.filter((r) => r.year != null && String(r.year).match(/\d/));
+const unread = rows.filter((r) => r.unread).length;
+const span = dated.length
+  ? [Math.min(...dated.map((r) => +String(r.year).match(/\d{4}/)?.[0] || 9999)),
+     Math.max(...dated.map((r) => +String(r.year).match(/\d{4}/)?.[0] || 0))]
+  : null;
+---
+<div class="dc">
+  <p class="dc-count small mono">
+    {rows.length} {unit}{span && span[0] < 9999 ? ` · ${span[0]}–${span[1]}` : ""}
+    {unread ? ` · ${unread} not read from the image` : ""}
+  </p>
+  <p class="dc-note small">{note}</p>
+  <ol class="dc-list">
+    {rows.map((r) => (
+      <li class={"dc-i" + (r.unread ? " dc-unread" : "")}>
+        <span class="mono dc-y">{r.year != null && String(r.year).match(/\d/) ? r.year : "—"}</span>
+        <span class="dc-b">
+          {r.href ? <a href={href(r.href)} rel={ext(r.href) ? "noopener" : null} set:html={esc(r.title)} />
+                  : <span set:html={esc(r.title)} />}
+          {r.what ? <span class="dc-w"><Fragment set:html={r.what} /></span> : null}
+          {r.source ? <span class="dc-s"><span class="dc-k">from</span><Fragment set:html={r.source} /></span> : null}
+          {r.unread ? <span class="dc-u">not read from the image</span> : null}
+        </span>
+      </li>
+    ))}
+  </ol>
+</div>
+
+<style is:global>
+  .dc-count { color:var(--ink-3,#888); margin:1rem 0 .1rem; }
+  .dc-note { color:var(--ink-3,#888); margin:0 0 .2rem; max-width:70ch; }
+  .dc-list { list-style:none; margin:.9rem 0 0; padding:0; }
+  .dc-i { display:grid; grid-template-columns:4.5rem 1fr; gap:0 .9rem;
+    padding:.45rem 0; border-bottom:1px solid var(--rule,rgba(128,128,128,.14)); }
+  .dc-y { color:var(--ink-3,#888); font-size:.82rem; padding-top:.12rem; }
+  .dc-b a { text-decoration:none; }
+  .dc-b a:hover { text-decoration:underline; }
+  .dc-w { display:block; font-size:.84rem; color:var(--ink-2,inherit); margin-top:.15rem; max-width:70ch; }
+  .dc-s { display:block; font-size:.8rem; color:var(--ink-3,#888); margin-top:.15rem; }
+  .dc-k { display:inline-block; font-size:9.5px; font-weight:600; letter-spacing:.11em;
+    text-transform:uppercase; color:var(--ink-3,#888); margin-right:.25rem; }
+  .dc-u { display:inline-block; margin-top:.2rem; font-size:.76rem; color:var(--terra,#c55);
+    border:1px dashed var(--terra,#c55); border-radius:2px; padding:.05rem .35rem; }
+  @media (max-width:560px) { .dc-i { grid-template-columns:1fr; gap:.1rem 0; } }
+</style>
