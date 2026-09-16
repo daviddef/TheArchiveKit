@@ -1,0 +1,126 @@
+---
+/* The plates: what has been photographed, and what each one proves.
+ *
+ * Four archives keep this and no two wrote it the same way — Falco
+ * {f,t,c,k,cite,see}, Defranceschi {id,group,title,caption,holder,src,thumb},
+ * Booyzen {src,alt,cap,page,pagetitle}, D'Arcy an array typed into the page.
+ * Underneath: an image, what it is, where it came from, and the thing it is
+ * evidence FOR.
+ *
+ * ALT TEXT IS NOT A CAPTION, and one archive of the four knows it. Booyzen
+ * writes both — «Typewritten 1915 death notice for John Barry of Barkly East»
+ * for a screen reader, and a different sentence under the plate for a reader
+ * looking at it. The other three pass their title as both, which describes the
+ * subject to somebody who cannot see the image without describing the IMAGE.
+ * So `alt` is its own field here, and where an archive has not written one the
+ * title is used and the component does not pretend otherwise.
+ *
+ * WIDTH AND HEIGHT ARE KEPT WHERE THEY EXIST. Defranceschi and D'Arcy record
+ * them; a plate without them reflows the page as it loads, which on a gallery
+ * of two hundred is the whole page moving under the reader.
+ *
+ * WHAT A PLATE IS is the archive's word - a register act is not a photograph
+ * and neither is a headstone - and becomes the filter.
+ *
+ *   rows  [{ src, thumb, alt, title, what, kind, when, source, holder,
+ *            href, hrefLabel, w, h }]
+ */
+const { rows = [], u = (p) => p, unit = "plates" } = Astro.props;
+
+const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;");
+const ext = (h) => /^(https?:)?\/\//.test(String(h || ""));
+/* THE IMAGE PATH IS PASSED THROUGH UNTOUCHED. The four archives store it
+   differently - Booyzen's are already based («/TheBooyzen/docs/...»), D'Arcy's
+   are site-absolute, Falco's are bare filenames the page joins itself - and a
+   component that tried to guess which would base one of them twice. The page
+   hands over a URL that works; only the «what it shows» link is based, because
+   that is always an internal route. */
+const href = (h) => (!h ? "" : ext(h) ? h : u(h));
+const kinds = [...new Set(rows.map((r) => r.kind).filter(Boolean))]
+  .map((k) => [k, rows.filter((r) => r.kind === k).length])
+  .sort((a, b) => b[1] - a[1]);
+const withAlt = rows.filter((r) => r.alt && r.alt !== r.title).length;
+const id = "gy" + rows.length;
+---
+<div class="gy" data-gy={id}>
+  <p class="gy-count small mono">
+    {rows.length} {unit}
+    {kinds.length ? ` · ${kinds.map(([k, n]) => `${n} ${k}`).join(" · ")}` : ""}
+  </p>
+
+  {kinds.length > 1 ? (
+    <div class="gy-bar">
+      <span class="gy-lab">Show</span>
+      <button type="button" class="gy-opt on" data-v="">All <span class="mono">{rows.length}</span></button>
+      {kinds.map(([k, n]) => (
+        <button type="button" class="gy-opt" data-v={k}>{k} <span class="mono">{n}</span></button>
+      ))}
+    </div>
+  ) : null}
+
+  <div class="gy-grid">
+    {rows.map((r) => (
+      <figure class="gy-p" data-kind={r.kind || ""}>
+        <img src={r.thumb || r.src} alt={r.alt || r.title || ""} loading="lazy" decoding="async"
+             width={r.w || undefined} height={r.h || undefined} />
+        <figcaption>
+          <b>{r.title}</b>
+          {r.when ? <span class="gy-when mono">{r.when}</span> : null}
+          {r.what ? <p class="gy-w" set:html={r.what} /> : null}
+          {r.source || r.holder ? (
+            <p class="gy-src"><span class="gy-k">from</span>
+              <Fragment set:html={[r.source, r.holder].filter(Boolean).join(" · ")} /></p>
+          ) : null}
+          {r.href ? (
+            <p class="gy-go"><a href={href(r.href)} rel={ext(r.href) ? "noopener" : null}>
+              {r.hrefLabel || "What it shows"} &rarr;</a></p>
+          ) : null}
+        </figcaption>
+      </figure>
+    ))}
+  </div>
+  <p class="gy-none small" hidden>Nothing of that kind.</p>
+</div>
+
+<script>
+  document.querySelectorAll(".gy").forEach((box) => {
+    const ps = [...box.querySelectorAll(".gy-p")];
+    const none = box.querySelector(".gy-none");
+    box.querySelectorAll(".gy-opt").forEach((b) => {
+      b.addEventListener("click", () => {
+        box.querySelectorAll(".gy-opt").forEach((x) => x.classList.remove("on"));
+        b.classList.add("on");
+        const v = b.dataset.v || "";
+        let shown = 0;
+        for (const p of ps) { const ok = !v || p.dataset.kind === v; p.hidden = !ok; if (ok) shown++; }
+        if (none) none.hidden = shown > 0;
+      });
+    });
+  });
+</script>
+
+<style is:global>
+  .gy-count { color:var(--ink-3,#888); margin:1rem 0 .2rem; }
+  .gy-bar { display:flex; flex-wrap:wrap; gap:.35rem; align-items:center; margin:.5rem 0 .2rem; }
+  .gy-lab { font-size:9.5px; font-weight:600; letter-spacing:.11em; text-transform:uppercase;
+    color:var(--ink-3,#888); margin-right:.35rem; }
+  .gy-opt { font:inherit; font-size:.78rem; padding:.22rem .6rem; cursor:pointer;
+    color:var(--ink-2,inherit); background:transparent; border:1px solid var(--rule,#ccc);
+    border-radius:2px; display:inline-flex; gap:.4rem; align-items:baseline; }
+  .gy-opt.on { color:var(--accent,#963); border-color:var(--accent,#963);
+    background:var(--accent-wash,transparent); font-weight:600; }
+  .gy-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
+    gap:1.1rem; margin-top:1rem; }
+  .gy-p { margin:0; border:1px solid var(--rule,#ddd); border-radius:3px; overflow:hidden;
+    display:flex; flex-direction:column; }
+  .gy-p img { display:block; width:100%; height:auto; background:var(--panel,#f4f4f4); }
+  .gy-p figcaption { padding:.6rem .7rem; }
+  .gy-p b { display:block; font-size:.95rem; line-height:1.3; }
+  .gy-when { display:block; font-size:.78rem; color:var(--ink-3,#888); margin-top:.15rem; }
+  .gy-w { margin:.4rem 0 0; font-size:.86rem; color:var(--ink-2,inherit); }
+  .gy-src { margin:.4rem 0 0; font-size:.8rem; color:var(--ink-3,#888); }
+  .gy-k { display:inline-block; font-size:9.5px; font-weight:600; letter-spacing:.11em;
+    text-transform:uppercase; color:var(--ink-3,#888); margin-right:.25rem; }
+  .gy-go { margin:.45rem 0 0; font-size:.84rem; }
+  @media (max-width:520px) { .gy-grid { grid-template-columns:1fr; } }
+</style>
