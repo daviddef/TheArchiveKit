@@ -128,6 +128,26 @@
       ],
       "accentDark": "#E0A85F",
       "counter": "themazza"
+    },
+    {
+      "key": "luwinski",
+      "base": "/TheLuwinski",
+      "name": "The Luwinski Archive",
+      "url": "https://daviddef.github.io/TheLuwinski/",
+      "accent": "#9A4B2B",
+      "accentDark": "#E0946F",
+      "where": "East Prussia · Berlin · Lourenço Marques · Johannesburg",
+      "line": "Four men deported from Berlin, one who got out in 1933, and a paternity the DNA will not let the paperwork keep.",
+      "surnames": [
+        "Luwinski",
+        "Luwinsky",
+        "Luwenski",
+        "Leibholz",
+        "Figueiredo",
+        "Mota Figueiredo",
+        "Wear"
+      ],
+      "counter": "theluwinski"
     }
   ],
   "children": {
