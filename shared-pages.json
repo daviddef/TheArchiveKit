@@ -106,11 +106,10 @@
       "on": 7,
       "state": "partial",
       "tier": 1,
-      "note": "**Four of seven on the shared Searched** — Defranceschi, D'Arcy, Blazevic, Mazza, 835 searches between them. One model, four spellings. **The outcome words stay the archive's**: hit/yield/nothing/found/pending, yield/null/empty/blocked, +partly, done/outstanding/not-yet/superseded — those are different judgements about what a search DID, not synonyms. Tags survived, which needed a multi-value facet (a row carries several and a reader clicks one). D'Arcy keeps the thing no one else records: whether a null had a control that could have disproved it. **Falco and Lerena have no searched.json** — Falco's page is prose, which is also why its work list could not be counted. BOOYZEN IS BLOCKED TOO, and differently: it holds its page as data - 104 dated session write-ups - but with NO OUTCOME FIELD on any of them, and the shared register turns on exactly that. Writing outcome words from outside would be inventing findings. All three blocks are now on their own archives' work lists.",
+      "note": "**Five of seven on the shared Searched** — Defranceschi, D'Arcy, Blazevic, Mazza and now **Falco, which turned its 273 lines of prose into rows after the block was written onto its own work list**. That is the mechanism working: the row named the shape, the archive that owned the research did it. One model, four spellings. **The outcome words stay the archive's**: hit/yield/nothing/found/pending, yield/null/empty/blocked, +partly, done/outstanding/not-yet/superseded — those are different judgements about what a search DID, not synonyms. Tags survived, which needed a multi-value facet (a row carries several and a reader clicks one). D'Arcy keeps the thing no one else records: whether a null had a control that could have disproved it. **Falco and Lerena have no searched.json** — Falco's page is prose, which is also why its work list could not be counted. BOOYZEN IS BLOCKED TOO, and differently: it holds its page as data - 104 dated session write-ups - but with NO OUTCOME FIELD on any of them, and the shared register turns on exactly that. Writing outcome words from outside would be inventing findings. All three blocks are now on their own archives' work lists.",
       "component": "Searched",
-      "using": 4,
+      "using": 5,
       "drawingTheirOwn": [
-        "Falco",
         "Booyzen",
         "Lerena"
       ]
@@ -134,9 +133,8 @@
       "tier": 1,
       "note": "**Two of seven, and that is the ceiling until the others extract their questions.** Only Defranceschi (q/status/known/needed) and D'Arcy (q/state/rank/settles/tried) hold questions as DATA; **Falco, Booyzen, Blazevic, Lerena and Mazza write them as prose**, so they cannot adopt this until somebody turns them into rows — research work belonging to each archive, not something to guess from outside. The shape is: the question, what is known, what has been tried, and **the specific record that would answer it**. That last field is what makes it a queue rather than a list of regrets. D'Arcy also ages a question and marks anything past thirty days. Written onto the five archives' own work lists on 16 September 2026, so the block is visible to the sessions that can clear it and not only in this register.",
       "component": "Questions",
-      "using": 2,
+      "using": 3,
       "drawingTheirOwn": [
-        "Falco",
         "Booyzen",
         "Blazevic",
         "Mazza",
@@ -239,16 +237,14 @@
       "key": "documents",
       "route": "/documents/",
       "on": 4,
-      "state": "local",
+      "state": "partial",
       "tier": 3,
-      "note": "**559 to 53,148 words.**",
-      "using": 0,
+      "note": "Three of four carry the shared INDEX; the reproductions stay written by hand. D'Arcy's own dek gives the reason these pages exist: «an archive that only summarises its documents is asking to be trusted. These are reproduced whole, so you can disagree with what has been made of them.» They are not four versions of one page. Booyzen reproduces **110 documents** with image, transcription and argument - 53,000 words, the largest single thing in the estate - and had built its own contents list by scanning its headings; that idea is the component. Falco indexes 78 plates it reproduces whole with their archival references and had no way in. D'Arcy reproduces one eulogy in three parts, now each reachable. **A component that flattened 110 arguments into 110 cards would destroy the thing it was sent to tidy**, so it indexes and does not read. **MAZZA'S PAGE WAS NOT THIS PAGE**: 130 photographs grouped by the person they show, out of a tree export. It moved to Gallery and gained the lightbox, which matters most there - almost none are captioned, and an unidentified family photograph is the thing somebody must see full size before they can name who is in it.",
+      "using": 3,
       "drawingTheirOwn": [
-        "Falco",
-        "Booyzen",
-        "D'Arcy",
         "Mazza"
-      ]
+      ],
+      "component": "Documents"
     },
     {
       "key": "gallery",
@@ -257,11 +253,8 @@
       "state": "partial",
       "tier": 3,
       "note": "Three of four on the shared Gallery — Falco 78 plates, Booyzen 200, Defranceschi 162. The menu says «Gallery» on all four and the page titles differ («The Plate Room», «The plates»), which is the settled rule and not a defect. **ALT TEXT IS NOT A CAPTION and two of the four knew it** — Booyzen and D'Arcy write a sentence for a screen reader distinct from the one under the plate; Falco and Defranceschi pass their title as both, and the component asks for alt rather than pretending. **A plate room you cannot open a plate in is worse than none**: two had a lightbox and two did not, so it is in the component and all of them have it. Width and height are kept where recorded, because a gallery of two hundred without them moves under the reader as it loads. **D'ARCY IS THE EXCEPTION AND SHOULD STAY ONE**: it holds two plates, each with a paragraph of analysis beneath it, and its own dek says the shortness of the page is the finding. A two-cell grid is worse than two essays.",
-      "using": 0,
+      "using": 3,
       "drawingTheirOwn": [
-        "Falco",
-        "Defranceski",
-        "Booyzen",
         "D'Arcy"
       ],
       "component": "Gallery"
@@ -285,7 +278,7 @@
       "on": 3,
       "state": "local",
       "tier": 3,
-      "note": "Three archives, and two are about different subjects — this one may stay local.",
+      "note": "**Local by decision, and the archives had already settled it.** Three pages, three subjects: Defranceschi's is famous strangers who share the surname - a chancellor painted by Titian, a bishop who was a rabbi's son, two Venetian presses. Booyzen's is FORENAMES inside the family, «inherited property that travels through daughters as reliably as a surname travels through sons». Falco's is an argument for why it has neither, and says so in its first sentence. The menus already differ - Falco and Defranceschi say «Namesakes», **Booyzen says «The forenames»** - so the false consistency this estate fixed on /who/ never existed here. A shared component would be inventing a subject the three do not share. (The kit's Namesakes.astro is a fourth thing again: the «others of this name» block on a person page, used by four archives.)",
       "using": 0,
       "drawingTheirOwn": [
         "Falco",

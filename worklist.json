@@ -524,13 +524,13 @@
     },
     {
       "n": 61,
-      "state": "next",
+      "state": "done",
       "owner": "this session",
       "since": "2026-09-16",
       "what": "Tier 3: /documents/, on the four archives that keep one",
-      "note": "**559 to 53,148 words** for the same job. Four archives; no shared shape yet. The likely core is a plate with a date, what it is, what it says and where the original lives — Falco already keys its dated plates that way for the timeline.",
+      "note": "**559 to 53,148 words** for the same job. Four archives; no shared shape yet. The likely core is a plate with a date, what it is, what it says and where the original lives — Falco already keys its dated plates that way for the timeline.\n\n**Done 17 September.** The index is shared; the reproductions are not, and should not be. Mazza's page turned out to be a gallery under a documents label and moved to the gallery component.",
       "covers": [
-        "page:documents"
+        "part:documents"
       ]
     },
     {
@@ -557,11 +557,11 @@
     },
     {
       "n": 64,
-      "state": "next",
+      "state": "done",
       "owner": "this session",
       "since": "2026-09-16",
       "what": "Tier 3: decide whether /namesakes/ stays local",
-      "note": "Three archives and **two of them are about different subjects** — one means people named after an ancestor, the other means unrelated bearers of the surname. That is the /who/ problem again. It may be right to leave this local, but it should be a decision written down rather than a gap left open.",
+      "note": "Three archives and **two of them are about different subjects** — one means people named after an ancestor, the other means unrelated bearers of the surname. That is the /who/ problem again. It may be right to leave this local, but it should be a decision written down rather than a gap left open.\n\n**Decided 17 September: it stays local, and the archives had already decided it.** Three subjects - famous strangers, inherited forenames, and an argument for having neither - and the menus already say «Namesakes», «Namesakes» and **«The forenames»**. The false consistency fixed on /who/ never existed here.",
       "covers": [
         "page:namesakes"
       ]
