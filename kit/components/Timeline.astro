@@ -28,7 +28,23 @@
  * Living people reach this page as a name and a relationship. Nothing here
  * prints a date it was not given, and no row is dropped for lacking one.
  */
+import Evidence from "./Evidence.astro";
+
 const { events = [], u = (p) => p, noun = "dated events" } = Astro.props;
+
+/* A LEVEL THIS ARCHIVE FAMILY DOES NOT GRADE WITH IS NOT GRADED. Printing the
+   raw string as an evidence chip gave Mazza `ev-candidate`, `ev-method` and
+   `ev-negative` - three classes with no styling anywhere and, worse, three
+   words presented with the authority of the five the estate actually shares.
+   Two of them are search outcomes, not claim grades. Anything Evidence does
+   not recognise is shown as a plain label instead, so the word survives and
+   the grade is not invented. The set is Evidence's own alias table; if that
+   grows and this lags, a real level prints as a plain label - visibly duller,
+   never a false grade. */
+const GRADED = new Set(["documented", "doc", "yes", "proven", "probable", "likely",
+  "inferred", "inf", "unproven", "untested", "family", "lore", "tradition",
+  "asserted", "no", "open", "disputed", "contested", "conflict"]);
+const graded = (l) => GRADED.has(String(l ?? "").toLowerCase());
 
 const yearOf = (e) => {
   if (e.year != null && String(e.year).match(/\d/)) return Number(String(e.year).match(/\d{4}/)?.[0] ?? e.year);
@@ -86,7 +102,11 @@ for (const r of rows) {
             <div class="tl-when">
               <span class="mono tl-yr">{r.when ?? r.year ?? "—"}</span>
               {r.kind ? <span class="tl-kind">{r.kind}</span> : null}
-              {r.level ? <span class={`ev ev-${r.level}`}>{r.level}</span> : null}
+              {r.level
+                ? graded(r.level)
+                  ? <Evidence level={r.level} />
+                  : <span class="tl-kind tl-ungraded">{r.level}</span>
+                : null}
             </div>
             <div class="tl-what">
               <h4 class="tl-t">
@@ -169,6 +189,7 @@ for (const r of rows) {
   .tl-w { margin:.3rem 0 0; color:var(--ink-2,inherit); max-width:70ch; }
   .tl-tags { display:flex; flex-wrap:wrap; gap:6px; margin-top:.5rem; }
   .tl-src { margin:.35rem 0 0; font-size:.85rem; color:var(--ink-3,#888); max-width:70ch; }
+  .tl-ungraded { border-style:dashed; }
   .tl-k { display:inline-block; font-size:9.5px; font-weight:600; letter-spacing:.11em;
     text-transform:uppercase; color:var(--ink-3,#888); margin-right:.2rem; }
 </style>
