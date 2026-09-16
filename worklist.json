@@ -632,11 +632,11 @@
     },
     {
       "n": 73,
-      "state": "next",
+      "state": "done",
       "owner": "this session",
       "since": "2026-09-16",
       "what": "No kit component has a test, and two bugs this session would have been caught by one",
-      "note": "Everything is verified by building an archive and grepping the HTML, which is why «No name here appears in more than one **people**» reached a built page, and why `ev-candidate` — a class with no styling in any theme — rendered 40 times before anyone noticed. A harness that renders each component against a fixture and asserts on the output would be cheap: there are 34 components and most take a plain array."
+      "note": "Everything is verified by building an archive and grepping the HTML, which is why «No name here appears in more than one **people**» reached a built page, and why `ev-candidate` — a class with no styling in any theme — rendered 40 times before anyone noticed. A harness that renders each component against a fixture and asserts on the output would be cheap: there are 34 components and most take a plain array.\n\n**Done 16 September.** `kit/tools/checklogic.mjs`, run by `npm test`. It reads a component's frontmatter out of the .astro file, hands it fixture props and reads back what it worked out — no Astro, no build, no browser, which is why it can live in a package that has no build step. **Proved by breaking it**: with the singular made by dropping a trailing s again, and the evidence check returning true for everything, the run fails those two cases and only those two. \n\nTwo cheaper ideas were measured first and dropped. A check for class names built from data found **four across 36 components and all four safe** (booleans and numeric indices). A check for classes with no styles found **eleven on a built Booyzen**, essentially all script hooks or structural wrappers — `hh` and `cx` are selectors their own scripts use. Neither would have caught anything. \n\nWhat it cannot do is written in the file: it does not render, so a class spelled one way in the markup and another in the style block is invisible, and the content-visibility finding needed a real browser."
     },
     {
       "n": 74,
