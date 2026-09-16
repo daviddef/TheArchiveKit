@@ -57,8 +57,23 @@ const {
    and rows here are not a uniform height - the name cell runs to two lines when
    there is a chip under it. A wrong estimate is the bug Booyzen's own comment
    warns about: the browser collapses what is off-screen and the scrollbar
-   jumps as you scroll. A block of 200 averages that out. */
+   jumps as you scroll. A block of 200 averages that out.
+
+   THE ESTIMATE IS MEASURED AND PROPORTIONAL, because the first one was neither.
+   It was a flat 9,000px per chunk, reasoned from a 45px row. Opened in a
+   browser, a D'Arcy register chunk is 17,043 to 22,673px and its median row is
+   97px - the estimate was out by half, which is exactly the jumping scrollbar
+   it was meant to prevent. Worse, a flat number is wrong at both ends: the last
+   chunk holds whatever is left over, and 54 rows were reserving 9,000px for a
+   real 5,193.
+
+   So each chunk reserves its OWN row count times `rowPx`. Measured on D'Arcy:
+   the register runs about 100px a row and the people table about 68, so the
+   default sits between them and a page with squatter rows can say so. The
+   `auto` keyword then replaces the guess with the real height once the browser
+   has laid the chunk out, so this only has to be close for the first paint. */
 const CHUNK = 200;
+const { rowPx = 85 } = Astro.props;
 const chunks = rows.length > CHUNK * 2
   ? Array.from({ length: Math.ceil(rows.length / CHUNK) }, (_, i) => rows.slice(i * CHUNK, i * CHUNK + CHUNK))
   : [rows];
@@ -115,7 +130,10 @@ const chunks = rows.length > CHUNK * 2
     <table class="ft-table">
       <thead><tr>{columns.map((c) => <th class={c.cls || ""}>{c.label}</th>)}</tr></thead>
       {chunks.map((chunk) => (
-        <tbody class={chunks.length > 1 ? "ft-chunk" : ""}>
+        <tbody class={chunks.length > 1 ? "ft-chunk" : ""}
+               style={chunks.length > 1
+                 ? `contain-intrinsic-size:auto ${chunk.length * rowPx}px`
+                 : undefined}>
           {chunk.map((r) => (
             <tr class="ft-row" data-hay={r.hay || undefined} data-extra={r.extraHay || undefined}
                 {...Object.fromEntries((facets || []).map((f) => ["data-" + f.key, String((r.facets || {})[f.key] ?? "")]))}>
@@ -254,8 +272,9 @@ const chunks = rows.length > CHUNK * 2
      content-visibility but cannot parse the "auto" keyword in
      contain-intrinsic-size, and with no usable estimate they collapse every
      off-screen block to nothing. Booyzen found this and it is kept. */
-  tbody.ft-chunk { content-visibility:auto; contain-intrinsic-size:9000px;
-    contain-intrinsic-size:auto 9000px; }
+  /* The per-chunk inline style carries the real estimate; this is the floor a
+     browser gets if that style is stripped. */
+  tbody.ft-chunk { content-visibility:auto; contain-intrinsic-size:17000px; }
   /* The UA rule [hidden]{display:none} is a single attribute selector and loses
      to anything a site sets on tbody. Said explicitly, because a chunk that
      fails to hide leaves nine thousand pixels of blank in the middle of a
