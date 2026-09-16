@@ -7,7 +7,8 @@
       "on": 7,
       "state": "aligned",
       "tier": 0,
-      "note": "Metrics, timeline, ranked chart, couples, families — one component, one order."
+      "note": "Metrics, timeline, ranked chart, couples, families — one component, one order.",
+      "component": "Marriages"
     },
     {
       "key": "method",
@@ -15,7 +16,8 @@
       "on": 7,
       "state": "aligned",
       "tier": 0,
-      "note": "The five-word evidence ladder, shared since before this session."
+      "note": "The five-word evidence ladder, shared since before this session.",
+      "component": "Evidence"
     },
     {
       "key": "worklist",
@@ -23,7 +25,8 @@
       "on": 7,
       "state": "aligned",
       "tier": 0,
-      "note": "One component, and now two gates behind it."
+      "note": "One component, and now two gates behind it.",
+      "component": "WorkList"
     },
     {
       "key": "trees",
@@ -31,7 +34,8 @@
       "on": 7,
       "state": "aligned",
       "tier": 0,
-      "note": "Shared."
+      "note": "Shared.",
+      "component": "Trees"
     },
     {
       "key": "atlas",
@@ -39,7 +43,8 @@
       "on": 6,
       "state": "aligned",
       "tier": 0,
-      "note": "Shared Atlas on all six that have it."
+      "note": "Shared Atlas on all six that have it.",
+      "component": "Atlas"
     },
     {
       "key": "bloodline",
@@ -47,7 +52,8 @@
       "on": 7,
       "state": "aligned",
       "tier": 1,
-      "note": "All seven on the shared chart."
+      "note": "All seven on the shared chart.",
+      "component": "Bloodline"
     },
     {
       "key": "people",
@@ -55,7 +61,8 @@
       "on": 7,
       "state": "aligned",
       "tier": 1,
-      "note": "All seven on the shared FilterTable, each keeping its own columns, facets and prose. Falco went 378 lines to 280, Blazevic 182 to 80, Booyzen 141 to 57. Nothing was surrendered to standardise: the Blazevic spelling fold is a prop (joannis still finds 118 Ivans), Falco's five booleans are still one row of mutually exclusive buttons, and the links gained trailing slashes - 9,750 redirects removed on the Falco page alone. The last two each had one control doing two jobs. D'Arcy put 'Direct line' in the same chip row as the surnames, so a reader could not ask for the Sneyds who are ancestors; they are separate facets now. Lerena's standing - connected, excluded, unplaced - was sortable but not askable, and it is the argument that page makes."
+      "note": "All seven on the shared FilterTable, each keeping its own columns, facets and prose. Falco went 378 lines to 280, Blazevic 182 to 80, Booyzen 141 to 57. Nothing was surrendered to standardise: the Blazevic spelling fold is a prop (joannis still finds 118 Ivans), Falco's five booleans are still one row of mutually exclusive buttons, and the links gained trailing slashes - 9,750 redirects removed on the Falco page alone. The last two each had one control doing two jobs. D'Arcy put 'Direct line' in the same chip row as the surnames, so a reader could not ask for the Sneyds who are ancestors; they are separate facets now. Lerena's standing - connected, excluded, unplaced - was sortable but not askable, and it is the argument that page makes.",
+      "component": "FilterTable"
     },
     {
       "key": "who",
@@ -63,15 +70,17 @@
       "on": 7,
       "state": "aligned",
       "tier": 1,
-      "note": "All seven on the shared EveryName. The two that looked like a different page were not: Defranceschi and D'Arcy both keep ONE ENTRY PER NAME, keyed by a name-slug - 1,118 entries for 1,118 distinct names, 169 for 169 - and both called each entry a PERSON in their prose, which is the merge this estate says everywhere else that it does not do. Two men called Giovanni Defranceschi have one entry, and it is an entry for the name. WHAT n COUNTS DIFFERS AND DECIDES WHAT MAY BE SAID: bearers on Booyzen, Blazevic, Mazza and Lerena, records on Falco and D'Arcy, mentions on Defranceschi. The 'held by more than one person' reading is offered only where the number supports it; elsewhere the page says plainly that the count is not a count of people. Falco was already declaring this correctly and nobody else was. D'Arcy keeps what makes its page its own - the witnesses, constables and surgeons it had nowhere else to put - and its line of record text is a column."
+      "note": "All seven on the shared EveryName. The two that looked like a different page were not: Defranceschi and D'Arcy both keep ONE ENTRY PER NAME, keyed by a name-slug - 1,118 entries for 1,118 distinct names, 169 for 169 - and both called each entry a PERSON in their prose, which is the merge this estate says everywhere else that it does not do. Two men called Giovanni Defranceschi have one entry, and it is an entry for the name. WHAT n COUNTS DIFFERS AND DECIDES WHAT MAY BE SAID: bearers on Booyzen, Blazevic, Mazza and Lerena, records on Falco and D'Arcy, mentions on Defranceschi. The 'held by more than one person' reading is offered only where the number supports it; elsewhere the page says plainly that the count is not a count of people. Falco was already declaring this correctly and nobody else was. D'Arcy keeps what makes its page its own - the witnesses, constables and surgeons it had nowhere else to put - and its line of record text is a column.",
+      "component": "EveryName"
     },
     {
       "key": "register",
       "route": "/register/",
       "on": 7,
-      "state": "aligned",
+      "state": "partial",
       "tier": 1,
-      "note": "All five that keep one are on the shared Register - Falco 12,038, Booyzen 7,620, Defranceschi 1,508, Blazevic 1,466, D'Arcy 854. Mazza and Lerena have none. SIZE IS LEGITIMATE AND STAYS; the shape is what is shared. Two things came out of the five. D'Arcy and Defranceschi had each built a filter for how a record is known, and all five carried the field - it is the 'Known from' facet now, and the vocabularies stay apart because 'above a graft' and 'same name, not joined' are findings about different problems. Booyzen's content-visibility and debounce are in the shared table, per block of 200 rows, so they survive its fourteen sections becoming a facet. Moving D'Arcy found a fault: it read the source SENTENCE rather than the kind FIELD, and 21 medieval records - Berkeley Castle Muniments, Library of Birmingham MS 3549, Hertfordshire Archives, TBGAS - were shown to readers as somebody's family tree on the page whose stated purpose is telling those apart. Booyzen's page went 4,045 KB to 3,148."
+      "note": "**Five of seven on the shared Register** — Falco 12,038, Booyzen 7,620, Defranceschi 1,508, Blazevic 1,466, D'Arcy 854. **THIS ROW SAID «Mazza and Lerena have none» AND WAS MARKED ALIGNED ON THE STRENGTH OF IT. Both keep one**: Mazza assembles its register out of seven data files so it cannot fall behind the reading, Lerena builds one from people.json with a status on every row. Caught by `readacross.py`, which is why that tool now exists. SIZE IS LEGITIMATE AND STAYS; the shape is what is shared. Two archives had already built a filter for how a record is known — D'Arcy's record/tree/above-a-graft and Defranceschi's in-the-archive/same-name-not-joined/lead — and all five carried the field; it is the «Known from» facet now, with the vocabularies kept apart. Booyzen's content-visibility and debounce are in the shared table, per block of 200 rows. Moving D'Arcy found a fault: it read the source SENTENCE rather than the kind FIELD, and 21 medieval records were shown to readers as somebody's family tree on the page whose stated purpose is telling those apart. Booyzen's page went 4,045 KB to 3,148.",
+      "component": "Register"
     },
     {
       "key": "searched",
@@ -79,7 +88,8 @@
       "on": 7,
       "state": "partial",
       "tier": 1,
-      "note": "**Four of seven on the shared Searched** — Defranceschi, D'Arcy, Blazevic, Mazza, 835 searches between them. One model, four spellings. **The outcome words stay the archive's**: hit/yield/nothing/found/pending, yield/null/empty/blocked, +partly, done/outstanding/not-yet/superseded — those are different judgements about what a search DID, not synonyms. Tags survived, which needed a multi-value facet (a row carries several and a reader clicks one). D'Arcy keeps the thing no one else records: whether a null had a control that could have disproved it. **Falco and Lerena have no searched.json** — Falco's page is prose, which is also why its work list could not be counted. BOOYZEN IS BLOCKED TOO, and differently: it holds its page as data - 104 dated session write-ups - but with NO OUTCOME FIELD on any of them, and the shared register turns on exactly that. Writing outcome words from outside would be inventing findings. All three blocks are now on their own archives' work lists."
+      "note": "**Four of seven on the shared Searched** — Defranceschi, D'Arcy, Blazevic, Mazza, 835 searches between them. One model, four spellings. **The outcome words stay the archive's**: hit/yield/nothing/found/pending, yield/null/empty/blocked, +partly, done/outstanding/not-yet/superseded — those are different judgements about what a search DID, not synonyms. Tags survived, which needed a multi-value facet (a row carries several and a reader clicks one). D'Arcy keeps the thing no one else records: whether a null had a control that could have disproved it. **Falco and Lerena have no searched.json** — Falco's page is prose, which is also why its work list could not be counted. BOOYZEN IS BLOCKED TOO, and differently: it holds its page as data - 104 dated session write-ups - but with NO OUTCOME FIELD on any of them, and the shared register turns on exactly that. Writing outcome words from outside would be inventing findings. All three blocks are now on their own archives' work lists.",
+      "component": "Searched"
     },
     {
       "key": "corrections",
@@ -87,7 +97,8 @@
       "on": 7,
       "state": "aligned",
       "tier": 1,
-      "note": "All seven on the shared Corrections, each keeping its own page title and its own words. NOT A TABLE: the first attempt put «what was said» and «what is true» in four columns and it was unreadable, because these are sentences. TWO FILTER DIMENSIONS, because the archives ask different things - Falco and Defranceschi by severity, Booyzen by CAUSE, Mazza by what the correction is about in 39 kinds while also grading each one. Past seven options the control becomes a select. Both conversions found stale numbers typed into prose: Mazza said 'three of the twenty-seven' over 102 rows, D'Arcy said 'the eight above' and invited a ninth over 32. Those are computed now. D'Arcy's 'five of the seven are the same failure' was NOT touched beyond saying first seven - it is a judgement about shared causes, and re-deriving it over 32 errors is that archive's to do."
+      "note": "All seven on the shared Corrections, each keeping its own page title and its own words. NOT A TABLE: the first attempt put «what was said» and «what is true» in four columns and it was unreadable, because these are sentences. TWO FILTER DIMENSIONS, because the archives ask different things - Falco and Defranceschi by severity, Booyzen by CAUSE, Mazza by what the correction is about in 39 kinds while also grading each one. Past seven options the control becomes a select. Both conversions found stale numbers typed into prose: Mazza said 'three of the twenty-seven' over 102 rows, D'Arcy said 'the eight above' and invited a ninth over 32. Those are computed now. D'Arcy's 'five of the seven are the same failure' was NOT touched beyond saying first seven - it is a judgement about shared causes, and re-deriving it over 32 errors is that archive's to do.",
+      "component": "Corrections"
     },
     {
       "key": "open-questions",
@@ -95,7 +106,8 @@
       "on": 7,
       "state": "partial",
       "tier": 1,
-      "note": "**Two of seven, and that is the ceiling until the others extract their questions.** Only Defranceschi (q/status/known/needed) and D'Arcy (q/state/rank/settles/tried) hold questions as DATA; **Falco, Booyzen, Blazevic, Lerena and Mazza write them as prose**, so they cannot adopt this until somebody turns them into rows — research work belonging to each archive, not something to guess from outside. The shape is: the question, what is known, what has been tried, and **the specific record that would answer it**. That last field is what makes it a queue rather than a list of regrets. D'Arcy also ages a question and marks anything past thirty days. Written onto the five archives' own work lists on 16 September 2026, so the block is visible to the sessions that can clear it and not only in this register."
+      "note": "**Two of seven, and that is the ceiling until the others extract their questions.** Only Defranceschi (q/status/known/needed) and D'Arcy (q/state/rank/settles/tried) hold questions as DATA; **Falco, Booyzen, Blazevic, Lerena and Mazza write them as prose**, so they cannot adopt this until somebody turns them into rows — research work belonging to each archive, not something to guess from outside. The shape is: the question, what is known, what has been tried, and **the specific record that would answer it**. That last field is what makes it a queue rather than a list of regrets. D'Arcy also ages a question and marks anything past thirty days. Written onto the five archives' own work lists on 16 September 2026, so the block is visible to the sessions that can clear it and not only in this register.",
+      "component": "Questions"
     },
     {
       "key": "direct-line",
@@ -103,7 +115,8 @@
       "on": 7,
       "state": "aligned",
       "tier": 2,
-      "note": "All seven on the shared Spine, and the point of it is the mark on the joint that cannot bear weight. Four archives had that argument in prose beside a row that said nothing: Booyzen's seventh generation, Mazza's four unsourced, Defranceschi's first. Lerena's chain is deliberately unmarked and that now means something. The spine carries a household, a Latin form, a trade, sources and an archive's own plate renderer, so Defranceschi lost nothing moving onto it."
+      "note": "All seven on the shared Spine, and the point of it is the mark on the joint that cannot bear weight. Four archives had that argument in prose beside a row that said nothing: Booyzen's seventh generation, Mazza's four unsourced, Defranceschi's first. Lerena's chain is deliberately unmarked and that now means something. The spine carries a household, a Latin form, a trade, sources and an archive's own plate renderer, so Defranceschi lost nothing moving onto it.",
+      "component": "Spine"
     },
     {
       "key": "places",
@@ -111,7 +124,8 @@
       "on": 7,
       "state": "aligned",
       "tier": 2,
-      "note": "All seven on the shared register. A kind - farm, village, church, hospital, cemetery - is now its own column and filter, because a cemetery holding four people is not the evidence a farm holding four is. Four archives keep a second, local table beside it (Falco's record locations, Blazevic's how-far-wrong, Mazza's export-vs-map spellings) and those stay."
+      "note": "All seven on the shared register. A kind - farm, village, church, hospital, cemetery - is now its own column and filter, because a cemetery holding four people is not the evidence a farm holding four is. Four archives keep a second, local table beside it (Falco's record locations, Blazevic's how-far-wrong, Mazza's export-vs-map spellings) and those stay.",
+      "component": "Places"
     },
     {
       "key": "sources",
@@ -119,7 +133,8 @@
       "on": 7,
       "state": "partial",
       "tier": 2,
-      "note": "Two of seven hold sources as DATA - Falco and Defranceschi. The other five write them inline: Booyzen 674 lines (the largest in the estate), Lerena 205, D'Arcy 168, Blazevic 129, Mazza 70. Nothing about the content need change; the shape is what blocks it. On those five archives' work lists since 16 September 2026."
+      "note": "Two of seven hold sources as DATA - Falco and Defranceschi. The other five write them inline: Booyzen 674 lines (the largest in the estate), Lerena 205, D'Arcy 168, Blazevic 129, Mazza 70. Nothing about the content need change; the shape is what blocks it. On those five archives' work lists since 16 September 2026.",
+      "component": "Sources"
     },
     {
       "key": "name",
@@ -127,7 +142,8 @@
       "on": 7,
       "state": "partial",
       "tier": 2,
-      "note": "Five of seven draw 'where the name is' on the shared Distribution (Falco, Lerena, Booyzen, D'Arcy, Defranceschi via its own spelling wrapper). TWO ARE NOT A GAP TO CLOSE BY FORCE. Blazevic's four-row table compares the rarity of four SURNAMES, not the geography of one, and carries a principal-countries column the chart cannot hold. Mazza holds no worldwide distribution data at all - only how many of each name this archive itself holds - and inventing a chart for it would be research, not alignment. Where a chart would contradict its own page it is drawn differently: Lerena ranks by density because that page argues Spain is not the answer."
+      "note": "**Three of seven** draw 'where the name is' on the shared Distribution — Falco, Booyzen and Lerena. **The note said five**, counting D'Arcy, which draws its own chart under a heading reading «Distribution», and Defranceschi, whose local spelling wrapper does not import the shared component at all. Caught by `readacross.py`. TWO ARE NOT A GAP TO CLOSE BY FORCE. Blazevic's four-row table compares the rarity of four SURNAMES, not the geography of one, and carries a principal-countries column the chart cannot hold. Mazza holds no worldwide distribution data at all - only how many of each name this archive itself holds - and inventing a chart for it would be research, not alignment. Where a chart would contradict its own page it is drawn differently: Lerena ranks by density because that page argues Spain is not the answer.",
+      "component": "Distribution"
     },
     {
       "key": "timeline",
@@ -135,7 +151,8 @@
       "on": 7,
       "state": "aligned",
       "tier": 2,
-      "note": "All seven on the shared chronology. The chart above it stays each archive's - sovereignty lanes, political bands and Falco's read-coverage band each say something the others cannot - but the dated events, their grouping, their filter and the source beside each row are now one shape."
+      "note": "All seven on the shared chronology. The chart above it stays each archive's - sovereignty lanes, political bands and Falco's read-coverage band each say something the others cannot - but the dated events, their grouping, their filter and the source beside each row are now one shape.",
+      "component": "Timeline"
     },
     {
       "key": "changes",
@@ -143,7 +160,8 @@
       "on": 6,
       "state": "aligned",
       "tier": 2,
-      "note": "All six that keep one are on the shared feed. Mazza has no such page. Booyzen sets withdrawals beside findings on the day they happened and that arrangement was kept for all six; the strikethrough table stays on /corrections/."
+      "note": "All six that keep one are on the shared feed. Mazza has no such page. Booyzen sets withdrawals beside findings on the day they happened and that arrangement was kept for all six; the strikethrough table stays on /corrections/.",
+      "component": "Changes"
     },
     {
       "key": "households",
@@ -151,7 +169,8 @@
       "on": 5,
       "state": "partial",
       "tier": 3,
-      "note": "Four of five on the shared Households. Three things came out of the four and now belong to all of them: Booyzen's record of HOW each household and each child is known, D'Arcy's search box, and Defranceschi's mark on a child who did not reach five - which the warning at the foot of every one of these pages had been making an excuse about. FALCO IS THE EXCEPTION AND SHOULD STAY ONE: its page is an evidence register grouped by household - person, event, date, what the register says, ark - not a list of couples with children under them, and the shared card would flatten four columns into a name chip."
+      "note": "Four of five on the shared Households. Three things came out of the four and now belong to all of them: Booyzen's record of HOW each household and each child is known, D'Arcy's search box, and Defranceschi's mark on a child who did not reach five - which the warning at the foot of every one of these pages had been making an excuse about. FALCO IS THE EXCEPTION AND SHOULD STAY ONE: its page is an evidence register grouped by household - person, event, date, what the register says, ark - not a list of couples with children under them, and the shared card would flatten four columns into a name chip.",
+      "component": "Households"
     },
     {
       "key": "documents",

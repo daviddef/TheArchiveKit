@@ -688,11 +688,22 @@
     },
     {
       "n": 80,
-      "state": "next",
+      "state": "done",
       "owner": "this session",
       "since": "2026-09-16",
       "what": "The estate's own read-across has no scheduled repeat",
-      "note": "Every count in shared-pages.json — 5 of 7, 4 of 5, 503 to 11,809 words — was measured once, by hand, on the day it was written. **One of them was already wrong**: the note said Mazza had no corrections when it holds 102 in 39 groups, which made me call a conversion blocked that was not. The register is the thing this work is counted against and it decays silently. A script that re-derives the per-row counts and flags any that have moved would keep it honest."
+      "note": "Every count in shared-pages.json — 5 of 7, 4 of 5, 503 to 11,809 words — was measured once, by hand, on the day it was written. **One of them was already wrong**: the note said Mazza had no corrections when it holds 102 in 39 groups, which made me call a conversion blocked that was not. The register is the thing this work is counted against and it decays silently. A script that re-derives the per-row counts and flags any that have moved would keep it honest.\n\n**Done 16 September.** `kit/tools/readacross.py` derives `has` and `using` from the filesystem, per row, against the component that row names, and refuses to let prose and arithmetic disagree in silence. **It found two false notes on its first run** — and both were mine, one written the same day: /register/ claimed «Mazza and Lerena have none» and had been marked ALIGNED on that sentence, when both keep a register; /name/ claimed five of seven where three import the component. It never rewrites a note: whether a page SHOULD share a shape is a judgement, and only the arithmetic is derived."
+    },
+    {
+      "n": 81,
+      "state": "next",
+      "owner": "this session",
+      "since": "2026-09-16",
+      "covers": [
+        "part:register"
+      ],
+      "what": "Mazza and Lerena keep a register after all, and neither is on the shared shape",
+      "note": "The row was closed on a note claiming they had none. **Mazza assembles its register out of seven data files** — scilla-reads, sicilian-acts, qld-bdm, sicily-reads, findmypast, ships, nudgee — so it cannot fall behind the reading, which is the best reason of the seven for keeping one. **Lerena builds one from people.json**, 278 rows with a status and a source URL on each. Neither imports Register; Mazza's page imports Evidence, which is a chip and not a register, and that is what made the first count read six of seven instead of five."
     }
   ]
 }
