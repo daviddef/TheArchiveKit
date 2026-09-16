@@ -19,6 +19,13 @@
  * them; a plate without them reflows the page as it loads, which on a gallery
  * of two hundred is the whole page moving under the reader.
  *
+ * A PLATE ROOM YOU CANNOT OPEN A PLATE IN IS WORSE THAN NONE. Booyzen and
+ * Defranceschi both built a lightbox, because the point of photographing a
+ * death notice is that somebody reads it, and a 260px thumbnail is not a
+ * reading. Falco and D'Arcy have none. It is here, so all four get it: click a
+ * plate for the full image, arrow keys or the buttons to move along it, Escape
+ * or the backdrop to close, and focus returns to the plate you opened.
+ *
  * WHAT A PLATE IS is the archive's word - a register act is not a photograph
  * and neither is a headstone - and becomes the filter.
  *
@@ -60,9 +67,11 @@ const id = "gy" + rows.length;
 
   <div class="gy-grid">
     {rows.map((r) => (
-      <figure class="gy-p" data-kind={r.kind || ""}>
+      <figure class="gy-p" data-kind={r.kind || ""} data-full={r.src} data-alt={r.alt || r.title || ""}>
+        <button type="button" class="gy-open" aria-label={`Open: ${r.title || "plate"}`}>
         <img src={r.thumb || r.src} alt={r.alt || r.title || ""} loading="lazy" decoding="async"
              width={r.w || undefined} height={r.h || undefined} />
+        </button>
         <figcaption>
           <b>{r.title}</b>
           {r.when ? <span class="gy-when mono">{r.when}</span> : null}
@@ -80,12 +89,57 @@ const id = "gy" + rows.length;
     ))}
   </div>
   <p class="gy-none small" hidden>Nothing of that kind.</p>
+
+  <div class="gy-box" hidden role="dialog" aria-modal="true" aria-label="Plate">
+    <button type="button" class="gy-x" aria-label="Close">Close &#10005;</button>
+    <button type="button" class="gy-nav gy-prev" aria-label="Previous plate">&lsaquo;</button>
+    <button type="button" class="gy-nav gy-next" aria-label="Next plate">&rsaquo;</button>
+    <img class="gy-big" src="" alt="" />
+    <p class="gy-cap"></p>
+  </div>
 </div>
 
 <script>
   document.querySelectorAll(".gy").forEach((box) => {
     const ps = [...box.querySelectorAll(".gy-p")];
     const none = box.querySelector(".gy-none");
+
+    /* The lightbox walks only what is currently SHOWN, so arrowing along after
+       filtering to photographs does not wander into the register acts. */
+    const lb = box.querySelector(".gy-box");
+    const big = box.querySelector(".gy-big");
+    const cap = box.querySelector(".gy-cap");
+    let at = -1, opener = null;
+    const shown = () => ps.filter((p) => !p.hidden);
+    const show = (i) => {
+      const list = shown();
+      if (!list.length) return;
+      at = (i + list.length) % list.length;
+      const p = list[at];
+      big.src = p.dataset.full || "";
+      big.alt = p.dataset.alt || "";
+      cap.textContent = (p.querySelector("figcaption b") || {}).textContent || "";
+      lb.hidden = false;
+    };
+    const close = () => {
+      lb.hidden = true;
+      big.src = "";
+      if (opener) { opener.focus(); opener = null; }
+    };
+    ps.forEach((p) => {
+      const b = p.querySelector(".gy-open");
+      if (b) b.addEventListener("click", () => { opener = b; show(shown().indexOf(p)); });
+    });
+    box.querySelector(".gy-x").addEventListener("click", close);
+    box.querySelector(".gy-prev").addEventListener("click", () => show(at - 1));
+    box.querySelector(".gy-next").addEventListener("click", () => show(at + 1));
+    lb.addEventListener("click", (e) => { if (e.target === lb) close(); });
+    document.addEventListener("keydown", (e) => {
+      if (lb.hidden) return;
+      if (e.key === "Escape") close();
+      else if (e.key === "ArrowLeft") show(at - 1);
+      else if (e.key === "ArrowRight") show(at + 1);
+    });
     box.querySelectorAll(".gy-opt").forEach((b) => {
       b.addEventListener("click", () => {
         box.querySelectorAll(".gy-opt").forEach((x) => x.classList.remove("on"));
@@ -122,5 +176,21 @@ const id = "gy" + rows.length;
   .gy-k { display:inline-block; font-size:9.5px; font-weight:600; letter-spacing:.11em;
     text-transform:uppercase; color:var(--ink-3,#888); margin-right:.25rem; }
   .gy-go { margin:.45rem 0 0; font-size:.84rem; }
+  .gy-open { display:block; width:100%; padding:0; border:0; background:none; cursor:zoom-in; }
+  .gy-box { position:fixed; inset:0; z-index:90; background:rgba(0,0,0,.88);
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:.8rem;
+    padding:2.4rem 1rem 1.4rem; }
+  .gy-box[hidden] { display:none; }
+  .gy-big { max-width:min(96vw,1400px); max-height:82vh; width:auto; height:auto;
+    background:#fff; }
+  .gy-cap { color:#eee; font-size:.9rem; text-align:center; max-width:70ch; margin:0; }
+  .gy-x { position:absolute; top:.7rem; right:.9rem; font:inherit; font-size:.85rem;
+    color:#eee; background:transparent; border:1px solid rgba(255,255,255,.4);
+    border-radius:2px; padding:.3rem .7rem; cursor:pointer; }
+  .gy-nav { position:absolute; top:50%; transform:translateY(-50%); font-size:2.4rem;
+    line-height:1; color:#eee; background:transparent; border:0; cursor:pointer; padding:.4rem .8rem; }
+  .gy-prev { left:.4rem; } .gy-next { right:.4rem; }
+  .gy-x:focus-visible, .gy-nav:focus-visible, .gy-open:focus-visible {
+    outline:2px solid var(--accent,#963); outline-offset:2px; }
   @media (max-width:520px) { .gy-grid { grid-template-columns:1fr; } }
 </style>
