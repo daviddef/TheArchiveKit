@@ -149,9 +149,9 @@
       "key": "households",
       "route": "/households/",
       "on": 5,
-      "state": "local",
+      "state": "partial",
       "tier": 3,
-      "note": "Five archives, no shared shape."
+      "note": "Four of five on the shared Households. Three things came out of the four and now belong to all of them: Booyzen's record of HOW each household and each child is known, D'Arcy's search box, and Defranceschi's mark on a child who did not reach five - which the warning at the foot of every one of these pages had been making an excuse about. FALCO IS THE EXCEPTION AND SHOULD STAY ONE: its page is an evidence register grouped by household - person, event, date, what the register says, ark - not a list of couples with children under them, and the shared card would flatten four columns into a name chip."
     },
     {
       "key": "documents",
