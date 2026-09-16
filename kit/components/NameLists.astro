@@ -1,0 +1,64 @@
+---
+/* Which of the three lists of names you are on, and what the other two are for.
+ *
+ * Every archive keeps three pages that a menu makes sound identical — The
+ * People, Every Name, The Register — and a reader arriving at one has no way to
+ * know it is not the others. They are genuinely different things:
+ *
+ *   /people/    the people, each with what is known of them
+ *   /who/       every NAME, and how many bore it — a name is not a person
+ *   /register/  one row per source line, which is the raw catch and mostly not
+ *               this family
+ *
+ * D'ARCY IS WHERE THIS COMES FROM. Its /who/ opens by saying in so many words
+ * that two other pages already list people and what each is; it is the
+ * clearest thing on that page, and the other six left a reader to work it out
+ * from three menu entries that all sound the same.
+ *
+ * The wording is the archive's to change — a register that holds no strangers
+ * should not say most of it is not this family — but the three doors and the
+ * mark on the one you are standing in are shared.
+ *
+ *   here   "people" | "who" | "register"
+ *   counts {people, who, register} — optional, printed where given
+ *   says   {people, who, register} — optional wording, overrides the default
+ */
+const { here, u = (p) => p, counts = {}, says = {} } = Astro.props;
+
+const DOORS = [
+  ["people", "/people/", "The People", "the people themselves, with what is known of each"],
+  ["who", "/who/", "Every Name", "every name, and how many bore it — a name is not a person"],
+  ["register", "/register/", "The Register", "one row per source line: the raw catch, and mostly not this family"],
+];
+const n = (k) => (counts[k] != null ? Number(counts[k]).toLocaleString() : "");
+---
+<nav class="nl" aria-label="The three lists of names">
+  {DOORS.map(([k, href, name, blurb]) => (
+    k === here ? (
+      <span class="nl-one nl-here" aria-current="page">
+        <b>{name}</b><i>you are here</i>
+        <span class="nl-b">{says[k] ?? blurb}{n(k) ? ` · ${n(k)}` : ""}</span>
+      </span>
+    ) : (
+      <a class="nl-one" href={u(href)}>
+        <b>{name}</b>
+        <span class="nl-b">{says[k] ?? blurb}{n(k) ? ` · ${n(k)}` : ""}</span>
+      </a>
+    )
+  ))}
+</nav>
+
+<style is:global>
+  .nl { display:grid; grid-template-columns:repeat(3,1fr); gap:.5rem; margin:1rem 0 .2rem; }
+  .nl-one { display:block; padding:.55rem .7rem; border:1px solid var(--rule,#ddd); border-radius:3px;
+    text-decoration:none; color:inherit; background:transparent; }
+  .nl-one b { display:block; font-size:.92rem; }
+  .nl-one i { font-style:normal; font-size:9.5px; font-weight:600; letter-spacing:.11em;
+    text-transform:uppercase; color:var(--accent,#963); margin-left:.4rem; }
+  .nl-here { border-color:var(--accent,#963); background:var(--accent-wash,transparent); }
+  .nl-here b { display:inline; }
+  .nl-b { display:block; margin-top:.2rem; font-size:.8rem; color:var(--ink-3,#888); line-height:1.35; }
+  a.nl-one:hover { border-color:var(--accent,#963); }
+  a.nl-one:hover b { color:var(--accent,#963); }
+  @media (max-width:640px) { .nl { grid-template-columns:1fr; } }
+</style>
