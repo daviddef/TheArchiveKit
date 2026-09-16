@@ -24,6 +24,15 @@
  *   rows  [{ head, headHref, spouse, spouseHref, married, born, where, via,
  *            note, children: [{name, href, living, note, via, dates}] }]
  *
+ * A CHILD WHO DID NOT LIVE FIVE YEARS IS MARKED. Defranceschi draws its
+ * households as a diagram and picks those children out, and it is the only one
+ * of the five that does - while the warning at the foot of this page says, on
+ * all five, that infant deaths go unrecorded in a tree built from indexes.
+ * Where they ARE recorded, saying nothing wastes the one place the record is
+ * better than the warning. Read off the dates the card is already printing -
+ * arithmetic on what is shown, not a new claim - and only when both years are
+ * there, so a child with one date is never quietly counted as having survived.
+ *
  * A CHILD CARRIES ITS OWN VIA. Booyzen records not only how the household is
  * known but how each child was placed in it, and a child the family tree
  * asserts should not look like a child a baptism names. Printed after the name
@@ -50,12 +59,23 @@ const ordered = sort === "size"
 const total = list.reduce((a, r) => a + r.kids.length, 0);
 const vias = [...new Set(list.map((r) => r.via).filter(Boolean))];
 const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;");
+/* First year to last, not the first pair: "11 May 1946 - 15 May 1946" is a
+   child who lived four days, and a pattern expecting the two years to sit next
+   to each other misses it entirely because the day numbers are in the way. */
+const short = (c) => {
+  if (c.short != null) return !!c.short;
+  const ys = String(c.dates ?? "").match(/\b(1[0-9]\d\d|20\d\d)\b/g);
+  if (!ys || ys.length < 2) return false;
+  const d = Number(ys[ys.length - 1]) - Number(ys[0]);
+  return d >= 0 && d <= 5;
+};
 const ext = (h) => /^(https?:)?\/\//.test(String(h || ""));
 const href = (h) => (!h ? "" : ext(h) ? h : u(h));
 /* An empty household is still a household - a couple with nothing recorded
    under them is a finding, not a blank row - but it is not what a reader
    scanning for the largest is looking for, so it is counted and shown last. */
 const empty = list.filter((r) => !r.kids.length).length;
+const infants = list.reduce((a, r) => a + r.kids.filter(short).length, 0);
 ---
 <div class="hh">
   <p class="hh-count small mono">
@@ -103,8 +123,10 @@ const empty = list.filter((r) => !r.kids.length).length;
         {r.kids.length ? (
           <p class="hh-kids">
             {r.kids.map((c) => (
-              <span class={"hh-kid" + (c.living ? " hh-living" : "") + (c.via && c.via !== r.via ? " hh-soft" : "")}
-                    title={c.note || undefined}>
+              <span class={"hh-kid" + (c.living ? " hh-living" : "")
+                    + (c.via && c.via !== r.via ? " hh-soft" : "")
+                    + (short(c) ? " hh-short" : "")}
+                    title={short(c) ? (c.note ? c.note + " — did not live five years" : "Did not live five years") : (c.note || undefined)}>
                 {c.href && !c.living ? <a href={href(c.href)}>{c.name}</a> : c.name}
                 {c.dates ? <i>{c.dates}</i> : null}
                 {c.via && c.via !== r.via ? <em>{c.via}</em> : null}
@@ -116,6 +138,11 @@ const empty = list.filter((r) => !r.kids.length).length;
     ))}
   </div>
   <p class="hh-empty small" hidden>None known that way.</p>
+
+  {infants ? (
+    <p class="hh-inf small"><span class="hh-dag">&dagger;</span> {infants} of these children
+    did not live five years, on the dates recorded here.</p>
+  ) : null}
 
   {caveat === false ? null : <p class="hh-caveat small">
     {caveat ? <Fragment set:html={caveat} /> : <>A household here is a reconstruction, not a document.
@@ -195,7 +222,11 @@ const empty = list.filter((r) => !r.kids.length).length;
   .hh-kid i { color:var(--ink-3,#888); font-size:.82em; margin-left:.3rem; font-style:normal; }
   .hh-kid em { color:var(--ink-3,#888); font-size:.78em; margin-left:.3rem; font-style:normal; }
   .hh-soft { border-style:dashed; }
+  .hh-short { border-color:var(--terra,#c55); }
+  .hh-short::after { content:"\2020"; color:var(--terra,#c55); margin-left:.3rem; font-size:.85em; }
   .hh-living { border-style:dashed; color:var(--ink-3,#888); }
   .hh-none { margin:.5rem 0 0; color:var(--ink-3,#888); font-style:italic; }
+  .hh-inf { margin:1rem 0 0; color:var(--ink-2,inherit); }
+  .hh-dag { color:var(--terra,#c55); }
   .hh-caveat { margin:1.2rem 0 0; color:var(--ink-3,#888); max-width:70ch; }
 </style>
