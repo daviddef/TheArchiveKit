@@ -125,9 +125,9 @@
       "key": "name",
       "route": "/name/",
       "on": 7,
-      "state": "local",
+      "state": "partial",
       "tier": 2,
-      "note": "The name study. Deliberately local in CONTENT; the shape need not be."
+      "note": "Five of seven draw 'where the name is' on the shared Distribution (Falco, Lerena, Booyzen, D'Arcy, Defranceschi via its own spelling wrapper). TWO ARE NOT A GAP TO CLOSE BY FORCE. Blazevic's four-row table compares the rarity of four SURNAMES, not the geography of one, and carries a principal-countries column the chart cannot hold. Mazza holds no worldwide distribution data at all - only how many of each name this archive itself holds - and inventing a chart for it would be research, not alignment. Where a chart would contradict its own page it is drawn differently: Lerena ranks by density because that page argues Spain is not the answer."
     },
     {
       "key": "timeline",
