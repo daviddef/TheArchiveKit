@@ -53,9 +53,9 @@
       "key": "people",
       "route": "/people/",
       "on": 7,
-      "state": "partial",
+      "state": "aligned",
       "tier": 1,
-      "note": "**Five of seven on the shared FilterTable** — Falco, Defranceschi, Booyzen, Blazevic, Mazza — each keeping its own columns, facets and prose. Falco went 378 lines to 280, Blazevic 182 to 80, Booyzen 141 to 57. **Nothing was surrendered to standardise**: the Blazevic spelling fold is a prop now (joannis still finds 118 Ivans), Falco's five booleans are still one row of mutually exclusive buttons, and the links gained trailing slashes — 9,750 redirects removed on the Falco page alone. **D'Arcy and Lerena do not have a table here at all** and need reading before they are moved."
+      "note": "All seven on the shared FilterTable, each keeping its own columns, facets and prose. Falco went 378 lines to 280, Blazevic 182 to 80, Booyzen 141 to 57. Nothing was surrendered to standardise: the Blazevic spelling fold is a prop (joannis still finds 118 Ivans), Falco's five booleans are still one row of mutually exclusive buttons, and the links gained trailing slashes - 9,750 redirects removed on the Falco page alone. The last two each had one control doing two jobs. D'Arcy put 'Direct line' in the same chip row as the surnames, so a reader could not ask for the Sneyds who are ancestors; they are separate facets now. Lerena's standing - connected, excluded, unplaced - was sortable but not askable, and it is the argument that page makes."
     },
     {
       "key": "who",
@@ -85,9 +85,9 @@
       "key": "corrections",
       "route": "/corrections/",
       "on": 7,
-      "state": "partial",
+      "state": "aligned",
       "tier": 1,
-      "note": "**Five of seven on the shared Corrections** — Falco, Defranceschi, Booyzen, Blazevic, Lerena — each keeping its own page title and its own words. **Not a table**: the first attempt put «what was said» and «what is true» in four columns and it was unreadable, because these are sentences. The shape promoted is Falco's, already the best of the seven. **What a correction is filtered by stays local**: Booyzen grades by CAUSE (a list mistaken for a population, a search written up as wider than it was), Falco and Defranceschi by severity, Blazevic not at all. **MAZZA'S NOTE WAS STALE**: it holds **102 corrections in 39 kind-groups**, 80 of them documented, and is a straight conversion rather than a blocked one. D'Arcy writes its corrections inline in the page and needs reading first."
+      "note": "All seven on the shared Corrections, each keeping its own page title and its own words. NOT A TABLE: the first attempt put «what was said» and «what is true» in four columns and it was unreadable, because these are sentences. TWO FILTER DIMENSIONS, because the archives ask different things - Falco and Defranceschi by severity, Booyzen by CAUSE, Mazza by what the correction is about in 39 kinds while also grading each one. Past seven options the control becomes a select. Both conversions found stale numbers typed into prose: Mazza said 'three of the twenty-seven' over 102 rows, D'Arcy said 'the eight above' and invited a ninth over 32. Those are computed now. D'Arcy's 'five of the seven are the same failure' was NOT touched beyond saying first seven - it is a judgement about shared causes, and re-deriving it over 32 errors is that archive's to do."
     },
     {
       "key": "open-questions",
