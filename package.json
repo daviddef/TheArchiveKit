@@ -13,5 +13,8 @@
     "./tools/*": "./kit/tools/*",
     "./lib/*": "./kit/lib/*"
   },
-  "license": "UNLICENSED"
+  "license": "UNLICENSED",
+  "scripts": {
+    "test": "node kit/tools/checklogic.mjs --root ."
+  }
 }
