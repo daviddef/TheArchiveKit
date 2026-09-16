@@ -1,17 +1,22 @@
 ---
-/* The ring. Seven archives that were, until now, almost unaware of each other:
-   two of them linked to nobody at all. This renders every archive except the
-   one you are standing in, from a file that is identical in all seven, so the
-   list cannot drift apart. */
+/* The ring. A set of archives that were, until this existed, almost unaware of
+   each other: two of them linked to nobody at all. This renders every archive
+   except the one you are standing in, from a file that is identical in all of
+   them, so the list cannot drift apart. The count is read from the file rather
+   than written into the prose, because it was wrong within a fortnight of being
+   written there. */
 import ring from "../data/archives.json";
 
 const here = (import.meta.env.BASE_URL || "/").replace(/\/$/, "");
 const others = ring.archives.filter(a => a.base !== here);
 const mine = ring.archives.find(a => a.base === here);
+const WORDS = ["", "one", "two", "three", "four", "five", "six", "seven", "eight",
+  "nine", "ten", "eleven", "twelve"];
+const howMany = WORDS[ring.archives.length] || String(ring.archives.length);
 ---
 <section class="ring" aria-label="The other family archives">
   <h2>The other archives</h2>
-  <p>{mine ? mine.name : "This archive"} is one of seven, each following a different line of the
+  <p>{mine ? mine.name : "This archive"} is one of {howMany}, each following a different line of the
   same family. They use the same method and the same five words for how sure a thing is.</p>
 
   <ul>
