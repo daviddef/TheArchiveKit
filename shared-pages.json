@@ -269,15 +269,14 @@
       "key": "graves",
       "route": "/graves/",
       "on": 3,
-      "state": "local",
+      "state": "partial",
       "tier": 3,
-      "note": "Three archives.",
-      "using": 0,
+      "note": "Two of three on the shared Graves. One fact at three magnifications: Falco a row per PERSON, Defranceschi a row per GRAVE, D'Arcy a row per PLACE. **The place is the row**, because it is the only one that can hold what the others cannot state - who lies together - and D'Arcy is the archive that noticed: «where more than one of them lies» is the first heading on its page. Defranceschi's 96 graves group into 53 cemeteries, which that page could never say before. **FALCO IS THE EXCEPTION AND SHOULD STAY ONE**: all 15 of its burials are in one cemetery with 15 distinct plots and no sharing at all. Its page is a plot-map arguing about ADJACENCY - four consecutive vaults holding four Italian great-grandparents, buried in the order they died - and «place is the row» cannot express adjacency.",
+      "using": 2,
       "drawingTheirOwn": [
-        "Falco",
-        "Defranceski",
-        "D'Arcy"
-      ]
+        "Falco"
+      ],
+      "component": "Graves"
     },
     {
       "key": "namesakes",

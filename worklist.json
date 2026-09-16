@@ -546,13 +546,13 @@
     },
     {
       "n": 63,
-      "state": "next",
+      "state": "done",
       "owner": "this session",
       "since": "2026-09-16",
       "what": "Tier 3: /graves/, on the three archives that keep one",
-      "note": "Three archives. Nudgee, West Park and the Senj plots are each a burial register with a plot, a name as the register wrote it, and a name as the family wrote it — Mazza already records the difference between those two, and it is the interesting column.",
+      "note": "Three archives. Nudgee, West Park and the Senj plots are each a burial register with a plot, a name as the register wrote it, and a name as the family wrote it — Mazza already records the difference between those two, and it is the interesting column.\n\n**Done 16 September.** D'Arcy and Defranceschi on the shared shape; Falco stays local and the register says why. The column that came out of Mazza's data - the name a burial register wrote against the name the family used - is in the component for any archive that records both.",
       "covers": [
-        "page:graves"
+        "part:graves"
       ]
     },
     {
