@@ -101,17 +101,17 @@
       "key": "direct-line",
       "route": "/direct-line/",
       "on": 7,
-      "state": "partial",
+      "state": "aligned",
       "tier": 2,
-      "note": "**Three of seven on the shared Spine** — only Falco, D'Arcy and Blazevic hold a spine as data; the rest compute it or write it as prose. **The shared part is the mark on the joint that will not bear weight**, which all three were drawing by hand. Blazevic went from one marked joint to five, because four generations carry no source of any kind; D'Arcy dashes eleven of fifteen it repeats from the tree rather than defends. Nothing local was lost: D'Arcy's corrections still sit on the generation they belong to."
+      "note": "All seven on the shared Spine, and the point of it is the mark on the joint that cannot bear weight. Four archives had that argument in prose beside a row that said nothing: Booyzen's seventh generation, Mazza's four unsourced, Defranceschi's first. Lerena's chain is deliberately unmarked and that now means something. The spine carries a household, a Latin form, a trade, sources and an archive's own plate renderer, so Defranceschi lost nothing moving onto it."
     },
     {
       "key": "places",
       "route": "/places/",
       "on": 7,
-      "state": "partial",
+      "state": "aligned",
       "tier": 2,
-      "note": "**Five of seven on the shared Places** — all seven hold the register, no two agreed on the words. The count is the point: the atlas draws where the family was, this says how much of it each place holds. **The Falco page now states its own n=0 problem** — «13 places, and not one of them has a person counted into it yet» — which had been an open row for days and invisible on the page it concerns. Defranceschi and Booyzen hold coordinates and prose rather than counts."
+      "note": "All seven on the shared register. A kind - farm, village, church, hospital, cemetery - is now its own column and filter, because a cemetery holding four people is not the evidence a farm holding four is. Four archives keep a second, local table beside it (Falco's record locations, Blazevic's how-far-wrong, Mazza's export-vs-map spellings) and those stay."
     },
     {
       "key": "sources",
