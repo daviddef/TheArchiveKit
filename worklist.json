@@ -696,14 +696,14 @@
     },
     {
       "n": 81,
-      "state": "next",
+      "state": "done",
       "owner": "this session",
       "since": "2026-09-16",
       "covers": [
         "part:register"
       ],
       "what": "Mazza and Lerena keep a register after all, and neither is on the shared shape",
-      "note": "The row was closed on a note claiming they had none. **Mazza assembles its register out of seven data files** — scilla-reads, sicilian-acts, qld-bdm, sicily-reads, findmypast, ships, nudgee — so it cannot fall behind the reading, which is the best reason of the seven for keeping one. **Lerena builds one from people.json**, 278 rows with a status and a source URL on each. Neither imports Register; Mazza's page imports Evidence, which is a chip and not a register, and that is what made the first count read six of seven instead of five."
+      "note": "The row was closed on a note claiming they had none. **Mazza assembles its register out of seven data files** — scilla-reads, sicilian-acts, qld-bdm, sicily-reads, findmypast, ships, nudgee — so it cannot fall behind the reading, which is the best reason of the seven for keeping one. **Lerena builds one from people.json**, 278 rows with a status and a source URL on each. Neither imports Register; Mazza's page imports Evidence, which is a chip and not a register, and that is what made the first count read six of seven instead of five.\n\n**Done 16 September.** Both converted. Mazza's 226 records across seven sources are one searchable list with the source as a filter, and each cell keeps its own heading. Lerena's 278 join on the shape they were already almost in; its seventy spelling headings became the surname facet. **Seven of seven.**"
     }
   ]
 }
