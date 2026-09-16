@@ -273,6 +273,21 @@
     svg.setAttribute("viewBox", "0 0 " + W + " " + H);
     svg.setAttribute("width", W);
     svg.setAttribute("height", H);
+    /* THE ATTRIBUTES ARE THE FALLBACK; THE STYLES ARE THE BEHAVIOUR. An explicit
+       pixel width beside a viewBox pins the drawing at its natural size, so a
+       1,354px chart in a 1,022px box could only be dragged sideways - and the
+       stage is overflow:auto, so that was a choice and not an accident. It is
+       the wrong choice at that ratio: 1,354 into 1,022 is 75%, which still
+       leaves a 113px name box and legible text, and no scrollbar.
+
+       So it fills the box and scales down, with a floor. Below 70% the text
+       stops being readable and dragging a full-size drawing beats squinting at
+       a small one, so under that the stage scrolls as it always did. A phone is
+       always under it. */
+    svg.style.width = "100%";
+    svg.style.height = "auto";
+    svg.style.maxWidth = W + "px";
+    svg.style.minWidth = Math.round(W * 0.7) + "px";
 
     /* short columns are centred against the tallest, so a family of four beside
        a family of a hundred sits opposite them rather than at the ceiling */
