@@ -53,6 +53,20 @@ def key(w):
 ROMAN = re.compile(r"^[IVXLC]+$")
 
 
+def bare(w):
+    """The same word with its accents and its case taken off, and nothing else.
+
+    THIS IS THE LINE BETWEEN A SPELLING RULE AND A CLAIM ABOUT A FAMILY. Papic
+    for Papic-with-an-acute, FRAGALA for Fragala-with-a-grave, BLAZEVIC for the
+    one with carons: that is one word two keyboards wrote differently, and
+    folding them needs nobody's permission. Sanzone for Sansone changes a
+    letter, and whether those are one family in the Falco archive is that
+    archive's judgement and not this tool's. The first kind is enabled wherever
+    this runs. The second is printed, and waits for --all."""
+    w = unicodedata.normalize("NFD", w.lower())
+    return "".join(c for c in w if unicodedata.category(c) != "Mn")
+
+
 def corpus(data):
     """Every word the archive's own records actually contain, with counts."""
     c = Counter()
@@ -68,27 +82,56 @@ def corpus(data):
 
 
 def canon_surnames(data):
-    """The names this archive answers to, from its own people file."""
-    out = []
-    for f in ("people.json", "dossiers.json"):
-        p = os.path.join(data, f)
+    """The names this archive answers to, out of its own people file.
+
+    SEVEN ARCHIVES, SEVEN FILENAMES AND TWO KEYS. This read people.json with a
+    key of `n` because that is what the archive it was written in happens to
+    use, and it found nothing at all in five of the others and crashed on two,
+    where a row carries an integer under the same key. The preference order
+    below is the estate as it actually is; the register is last because a
+    register row is named after whatever the record said, so its last word is as
+    likely to be a forename as a surname.
+    """
+    PREFER = ["people.json", "roster.json", "ancestors.json", "dossiers.json",
+              "family.json", "register.json"]
+    for fn in PREFER:
+        p = os.path.join(data, fn)
         if not os.path.exists(p):
             continue
-        d = json.load(io.open(p, encoding="utf-8"))
-        rows = d.get("people") if isinstance(d, dict) else d
-        if isinstance(rows, dict):
-            rows = list(rows.values())
+        try:
+            d = json.load(io.open(p, encoding="utf-8"))
+        except Exception:
+            continue
+        rows = d if isinstance(d, list) else None
+        if rows is None and isinstance(d, dict):
+            rows = []
+            for v in d.values():
+                if isinstance(v, list):
+                    rows += [r for r in v if isinstance(r, dict)]
+                elif isinstance(v, dict):
+                    rows += [r for r in v.values() if isinstance(r, dict)]
+        out = []
         for r in rows or []:
-            n = (r.get("n") or "").strip()
-            if n:
-                out.append(n.split()[-1].strip("“”\"'"))
-    return [w for w, _ in Counter(out).most_common()]
+            if not isinstance(r, dict):
+                continue
+            for k in ("n", "name", "who"):
+                v = r.get(k)
+                if isinstance(v, str) and " " in v.strip():
+                    out.append(v.strip().split()[-1].strip("\u201c\u201d\"'.,"))
+                    break
+        if len(out) >= 20:
+            print("  anchored on %s (%d name(s))" % (fn, len(out)))
+            return [w for w, _ in Counter(out).most_common()]
+    return []
 
 
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--root", default="site")
     ap.add_argument("--dry", action="store_true")
+    ap.add_argument("--all", action="store_true",
+                    help="also fold clusters that change a letter, not only an "
+                         "accent - for an archive whose own session has read them")
     ap.add_argument("--min", type=int, default=2,
                     help="ignore a variant seen fewer times than this")
     a = ap.parse_args()
@@ -122,7 +165,7 @@ def main():
         if k in anchors:
             groups[k][w] += n
 
-    fold, shown = {}, 0
+    fold, shown, proposed = {}, 0, []
     print("  clusters, anchored on the archive's own spelling:")
     for k, forms in sorted(groups.items(), key=lambda kv: -sum(kv[1].values())):
         c = anchors[k]
@@ -130,16 +173,25 @@ def main():
                   if w.lower() != c.lower() and n >= a.min}
         if not others:
             continue
-        shown += 1
         tot = sum(forms.values())
-        reach = sum(n for w, n in forms.items() if c.lower() in w.lower())
-        print("    %-16s %5d token(s) — typing %r reaches %d (%.0f%%)"
+        reach = sum(n for w, n in forms.items() if bare(c) in bare(w))
+        print("    %-16s %5d token(s) \u2014 typing %r reaches %d (%.0f%%)"
               % (c, tot, c, reach, 100.0 * reach / tot))
+        took = False
         for w, n in sorted(others.items(), key=lambda x: -x[1]):
-            mark = " " if c.lower() in w.lower() else "+"
-            print("      %s %-18s %5d" % (mark, w, n))
-            fold[w.lower()] = c.lower()
-        fold[c.lower()] = c.lower()
+            same = bare(w) == bare(c)          # one word, two keyboards
+            on = same or a.all
+            print("      %s %-18s %5d%s"
+                  % ("\u00b7" if same else "?", w, n,
+                     "" if on else "   proposed \u2014 changes a letter"))
+            if on:
+                fold[w.lower()] = c.lower()
+                took = True
+            else:
+                proposed.append((c, w, n))
+        if took:
+            shown += 1
+            fold[c.lower()] = c.lower()
 
     extra = os.path.join(data, "namefold-extra.json")
     if os.path.exists(extra):
@@ -151,6 +203,13 @@ def main():
               "written not derived)" % len(pairs))
 
     print("  %d cluster(s), %d form(s) folded" % (shown, len(fold)))
+    if proposed:
+        print("  %d form(s) NOT folded: they change a letter rather than an "
+              "accent, which is a claim about a family and not a spelling rule."
+              % len(proposed))
+        print("  Run with --all once this archive's own session has read them:")
+        for c, w, n in proposed:
+            print("      %s \u2192 %s (%d token(s))" % (w, c, n))
     if a.dry:
         print("  --dry: nothing written"); return 0
     out = os.path.join(data, "namefold.json")
