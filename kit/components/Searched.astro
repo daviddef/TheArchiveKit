@@ -22,7 +22,13 @@ import FilterTable from "./FilterTable.astro";
  *   rows  [{when, src, what, got, outcome, href, extra}]
  *   nil   which outcome words mean "returned nothing", for the count
  */
-const { rows = [], u = (p) => p, nil = [], unit = "searches" } = Astro.props;
+/* `fold` IS FORWARDED, NOT CONSUMED. FilterTable has taken a variant-to-
+   canonical map since the Blazevic register moved onto it, and every wrapper
+   between a page and that table quietly dropped it - so the one mechanism in
+   this kit that makes a search find "Booysen" when the reader types "Booyzen"
+   was reachable from exactly one page in the estate. A component that accepts
+   a prop and forwards it is not worth a comment; one that ate it for weeks is. */
+const { rows = [], u = (p) => p, nil = [], unit = "searches", fold = null } = Astro.props;
 const outcomes = [...new Set(rows.map((r) => r.outcome).filter(Boolean))];
 /* Tags are the archive's own vocabulary for what a search was ABOUT, as
    distinct from what it returned. Two archives tag their register and let a
@@ -38,6 +44,7 @@ const ext = (h) => /^(https?:)?\/\//.test(String(h || ""));
 const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;");
 ---
 <FilterTable
+  fold={fold}
   unit={unit}
   columns={[{ label: "When", cls: "small mono" }, { label: "What was read" },
             { label: "Looked for" }, { label: "What came back" }]}

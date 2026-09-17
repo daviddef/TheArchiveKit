@@ -25,7 +25,13 @@ import FilterTable from "./FilterTable.astro";
  *          `as` is how that burial register wrote the name, where it differs
  *          `shared` marks a plot holding more than one of this family
  */
-const { rows = [], u = (p) => p, unit = "burial places" } = Astro.props;
+/* `fold` IS FORWARDED, NOT CONSUMED. FilterTable has taken a variant-to-
+   canonical map since the Blazevic register moved onto it, and every wrapper
+   between a page and that table quietly dropped it - so the one mechanism in
+   this kit that makes a search find "Booysen" when the reader types "Booyzen"
+   was reachable from exactly one page in the estate. A component that accepts
+   a prop and forwards it is not worth a comment; one that ate it for weeks is. */
+const { rows = [], u = (p) => p, unit = "burial places", fold = null } = Astro.props;
 
 const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;");
 const ext = (h) => /^(https?:)?\/\//.test(String(h || ""));
@@ -40,6 +46,7 @@ const anyPlot = rows.some((r) => r.plot);
 const anyAs = rows.some((r) => (r.people || []).some((p) => p.as));
 ---
 <FilterTable
+  fold={fold}
   unit={unit}
   columns={[
     { label: "Where" },

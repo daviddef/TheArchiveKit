@@ -29,7 +29,13 @@ import FilterTable from "./FilterTable.astro";
  *           (`unit` was the old spelling and is gone; Falco was its last caller)
  *   noun    what the rows are, for the count line ("names")
  */
-const { names = [], u = (p) => p, counts, noun = "names",
+/* `fold` IS FORWARDED, NOT CONSUMED. FilterTable has taken a variant-to-
+   canonical map since the Blazevic register moved onto it, and every wrapper
+   between a page and that table quietly dropped it - so the one mechanism in
+   this kit that makes a search find "Booysen" when the reader types "Booyzen"
+   was reachable from exactly one page in the estate. A component that accepts
+   a prop and forwards it is not worth a comment; one that ate it for weeks is. */
+const { names = [], u = (p) => p, counts, noun = "names", fold = null,
         detailLabel = "What the record says" } = Astro.props;
 const what = counts ?? "people";
 const bearers = what === "people";
@@ -43,6 +49,7 @@ const shared = names.filter((n) => n.n > 1);
 const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;");
 ---
 <FilterTable
+  fold={fold}
   unit={noun}
   columns={[
     { label: "Name" },

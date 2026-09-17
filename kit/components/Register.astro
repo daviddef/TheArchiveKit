@@ -37,7 +37,13 @@ import FilterTable from "./FilterTable.astro";
  *          detail arrives as HTML the archive has already rendered
  *          kind is the archive's own word; it is not translated
  */
-const { rows = [], u = (p) => p, unit = "records" } = Astro.props;
+/* `fold` IS FORWARDED, NOT CONSUMED. FilterTable has taken a variant-to-
+   canonical map since the Blazevic register moved onto it, and every wrapper
+   between a page and that table quietly dropped it - so the one mechanism in
+   this kit that makes a search find "Booysen" when the reader types "Booyzen"
+   was reachable from exactly one page in the estate. A component that accepts
+   a prop and forwards it is not worth a comment; one that ate it for weeks is. */
+const { rows = [], u = (p) => p, unit = "records", fold = null } = Astro.props;
 const bySur = {};
 for (const r of rows) bySur[r.surname || "—"] = (bySur[r.surname || "—"] || 0) + 1;
 const surnames = Object.entries(bySur).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
@@ -59,6 +65,7 @@ const echoes = (label, src) => {
 };
 ---
 <FilterTable
+  fold={fold}
   unit={unit}
   /* Widths are what let the long registers be chunked into boxes the browser
      can skip: a table can only be split if every chunk sizes its columns the

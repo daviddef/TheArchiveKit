@@ -25,7 +25,13 @@ import FilterTable from "./FilterTable.astro";
  *
  *   rows  [{name, href, n, where, kind, span, variants, note}]
  */
-const { rows = [], u = (p) => p, unit = "places", countLabel = "People" } = Astro.props;
+/* `fold` IS FORWARDED, NOT CONSUMED. FilterTable has taken a variant-to-
+   canonical map since the Blazevic register moved onto it, and every wrapper
+   between a page and that table quietly dropped it - so the one mechanism in
+   this kit that makes a search find "Booysen" when the reader types "Booyzen"
+   was reachable from exactly one page in the estate. A component that accepts
+   a prop and forwards it is not worth a comment; one that ate it for weeks is. */
+const { rows = [], u = (p) => p, unit = "places", countLabel = "People", fold = null } = Astro.props;
 const anyN = rows.some((r) => r.n != null);
 const anyWhere = rows.some((r) => r.where);
 const anyKind = rows.some((r) => r.kind);
@@ -37,6 +43,7 @@ const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;");
 const total = rows.reduce((a, r) => a + (+r.n || 0), 0);
 ---
 <FilterTable
+  fold={fold}
   unit={unit}
   columns={[
     { label: "Place" },
