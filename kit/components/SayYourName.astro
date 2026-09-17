@@ -93,6 +93,7 @@ const met = rows.reduce((a, r) => a + Object.values(r.langs || {})
     text-transform:uppercase; color:var(--ink-3,#888); }
   .syn-forms { font-size:1.35rem; line-height:1.35; margin:0 0 .7rem;
     padding:0 0 .7rem; border-bottom:1px solid var(--rule,#eee); }
+  .syn-f { display:inline-block; margin-right:.25rem; }
   .syn-aid { font-style:italic; color:var(--ink-2,inherit); }
   .syn-none { font-style:italic; color:var(--ink-3,#888); }
   .syn-why { font-size:.86rem; line-height:1.55; color:var(--ink-2,inherit); margin:0; }
@@ -157,12 +158,20 @@ const met = rows.reduce((a, r) => a + Object.values(r.langs || {})
         if (!forms.length) {
           h += '<p class="syn-forms syn-none">not recorded</p>';
         } else {
-          h += '<p class="syn-forms">' + forms.map((f) => {
+          /* THE COMMA GOES INSIDE THE FORM, AHEAD OF ITS NOTE. Joining with
+             ", " put the separator after a note that renders as a block, so
+             the Latin card read "Josephi / genitive / , Josephum" with the
+             comma stranded on its own line under an ending it had nothing to
+             do with. */
+          h += '<p class="syn-forms">' + forms.map((f, fi) => {
             const aid = !(f.seen > 0);
-            const t = esc(f.form) + (aid ? '<sup title="' + esc(aidLabel) + '">°</sup>' : "");
-            const body = aid ? '<span class="syn-aid">' + t + "</span>" : t;
-            return f.note ? body + '<span class="syn-note">' + esc(f.note) + "</span>" : body;
-          }).join(", ") + "</p>";
+            const t = esc(f.form) + (aid ? '<sup title="' + esc(aidLabel) + '">\u00b0</sup>' : "");
+            const body = (aid ? '<span class="syn-aid">' + t + "</span>" : t)
+              + (fi < forms.length - 1 ? "," : "");
+            return '<span class="syn-f">' + body
+              + (f.note ? '<span class="syn-note">' + esc(f.note) + "</span>" : "")
+              + "</span>";
+          }).join(" ") + "</p>";
         }
         h += '<p class="syn-why">' + esc(L.note || "") + "</p></div>";
       }
