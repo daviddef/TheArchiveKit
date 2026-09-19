@@ -58,7 +58,15 @@ const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;");
     ? `<strong>${nothing}</strong> of these ${rows.length} returned nothing, and that is the point of the page: a source that came back empty is the difference between «we have not looked» and «it is not there».`
     : `${rows.length} ${unit}. A source that returns nothing is evidence too — it is the difference between «we have not looked» and «it is not there».`}
   rows={rows.map((r) => ({
-    hay: [r.src, r.what, r.got, r.when, r.outcome, ...(r.tags || [])].filter(Boolean).join(" ").toLowerCase(),
+    /* `extra` IS SEARCHABLE, and was not. It is the dim column, so it looked
+       like decoration and was left out of the haystack. Measured on the
+       Booyzen register, where the detail of a search is where the substance
+       is: of 3,436 distinctive terms in that column, 2,933 appear NOWHERE
+       else - Aliwal North, Achilles, the names read off an inventory. A
+       register of searches that cannot be searched for what the searches
+       found is a list, not an index. */
+    hay: [r.src, r.what, r.got, r.extra, r.when, r.outcome, ...(r.tags || [])]
+      .filter(Boolean).join(" ").replace(/<[^>]+>/g, " ").toLowerCase(),
     facets: { outcome: r.outcome || "", tags: (r.tags || []).join(" ") },
     cells: [
       esc(r.when || ""),
