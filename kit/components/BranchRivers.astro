@@ -21,16 +21,35 @@
              nodes are the places along the lane, ends the fan at its right
    unplaced  households of the name that are documented and not yet placed
    loose     the labels under the rule at the foot
+   bridges   [{from, to, conf, label, href}] — A CANDIDATE JOIN BETWEEN TWO
+             LANES, or between a lane and an unplaced household, on evidence
+             short of a document. `from` and `to` are lane keys, and `to` may
+             instead name an entry in `unplaced`.
 
    Any archive that can say which families it follows, where each began and
    where each went, gets the drawing. What it must not do is invent a lane to
-   fill the picture: an empty band is a true statement, a guessed one is not. */
+   fill the picture: an empty band is a true statement, a guessed one is not.
+
+   A BRIDGE IS THE HONEST THIRD STATE BETWEEN THOSE TWO. Asked for by the
+   Defranceschi session, which had a real one to draw: Kobler's letter puts a
+   Giovanni Battista De Franceschi in Fiume from the County of Pazin «intorno
+   al 1740», and a Joannes Baptista de Franceschi baptises at Fiume in 1748
+   whose son heads the Rijeka chain. That is a candidate join between a lane
+   and an unplaced household, and it is inferred, not documented. Without a
+   bridge the only ways to say it were to promote it to a lane, which would be
+   a guess drawn as a fact, or to leave it out, which is not what the archive
+   knows.
+
+   So it is drawn to lose an argument with everything around it: dotted, in
+   neutral ink rather than either lane's colour, thinner and fainter than any
+   lane, with its reason written small. It reads as a question. */
 import { u } from "../lib/url.js";
 
 const { rivers } = Astro.props;
 const LANES = rivers?.lanes ?? [];
 const UNPLACED = rivers?.unplaced ?? [];
 const LOOSE = rivers?.loose ?? [];
+const BRIDGES = rivers?.bridges ?? [];
 
 const W = 1040;
 const BH = 140, BGAP = 152;
@@ -38,6 +57,25 @@ const BANDS = LANES.map((_, i) => ({ y0: 34 + i * BGAP, sp: 34 + i * BGAP + 76, 
 const LOOSE_Y = 34 + LANES.length * BGAP + 22;   // rule
 const VH = LOOSE_Y + 124 + (Math.ceil(UNPLACED.length / 3) - 1) * 26;   // viewBox height
 const X0 = 150, X1 = 700, XE = 902;
+
+/* Where a bridge may attach. A lane is anchored at the head of its own spine,
+   because a speculative join between two families is nearly always a claim
+   about where they START; an unplaced household is anchored on its own dot
+   below the rule, which is exactly where it sits until somebody places it. */
+const anchor = (key) => {
+  const li = LANES.findIndex((l) => l.key === key);
+  if (li > -1) return { x: X0, y: BANDS[li].sp, lane: true };
+  const ui = UNPLACED.findIndex((l) => l[0] === key);
+  if (ui > -1) return { x: 110 + (ui % 3) * 310,
+                        y: LOOSE_Y + 40 + Math.floor(ui / 3) * 26, lane: false };
+  return null;
+};
+/* A bridge naming something that is not on the drawing is dropped rather than
+   drawn to nowhere, and the count is reported in the figure's caption so the
+   omission is visible instead of silent. */
+const BR = BRIDGES.map((b) => ({ ...b, a: anchor(b.from), b: anchor(b.to) }))
+                  .filter((x) => x.a && x.b);
+const BR_LOST = BRIDGES.length - BR.length;
 ---
 <figure class="rivers">
   <svg viewBox={`0 0 1040 ${VH}`} role="img" aria-labelledby="riversttl">
@@ -101,6 +139,34 @@ const X0 = 150, X1 = 700, XE = 902;
         </g>
       );
     })}
+    {BR.map((br) => {
+      const a = br.a, z = br.b;
+      /* Bowed out to the left of the lane heads, so the curve is read as
+         something added across the picture rather than as part of either
+         lane's own line. */
+      const bow = a.lane && z.lane ? Math.min(78, 34 + Math.abs(z.y - a.y) / 4) : 46;
+      const mx = (a.x + z.x) / 2 - bow, my = (a.y + z.y) / 2;
+      const dash = br.conf === "lore" ? "2 6" : "3 5";
+      return (
+        <g class="bridge node" tabindex="0" role="button"
+           data-place={br.label} data-year={br.conf === "lore" ? "testimony" : "inferred"}
+           data-why={br.label} data-lane="A candidate join, not a document"
+           data-href={br.href ? u(br.href) : ""} data-read="Where this join is argued">
+          <title>{br.label} — a candidate join, on evidence short of a document</title>
+          <path d={`M ${a.x} ${a.y} C ${a.x - bow} ${a.y}, ${z.x - bow} ${z.y}, ${z.x} ${z.y}`}
+                fill="none" stroke="var(--ink-2)" stroke-width="1.2"
+                stroke-dasharray={dash} opacity={br.conf === "lore" ? 0.34 : 0.48} />
+          <circle cx={a.x} cy={a.y} r="2.6" fill="var(--ink-2)" opacity="0.5" />
+          <circle cx={z.x} cy={z.y} r="2.6" fill="var(--ink-2)" opacity="0.5" />
+          {/* Anchored to the RIGHT of the bow and clamped to the canvas. The
+              first draft anchored it `end` at the bow, which put a label of
+              any length off the left edge - the real case, «Kobler's letter,
+              and a 1748 baptism», started at x = -92 on a canvas beginning at
+              0. Measured against the Defranceschi data before it shipped. */}
+          <text x={Math.max(8, mx + 8)} y={my + 3} class="bridge-label">{br.label}</text>
+        </g>
+      );
+    })}
     <g>
       <line x1="12" y1={LOOSE_Y} x2={W - 12} y2={LOOSE_Y} stroke="var(--rule-strong)" stroke-width="1" stroke-dasharray="2 4" />
       <text x="12" y={LOOSE_Y + 20} class="loose-head">Real households of the name — not yet placed on any of these lines</text>
@@ -133,6 +199,11 @@ const X0 = 150, X1 = 700, XE = 902;
     <b>Click or tab any dot</b> — the stops tell you what the document behind them says, and the destinations on the right tell their own story and link to it. Click a second time to go there.
   </div>
   <figcaption>The teal river is the one this archive descends from, and the only one that arrived on foot looking for work. <strong>The green river at the bottom is drawn dashed because it never came to Istria at all</strong> — a fully documented family of the same name that goes from Cap Corse to the Caribbean, put here so that a Franceschi found in Puerto Rico or Caracas can be seen for what they are. <strong>A dotted end-point means the attachment is family lore, not a document</strong> — Argentina hangs off Carnia only on the word of a reunion album, and Monheim is a pin on a map. Below the rule are the households this archive will not pretend to have placed: <strong>Fiume, Svetvinčenat, Bakar and Vodnjan are real, documented families of the name that belong to nobody yet</strong>, and Brazil, Ticino and Michigan are somebody else's entirely. The table under this diagram gives every one of them a verdict.</figcaption>
+  {BR_LOST > 0 && (
+    <p class="rivers-note">{BR_LOST === 1
+      ? "One candidate join names a lane or household that is not on this drawing, and is not drawn."
+      : BR_LOST + " candidate joins name a lane or household that is not on this drawing, and are not drawn."}</p>
+  )}
 </figure>
 
 <script is:inline>
@@ -210,6 +281,12 @@ const X0 = 150, X1 = 700, XE = 902;
   .rivers .node.end:hover .endlab,
   .rivers .node.end:focus .endlab{fill:var(--ink);text-decoration:underline}
   .rivers .node.end.sel .endlab{fill:var(--ink);font-weight:600}
+  /* A bridge has to lose an argument with everything around it. */
+  .rivers-note{font-family:var(--sans);font-size:12px;color:var(--ink-3);margin-top:8px}
+  .rivers .bridge-label{font-family:var(--sans);font-size:10.5px;fill:var(--ink-3);
+    font-style:italic;letter-spacing:.01em}
+  .rivers .bridge{cursor:pointer}
+  .rivers .bridge:hover path,.rivers .bridge:focus path{opacity:.8}
   .rivers figcaption{font-family:var(--sans);font-size:13px;color:var(--ink-2);
     margin-top:14px;max-width:78ch;line-height:1.6}
   @media (max-width:700px){
