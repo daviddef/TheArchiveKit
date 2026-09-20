@@ -66,7 +66,7 @@ const STATE = {
 
 {doors.length > 0 && (
   <div class="tl-doors">
-    <h3>Where to start</h3>
+    <h2>Where to start</h2>
     <div class="tl-door-grid">
       {doors.map(([href, name, blurb]) => (
         <a class="tl-door" href={href}>
@@ -135,7 +135,7 @@ const STATE = {
   .tl-go { display: inline-block; margin-top: 11px; font-size: 13px; color: var(--accent); text-decoration: none; }
   .tl-go:hover { text-decoration: underline; }
   .tl-doors { margin-top: 34px; border-top: 1px solid var(--rule); padding-top: 22px; }
-  .tl-doors h3 { font-family: var(--sans); font-size: 11px; font-weight: 600;
+  .tl-doors h2 { font-family: var(--sans); font-size: 11px; font-weight: 600;
                  letter-spacing: .12em; text-transform: uppercase; color: var(--ink-3); }
   .tl-door-grid { display: grid; gap: 12px; margin-top: 14px;
                   grid-template-columns: repeat(auto-fit, minmax(232px, 1fr)); }

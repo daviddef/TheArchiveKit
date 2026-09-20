@@ -37,7 +37,10 @@ const {
 
 {hints.length > 0 && (
   <div class="qa" id="kshints" style="margin-top:1.6rem">
-    <h3>Things worth trying</h3>
+    {/* A SECTION heading by level, a modest one by size. It was a bare <h3> and so took
+        whatever each archive gives an h3; as an <h2> it would take the page-banner size
+        instead, which is not what this block is. */}
+    <h2 style="font-size:1.05rem;margin:0 0 .5rem">Things worth trying</h2>
     <ul class="cols">
       {hints.map(([q, gloss]) => (
         <li><a class="kstry" href="#" data-q={q}>{q}</a>{gloss ? <> — {gloss}</> : null}</li>

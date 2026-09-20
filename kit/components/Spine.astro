@@ -29,12 +29,17 @@
  *           sources: [{label}], plates: [id]}]
  *   Plate  optional component rendered as <Plate ids={row.plates} />
  */
-const { rows = [], u = (p) => p, label = "Generation", Plate } = Astro.props;
+/* `idPrefix` exists because a PAGE MAY HOLD SEVERAL SPINES. /argentina/ draws four
+   lines of descent and /uruguay/ three, and every one of them emitted id="gen-1",
+   so a document carried the same id four times - invalid, and an anchor to it
+   resolves to whichever came first. Defaults to the old value, so no archive that
+   does not pass it sees any change. */
+const { rows = [], u = (p) => p, label = "Generation", Plate, idPrefix = "gen-" } = Astro.props;
 const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;");
 ---
 <ol class="sp">
   {rows.map((g) => (
-    <li class={"sp-g" + (g.weak ? " sp-weak" : "")} id={"gen-" + g.gen}>
+    <li class={"sp-g" + (g.weak ? " sp-weak" : "")} id={idPrefix + g.gen}>
       <div class="sp-n"><span class="mono">{label} {g.gen}</span></div>
       <div class="sp-b">
         <h3 class="sp-h">

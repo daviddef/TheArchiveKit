@@ -113,7 +113,7 @@ for (const r of rows) {
   <div class="tl-line">
     {blocks.map((b) => (
       <section class="tl-blk">
-        {b.k ? <h3 class="tl-dec"><span>{b.k}</span><span class="small mono tl-n">{b.rows.length}</span></h3> : null}
+        {b.k ? <h2 class="tl-dec"><span>{b.k}</span><span class="small mono tl-n">{b.rows.length}</span></h2> : null}
         {b.rows.map((r) => (
           <article class={"tl-ev" + (r.big ? " big" : "")} data-kind={r.kind || ""}>
             <div class="tl-when">
@@ -126,11 +126,11 @@ for (const r of rows) {
                 : null}
             </div>
             <div class="tl-what">
-              <h4 class="tl-t">
+              <h3 class="tl-t">
                 {r.href
                   ? <a href={href(r.href)} rel={ext(r.href) ? "noopener" : null} set:html={r.title} />
                   : <span set:html={r.title} />}
-              </h4>
+              </h3>
               {r.what ? <p class="tl-w"><Fragment set:html={r.what} /></p> : null}
               {(r.tags || []).length ? (
                 <p class="tl-tags">

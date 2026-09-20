@@ -137,9 +137,9 @@ const GENLAB = ["Self", "Gen 1", "Gen 2", "Gen 3", "Gen 4", "Gen 5", "Gen 6", "G
 <div class="ac-walls">
   {/* Falco has exactly one, which is how "The 1 walls" reached a published
       page. An archive with none gets no heading over nothing at all. */}
-  <h3>{walls.length === 1
+  <h2>{walls.length === 1
         ? "The one wall, and why it is a wall"
-        : `The ${walls.length} walls, and why each one is a wall`}</h3>
+        : `The ${walls.length} walls, and why each one is a wall`}</h2>
   {walls.map(w => (
     <div class="ac-wrow" style={`--k:${kindOf(w)[1]}`}>
       <div class="ac-wk">{w.label}<span class="ac-wkind">{kindOf(w)[0]}</span></div>
@@ -190,7 +190,7 @@ const GENLAB = ["Self", "Gen 1", "Gen 2", "Gen 3", "Gen 4", "Gen 5", "Gen 6", "G
            text-transform: uppercase; color: var(--k); }
 
   .ac-walls { margin-top: 18px; }
-  .ac-walls h3 { font-family: var(--serif); font-size: 19px; margin: 0 0 10px; }
+  .ac-walls h2 { font-family: var(--serif); font-size: 19px; margin: 0 0 10px; }
   .ac-wkind {
     display: block; font-family: var(--mono); font-size: 10px; letter-spacing: .08em;
     text-transform: uppercase; color: var(--k); margin-top: 4px;
