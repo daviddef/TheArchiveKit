@@ -111,7 +111,13 @@ for (const r of rows) {
   ) : null}
 
   <div class="tl-line">
-    {blocks.map((b) => (
+    {blocks.map((b) => {
+      /* AN EVENT TITLE SITS UNDER ITS BLOCK HEADING - WHEN THERE IS ONE. Blocks are
+         only labelled when the caller groups by decade; the Lerena timeline does not,
+         so every h2 above was skipped and the page ran h1 straight to h3. The title
+         takes whichever level actually follows the one above it. */
+      const T = b.k ? "h3" : "h2";
+      return (
       <section class="tl-blk">
         {b.k ? <h2 class="tl-dec"><span>{b.k}</span><span class="small mono tl-n">{b.rows.length}</span></h2> : null}
         {b.rows.map((r) => (
@@ -126,11 +132,11 @@ for (const r of rows) {
                 : null}
             </div>
             <div class="tl-what">
-              <h3 class="tl-t">
+              <T class="tl-t">
                 {r.href
                   ? <a href={href(r.href)} rel={ext(r.href) ? "noopener" : null} set:html={r.title} />
                   : <span set:html={r.title} />}
-              </h3>
+              </T>
               {r.what ? <p class="tl-w"><Fragment set:html={r.what} /></p> : null}
               {(r.tags || []).length ? (
                 <p class="tl-tags">
@@ -145,7 +151,8 @@ for (const r of rows) {
           </article>
         ))}
       </section>
-    ))}
+      );
+    })}
   </div>
   <p class="tl-none small" hidden>Nothing of that kind.</p>
 </div>
