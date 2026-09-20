@@ -48,6 +48,16 @@ def main():
     ap.add_argument("--dry", action="store_true")
     a = ap.parse_args()
 
+    # A CROSS-REPO PATH IN A BUILD IS A FRAGILITY, SO IT FAILS SOFT. The
+    # gazetteer is a sibling checkout, and a sibling is exactly the thing that
+    # is missing on somebody else's machine, in CI, or on the day that repo is
+    # renamed. A missing gazetteer means the links are not refreshed, which is
+    # a worse map; a broken build means no map at all. It says so and stops.
+    if not os.path.exists(a.gazetteer):
+        print("  note  record atlas  no gazetteer at %s, so the links were left "
+              "as they are. This is a sibling checkout and not a dependency; the "
+              "build is fine without it." % a.gazetteer)
+        return 0
     gaz = json.load(io.open(a.gazetteer, encoding="utf-8"))
     gaz = gaz["places"] if isinstance(gaz, dict) else gaz
     idx = {}
