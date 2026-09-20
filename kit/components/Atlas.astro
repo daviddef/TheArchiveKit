@@ -427,6 +427,12 @@ const base = import.meta.env.BASE_URL || "/";
     padding: 6px 11px; display: inline-flex; align-items: center; gap: 6px; opacity: .45;
   }
   .at-cat.on { opacity: 1; color: var(--ink-2); border-color: var(--ink-3); }
+  /* The layer switch. It sits above the colour key because it decides what
+     the key is describing, and its buttons are the same object as the key's
+     so a reader does not have to learn two controls on one page. */
+  .at-schemes { display: flex; flex-direction: column; gap: .3rem; margin-bottom: .55rem; }
+  .at-schemes .lab { margin: 0; }
+  .at-sch { font-weight: 600; }
   .at-cat i { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
   .at-over { width: 100%; }
   :global(.at-flow) { stroke-dasharray: 5 7; animation: at-march 1.6s linear infinite; }
