@@ -136,13 +136,25 @@ const base = import.meta.env.BASE_URL || "/";
     function push() {
       if (writing) return;
       writing = true;
-      requestAnimationFrame(function () {
+      /* A FRAME, OR A QUARTER SECOND, WHICHEVER COMES FIRST.
+         requestAnimationFrame alone is what the Record Atlas does and it is
+         the better coalescer while the page is on screen - but a browser does
+         not run frames for a hidden tab. Switch tabs, change the basemap, come
+         back, and the address bar still described the map you left: the write
+         was queued behind a frame that would not arrive until you looked at
+         it again. Caught here because the automation pane was hidden and the
+         URL stopped changing while the map plainly did. Both are scheduled and
+         the first to run does the write. */
+      var go = function () {
+        if (!writing) return;
         writing = false;
         var str = Q.toString();
         try {
           history.replaceState(null, "", location.pathname + (str ? "?" + str : "") + location.hash);
         } catch (e) {}
-      });
+      };
+      requestAnimationFrame(go);
+      setTimeout(go, 250);
     }
     function setQ(k, v) {
       if (v === "" || v === null || v === undefined) Q.delete(k); else Q.set(k, String(v));
