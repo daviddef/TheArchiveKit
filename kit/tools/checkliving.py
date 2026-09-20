@@ -249,7 +249,24 @@ def load_pages(dist):
     pages, vanished = {}, 0
     for root, _, files in os.walk(dist):
         for f in files:
-            if not f.endswith(".html"):
+            # AND THE JSON, WHICH THIS READ ONLY HTML FOR MONTHS.
+            #
+            # An atlas fetches its places from a .json in dist, a search box
+            # fetches its index the same way, and both are served to anybody
+            # who asks for the URL. This gate walked past every one of them,
+            # so a living person could sit in atlas-data.json with a date and
+            # a pin and the build would pass: the name never reaches a page as
+            # text, it reaches the browser and is drawn.
+            #
+            # Raised by the Luwinski session, which has two children flagged
+            # living in its emigration data and said plainly that check:living
+            # guards the built pages and not that JSON. Measured across the
+            # estate before changing anything: three archives DO carry living
+            # names in served JSON, and every one of them is also the name of
+            # a published dead person - a namesake, which published_names()
+            # already subtracts. So nothing is leaking today. The blind spot
+            # was real and the leak was not, and both halves are worth saying.
+            if not (f.endswith(".html") or f.endswith(".json")):
                 continue
             p = os.path.join(root, f)
             try:
