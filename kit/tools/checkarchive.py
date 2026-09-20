@@ -8,6 +8,11 @@ worst failures were invisible from the source.
 
   links        a hand-written href rotted when a slug changed          (73 dead on Defranceski)
   anchors      a #fragment pointed at a section that had been renamed
+  ambiguous    two sections on one page carried the SAME id, so every link to
+               that fragment silently landed on whichever came first. The
+               anchor check could not see it: it asked "does this id exist"
+               of a SET, and a duplicate answers yes. Booyzen shipped two
+               <h2 id="pow-1901"> and 14 links meaning the second one
   contents     a page promising a contents list quietly grew a section it did not list
   searchindex  search shipped broken on THREE archives at once: the index
                lived in src/data and the shared component fetches
@@ -106,6 +111,14 @@ def main():
     # every id on every page, for anchor resolution
     ids = {u: set(re.findall(r'\bid="([^"]+)"', s)) for u, s in pages.items()}
 
+    # ...and how many times each one occurs, which the set above throws away.
+    # Scripts are stripped here and not above: a template inside <script> can
+    # legitimately repeat an id, and this count must not cry wolf over it.
+    idn = {u: collections.Counter(
+               re.findall(r'\bid="([^"]+)"',
+                          re.sub(r"<script.*?</script>", " ", s, flags=re.S | re.I)))
+           for u, s in pages.items()}
+
     def exists(path):
         p = path.rstrip("/") or "/"
         if p in pages:
@@ -201,6 +214,14 @@ def main():
                 tgt = (rel.rstrip("/") or "/")
                 if tgt in ids and frag not in ids[tgt]:
                     F("anchors", url, f"{href} — #{frag} not on that page")
+                elif tgt in idn and idn[tgt][frag] > 1:
+                    # Only a duplicate SOMETHING LINKS TO is reported. An
+                    # unreferenced repeat is invalid HTML that harms no reader,
+                    # and failing on those would fail one archive on 36 findings
+                    # of which exactly one mattered.
+                    F("ambiguous", url,
+                      f"{href} — #{frag} is on that page {idn[tgt][frag]} times; "
+                      f"this link can only ever reach the first")
         for s in re.findall(r'<img[^>]+src="([^"]+)"', body):
             if s.startswith("data:") or re.match(r"^(https?:)?//", s) or not s.startswith("/"):
                 continue
@@ -346,7 +367,7 @@ def main():
         print(f"  warn  {c:<12} {w}  →  {d}")
     if not fail:
         print(f"  ok    {len(pages)} pages, {sum(len(v) for v in ids.values())} ids — "
-              f"links, anchors, contents, search, titles, sitemap all clean"
+              f"links, anchors, duplicate anchors, contents, search, titles, sitemap all clean"
               + (f" ({len(warn)} advisory)" if warn else ""))
     return 1 if fail else 0
 
