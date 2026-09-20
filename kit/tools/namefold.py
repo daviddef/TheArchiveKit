@@ -67,10 +67,36 @@ def bare(w):
     return "".join(c for c in w if unicodedata.category(c) != "Mn")
 
 
-def corpus(data):
+# THE ARCHIVE'S RECORDS, NOT THE ARCHIVE'S PROSE. corpus() read every *.json
+# in the data directory, which in this estate includes the work list, the
+# searched register, the corrections and the change log - the narrative. A
+# surname appearing only in a SENTENCE ABOUT a surname then entered the corpus
+# with the same standing as a register row.
+#
+# Raised by the Blazevic session, whose own case is the mild one: «Subrinic,
+# Xubrinich and Zubrinicz are zero» is a sentence about a failed search, and
+# its two tokens are nobody's name. The dangerous one is theirs too, and it is
+# the example this tool already carries - an archive whose work list says «the
+# other Roos family, who are not ours» offers that name to the clusterer with
+# the confidence of a record, and a fold that JOINS TWO FAMILIES is the worst
+# thing this kit could ship.
+#
+# The counts are what have saved it so far: 2 tokens against 1,059 announces
+# itself to anybody reading the output. That is not a guarantee, it is a
+# coincidence of scale.
+NARRATIVE = {"worklist.json", "searched.json", "corrections.json", "changes.json",
+             "log.json", "changelog.json", "research-log.json", "researchlog.json",
+             "questions.json", "open-questions.json", "notes.json", "errands.json",
+             "letters.json", "method.json", "covers.json", "accounts.json"}
+
+
+def corpus(data, extra_skip=()):
     """Every word the archive's own records actually contain, with counts."""
     c = Counter()
+    skip = NARRATIVE | set(extra_skip)
     for p in glob.glob(os.path.join(data, "*.json")):
+        if os.path.basename(p) in skip:
+            continue
         try:
             txt = io.open(p, encoding="utf-8").read()
         except Exception:
