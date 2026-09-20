@@ -125,6 +125,19 @@ def main():
             bad.append((p["name"], p["lat"], p["lon"], outs[0][1], outs[0][0],
                         ", ".join(cc for _, cc in outs)))
 
+    if not checked:
+        # NOT «ok». A gate that inspects nothing and reports all clear is
+        # worse than no gate, because somebody reads the green line. This one
+        # inspects a place only when its own name or `also` gives a country
+        # the kit can bound, and an archive whose places are bare names -
+        # «Cradock», «Indwe» - offers it nothing to test. Say that, and exit
+        # 0, because it is not a fault: it is a check with no purchase here
+        # yet, and it will get purchase the first time a qualified name is
+        # added. 
+        print("  note  places   no place here gives a country in its name "
+              "or its `also` forms, so there was nothing to check. This gate "
+              "reads the naming strings only.")
+        return 0
     print("  %d place(s) name a country this kit can bound; %d checked"
           % (checked, checked))
     if bad:
