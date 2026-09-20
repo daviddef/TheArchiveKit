@@ -15,6 +15,30 @@
      overlays   [[key, label, colour, onByDefault]] for spine / moves / areas.
                 An archive with no arrows of its own passes none and the row
                 is not drawn.
+     schemes    [[key, label, note]] — LAYERS, NOT VIEWS. An archive that asks
+                more than one question of the same ground passes them here, and
+                each place then carries `cats: {scheme: cat}` and optionally
+                `ns: {scheme: n}` instead of a single `cat`. A switch appears
+                above the map and the markers recolour; THE PANEL NEVER
+                SWITCHES, because a place that is a parish, a home and a grave
+                says all three things at once and that is the whole reason for
+                putting them on one map.
+
+                A place answering two live schemes takes the colour of the
+                RAREST one it answers, counted off the data rather than
+                declared: sixty-one graves against 1,235 parishes means the
+                burial is the thing worth seeing and the shelf is the ground it
+                sits on. Passing no schemes keeps the old single `cat` and
+                nothing changes.
+
+   WHY THIS IS HERE AND NOT IN A PAGE. Defranceschi built it first, as 1,220
+   lines that watched this component's DOM with a MutationObserver and re-
+   tagged the markers after every click, because that session does not own the
+   kit and said so in its own comment. Four archives hold the data for a second
+   layer - D'Arcy 89 graves and 56 coverage rows, Blazevic 72 and 70, Falco 87,
+   Mazza 10 - and not one of them could show it. A capability reachable only by
+   patching another component from outside is a capability the estate does not
+   have.
 
    The data is fetched rather than inlined: an atlas of any size is more than
    a page should carry, and the map cannot draw before Leaflet loads anyway.
@@ -25,6 +49,7 @@
    to the family by nothing whatever. */
 const {
   cats = [],
+  schemes = [],
   bounds = [[-60, -180], [75, 180]],
   homeLabel = "Back to the home view",
   dataUrl,
@@ -52,6 +77,16 @@ const base = import.meta.env.BASE_URL || "/";
       <span class="lab">Find a place</span>
       <input id="at-q" type="search" placeholder={placeholder} autocomplete="off" />
     </label>
+    {schemes.length > 1 && (
+      <div class="at-schemes">
+        <span class="lab">Layers &mdash; switch any of them on or off</span>
+        <div class="atlas-key">
+          {schemes.map(([k, label, note]) => (
+            <button class="at-cat at-sch on" data-scheme={k} title={note}>{label}</button>
+          ))}
+        </div>
+      </div>
+    )}
     <div class="atlas-key">
       {cats.map(([k, label, c]) => (
         <button class="at-cat on" data-cat={k}><i style={`background:${c}`}></i>{label}</button>
@@ -69,7 +104,7 @@ const base = import.meta.env.BASE_URL || "/";
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer></script>
-<script is:inline define:vars={{ BASE: base, DATA: dataUrl, COLORS, BOUNDS: bounds, HOME: homeLabel }}>
+<script is:inline define:vars={{ BASE: base, DATA: dataUrl, COLORS, BOUNDS: bounds, HOME: homeLabel, SCHEMES: schemes }}>
   window.addEventListener("load", async function () {
     var el = document.getElementById("atlas");
     if (!el || typeof L === "undefined") return;
@@ -163,12 +198,43 @@ const base = import.meta.env.BASE_URL || "/";
       panel.scrollTop = 0;
     }
 
+    /* WHICH QUESTION IS THIS DOT ANSWERING.
+       With no schemes declared a place has one category and this is the
+       identity function. With schemes, the place answers whichever of the LIVE
+       ones it has a category for, and takes the colour of the RAREST - counted
+       off the data, not declared, so the ordering cannot drift away from the
+       thing it describes. */
+    var schemeOn = {}, rarity = [];
+    (SCHEMES || []).forEach(function (sc) { schemeOn[sc[0]] = true; });
+    if ((SCHEMES || []).length) {
+      rarity = SCHEMES.map(function (sc) {
+        return [sc[0], d.places.filter(function (p) {
+          return p.cats && p.cats[sc[0]];
+        }).length];
+      }).sort(function (a, b) { return a[1] - b[1]; }).map(function (x) { return x[0]; });
+    }
+    function catFor(p) {
+      if (!rarity.length) return p.cat;
+      for (var i = 0; i < rarity.length; i++) {
+        var k = rarity[i];
+        if (schemeOn[k] && p.cats && p.cats[k]) return p.cats[k];
+      }
+      return null;
+    }
+    /* Which scheme each colour belongs to, read out of the data, so that
+       switching a layer off also puts its pills away. */
+    var catScheme = {};
+    if (rarity.length) d.places.forEach(function (p) {
+      for (var k in (p.cats || {})) catScheme[p.cats[k]] = k;
+    });
+
     var markers = [], pts = [];
     d.places.forEach(function (p) {
+      var c0 = catFor(p);
       var r = p.n > 40 ? 11 : p.n > 12 ? 8.5 : p.n > 3 ? 6.5 : p.order ? 7.5 : 5;
       var m = L.circleMarker([p.lat, p.lon], {
         radius: r, color: "#ffffff", weight: p.order ? 2.2 : 1.2,
-        fillColor: COLORS[p.cat] || "#666", fillOpacity: 0.9
+        fillColor: COLORS[c0] || "#666", fillOpacity: 0.9
       }).addTo(map);
       m.bindTooltip(p.name + (p.n ? " · " + p.n : ""), { direction: "top", offset: [0, -6] });
       m.on("click", function () { show(p); });
@@ -187,17 +253,30 @@ const base = import.meta.env.BASE_URL || "/";
     // and say whose they are. Nothing here is upgraded to a document.
     var movesLayer = L.layerGroup();
     (d.moves || []).forEach(function (m) {
-      var line = L.polyline([m.from, m.to], {
-        color: "#7A5CA8", weight: 1.6, opacity: 0.55,
-        dashArray: "5 7", className: "at-flow", lineCap: "round"
+      /* A LINE IS NOT ALWAYS SOMEBODY'S GUESS. These were dashed violet and
+         captioned "Drawn by David on his own map, this archive has not
+         verified it" - true of the archive they were written for and false of
+         a deportation, which is the best-documented movement in the Luwinski
+         archive and must not be drawn as a hunch. Colour, dash and provenance
+         come from the data now, and default to what they were. */
+      var col = m.color || "#7A5CA8";
+      var path = [m.from].concat(m.via || []).concat([m.to]);
+      var line = L.polyline(path, {
+        color: col, weight: m.weight || 1.6, opacity: m.opacity || 0.55,
+        dashArray: m.dash === null ? null : (m.dash || "5 7"),
+        className: m.dash === null ? "" : "at-flow", lineCap: "round"
       });
-      line.bindTooltip(m.n + " · " + m.km + " km", { sticky: true });
-      line.bindPopup("<b>" + esc(m.n) + "</b><br><i>" + esc(m.layer) + "</i><br>" +
-        m.km + " km<br><span style='font-size:11px;opacity:.75'>Drawn by David on his own map. " +
-        "This archive has not verified it.</span>");
+      var km = m.km ? " · " + m.km + " km" : "";
+      line.bindTooltip(m.n + km, { sticky: true });
+      line.bindPopup("<b>" + esc(m.n) + "</b>" +
+        (m.layer ? "<br><i>" + esc(m.layer) + "</i>" : "") +
+        (m.km ? "<br>" + m.km + " km" : "") +
+        "<br><span style='font-size:11px;opacity:.75'>" +
+        esc(m.note || "Drawn by David on his own map. This archive has not verified it.") +
+        "</span>");
       line.addTo(movesLayer);
       // a head at the destination, so the arrow has a direction
-      L.circleMarker(m.to, { radius: 2.6, color: "#7A5CA8", weight: 0, fillColor: "#7A5CA8", fillOpacity: 0.8 })
+      L.circleMarker(m.to, { radius: 2.6, color: col, weight: 0, fillColor: col, fillOpacity: 0.8 })
         .addTo(movesLayer);
     });
 
@@ -238,10 +317,20 @@ const base = import.meta.env.BASE_URL || "/";
       var t = (q.value || "").toLowerCase().trim();
       var shown = 0;
       markers.forEach(function (m) {
-        var p = m._p;
-        var ok = !off[p.cat] &&
+        var p = m._p, c = catFor(p);
+        /* A place none of the live layers can answer is not greyed out, it is
+           gone: this map has 1,235 places on one layer and 61 on another, and
+           leaving the other 1,174 sitting there in grey would bury the thing
+           the reader just asked to see. */
+        var ok = c !== null && !off[c] &&
           (!t || (p.name + " " + (p.also || []).join(" ")).toLowerCase().indexOf(t) > -1);
-        if (ok) { if (!map.hasLayer(m)) m.addTo(map); shown++; }
+        if (ok) {
+          if (m.options.fillColor !== (COLORS[c] || "#666")) {
+            m.setStyle({ fillColor: COLORS[c] || "#666" });
+          }
+          if (!map.hasLayer(m)) m.addTo(map);
+          shown++;
+        }
         else if (map.hasLayer(m)) map.removeLayer(m);
       });
       count.textContent = shown + " of " + markers.length + " places shown";
@@ -252,12 +341,31 @@ const base = import.meta.env.BASE_URL || "/";
       }
     }
     q.addEventListener("input", apply);
-    document.querySelectorAll(".at-cat").forEach(function (b) {
+    document.querySelectorAll(".at-cat[data-cat]").forEach(function (b) {
       b.addEventListener("click", function () {
         var c = b.getAttribute("data-cat");
         off[c] = !off[c]; b.classList.toggle("on", !off[c]); apply();
       });
     });
+    /* Switching a layer off also puts its colours away, so the legend below
+       always describes the map above it rather than every colour the page
+       could ever draw. */
+    function syncKey() {
+      if (!rarity.length) return;
+      document.querySelectorAll(".at-cat[data-cat]").forEach(function (b) {
+        var sc = catScheme[b.getAttribute("data-cat")];
+        b.hidden = !!sc && !schemeOn[sc];
+      });
+    }
+    document.querySelectorAll(".at-sch").forEach(function (b) {
+      b.addEventListener("click", function () {
+        var k = b.getAttribute("data-scheme");
+        schemeOn[k] = !schemeOn[k];
+        b.classList.toggle("on", schemeOn[k]);
+        syncKey(); apply();
+      });
+    });
+    syncKey();
     apply();
 
     var btn = L.control({ position: "topright" });
