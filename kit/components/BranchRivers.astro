@@ -45,11 +45,19 @@
    lane, with its reason written small. It reads as a question. */
 import { u } from "../lib/url.js";
 
-const { rivers } = Astro.props;
+/* THE CAPTION IS THE ARCHIVE'S, NOT THE KIT'S.
+   This component was promoted out of Defranceschi and its caption came with
+   it - the teal river, Argentina, Monheim, Brazil and Ticino - so every other
+   archive that adopted the drawing got Defranceschi's words underneath it,
+   describing rivers it does not have. Raised by that session, whose words they
+   are. It is a prop now, defaulting to the text that was hardcoded, so the
+   page it was written for reads exactly as it did. */
+const { rivers, caption } = Astro.props;
 const LANES = rivers?.lanes ?? [];
 const UNPLACED = rivers?.unplaced ?? [];
 const LOOSE = rivers?.loose ?? [];
 const BRIDGES = rivers?.bridges ?? [];
+const DEFAULT_CAPTION = `The teal river is the one this archive descends from, and the only one that arrived on foot looking for work. <strong>The green river at the bottom is drawn dashed because it never came to Istria at all</strong> — a fully documented family of the same name that goes from Cap Corse to the Caribbean, put here so that a Franceschi found in Puerto Rico or Caracas can be seen for what they are. <strong>A dotted end-point means the attachment is family lore, not a document</strong> — Argentina hangs off Carnia only on the word of a reunion album, and Monheim is a pin on a map. Below the rule are the households this archive will not pretend to have placed: <strong>Fiume, Svetvinčenat, Bakar and Vodnjan are real, documented families of the name that belong to nobody yet</strong>, and Brazil, Ticino and Michigan are somebody else's entirely. The table under this diagram gives every one of them a verdict.`;
 
 const W = 1040;
 const BH = 140, BGAP = 152;
@@ -73,6 +81,24 @@ const anchor = (key) => {
 /* A bridge naming something that is not on the drawing is dropped rather than
    drawn to nowhere, and the count is reported in the figure's caption so the
    omission is visible instead of silent. */
+/* WHERE A BRIDGE LABEL CAN GO WITHOUT LANDING ON SOMETHING.
+   The first version anchored it at the bow and it ran off the left edge. The
+   second clamped it and it ran straight across the node row instead - measured
+   on the Defranceschi page at x=92 y=551, over Svetvincenat, Pula, Fazana and
+   Premantura, all of which sit at y=535 on the lane below. The gutter left of
+   the first node is 58px wide, so no label of useful length fits there and
+   this was never about wordiness.
+
+   The bands are 140 tall on a 152 pitch, so between every pair of them is a
+   12px strip with nothing in it at any x. The label goes in the strip nearest
+   the curve's midpoint, and runs rightward across a row that is empty by
+   construction. Below the last band there are no strips and no node rows
+   either, so the midpoint is used as it is. */
+const GAPS = LANES.map((_, i) => 34 + i * BGAP + BH + 6);
+const labelY = (y) => {
+  if (!GAPS.length || y > GAPS[GAPS.length - 1] + BGAP) return y;
+  return GAPS.reduce((best, g) => (Math.abs(g - y) < Math.abs(best - y) ? g : best), GAPS[0]);
+};
 const BR = BRIDGES.map((b) => ({ ...b, a: anchor(b.from), b: anchor(b.to) }))
                   .filter((x) => x.a && x.b);
 const BR_LOST = BRIDGES.length - BR.length;
@@ -149,21 +175,19 @@ const BR_LOST = BRIDGES.length - BR.length;
       const dash = br.conf === "lore" ? "2 6" : "3 5";
       return (
         <g class="bridge node" tabindex="0" role="button"
-           data-place={br.label} data-year={br.conf === "lore" ? "testimony" : "inferred"}
-           data-why={br.label} data-lane="A candidate join, not a document"
+           data-place={br.label || "A candidate join"}
+           data-year={br.conf === "lore" ? "testimony" : "inferred"}
+           data-why={br.label || null} data-lane="A candidate join, not a document"
            data-href={br.href ? u(br.href) : ""} data-read="Where this join is argued">
-          <title>{br.label} — a candidate join, on evidence short of a document</title>
+          <title>{br.label ? br.label + " — " : ""}a candidate join, on evidence short of a document</title>
           <path d={`M ${a.x} ${a.y} C ${a.x - bow} ${a.y}, ${z.x - bow} ${z.y}, ${z.x} ${z.y}`}
                 fill="none" stroke="var(--ink-2)" stroke-width="1.2"
                 stroke-dasharray={dash} opacity={br.conf === "lore" ? 0.34 : 0.48} />
           <circle cx={a.x} cy={a.y} r="2.6" fill="var(--ink-2)" opacity="0.5" />
           <circle cx={z.x} cy={z.y} r="2.6" fill="var(--ink-2)" opacity="0.5" />
-          {/* Anchored to the RIGHT of the bow and clamped to the canvas. The
-              first draft anchored it `end` at the bow, which put a label of
-              any length off the left edge - the real case, «Kobler's letter,
-              and a 1748 baptism», started at x = -92 on a canvas beginning at
-              0. Measured against the Defranceschi data before it shipped. */}
-          <text x={Math.max(8, mx + 8)} y={my + 3} class="bridge-label">{br.label}</text>
+          {br.label && (
+            <text x={Math.max(8, mx + 8)} y={labelY(my) + 3} class="bridge-label">{br.label}</text>
+          )}
         </g>
       );
     })}
@@ -198,7 +222,7 @@ const BR_LOST = BRIDGES.length - BR.length;
   <div class="riverread" id="riverread" aria-live="polite">
     <b>Click or tab any dot</b> — the stops tell you what the document behind them says, and the destinations on the right tell their own story and link to it. Click a second time to go there.
   </div>
-  <figcaption>The teal river is the one this archive descends from, and the only one that arrived on foot looking for work. <strong>The green river at the bottom is drawn dashed because it never came to Istria at all</strong> — a fully documented family of the same name that goes from Cap Corse to the Caribbean, put here so that a Franceschi found in Puerto Rico or Caracas can be seen for what they are. <strong>A dotted end-point means the attachment is family lore, not a document</strong> — Argentina hangs off Carnia only on the word of a reunion album, and Monheim is a pin on a map. Below the rule are the households this archive will not pretend to have placed: <strong>Fiume, Svetvinčenat, Bakar and Vodnjan are real, documented families of the name that belong to nobody yet</strong>, and Brazil, Ticino and Michigan are somebody else's entirely. The table under this diagram gives every one of them a verdict.</figcaption>
+  <figcaption set:html={caption ?? DEFAULT_CAPTION} />
   {BR_LOST > 0 && (
     <p class="rivers-note">{BR_LOST === 1
       ? "One candidate join names a lane or household that is not on this drawing, and is not drawn."

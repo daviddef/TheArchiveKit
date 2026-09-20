@@ -6,6 +6,15 @@
    archive-specific was never the map. It was six category names, a bounding
    box round the Adriatic, and three overlays only one family has.
 
+     detailBase OPTIONAL. Where the per-place detail lives, e.g. "/map/p". With
+                it, `dataUrl` need carry only what a marker needs to be drawn
+                and found - name, lat, lon, cat, n, also - and everything else
+                arrives on click from `<detailBase>/<id>.json`. Measured on the
+                Defranceschi map: 2,556 KB becomes 191 KB, which is 93% of the
+                download gone before the first marker is drawn. The number that
+                grows with the archive is the one that stops being downloaded.
+                Without it nothing changes and the whole file is the panel.
+
      places     served as JSON at `dataUrl`, each:
                 { name, lat, lon, cat, n, what, when, href, also,
                   people:[{n,y,d,w}], more, films:[{t,ark,cc,wc}], nfilms,
@@ -53,6 +62,7 @@ const {
   bounds = [[-60, -180], [75, 180]],
   homeLabel = "Back to the home view",
   dataUrl,
+  detailBase = "",
   overlays = [],
   hint,
   placeholder = "Find a place",
@@ -104,7 +114,7 @@ const base = import.meta.env.BASE_URL || "/";
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer></script>
-<script is:inline define:vars={{ BASE: base, DATA: dataUrl, COLORS, BOUNDS: bounds, HOME: homeLabel, SCHEMES: schemes }}>
+<script is:inline define:vars={{ BASE: base, DATA: dataUrl, DETAIL: detailBase, COLORS, BOUNDS: bounds, HOME: homeLabel, SCHEMES: schemes }}>
   window.addEventListener("load", async function () {
     var el = document.getElementById("atlas");
     if (!el || typeof L === "undefined") return;
@@ -213,7 +223,40 @@ const base = import.meta.env.BASE_URL || "/";
     var panel = document.getElementById("at-body");
     var empty = document.getElementById("at-empty");
 
-    function show(p) {
+    /* ---- THE PANEL FETCHES, WHERE THE ARCHIVE HAS SPLIT ITS DATA ---------
+       Without `detailBase` this is exactly what it was: one file, everything
+       in it, and `show` draws from what is already in memory.
+
+       With it, the index carries only what a marker needs and the rest of a
+       place arrives when somebody asks for it. THE PANEL OPENS IMMEDIATELY on
+       what the index already knows, rather than waiting on the network and
+       leaving a click apparently unanswered; the detail merges in when it
+       lands. A place is fetched once and kept.
+
+       A failed fetch is not a blank panel. The reader keeps the name, the
+       count and the spellings, and the panel says plainly that the rest could
+       not be loaded - which is a true statement about the network, not a
+       false one about the archive. */
+    var detailCache = {};
+    function show(p, depth) {
+      if (DETAIL && !p._full && !detailCache[keyOf(p)]) {
+        var k = keyOf(p);
+        detailCache[k] = "loading";
+        fetch(DETAIL.replace(/\/$/, "") + "/" + encodeURIComponent(k) + ".json")
+          .then(function (r) { return r.ok ? r.json() : Promise.reject(r.status); })
+          .then(function (extra) {
+            detailCache[k] = extra || {};
+            for (var f in detailCache[k]) p[f] = detailCache[k][f];
+            p._full = true;
+            if (panel._at === k) show(p, 1);
+          })
+          .catch(function () {
+            detailCache[k] = { _failed: true };
+            p._failed = true;
+            if (panel._at === k) show(p, 1);
+          });
+      }
+      panel._at = keyOf(p);
       var h = [];
       h.push('<div class="at-h"><h3>' + esc(p.name) + "</h3>");
       if (p.n) h.push('<span class="at-n">' + p.n + (p.n === 1 ? " person" : " people") + "</span>");
@@ -283,6 +326,13 @@ const base = import.meta.env.BASE_URL || "/";
         h.push("</ul>");
         if (p.more) h.push('<p class="at-sub">and ' + p.more + " more — <a href=\"" + base + "/people/\">the full roster &rarr;</a></p>");
         h.push("</div>");
+      }
+      if (DETAIL && !p._full) {
+        h.push(p._failed
+          ? '<p class="at-more at-warn">The rest of this place could not be loaded. ' +
+            "What you can see above came with the map; the detail lives in its own " +
+            "file and the request for it failed.</p>"
+          : '<p class="at-more">Loading the rest of this place\u2026</p>');
       }
       panel.innerHTML = h.join("");
       panel.hidden = false; empty.hidden = true;
@@ -716,6 +766,8 @@ const base = import.meta.env.BASE_URL || "/";
   .at-stage .at-map { height: 100% !important; }
   body.at-stage-on { overflow: hidden; }
   .at-fs a { width: auto !important; padding: 0 9px; font: 500 11px/26px var(--sans); }
+  .at-more { font: 400 12px/1.5 var(--sans); color: var(--ink-3); margin-top: 10px; }
+  .at-warn { color: var(--ink-2); }
   .at-base { display: flex; overflow: hidden; }
   .at-base a { width: auto !important; padding: 0 9px; font: 500 11px/26px var(--sans);
     color: var(--ink-3); background: var(--panel); text-decoration: none; }
