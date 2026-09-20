@@ -32,6 +32,58 @@ live inside an ordinary word, put it on a stop list and say why.
 Nothing distinguishes *found nothing* from *looked at nothing* unless the tool
 says which. Print the denominator, and refuse when the input looks unfinished.
 
+## A check that tests something else and reports it as this
+
+The section above is about a check with nothing in front of it. This one is
+worse, because the denominator is fine: the check runs, reads a real object,
+returns a well-formed answer — and the object is not the one anybody thought
+it was reading. **Seven of these surfaced across two sessions in a single
+day, 21 September 2026.**
+
+- **Two runs of a generator, both reading the same `dist`.** Byte-identical,
+  and it proved the code was deterministic, which was not the question.
+  Across a rebuild: **347 of 347 dossiers changed**.
+- **A comparison that iterated dict keys.** `sorted(json.dumps(x) for x in
+  a[k])` where `a[k]` was the dossier *dict*, so it walked `n`, `slug`,
+  `mentions`, `pages`, `hits` — identical for every person in the file. The
+  "reordered only, nothing changed" branch **could not fail**. Redone against
+  `hits`: 0 reordered-only, **345 content-changed**.
+- **A build taken before the change existed**, then `check:worklist` and a
+  JSON parse reported as verification. Neither touches the schema that broke.
+  The next build died and took 687 rows of `/searched/` with it.
+- **A filter that displayed one thing and applied another.** FindAGrave's
+  `locationId=country_204` is **Malawi**; the page rendered a chip reading
+  "South Africa". Dropping the id ignores the filter entirely and returns
+  7,116 results from Germany, the USA and Egypt — still under a "South
+  Africa" chip.
+- **A count read out of a JavaScript dictionary.** "0 memorials" appeared
+  twice in a fetched page; both were i18n strings. The real results were
+  rendered client-side and were not in the document at all.
+- **A null out of an HTML error page.** `archive.org` serves `_djvu.txt` for
+  a lending-restricted book as **HTTP 200 and an error page**; 22 of 22
+  "downloads" were that page, and a script checking only for a non-empty file
+  counted every one a success.
+- **Existence-and-parse run against a stale artefact.** A search index with
+  12,064 valid rows passes every check and is a generation behind.
+
+The shape is always the same and it is never loud: **a plausible answer about
+the wrong object.** A wolf-crying gate gets fixed the day it is written; this
+kind is believed for months.
+
+Two habits catch it, and neither is a code review:
+
+1. **Name the object the check actually read, out loud, and say how you would
+   know if it were the wrong one.** "Both runs read the same `dist`" ends the
+   first case in one sentence.
+2. **Prove the check can fail. Inject the fault and watch it fire.** The
+   duplicate-anchor check was written against a real duplicate; the
+   dossier-drift gate was tested by injecting a two-hit drift and confirmed
+   silent otherwise. A check never seen to fail is a check with no evidence
+   behind it.
+
+And the corollary for a null: **a zero from an object you have not verified
+is not a negative, it is no result.**
+
 ## Counting files instead of reading them
 
 - Four archives were reported ready for a second map layer because they had
