@@ -24,6 +24,20 @@
      overlays   [[key, label, colour, onByDefault]] for spine / moves / areas.
                 An archive with no arrows of its own passes none and the row
                 is not drawn.
+     years      true, or [from, to]. A YEAR CONTROL OVER THE MAP. A place's
+                span is read from its own `span` or `when` - «1672 to 1913»,
+                «1742–1856», «first recorded 1856», a bare «1711» - and
+                failing those from the years in its `events`. Four formats,
+                because four archives wrote four and all of them are years
+                with something around them.
+
+                A PLACE WITH NO DATE IS KEPT, NOT DROPPED. The Record Atlas
+                drops what cannot answer for the year, which is right when
+                every place carries a surveyed span; here most do not, and a
+                silent absence of dates is not evidence a family was not
+                there. Undated places stay, and the count says how many, so
+                the reader knows what the year is and is not filtering.
+
      schemes    [[key, label, note]] — LAYERS, NOT VIEWS. An archive that asks
                 more than one question of the same ground passes them here, and
                 each place then carries `cats: {scheme: cat}` and optionally
@@ -59,6 +73,7 @@
 const {
   cats = [],
   schemes = [],
+  years = false,
   bounds = [[-60, -180], [75, 180]],
   homeLabel = "Back to the home view",
   dataUrl,
@@ -97,6 +112,14 @@ const base = import.meta.env.BASE_URL || "/";
         </div>
       </div>
     )}
+    {years && (
+      <div class="at-years">
+        <label class="lab" for="at-year">Year</label>
+        <input id="at-year" type="range" step="1" />
+        <output id="at-year-out" class="mono"></output>
+        <button type="button" id="at-year-off" class="at-cat on">Any year</button>
+      </div>
+    )}
     <div class="atlas-key">
       {cats.map(([k, label, c]) => (
         <button class="at-cat on" data-cat={k}><i style={`background:${c}`}></i>{label}</button>
@@ -114,7 +137,7 @@ const base = import.meta.env.BASE_URL || "/";
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer></script>
-<script is:inline define:vars={{ BASE: base, DATA: dataUrl, DETAIL: detailBase, COLORS, BOUNDS: bounds, HOME: homeLabel, SCHEMES: schemes }}>
+<script is:inline define:vars={{ BASE: base, DATA: dataUrl, DETAIL: detailBase, COLORS, BOUNDS: bounds, HOME: homeLabel, SCHEMES: schemes, YEARS: years }}>
   window.addEventListener("load", async function () {
     var el = document.getElementById("atlas");
     if (!el || typeof L === "undefined") return;
@@ -369,6 +392,28 @@ const base = import.meta.env.BASE_URL || "/";
       for (var k in (p.cats || {})) catScheme[p.cats[k]] = k;
     });
 
+    /* ---- WHEN WAS THIS PLACE ANYTHING TO DO WITH THIS FAMILY -------------
+       Read off whatever the archive already wrote, because four archives wrote
+       four formats and every one of them is a year with something round it:
+       «1672 to 1913», «1742-1856», «first recorded 1856», a bare «1711». The
+       events are the fallback, and for at least one archive they are the only
+       dates there are - its `when` field holds «Town, Cape Colony», which is a
+       kind and not a date, and counting the field as if it were one is how a
+       year control would have shipped filtering on nothing. */
+    var YR = /\b(1[2-9]\d\d|20[0-2]\d)\b/g;
+    function spanOf(p) {
+      var text = [p.span, p.when].filter(Boolean).join(" ");
+      var hits = String(text).match(YR);
+      if (!hits && p.events && p.events.length) {
+        hits = p.events.map(function (e) {
+          return Array.isArray(e) ? e[0] : (e.when || "");
+        }).join(" ").match(YR);
+      }
+      if (!hits || !hits.length) return null;
+      var ys = hits.map(Number);
+      return [Math.min.apply(null, ys), Math.max.apply(null, ys)];
+    }
+
     var markers = [], pts = [];
     d.places.forEach(function (p) {
       var c0 = catFor(p);
@@ -379,7 +424,7 @@ const base = import.meta.env.BASE_URL || "/";
       }).addTo(map);
       m.bindTooltip(p.name + (p.n ? " · " + p.n : ""), { direction: "top", offset: [0, -6] });
       m.on("click", function () { show(p); setQ("at", keyOf(p)); });
-      m._p = p; markers.push(m); pts.push([p.lat, p.lon]);
+      m._p = p; m._span = spanOf(p); markers.push(m); pts.push([p.lat, p.lon]);
     });
 
     // ---- the documented descent: the only line drawn solid ----------------
@@ -469,7 +514,8 @@ const base = import.meta.env.BASE_URL || "/";
     });
 
     // filters
-    var off = {}, q = document.getElementById("at-q"), count = document.getElementById("at-count");
+    var off = {}, year = null;
+    var q = document.getElementById("at-q"), count = document.getElementById("at-count");
     function apply() {
       var t = (q.value || "").toLowerCase().trim();
       var shown = 0;
@@ -480,7 +526,8 @@ const base = import.meta.env.BASE_URL || "/";
            leaving the other 1,174 sitting there in grey would bury the thing
            the reader just asked to see. */
         var ok = c !== null && !off[c] &&
-          (!t || (p.name + " " + (p.also || []).join(" ")).toLowerCase().indexOf(t) > -1);
+          (!t || (p.name + " " + (p.also || []).join(" ")).toLowerCase().indexOf(t) > -1) &&
+          (year === null || !m._span || (m._span[0] <= year && year <= m._span[1]));
         if (ok) {
           if (m.options.fillColor !== (COLORS[c] || "#666")) {
             m.setStyle({ fillColor: COLORS[c] || "#666" });
@@ -490,7 +537,14 @@ const base = import.meta.env.BASE_URL || "/";
         }
         else if (map.hasLayer(m)) map.removeLayer(m);
       });
-      count.textContent = shown + " of " + markers.length + " places shown";
+      /* SAY WHAT THE YEAR IS NOT FILTERING. Undated places are kept, so a
+         reader moving the slider must be told how many of the dots in front
+         of them are not answering the question at all. */
+      var undated = year === null ? 0
+        : markers.filter(function (x) { return !x._span && map.hasLayer(x); }).length;
+      count.textContent = shown + " of " + markers.length + " places shown"
+        + (undated ? " \u00b7 " + undated + " of them carry no date and are not "
+                     + "filtered by the year" : "");
       if (t && shown) {
         var vis = markers.filter(function (m) { return map.hasLayer(m); });
         map.fitBounds(L.latLngBounds(vis.map(function (m) { return m.getLatLng(); })), { padding: [40, 40], maxZoom: 11 });
@@ -555,6 +609,39 @@ const base = import.meta.env.BASE_URL || "/";
       });
       var qt = Q.get("q");
       if (qt) q.value = qt;
+    })();
+
+    /* The year control, wired only where the data can answer it. */
+    (function () {
+      if (!YEARS) return;
+      var sl = document.getElementById("at-year");
+      var outEl = document.getElementById("at-year-out");
+      var anyBtn = document.getElementById("at-year-off");
+      if (!sl) return;
+      var spans = markers.map(function (m) { return m._span; }).filter(Boolean);
+      if (!spans.length) {
+        /* Rather than a slider that filters nothing. */
+        sl.parentNode.innerHTML = '<span class="lab">No place here carries a date, '
+          + "so there is no year to filter on.</span>";
+        return;
+      }
+      var lo = Array.isArray(YEARS) ? YEARS[0]
+        : Math.min.apply(null, spans.map(function (s2) { return s2[0]; }));
+      var hi = Array.isArray(YEARS) ? YEARS[1]
+        : Math.max.apply(null, spans.map(function (s2) { return s2[1]; }));
+      sl.min = lo; sl.max = hi; sl.value = Math.round((lo + hi) / 2);
+      function setYear(v) {
+        year = v;
+        outEl.textContent = v === null ? "any year" : v;
+        anyBtn.classList.toggle("on", v === null);
+        setQ("year", v === null ? "" : v);
+        apply();
+      }
+      sl.addEventListener("input", function () { setYear(parseInt(sl.value, 10)); });
+      anyBtn.addEventListener("click", function () { setYear(null); });
+      var want = parseInt(Q.get("year"), 10);
+      if (!isNaN(want)) { sl.value = want; setYear(want); }
+      else setYear(null);
     })();
 
     syncKey();
@@ -768,6 +855,9 @@ const base = import.meta.env.BASE_URL || "/";
   .at-fs a { width: auto !important; padding: 0 9px; font: 500 11px/26px var(--sans); }
   .at-more { font: 400 12px/1.5 var(--sans); color: var(--ink-3); margin-top: 10px; }
   .at-warn { color: var(--ink-2); }
+  .at-years { display: flex; align-items: center; gap: .55rem; margin-bottom: .5rem; }
+  .at-years .lab { margin: 0; }
+  .at-years input[type=range] { flex: 0 1 260px; }
   .at-base { display: flex; overflow: hidden; }
   .at-base a { width: auto !important; padding: 0 9px; font: 500 11px/26px var(--sans);
     color: var(--ink-3); background: var(--panel); text-decoration: none; }
