@@ -536,6 +536,92 @@ const base = import.meta.env.BASE_URL || "/";
     /* The switcher itself, as a Leaflet control so it sits on the map rather
        than in the page's own furniture - the choice is about the map and
        nowhere else. */
+    /* ---- FULL SCREEN ------------------------------------------------------
+       A map two-thirds of the way down a page, 520px tall, showing 1,239
+       places. The reader's own screen is the obvious answer and every one of
+       these maps has been built without it.
+
+       The controls come too. Fullscreening the map alone would take away the
+       find box and the filters at the moment there is finally room for them,
+       which is the wrong half.
+
+       Nothing server-rendered moves: a marker node holds each element's place
+       in the document and everything goes back where it came from on exit.
+       That matters because an archive's own CSS may select these as children
+       of its page, and a component that quietly reparents them would break a
+       layout nobody here can see.
+
+       A LINK CAN ASK FOR IT, AND GETS THE FIXED LAYER ONLY. The browser's own
+       fullscreen needs a user gesture and a page may not help itself to one,
+       so ?full=1 gives the overlay and the button gives both. Escape leaves,
+       and so does the browser's own exit, or the reader is left holding a
+       fixed layer with no way out of it. */
+    (function () {
+      var wrap = document.querySelector(".at-wrap");
+      var tools = document.querySelector(".at-tools");
+      var cnt = document.getElementById("at-count");
+      if (!wrap || !wrap.parentNode) return;
+      var open = false, stage = null, marks = [];
+      var parts = [tools, wrap, cnt].filter(Boolean);
+
+      var fsBtn = L.control({ position: "topright" });
+      var bEl = null;
+      fsBtn.onAdd = function () {
+        var b = L.DomUtil.create("div", "leaflet-bar at-fs");
+        b.innerHTML = '<a href="#" role="button" aria-pressed="false">Full screen</a>';
+        L.DomEvent.disableClickPropagation(b);
+        L.DomEvent.on(b, "click", function (e) { L.DomEvent.stop(e); toggle(true); });
+        bEl = b.querySelector("a");
+        return b;
+      };
+      fsBtn.addTo(map);
+
+      function enter(native) {
+        if (open) return;
+        stage = document.createElement("div");
+        stage.className = "at-stage";
+        document.body.appendChild(stage);
+        parts.forEach(function (n) {
+          var m = document.createComment("atlas");
+          n.parentNode.insertBefore(m, n);
+          marks.push([m, n]);
+          stage.appendChild(n);
+        });
+        document.body.classList.add("at-stage-on");
+        open = true;
+        if (bEl) { bEl.textContent = "Close"; bEl.setAttribute("aria-pressed", "true"); }
+        if (native && stage.requestFullscreen) { try { stage.requestFullscreen(); } catch (e) {} }
+        setTimeout(function () { map.invalidateSize(); }, 60);
+      }
+      function leave() {
+        if (!open) return;
+        if (document.fullscreenElement && document.exitFullscreen) {
+          try { document.exitFullscreen(); } catch (e) {}
+        }
+        marks.forEach(function (pair) {
+          pair[0].parentNode.insertBefore(pair[1], pair[0]);
+          pair[0].parentNode.removeChild(pair[0]);
+        });
+        marks = [];
+        if (stage && stage.parentNode) stage.parentNode.removeChild(stage);
+        stage = null; open = false;
+        document.body.classList.remove("at-stage-on");
+        if (bEl) { bEl.textContent = "Full screen"; bEl.setAttribute("aria-pressed", "false"); }
+        setTimeout(function () { map.invalidateSize(); }, 60);
+      }
+      function toggle(native) {
+        open ? leave() : enter(native);
+        setQ("full", open ? 1 : "");
+      }
+      document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape" && open) { leave(); setQ("full", ""); }
+      });
+      document.addEventListener("fullscreenchange", function () {
+        if (!document.fullscreenElement && open) { leave(); setQ("full", ""); }
+      });
+      if (Q.get("full") === "1") enter(false);
+    })();
+
     var baseCtl = L.control({ position: "bottomleft" });
     baseCtl.onAdd = function () {
       var b = L.DomUtil.create("div", "leaflet-bar at-base");
@@ -624,6 +710,12 @@ const base = import.meta.env.BASE_URL || "/";
   }
   .at-cat.on { opacity: 1; color: var(--ink-2); border-color: var(--ink-3); }
   /* The basemap switcher, on the map because the choice is about the map. */
+  .at-stage { position: fixed; inset: 0; z-index: 9999; background: var(--panel);
+    display: flex; flex-direction: column; gap: 0; padding: 10px 12px 12px; overflow: auto; }
+  .at-stage .at-wrap { flex: 1 1 auto; min-height: 0; }
+  .at-stage .at-map { height: 100% !important; }
+  body.at-stage-on { overflow: hidden; }
+  .at-fs a { width: auto !important; padding: 0 9px; font: 500 11px/26px var(--sans); }
   .at-base { display: flex; overflow: hidden; }
   .at-base a { width: auto !important; padding: 0 9px; font: 500 11px/26px var(--sans);
     color: var(--ink-3); background: var(--panel); text-decoration: none; }
