@@ -26,6 +26,24 @@ withdrawals. Declare it beside the phrases.
     { "mark": [["«", "»"]],
       "phrases": [ {"phrase": "...", "why": "...", "since": "2026-09-20"} ] }
 
+ONLY A PROPOSITION WITHDRAWN IN EVERY CONTEXT BELONGS IN THE LIST. From the
+D'Arcy session, which put ten phrases in and took two straight back out: «no
+record has been found for them» is false about thirty people and TRUE ABOUT
+FOUR HUNDRED, so the gate was flagging correct pages. A phrase that is only
+withdrawn about one person is a trap waiting for the day the archive records
+somebody it IS true of - «BURIED AT VOLKSRUST» is withdrawn about Martha
+Angeline Kolbe and would be right about the next person actually buried there.
+Declare the narrowest wording that cannot be true anywhere, or accept that the
+gate will one day refuse a fact.
+
+A QUOTATION IS A SPAN, NOT AN ADJACENCY. Their first implementation looked a
+couple of characters either side of the hit and missed «not published at all -
+absent from the build», where the closing mark is nine words on. This strips
+whole marked spans before searching, which is the same conclusion reached from
+the other direction. It matters most in an archive whose house rule is that an
+error stays on the page where it was made: that GUARANTEES retired phrases
+appear in live prose, inside the sentence withdrawing them.
+
 WHO IT CATCHES FIRST. The Falco session was caught by it within the hour, in
 its own work-list note describing the correction - the phrase written in bold
 and unquoted. That is correct behaviour and it is the failure mode to expect:
