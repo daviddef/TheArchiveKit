@@ -6,6 +6,16 @@
    archive-specific was never the map. It was six category names, a bounding
    box round the Adriatic, and three overlays only one family has.
 
+     recordAtlas OPTIONAL. The base of the Record Atlas's place pages, e.g.
+                "https://daviddef.github.io/TheMap/place". Where a place
+                carries an `ra` id - written by kit/tools/recordatlas.py, on a
+                name AND a position, never on a name - the panel offers the
+                global question this archive is not the place to answer: who
+                holds the records for this ground, what they cost, and whose
+                empire filed them. A family archive that keeps its own copy of
+                that is keeping a second copy: 1,239 of the 1,245 parishes in
+                the Defranceschi shelf layer are already in the Record Atlas.
+
      detailBase OPTIONAL. Where the per-place detail lives, e.g. "/map/p". With
                 it, `dataUrl` need carry only what a marker needs to be drawn
                 and found - name, lat, lon, cat, n, also - and everything else
@@ -78,6 +88,7 @@ const {
   homeLabel = "Back to the home view",
   dataUrl,
   detailBase = "",
+  recordAtlas = "",
   overlays = [],
   hint,
   placeholder = "Find a place",
@@ -137,7 +148,7 @@ const base = import.meta.env.BASE_URL || "/";
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer></script>
-<script is:inline define:vars={{ BASE: base, DATA: dataUrl, DETAIL: detailBase, COLORS, BOUNDS: bounds, HOME: homeLabel, SCHEMES: schemes, YEARS: years }}>
+<script is:inline define:vars={{ BASE: base, DATA: dataUrl, DETAIL: detailBase, RA: recordAtlas, COLORS, BOUNDS: bounds, HOME: homeLabel, SCHEMES: schemes, YEARS: years }}>
   window.addEventListener("load", async function () {
     var el = document.getElementById("atlas");
     if (!el || typeof L === "undefined") return;
@@ -349,6 +360,15 @@ const base = import.meta.env.BASE_URL || "/";
         h.push("</ul>");
         if (p.more) h.push('<p class="at-sub">and ' + p.more + " more — <a href=\"" + base + "/people/\">the full roster &rarr;</a></p>");
         h.push("</div>");
+      }
+      /* The global question, asked somewhere that can answer it. */
+      if (RA && p.ra) {
+        h.push('<p class="at-ra"><a href="' + RA.replace(/\/$/, "") + "/" +
+               encodeURIComponent(p.ra) + '/" rel="noopener" target="_blank">' +
+               "Who holds the records for " + esc(p.name) +
+               " \u2192</a><span class=\"at-ra-n\">the Record Atlas: every name this " +
+               "place has been written under, who holds the paper, and what it " +
+               "costs to look</span></p>");
       }
       if (DETAIL && !p._full) {
         h.push(p._failed
@@ -853,6 +873,8 @@ const base = import.meta.env.BASE_URL || "/";
   .at-stage .at-map { height: 100% !important; }
   body.at-stage-on { overflow: hidden; }
   .at-fs a { width: auto !important; padding: 0 9px; font: 500 11px/26px var(--sans); }
+  .at-ra { margin-top: 12px; font: 400 13px/1.5 var(--sans); }
+  .at-ra-n { display: block; font-size: 11.5px; color: var(--ink-3); margin-top: 2px; }
   .at-more { font: 400 12px/1.5 var(--sans); color: var(--ink-3); margin-top: 10px; }
   .at-warn { color: var(--ink-2); }
   .at-years { display: flex; align-items: center; gap: .55rem; margin-bottom: .5rem; }
