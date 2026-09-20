@@ -37,6 +37,7 @@ def key(w):
     """The spelling rules that vary in these registers, and no others."""
     w = unicodedata.normalize("NFD", w.lower())
     w = "".join(c for c in w if unicodedata.category(c) != "Mn")
+    w = _unreachable(w)
     w = w.replace("ÿ", "y").replace("ij", "y").replace("ck", "k")
     w = w.replace("z", "s")                       # Booyzen / Booysen
     w = w.replace("y", "i")                       # Booysen / Booisen
@@ -50,6 +51,40 @@ def key(w):
 # Grobbelaar for Grobelaar, which is twenty-odd tokens between them. Twenty
 # tokens is not worth one wrong family. FOLDING IS ALLOWED TO MISS; IT IS NOT
 # ALLOWED TO JOIN.
+# LETTERS NFD CANNOT REACH — added 21 September 2026.
+#
+# unicodedata NFD splits a base letter from its combining mark, so z-with-caron
+# folds to z and c-with-acute to c. It does nothing at all for the letters that
+# are a single codepoint in their own right: d-with-stroke, l-with-stroke,
+# o-with-stroke, eszett. Blazevic's Đurić did not fold to Duric and nothing said so.
+#
+# ONLY d-with-stroke IS MAPPED HERE, AND ONLY BECAUSE THAT ARCHIVE MEASURED IT.
+# Across every file Blazevic ships: 9 words carry one of these letters, 371
+# tokens, of which 350 are "Rođeni" — the register's own word for births, not a
+# name. The map creates exactly ONE collision, Anđelika with Andelika, and that
+# is Angelika Boras, whom the record index spells four ways. It joins her to
+# herself. There is no second family for it to reach.
+#
+# l-with-stroke, o-with-stroke and eszett are NOT mapped: no archive on this
+# estate has one in a name. Blazevic has zero of the first two and its only
+# eszett is a German street address in a note.
+#
+# THIS DELIBERATELY DIFFERS FROM kit/components/Search.astro, WHICH MAPS ALL OF
+# THEM, and the difference is not an oversight. That fold answers "did the
+# reader mean this page", where a generous fold costs nothing and a miss loses a
+# reader. This one answers "are these two spellings one family", where a
+# generous fold merges houses — which is why there is no doubled-letter rule
+# above. FOLDING IS ALLOWED TO MISS; IT IS NOT ALLOWED TO JOIN. Do not sync the
+# two lists without measuring the archive that would be joined.
+NFD_CANNOT_REACH = {"\u0111": "d"}          # d-with-stroke, lower-cased before use
+
+
+def _unreachable(w):
+    for a, b in NFD_CANNOT_REACH.items():
+        w = w.replace(a, b)
+    return w
+
+
 ROMAN = re.compile(r"^[IVXLC]+$")
 
 
@@ -64,7 +99,7 @@ def bare(w):
     archive's judgement and not this tool's. The first kind is enabled wherever
     this runs. The second is printed, and waits for --all."""
     w = unicodedata.normalize("NFD", w.lower())
-    return "".join(c for c in w if unicodedata.category(c) != "Mn")
+    return _unreachable("".join(c for c in w if unicodedata.category(c) != "Mn"))
 
 
 # THE ARCHIVE'S RECORDS, NOT THE ARCHIVE'S PROSE. corpus() read every *.json
