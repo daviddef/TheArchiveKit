@@ -249,6 +249,33 @@ def main():
               "right:" % len(several))
         for k, forms in sorted(several.items()):
             print("      %s  \u2192  %s" % (" / ".join(sorted(forms)), anchors[k]))
+    # AND IS ANYBODY USING IT? A map that is built, committed and passed to no
+    # component is the estate's commonest fault wearing a different hat: work
+    # that exists, is correct, and never reaches a reader. The D'Arcy session
+    # found exactly that - namefold.json generated on every build and consumed
+    # by nothing, so the register it was written for searched raw. Five kit
+    # wrappers had dropped the prop, which is how it happened, but nothing
+    # would have said so.
+    src = os.path.join(os.path.dirname(data.rstrip(os.sep)), "pages")
+    if os.path.isdir(src):
+        used = 0
+        for root, _, files in os.walk(src):
+            for fn in files:
+                if not fn.endswith(".astro"):
+                    continue
+                try:
+                    if "fold=" in io.open(os.path.join(root, fn),
+                                          encoding="utf-8", errors="replace").read():
+                        used += 1
+                except Exception:
+                    pass
+        if not used:
+            print("  note  nothing reads this map. No page passes a `fold=` prop, so "
+                  "every search on this archive is still matching raw text. The map "
+                  "is built and unread, which is worth more than a silent success.")
+        else:
+            print("  %d page(s) pass the map to a component." % used)
+
     print("  %d cluster(s), %d form(s) folded" % (shown, len(fold)))
     if proposed:
         print("  %d form(s) NOT folded: they change a letter rather than an "
