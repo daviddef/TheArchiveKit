@@ -266,6 +266,22 @@ def load_pages(dist):
             # a published dead person - a namesake, which published_names()
             # already subtracts. So nothing is leaking today. The blind spot
             # was real and the leak was not, and both halves are worth saying.
+            # A KNOWN LIMIT, FROM THE D'ARCY SESSION, WHICH BUILT THE SAME
+            # THING LOCALLY. A raw sweep over a 2.1MB search index reports 25
+            # hits there and every one is noise - "George" inside George Pitt
+            # D'Arcy, "Geraldine" inside Geraldine D'Arcy. That does not bite
+            # HERE because the fault under named-bare is a DATE beside a living
+            # name, not the name, and because published_names() subtracts
+            # namesakes first: run over the whole estate this widening found
+            # nothing and added no noise.
+            #
+            # It WOULD bite under --policy absent, where the name alone is the
+            # fault. An archive on that policy with a search index should read
+            # person-name FIELDS rather than raw text - {"k":"Person","t":name}
+            # in a search index, "people":[{"n":name}] in atlas data - which is
+            # what D'Arcy does locally over 917 names. Not built here because
+            # no archive in the estate is on `absent`, and a structure this
+            # tool guesses at is a structure it will get wrong.
             if not (f.endswith(".html") or f.endswith(".json")):
                 continue
             p = os.path.join(root, f)
