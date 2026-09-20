@@ -145,12 +145,51 @@ def main():
         print("  namefold: no people file - nothing to anchor a cluster to"); return 1
 
     # only cluster around names this archive actually answers to
-    anchors = {}
+    # THE TARGET OF A FOLD IS A BUCKET LABEL, NOT A RULING ON SPELLING, and
+    # it used to be chosen by frequency, which quietly implied otherwise. The
+    # Luwinski session named the flaw: frequency tracks how often an archive
+    # PARAPHRASES, not which document is closest to the event. Kurt's second
+    # wife is Hostovsky on the 1956 marriage register, the most formal of the
+    # three documents, and Hostowski or Hostowsky elsewhere; the commonest
+    # form is not the birth form.
+    #
+    # A FIRST FIX REFUSED TO FOLD ANY CLUSTER THE ARCHIVE SPELLS TWO WAYS, and
+    # that was worse than the flaw. It dropped Booijsen / Booijzen / Booysen /
+    # Booyzen / Booÿsen in the archive named after them - the single fold that
+    # estate most needs - because those five are five real people's surnames.
+    # Folding is symmetric: the map is applied to the query AND to the row, so
+    # whichever member of a cluster is named as the target, every member finds
+    # every other. The target never appears to a reader and changes no
+    # display.
+    #
+    # A SECOND FIX, ALPHABETICAL TARGETS, WAS ALSO WRONG AND WORSE. The
+    # safe/proposed split is computed RELATIVE TO THE TARGET: a form is folded
+    # on sight only when it differs from the target by an accent alone.
+    # Alphabetical made Booijsen the target, so Booyzen, Booysen and eleven
+    # other forms became letter-changes from it and stopped folding - the
+    # register that had just gone from 59 rows to 1,495 would have gone back.
+    # The target is arbitrary, but it is not free: it decides what counts as
+    # an accent away.
+    #
+    # So the selection is left exactly as it was, and what changes is that the
+    # tool stops implying the target is a ruling. Where an archive spells a
+    # name several ways the output says which label was used and that it is
+    # only a label.
+    anchors, several = {}, {}
     for c in canon:
-        anchors.setdefault(key(c), c)
+        k = key(c)
+        if k in anchors:
+            if anchors[k].lower() != c.lower():
+                several.setdefault(k, {anchors[k]}).add(c)
+        else:
+            anchors[k] = c
 
-    # A cluster the archive has looked at and REJECTED stays rejected. The place
-    # to say "these two never fold" is a file somebody can read, not a rule.
+    # A cluster the archive has looked at and REJECTED stays rejected. The
+    # place to say "these two never fold" is a file somebody can read, not a
+    # rule - and D'Arcy's ZANIGAR is why: it is not a spelling of anything,
+    # it is a nonsense control that archive invented to prove TNA Discovery's
+    # search was not loosely fuzzy, and folding it would publish a control
+    # test as an attested form of the family name.
     denyp = os.path.join(data, "namefold-deny.json")
     deny = set()
     if os.path.exists(denyp):
@@ -202,6 +241,14 @@ def main():
         print("  + %d pair(s) from namefold-extra.json (the archive's own, "
               "written not derived)" % len(pairs))
 
+    if several:
+        print("  %d name(s) this archive itself spells more than one way. The "
+              "fold target below is alphabetical and is only a bucket label \u2014 "
+              "the map is applied to the query and the row alike, so every form "
+              "finds every other, and nothing here says which spelling is "
+              "right:" % len(several))
+        for k, forms in sorted(several.items()):
+            print("      %s  \u2192  %s" % (" / ".join(sorted(forms)), anchors[k]))
     print("  %d cluster(s), %d form(s) folded" % (shown, len(fold)))
     if proposed:
         print("  %d form(s) NOT folded: they change a letter rather than an "
