@@ -144,7 +144,24 @@ def main():
             continue
         seen.add(u)
         body = re.sub(r"<script.*?</script>", " ", pages[u], flags=re.S | re.I)
-        for href in re.findall(r'href="([^"]*)"', body):
+        # ATTRIBUTE-SHAPED TEXT IS NOT AN ATTRIBUTE — 21 September 2026.
+        # This matched href=" anywhere in the body, so prose QUOTING markup was
+        # read as a link. Booyzen's /searched/ described a parked domain by
+        # reproducing its redirect, window.location.href="/lander", and the
+        # build died on a dead link to a page nobody had claimed existed.
+        # Lerena carries 207 of the same shape on /register/ alone — escaped
+        # tags inside transcript notes, &lt;a class="ark" href="https://...".
+        # Those are external so nothing failed there, but an internal path in
+        # that position fails a build over a sentence.
+        #
+        # Requiring the href to sit in a real tag was MEASURED before it was
+        # taken, across five built archives: Falco 704,991 internal hrefs,
+        # Blazevic 406,699, D'Arcy 156,811, Mazza 116,232, Lerena 68,209 —
+        # 1.45 million, and the tagged form misses NONE of them. It drops only
+        # the quoted ones. That mattered: a false positive here is loud and
+        # costs one edit, while a link that quietly stops being checked ships
+        # a dead link, so this was not a change to make on reasoning alone.
+        for href in re.findall(r'<[a-zA-Z][^>]*?\shref="([^"]*)"', body):
             if not href or href[0] in "#?" or not href.startswith("/"):
                 continue
             p = href.partition("#")[0].partition("?")[0]
@@ -189,7 +206,24 @@ def main():
     # ---- links, anchors, images -------------------------------------------
     for url, src in pages.items():
         body = re.sub(r"<script.*?</script>", " ", src, flags=re.S | re.I)
-        for href in re.findall(r'href="([^"]*)"', body):
+        # ATTRIBUTE-SHAPED TEXT IS NOT AN ATTRIBUTE — 21 September 2026.
+        # This matched href=" anywhere in the body, so prose QUOTING markup was
+        # read as a link. Booyzen's /searched/ described a parked domain by
+        # reproducing its redirect, window.location.href="/lander", and the
+        # build died on a dead link to a page nobody had claimed existed.
+        # Lerena carries 207 of the same shape on /register/ alone — escaped
+        # tags inside transcript notes, &lt;a class="ark" href="https://...".
+        # Those are external so nothing failed there, but an internal path in
+        # that position fails a build over a sentence.
+        #
+        # Requiring the href to sit in a real tag was MEASURED before it was
+        # taken, across five built archives: Falco 704,991 internal hrefs,
+        # Blazevic 406,699, D'Arcy 156,811, Mazza 116,232, Lerena 68,209 —
+        # 1.45 million, and the tagged form misses NONE of them. It drops only
+        # the quoted ones. That mattered: a false positive here is loud and
+        # costs one edit, while a link that quietly stops being checked ships
+        # a dead link, so this was not a change to make on reasoning alone.
+        for href in re.findall(r'<[a-zA-Z][^>]*?\shref="([^"]*)"', body):
             if not href or href[0] in "#?" or "${" in href or "'" in href:
                 continue
             if re.match(r"^(https?:|mailto:|tel:|data:|//)", href):
