@@ -37,7 +37,7 @@ says which. Print the denominator, and refuse when the input looks unfinished.
 The section above is about a check with nothing in front of it. This one is
 worse, because the denominator is fine: the check runs, reads a real object,
 returns a well-formed answer — and the object is not the one anybody thought
-it was reading. **Seven of these surfaced across two sessions in a single
+it was reading. **Eight of these surfaced across two sessions in a single
 day, 21 September 2026.**
 
 - **Two runs of a generator, both reading the same `dist`.** Byte-identical,
@@ -65,6 +65,15 @@ day, 21 September 2026.**
   counted every one a success.
 - **Existence-and-parse run against a stale artefact.** A search index with
   12,064 valid rows passes every check and is a generation behind.
+- **A grep that counted a string occurring lawfully in another column** —
+  and this was the most convincing of the lot, because it *was* a
+  measurement. `grep -c '"NOT READ"'` returned 1 for one commit and 2 for
+  the next, so the 1 was read as the defect. `NOT READ` is a legal value in
+  the verdict *headline* column and had sat in an unrelated row for days.
+  The check that settles it reads the **position**: parse, and count rows
+  whose badge slot is outside the five the map allows — 0 and 1, not 1 and
+  2. **A measurement of the wrong column is not a measurement of the column
+  you meant.**
 
 The shape is always the same and it is never loud: **a plausible answer about
 the wrong object.** A wolf-crying gate gets fixed the day it is written; this
