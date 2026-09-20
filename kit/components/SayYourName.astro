@@ -11,7 +11,16 @@
  * THE DATA CONTRACT IS BLAZEVIC'S, because it is the only one that can hold
  * what both archives know:
  *
- *   rows  [{canon, sex, people, commonest, langs: {<key>: [{form, seen, note, case}]}}]
+ *   rows  [{canon, sex, people, commonest,
+           langs: {<key>: [{form, seen, note, notNominative}]}}]
+
+         `notNominative` was called `case`, and the Blazevic session made the
+         argument against that name using the kit's own week: «abbreviated» is
+         not a grammatical case, so a field called `case` holds something that
+         is not one - the same fault as a field called `people` holding
+         occurrence counts, which is a name that lies about its values. What
+         the column answers is WHY THIS FORM IS NOT THE NOMINATIVE. `case` is
+         still read where it is present, so no archive has to migrate.
  *   langs [{key, label, note}]        the archive's own languages, in its order
  *
  * `seen` is the number of times THIS ARCHIVE HAS ACTUALLY MET THAT FORM in its
@@ -169,7 +178,10 @@ const met = rows.reduce((a, r) => a + Object.values(r.langs || {})
             const body = (aid ? '<span class="syn-aid">' + t + "</span>" : t)
               + (fi < forms.length - 1 ? "," : "");
             return '<span class="syn-f">' + body
-              + (f.note ? '<span class="syn-note">' + esc(f.note) + "</span>" : "")
+              + (f.note || f.notNominative || f.case
+                  ? '<span class="syn-note">'
+                    + esc([f.note, f.notNominative || f.case].filter(Boolean).join(" \u00b7 "))
+                    + "</span>" : "")
               + "</span>";
           }).join(" ") + "</p>";
         }
