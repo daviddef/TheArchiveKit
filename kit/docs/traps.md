@@ -66,6 +66,48 @@ them meet the correction first. Detecting that one sentence contradicts a later
 one is not something a build should attempt; insisting the withdrawal comes
 first is cheap and always satisfiable.
 
+## A generator that reads its own output
+
+- Booyzen's `dossiers.py` scrapes every built page for mentions of a person and
+  writes the excerpts back into `dossiers.json`. Person pages then **print those
+  excerpts verbatim**, one `<p>` each — so **7,307 of 9,008 excerpts, 81%, were
+  harvested from pages that are nothing but the previous run's output**.
+- It never had a stable value. Generate, rebuild, generate again and **all 347
+  dossiers changed**, total mentions 24,981 → 24,636. Which excerpt a reader saw
+  was arbitrary.
+- The visible symptom was smaller than the fault. Person pages head themselves
+  "*N mentions across N pages*", so **1,732 excerpts, 19%, quoted a count the
+  tool itself had written**. Stripping those counts did what it said — quoting
+  excerpts fell **1,732 → 1,370** — and moved the churn only from **347 of 347
+  to 343 of 347**. The counts were a symptom; the substrate was the excerpts.
+
+**Two runs of a generator are not a convergence test** if both read the same
+`dist`. They will agree, and prove only that the code is deterministic. The test
+is **generate → rebuild → generate → diff**, and it is the only one that can
+fail.
+
+A cheaper standing check, where the output is rendered back: compare what the
+data file stores against what the built pages print. Booyzen stores 9,008
+excerpts and its pages print 8,972 — and one person's page prints **more** than
+the file holds, which no rendering filter can do. That gap is the drift, and it
+should be zero.
+
+**Excluding the generator's own pages has to be done by section, not by route.**
+`dossiers.py` already skipped `/who/` and `/places/`, which are wholly
+generated, and `gallery.py` in the same repository skips `/gallery/`. Person
+pages were missed because they are not wholly generated: the dek, the eyebrow
+and the prose all come from source and legitimately name other people. Only the
+printed-excerpt block is output, so only that block can be cut.
+
+Swept across the estate, 21 September 2026. Tools that read `dist` **and** write
+data rendered back into it: Booyzen's `dossiers.py` and `gallery.py`, of which
+`gallery.py` already guards itself. The four search indexes — Booyzen, Blazevic,
+Mazza, Luwinski — are **fetched at runtime and never inlined**, so their output
+never becomes page text and cannot come back. Falco's, Lerena's and Blazevic's
+`dist` readers are checkers that write nothing. D'Arcy, Defranceschi, Our Family
+and the Record Atlas have no tool that reads `dist` at all. **One archive had
+it, and the other seven are clean by construction rather than by luck.**
+
 ## The evidence for a fault is usually in the set, not the case
 
 - Thirteen clusters yesterday and six today: the number changed, no single
