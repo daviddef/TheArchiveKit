@@ -310,6 +310,17 @@ const base = import.meta.env.BASE_URL || "/";
     });
 
     map.fitBounds(L.latLngBounds(BOUNDS), { padding: [24, 24] });
+    /* AND AGAIN ONCE THE BROWSER HAS LAID THE PAGE OUT. Leaflet computes the
+       zoom from the container's size, and a container measured before its CSS
+       has settled is zero, which fits the bounds at maximum zoom - a single
+       ocean tile where a map should be. Seen once on the Luwinski atlas on a
+       cold dev server and not reproducible afterwards, which is exactly the
+       kind of race that reaches a reader and not a developer. One extra frame
+       costs nothing and removes it. */
+    requestAnimationFrame(function () {
+      map.invalidateSize();
+      map.fitBounds(L.latLngBounds(BOUNDS), { padding: [24, 24] });
+    });
 
     // filters
     var off = {}, q = document.getElementById("at-q"), count = document.getElementById("at-count");
