@@ -112,6 +112,47 @@ const base = import.meta.env.BASE_URL || "/";
     var d;
     try { d = await (await fetch(DATA)).json(); } catch (e) { return; }
 
+    /* ---- THE VIEW IS IN THE ADDRESS BAR ----------------------------------
+       A map whose state is private is a map you cannot point at. Which layers
+       are on, what is typed in the find box, which colours are switched off,
+       where the map is looking and which place is open: all of it goes in the
+       URL, so «the burials only, around Cradock, with Coetzee open» is a link
+       somebody can send to a cousin or an archivist.
+
+       THE KEY NAMES ARE NOT NEW. Two maps in this estate invented this
+       independently - the Defranceschi map in a page-local component and the
+       Record Atlas in its own - and they chose the same names: q, off, layers,
+       view, at, base. This takes those, so a reader who learns one of these
+       URLs has learned all of them, and so the two that already have it can
+       drop their copy without changing a single link anybody has saved.
+
+       The write is coalesced per frame rather than on a timer, which is the
+       Record Atlas's implementation and the better one: dragging a map fires
+       moveend far faster than a 250ms debounce settles. replaceState, never
+       pushState, so panning does not fill the back button. */
+    var settled = false;
+    var Q; try { Q = new URLSearchParams(location.search); } catch (e) { Q = new URLSearchParams(); }
+    var writing = false;
+    function push() {
+      if (writing) return;
+      writing = true;
+      requestAnimationFrame(function () {
+        writing = false;
+        var str = Q.toString();
+        try {
+          history.replaceState(null, "", location.pathname + (str ? "?" + str : "") + location.hash);
+        } catch (e) {}
+      });
+    }
+    function setQ(k, v) {
+      if (v === "" || v === null || v === undefined) Q.delete(k); else Q.set(k, String(v));
+      push();
+    }
+    /* A place needs a stable handle to be named in a URL. Every archive's rows
+       carry a name; some carry a slug, which survives a rename and is
+       preferred where it is there. */
+    function keyOf(p) { return p.slug || p.name; }
+
     var map = L.map(el, { scrollWheelZoom: true, worldCopyJump: true });
     L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
       attribution: "&copy; OpenStreetMap contributors", maxZoom: 18
@@ -237,7 +278,7 @@ const base = import.meta.env.BASE_URL || "/";
         fillColor: COLORS[c0] || "#666", fillOpacity: 0.9
       }).addTo(map);
       m.bindTooltip(p.name + (p.n ? " · " + p.n : ""), { direction: "top", offset: [0, -6] });
-      m.on("click", function () { show(p); });
+      m.on("click", function () { show(p); setQ("at", keyOf(p)); });
       m._p = p; markers.push(m); pts.push([p.lat, p.lon]);
     });
 
@@ -319,7 +360,12 @@ const base = import.meta.env.BASE_URL || "/";
        costs nothing and removes it. */
     requestAnimationFrame(function () {
       map.invalidateSize();
-      map.fitBounds(L.latLngBounds(BOUNDS), { padding: [24, 24] });
+      /* UNLESS THE READER ARRIVED ON A LINK. This frame exists to survive a
+         zero-sized container, and it ran after the URL had already set the
+         view - so a sent link was being thrown away one frame after it was
+         honoured, which is worse than not supporting links at all. */
+      if (!Q.get("view")) map.fitBounds(L.latLngBounds(BOUNDS), { padding: [24, 24] });
+      settled = true;
     });
 
     // filters
@@ -351,11 +397,13 @@ const base = import.meta.env.BASE_URL || "/";
         if (vis.length === 1) show(vis[0]._p);
       }
     }
-    q.addEventListener("input", apply);
+    q.addEventListener("input", function () { setQ("q", q.value.trim()); apply(); });
     document.querySelectorAll(".at-cat[data-cat]").forEach(function (b) {
       b.addEventListener("click", function () {
         var c = b.getAttribute("data-cat");
-        off[c] = !off[c]; b.classList.toggle("on", !off[c]); apply();
+        off[c] = !off[c]; b.classList.toggle("on", !off[c]);
+        setQ("off", Object.keys(off).filter(function (k) { return off[k]; }).join(","));
+        apply();
       });
     });
     /* Switching a layer off also puts its colours away, so the legend below
@@ -368,16 +416,72 @@ const base = import.meta.env.BASE_URL || "/";
         b.hidden = !!sc && !schemeOn[sc];
       });
     }
+    function liveLayers() {
+      return (SCHEMES || []).map(function (x) { return x[0]; })
+        .filter(function (k) { return schemeOn[k]; });
+    }
     document.querySelectorAll(".at-sch").forEach(function (b) {
       b.addEventListener("click", function () {
         var k = b.getAttribute("data-scheme");
         schemeOn[k] = !schemeOn[k];
         b.classList.toggle("on", schemeOn[k]);
+        /* Everything on is the default, so it is written as nothing at all -
+           a link to the map as it opens should not be forty characters of
+           state saying "unchanged". */
+        var live = liveLayers();
+        setQ("layers", live.length === (SCHEMES || []).length ? "" : live.join(","));
         syncKey(); apply();
       });
     });
+
+    /* ---- and read it back, once, before the first draw -------------------
+       The URL wins over the defaults on the way in. Order matters: the layers
+       and the switched-off colours have to be settled before apply() runs, or
+       the first paint is the default map and the reader watches their own link
+       being applied to it. */
+    (function () {
+      var wantLayers = Q.get("layers");
+      if (wantLayers !== null && (SCHEMES || []).length) {
+        var want = wantLayers.split(",").filter(Boolean);
+        (SCHEMES || []).forEach(function (sc) { schemeOn[sc[0]] = want.indexOf(sc[0]) > -1; });
+        document.querySelectorAll(".at-sch").forEach(function (b) {
+          b.classList.toggle("on", !!schemeOn[b.getAttribute("data-scheme")]);
+        });
+      }
+      (Q.get("off") || "").split(",").filter(Boolean).forEach(function (c) {
+        off[c] = true;
+        var b = document.querySelector('.at-cat[data-cat="' + c + '"]');
+        if (b) b.classList.remove("on");
+      });
+      var qt = Q.get("q");
+      if (qt) q.value = qt;
+    })();
+
     syncKey();
     apply();
+
+    /* The map position, after apply(), because apply() refits the bounds when
+       there is a search term and a link to a place should beat that. */
+    (function () {
+      var v = (Q.get("view") || "").split(",").map(Number);
+      if (v.length === 3 && v.every(function (x) { return !isNaN(x); })) {
+        map.setView([v[0], v[1]], v[2]);
+      }
+      /* Only once the opening view has settled. fitBounds fires moveend, so
+         writing on every one of them stamped ?view= into the URL of every
+         visitor who had done nothing at all - turning a clean address into
+         state the moment the page loaded. */
+      map.on("moveend", function () {
+        if (!settled) return;
+        var c = map.getCenter();
+        setQ("view", c.lat.toFixed(4) + "," + c.lng.toFixed(4) + "," + map.getZoom());
+      });
+      var at = Q.get("at");
+      if (at) {
+        var hit = markers.filter(function (m) { return keyOf(m._p) === at; })[0];
+        if (hit) show(hit._p);
+      }
+    })();
 
     var btn = L.control({ position: "topright" });
     btn.onAdd = function () {
