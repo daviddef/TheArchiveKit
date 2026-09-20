@@ -154,9 +154,47 @@ const base = import.meta.env.BASE_URL || "/";
     function keyOf(p) { return p.slug || p.name; }
 
     var map = L.map(el, { scrollWheelZoom: true, worldCopyJump: true });
-    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution: "&copy; OpenStreetMap contributors", maxZoom: 18
-    }).addTo(map);
+    /* ---- THE GROUND UNDER THE MARKERS -----------------------------------
+       Four basemaps, because the question changes what you need under the
+       dots. Street to find a village. Terrain to see why a family crossed one
+       pass and not another. Satellite to find a farm that is still there.
+       Plain to read a dense cluster of markers without a map arguing with it.
+
+       THE KEYS ARE THE ONES ALREADY IN USE. The Defranceschi map and the
+       Record Atlas each built this separately; they agree on `terrain` and
+       `satellite`, and differ only in what they call the default - street
+       against map. Neither ever writes its default to the URL, so there is no
+       such link in the world to break: the canonical key is `street`, and
+       `map` is accepted on the way in so that the Record Atlas's own links
+       keep working when it comes onto this component.
+
+       The reader's choice is remembered per browser, and the URL beats the
+       memory, because a link somebody sent is a stronger statement about what
+       to show than what this reader happened to pick last week. */
+    var BASES = [
+      ["street", "Street", "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+       "&copy; OpenStreetMap contributors", 18],
+      ["terrain", "Terrain", "https://tile.opentopomap.org/{z}/{x}/{y}.png",
+       "&copy; OpenStreetMap contributors, SRTM \u00b7 OpenTopoMap (CC-BY-SA)", 17],
+      ["satellite", "Satellite",
+       "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+       "Esri, Maxar, Earthstar Geographics", 18],
+      ["plain", "Plain", "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+       "&copy; OpenStreetMap contributors \u00b7 &copy; CARTO", 19]
+    ];
+    var ALIAS = { map: "street" };
+    var BKEY = "atlas:base";
+    var tiles = {};
+    BASES.forEach(function (b) {
+      tiles[b[0]] = L.tileLayer(b[2], { attribution: b[3], maxZoom: b[4] });
+    });
+    var baseNow = (function () {
+      var want = Q.get("base");
+      if (!want) { try { want = localStorage.getItem(BKEY); } catch (e) {} }
+      want = ALIAS[want] || want;
+      return tiles[want] ? want : "street";
+    })();
+    tiles[baseNow].addTo(map);
 
     var esc = function (x) { return String(x == null ? "" : x)
       .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); };
@@ -483,6 +521,37 @@ const base = import.meta.env.BASE_URL || "/";
       }
     })();
 
+    /* The switcher itself, as a Leaflet control so it sits on the map rather
+       than in the page's own furniture - the choice is about the map and
+       nowhere else. */
+    var baseCtl = L.control({ position: "bottomleft" });
+    baseCtl.onAdd = function () {
+      var b = L.DomUtil.create("div", "leaflet-bar at-base");
+      b.innerHTML = BASES.map(function (x) {
+        return '<a href="#" data-b="' + x[0] + '"' +
+               (x[0] === baseNow ? ' class="on"' : "") + ">" + x[1] + "</a>";
+      }).join("");
+      L.DomEvent.disableClickPropagation(b);
+      L.DomEvent.on(b, "click", function (e) {
+        var a = e.target.closest("a[data-b]");
+        if (!a) return;
+        L.DomEvent.stop(e);
+        var k = a.getAttribute("data-b");
+        if (k === baseNow) return;
+        map.removeLayer(tiles[baseNow]);
+        baseNow = k;
+        tiles[k].addTo(map);
+        tiles[k].bringToBack();
+        b.querySelectorAll("a").forEach(function (x) {
+          x.classList.toggle("on", x.getAttribute("data-b") === k);
+        });
+        setQ("base", k === "street" ? "" : k);
+        try { localStorage.setItem(BKEY, k); } catch (e2) {}
+      });
+      return b;
+    };
+    baseCtl.addTo(map);
+
     var btn = L.control({ position: "topright" });
     btn.onAdd = function () {
       var b = L.DomUtil.create("div", "leaflet-bar");
@@ -542,6 +611,12 @@ const base = import.meta.env.BASE_URL || "/";
     padding: 6px 11px; display: inline-flex; align-items: center; gap: 6px; opacity: .45;
   }
   .at-cat.on { opacity: 1; color: var(--ink-2); border-color: var(--ink-3); }
+  /* The basemap switcher, on the map because the choice is about the map. */
+  .at-base { display: flex; overflow: hidden; }
+  .at-base a { width: auto !important; padding: 0 9px; font: 500 11px/26px var(--sans);
+    color: var(--ink-3); background: var(--panel); text-decoration: none; }
+  .at-base a + a { border-left: 1px solid var(--rule); }
+  .at-base a.on { color: var(--ink); font-weight: 600; }
   /* The layer switch. It sits above the colour key because it decides what
      the key is describing, and its buttons are the same object as the key's
      so a reader does not have to learn two controls on one page. */
