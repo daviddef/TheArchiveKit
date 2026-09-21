@@ -47,7 +47,12 @@
 
      groups    [{ label, note, rows }] — in the order handed in.
      rows      [{ id, title, url, where, holder, kind, what, cites, note,
-                  caution, held, volumes, tag, href, hrefLabel }]
+                  caution, held, volumes, tag, tagTitle, links, href,
+                  hrefLabel }]
+               `links` is [[label, href], …] — where in THIS archive the
+               source was used, which is not the same question as where the
+               source is. D'Arcy's FindMyPast row answers it twice, so one
+               href was never enough.
                Only `title` is required. `caution` is an alias for `note`.
                `holder` folds into the `where` line. `tag` is a per-row
                qualifier that is NOT the group — Lerena's tier field has 26
@@ -137,8 +142,10 @@ const reachable = rows.filter((r) => /^https?:/.test(r.url || "")).length;
                 library: <span class="mono">{r.held}</span></Fragment>
               : <Fragment>{r.held}</Fragment>}</p>
           )}
-          {r.href && r.hrefLabel && (
-            <p class="sr-go"><a href={u(r.href)}>{r.hrefLabel}</a></p>
+          {(r.links || (r.href && r.hrefLabel ? [[r.hrefLabel, r.href]] : [])).length > 0 && (
+            <p class="sr-go">{(r.links || [[r.hrefLabel, r.href]]).map(([label, href], i) => (
+              <Fragment>{i > 0 ? " · " : null}<a href={u(href)}>{label} →</a></Fragment>
+            ))}</p>
           )}
         </article>
       ))}
