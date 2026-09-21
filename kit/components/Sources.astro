@@ -1,0 +1,124 @@
+---
+/* What an archive stands on, grouped and ranked.
+
+   All eight archives had a sources page and no two shared a line — 1,277
+   lines of it. But the disagreement is not what it looks like. They are not
+   eight renderings of one idea; they are using FOUR DIFFERENT AXES:
+
+     Blazevic    `weight`  — evidential authority. state / register / tree /
+                 background / rejected / absent, in the order it trusts them.
+     Lerena      `tier`    — PRIMARY / SECONDARY / REFERENCE.
+     Falco       `g`       — record type and country. Parish registers, Civil
+                 registration, Newspapers (Australia), Catalogue (UK).
+     Defranceski `kind`    — format. Publication, Archive, Portal, Database.
+     Mazza and Booyzen group by narrative instead: "Tried and found wanting",
+                 "The Transvaal, before anyone thought this family was there".
+
+   NONE OF THOSE IS WRONG AND THIS FILE IMPOSES NONE OF THEM. An archive that
+   ranks by authority is making a different argument from one that sorts by
+   record type, and flattening the two would lose the argument to make a table
+   look tidy. What every one of them actually does is the same: GROUPED ROWS,
+   IN AN ORDER THE ARCHIVE CHOSE, each row a source with a description and
+   somewhere to go. That is what is shared, and it is all that is shared.
+
+   Blazevic's page states the thesis better than this comment can, so it is
+   quoted rather than paraphrased: «a sources page that prints them as four
+   paragraphs of similar length is quietly saying they are not four different
+   kinds of thing». The group label and its position carry that, so both are
+   the archive's to set and neither is defaulted here.
+
+     groups  [{ label, note, rows }] — rendered in the order given, which is
+             the order the archive trusts them. `note` is the one-line gloss
+             under the label: Blazevic's weights table, Mazza's "not seen
+             here", Lerena's tier definition.
+     rows    [{ title, what, holder, kind, carries, caution, volumes,
+                href, hrefLabel, tag, cite }]
+             Only `title` is required. `holder` and `kind` render as a small
+             key/value pair; `caution` as a note; `volumes` as a plain list;
+             `tag` as a chip against the title, for a per-row qualifier that
+             is not the group — Lerena's "full-text transcript read" belongs
+             there rather than concatenated into its tier, which is why that
+             archive has 26 distinct tiers for 3 tiers.
+     u       the archive's url helper. Hand-written HTML in source data is
+             common here, and an href='/x' in it needs the site base — the
+             trap /open-questions/ and /corrections/ both fell into.
+     html    true when the data carries markup. Default true, because six of
+             the eight hold HTML in these fields already.
+*/
+const { groups = [], u = (p) => p, html = true } = Astro.props;
+
+/* Prefix the site base onto hrefs written into the data by hand. */
+const B = u("/");
+const fix = (s) => String(s ?? "").replace(/href=(['"])\//g, `href=$1${B}`);
+const F = (s) => (html ? fix(s) : String(s ?? ""));
+---
+<div class="sr">
+  {groups.map((g) => (
+    <section class="sr-g">
+      {g.label && (
+        <div class="sr-lab">
+          {g.label}{g.note ? <span class="sr-note"> — <Fragment set:html={F(g.note)} /></span> : null}
+        </div>
+      )}
+      {(g.rows || []).map((r) => (
+        <article class="sr-row">
+          <h3 class="sr-t">
+            {r.href ? <a href={u(r.href)}><Fragment set:html={F(r.title)} /></a>
+                    : <Fragment set:html={F(r.title)} />}
+            {r.tag ? <span class="sr-tag">{r.tag}</span> : null}
+          </h3>
+          {(r.holder || r.kind) && (
+            <table class="sr-kv"><tbody>
+              {r.holder && <tr><th>Held by</th><td set:html={F(r.holder)} /></tr>}
+              {r.kind && <tr><th>What it is</th><td set:html={F(r.kind)} /></tr>}
+            </tbody></table>
+          )}
+          {r.what && <p class="sr-w" set:html={F(r.what)} />}
+          {(r.volumes || []).length > 0 && (
+            <ul class="sr-vol">{r.volumes.map((v) => <li set:html={F(v)} />)}</ul>
+          )}
+          {r.carries && <p class="sr-c" set:html={F(r.carries)} />}
+          {r.caution && <div class="sr-caution" set:html={F(r.caution)} />}
+          {r.cite && <p class="sr-cite mono" set:html={F(r.cite)} />}
+          {r.href && r.hrefLabel && (
+            <p class="sr-go"><a href={u(r.href)}>{r.hrefLabel}</a></p>
+          )}
+        </article>
+      ))}
+    </section>
+  ))}
+</div>
+
+<style is:global>
+  .sr-g { margin: 0 0 1.8rem; }
+  .sr-lab {
+    font-family: var(--sans); font-size: 10px; font-weight: 600; letter-spacing: .13em;
+    text-transform: uppercase; color: var(--ink-3); margin: 0 0 .5rem;
+  }
+  .sr-note { text-transform: none; letter-spacing: 0; font-weight: 400; }
+  .sr-row { border-top: 1px solid var(--rule); padding: .9rem 0 .35rem; }
+  .sr-g .sr-row:first-of-type { border-top: 0; padding-top: .1rem; }
+  .sr-t { margin: 0 0 .45rem; font-size: 1.02rem; font-family: var(--serif); font-weight: 600; }
+  .sr-tag {
+    margin-left: .5rem; font-family: var(--sans); font-size: 9.5px; font-weight: 600;
+    letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3);
+    border: 1px solid var(--rule-strong); padding: 1px 5px; white-space: nowrap;
+  }
+  .sr-kv { margin: 0 0 .6rem; border-collapse: collapse; }
+  .sr-kv th {
+    white-space: nowrap; text-align: left; padding: 0 .8rem .15rem 0; vertical-align: top;
+    font-family: var(--sans); font-size: 9.5px; font-weight: 600; letter-spacing: .11em;
+    text-transform: uppercase; color: var(--ink-3);
+  }
+  .sr-kv td { padding: 0 0 .15rem; font-size: 14px; }
+  .sr-w, .sr-c { margin: 0 0 .5rem; }
+  .sr-c { color: var(--ink-2); }
+  .sr-vol { margin: 0 0 .5rem; padding-left: 1.1em; }
+  .sr-vol li { margin-bottom: .2rem; }
+  .sr-caution {
+    border-left: 2px solid var(--ochre); padding: .4rem 0 .4rem .7rem;
+    margin: 0 0 .5rem; color: var(--ink-2); font-size: 14.5px;
+  }
+  .sr-cite { font-size: 12px; color: var(--ink-3); margin: 0 0 .4rem; }
+  .sr-go { margin: 0 0 .2rem; font-size: 14px; }
+</style>
