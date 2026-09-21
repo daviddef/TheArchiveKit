@@ -36,7 +36,9 @@
                A reader checking a claim needs to copy one reference, not
                find it inside a sentence.
      note      the caution, ruled: what is wrong with it, or still unread.
-     held      whether a copy is in the project's own library.
+     held      where the thing physically is, when there is no url. A path
+               into the project's own source library is announced as one; any
+               other wording is printed as the archive wrote it.
 
    `id` gives every source an anchor, so a page elsewhere can link IN to the
    exact source it rests on (`/sources/#arolsen`). Defranceski is the only
@@ -69,6 +71,12 @@ const fix = (s) => String(s ?? "").replace(/href=(['"])\//g, `href=$1${B}`);
 const F = (s) => (html ? fix(s) : String(s ?? ""));
 const bare = (s) => String(s).replace(/^https?:\/\//, "").replace(/\/$/, "");
 const list = (v) => (Array.isArray(v) ? v : v == null || v === "" ? [] : [v]);
+
+/* `held` carries two different answers and they need different sentences.
+   Defranceski's are paths into the project's own source library. Falco's are
+   prose — "Paper, held by the family". Announcing the second as a copy in the
+   source library says the opposite of what it means. */
+const libPath = (h) => /[/\\]/.test(String(h)) || /\.\w{2,5}$/.test(String(h));
 
 /* An external url is the source; an internal one is navigation. Counting them
    apart is the point — see the header. */
@@ -119,8 +127,10 @@ const reachable = rows.filter((r) => /^https?:/.test(r.url || "")).length;
             <div class="sr-cav" set:html={F(r.note || r.caution)} />
           )}
           {r.held && (
-            <p class="sr-held"><strong>Held.</strong> A copy is in this project's source
-            library: <span class="mono">{r.held}</span></p>
+            <p class="sr-held"><strong>Held.</strong>{libPath(r.held)
+              ? <Fragment> A copy is in this project's source
+                library: <span class="mono">{r.held}</span></Fragment>
+              : <Fragment> {r.held}</Fragment>}</p>
           )}
           {r.href && r.hrefLabel && (
             <p class="sr-go"><a href={u(r.href)}>{r.hrefLabel}</a></p>
