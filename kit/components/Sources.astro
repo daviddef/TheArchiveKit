@@ -88,7 +88,7 @@ const reachable = rows.filter((r) => /^https?:/.test(r.url || "")).length;
     <button type="button" data-g="all" aria-pressed="true">All {rows.length}</button>
     {groups.map((g) => (
       <button type="button" data-g={g.label} aria-pressed="false">
-        {g.label}<span class="sr-n">{(g.rows || []).length}</span>
+        {g.label}{" "}<span class="sr-n">{(g.rows || []).length}</span>
       </button>
     ))}
   </div>
@@ -127,10 +127,10 @@ const reachable = rows.filter((r) => /^https?:/.test(r.url || "")).length;
             <div class="sr-cav" set:html={F(r.note || r.caution)} />
           )}
           {r.held && (
-            <p class="sr-held"><strong>Held.</strong>{libPath(r.held)
-              ? <Fragment> A copy is in this project's source
+            <p class="sr-held"><strong>Held.</strong>{" "}{libPath(r.held)
+              ? <Fragment>A copy is in this project's source
                 library: <span class="mono">{r.held}</span></Fragment>
-              : <Fragment> {r.held}</Fragment>}</p>
+              : <Fragment>{r.held}</Fragment>}</p>
           )}
           {r.href && r.hrefLabel && (
             <p class="sr-go"><a href={u(r.href)}>{r.hrefLabel}</a></p>
@@ -162,8 +162,9 @@ const reachable = rows.filter((r) => /^https?:/.test(r.url || "")).length;
 
 <style is:global>
   .sr-f { margin: 0 0 1.6rem; }
-  /* A count welded to the label reads as one word — "Parish registers5". */
-  .sr-n { opacity: .6; margin-left: .45em; }
+  /* The space is in the markup, not here — a margin would leave the button's
+     TEXT reading "Parish registers5" for the search index and a reader. */
+  .sr-n { opacity: .6; }
   .sr-g { margin: 0 0 2.1rem; }
   .sr-lab {
     font-family: var(--sans); font-size: 10px; font-weight: 600; letter-spacing: .13em;
@@ -198,9 +199,9 @@ const reachable = rows.filter((r) => /^https?:/.test(r.url || "")).length;
     margin: 0 0 .55rem; color: var(--ink-2); font-size: 14.5px;
   }
   .sr-held { font-size: 13px; color: var(--ink-3); margin: .5rem 0 .2rem; }
-  /* Whitespace between an element and an expression does not survive, which
-     welded "Held." to the value. Twice now — see .sr-n. */
-  .sr-held strong { margin-right: .35em; }
+  /* No margin here on purpose. A CSS gap would look right and leave the TEXT
+     reading "Held.Paper, held by the family" — which is what the search index
+     and a screen reader get. The space belongs in the markup, as {" "}. */
   .sr-go { margin: 0 0 .2rem; font-size: 14px; }
   @media (max-width: 560px) { .sr-meta { gap: .15rem .7rem; } }
 </style>
