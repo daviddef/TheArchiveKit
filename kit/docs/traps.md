@@ -301,3 +301,32 @@ twelve sources that never had one. Nothing was broken, no test failed, and the
 loss would have been invisible on screen. A check that can only be satisfied
 by the data being right is worth more than one that checks the output looks
 right.
+
+## A page is not a component, and nothing was watching pages
+
+`checkshared.py` has watched duplicated COMPONENTS since 14 September 2026 and
+would never have found the worst duplication in the estate, because the thing
+duplicated was a page.
+
+Falco, Blazevic, Mazza and D'Arcy each carried an 85-line
+`places/[slug].astro` **with the same md5** — not four similar pages, the same
+file, including the comment explaining why it existed. `checkpages.py`, written
+on 21 September, found it on its first run and ranked it above everything else.
+
+The rest of that first run is the shape of the problem: **37 page names carried
+by three or more archives, and 67 archive-pages still drawn by hand** — `dna`
+six times over 3,681 lines, `name` seven times over 1,846, `people/[slug]`
+seven times over 1,676.
+
+Two rules came out of it.
+
+**Two archives sharing a page is a coincidence; three is a pattern.** Below
+three there is nothing to promote and the shared thing is imaginary. At three
+the copies have already started to drift, and the drift is invisible because
+nobody diffs pages across repositories.
+
+**The check that finds this must discover its own subjects.** `components.py`
+kept a hand-written list of archives, spelled one of them with the wrong case,
+and omitted Luwinski entirely — so for as long as Luwinski has existed, every
+count it printed was short by one archive and nothing Luwinski called was ever
+credited. `checkpages.py` globs for `*/site/src/pages` instead.
