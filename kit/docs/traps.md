@@ -330,3 +330,30 @@ kept a hand-written list of archives, spelled one of them with the wrong case,
 and omitted Luwinski entirely — so for as long as Luwinski has existed, every
 count it printed was short by one archive and nothing Luwinski called was ever
 credited. `checkpages.py` globs for `*/site/src/pages` instead.
+
+## A check that reads outside its own repository is not a build gate
+
+`checkpages.py` compares an archive's pages against the other archives'. It
+needs the estate on disk beside it. **A GitHub Actions runner checks out one
+repository and nothing else**, so on a runner the comparison set is empty —
+and the first version treated empty as a failure and returned 1.
+
+It was wired into eight builds and **broke the deploy of every archive in the
+estate within eleven minutes**. Local builds had all passed, because locally
+the estate is always there.
+
+The fix is one line of judgement, not of code: **fewer than two archives found
+means the check COULD NOT LOOK, which is not the same as finding nothing
+wrong.** It says so and exits 0, and still fails loudly wherever the estate is
+actually present. The same distinction the sources gate needed, pointing the
+other way — that one had to fail when it could not find its subject, because
+its subject is inside the repository and an absence there is a real finding.
+
+The rule worth keeping: **before putting a check in the build chain, ask what
+it reads.** In-repo, it can fail on absence. Out-of-repo, absence is normal
+half the time it runs, and a gate that cannot tell those apart will eventually
+block every deploy at once.
+
+It was caught by another session reading the run log, not by the session that
+wrote it — which is its own lesson about pushing a new gate to eight
+repositories before watching one deploy finish.

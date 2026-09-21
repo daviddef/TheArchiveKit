@@ -26,6 +26,22 @@ revisits.
                       itself reported, because "we exempted it and nobody
                       remembers why" is the state this is meant to prevent.
 
+WHERE THIS CAN RUN, WHICH IS NOT EVERYWHERE. This check reads OTHER
+REPOSITORIES. It needs the estate on disk beside the archive, and a GitHub
+Actions runner checks out one repository and nothing else — so on a runner
+the comparison set does not exist and never will. The first version failed
+there, by design rather than by accident, and broke the deploy of every
+archive it had been wired into within eleven minutes.
+
+So: fewer than two archives found means the check CANNOT RUN, which is not
+the same as finding nothing wrong. It says so and exits 0. It still fails
+loudly when the estate IS present and an archive has gone backwards.
+
+The general rule, worth more than this file: a check that reads outside its
+own repository is a dev-machine check, not a build gate. If it must sit in
+the build chain, it has to know the difference between "nothing is wrong"
+and "I could not look".
+
 THE RATCHET. --max-bespoke N fails when an archive's bespoke count goes UP.
 It is not a wall: no archive starts at zero and several cannot reach it this
 year. It exists so the number can only fall, and so that ADDING a new bespoke
@@ -96,11 +112,20 @@ def main():
     a = ap.parse_args()
 
     estate = a.estate or os.path.abspath(os.path.join(a.root, "..", ".."))
+    found = archives(estate)
+    if len(found) < 2:
+        # Not a pass and not a failure: there is nothing here to compare
+        # against. One checkout on a CI runner looks exactly like this, and
+        # so does a wrong --estate. Both mean the same thing to this tool.
+        print("  --    pages      not run: %d archive(s) beside %s, and comparing pages "
+              "needs the estate. This check only works where the other archives are."
+              % (len(found), os.path.abspath(estate)))
+        return 0
     shared = scan(estate, a.threshold)
     if not shared:
-        print("  FAIL  pages      no archives found under %s — this check looked for "
-              "*/site/src/pages and found none" % estate)
-        return 1
+        print("  ok    pages      %d archives found, no page carried by %d or more of them"
+              % (len(found), a.threshold))
+        return 0
 
     if a.report:
         # The report must subtract exemptions or its headline is a lie. The
