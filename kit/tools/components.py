@@ -19,8 +19,13 @@ Without --write it prints; with --write it puts the index in kit/docs/.
 """
 import argparse, io, os, re, sys, glob
 
-ARCHIVES = ["Falco Family", "Defranceski Family", "Booyzen Family", "D'Arcy Family",
-            "Blazevic Family", "Mazza Family", "Lerena Family"]
+# Eight, not seven. Luwinski was missing from this list until 21 September
+# 2026, so every count this file has ever printed was short by one archive and
+# nothing Luwinski called was ever credited. And the directory is "D'arcy
+# Family" with a small a — the spelling below only ever matched because macOS
+# does not care, and it would find nothing on a case-sensitive disk.
+ARCHIVES = ["Falco Family", "Defranceski Family", "Booyzen Family", "D'arcy Family",
+            "Blazevic Family", "Mazza Family", "Lerena Family", "Luwinski Family"]
 
 
 def blurb(src):
@@ -67,7 +72,11 @@ def main():
     for f in comps:
         name = os.path.basename(f)[:-6]
         src = io.open(f, encoding="utf-8").read()
-        mark = "components/%s.astro" % name
+        # The mark must name the KIT's copy. "components/Sources.astro" also
+        # matches an archive's own ../components/Sources.astro, and Defranceski
+        # has exactly that — a local SourceBlock predating the kit's — so the
+        # loose match credited the kit with a component it was not supplying.
+        mark = "archive-kit/components/%s.astro" % name
         callers = [arch.split()[0] for arch, blob in sources.items() if mark in blob]
         # a component the kit itself draws with, which is not the same as an archive calling it
         inner = [os.path.basename(g)[:-6] for g in comps
