@@ -1,0 +1,149 @@
+---
+/* The surnames that married into this one, and what is known of each.
+
+   Three archives keep this page and all three are making the same point —
+   Falco's says it outright: «a family history that follows only one surname
+   is half a history». What differs is what each can put behind the claim,
+   and the three are further apart than they look:
+
+     D'Arcy  a section per surname with a grid of its PEOPLE, because it can
+             name them — thirteen families, and several reached Queensland
+             before the D'Arcys did.
+     Blazevic a summary card per surname with no people at all: a count, the
+             earliest and latest year, the places, and the spellings the
+             registers use. Eight families, four of them Hedviga's
+             grandparents.
+     Falco   a section per surname with the MARRIAGES themselves, generation
+             by generation — which Falco married which — because that is the
+             evidence the joins rest on.
+
+   So the row takes people, facts and marriages and requires none of them. An
+   archive that can only count says the count; one that can name the couples
+   draws them; nobody is made to invent the half they do not hold, and nobody
+   loses the half they do.
+
+     groups  [{ label, note, rows }] — usually one group and no label.
+     rows    [{ label, gloss, count, countLabel, note, href, hrefLabel,
+                facts, people, marriages, more }]
+             facts      [[term, value], …] — Blazevic's earliest, latest,
+                        places, spellings
+             people     [{ name, href, life, place }]
+             marriages  { head: [c1, c2, c3], rows: [[a, b, c], …] } — the
+                        columns are the archive's own words, because
+                        "Generation / Falco / married" is a sentence about
+                        this family and not a schema.
+             more       what to say when the people shown are not all of them
+     u       the archive's url helper
+     html    true when the data carries markup. Default true.
+*/
+const { groups = [], u = (p) => p, html = true } = Astro.props;
+
+const B = u("/");
+const fix = (s) => String(s ?? "").replace(/href=(['"])\//g, `href=$1${B}`);
+const F = (s) => (html ? fix(s) : String(s ?? ""));
+const list = (v) => (Array.isArray(v) ? v : []);
+---
+<div class="fm">
+  {groups.map((g) => (
+    <section class="fm-g">
+      {g.label && (
+        <div class="fm-glab">{g.label}
+          {g.note ? <span class="fm-gnote"> — <Fragment set:html={F(g.note)} /></span> : null}
+        </div>
+      )}
+      {list(g.rows).map((r) => (
+        <article class="fm-row">
+          <div class="fm-head">
+            <h3 set:html={F(r.label)} />
+            {r.count != null && (
+              <span class="fm-n mono">{r.count}{r.countLabel ? ` ${r.countLabel}` : ""}</span>
+            )}
+          </div>
+          {r.gloss && <p class="fm-gloss" set:html={F(r.gloss)} />}
+
+          {list(r.facts).length > 0 && (
+            <dl class="fm-dl">
+              {list(r.facts).map(([k, v]) => (
+                <Fragment><dt>{k}</dt><dd set:html={F(v)} /></Fragment>
+              ))}
+            </dl>
+          )}
+
+          {r.marriages && list(r.marriages.rows).length > 0 && (
+            <div class="scroll"><table class="fm-tbl">
+              <thead><tr>{list(r.marriages.head).map((h) => <th>{h}</th>)}</tr></thead>
+              <tbody>
+                {list(r.marriages.rows).map((cells) => (
+                  <tr>{list(cells).map((c, i) => (
+                    <td class={i === 0 ? "mono" : null} set:html={F(c)} />
+                  ))}</tr>
+                ))}
+              </tbody>
+            </table></div>
+          )}
+
+          {list(r.people).length > 0 && (
+            <div class="fm-people">
+              {list(r.people).map((p) => (
+                <a class="fm-p" href={p.href ? u(p.href) : null}>
+                  <span class="fm-pn" set:html={F(p.name)} />
+                  <span class="fm-pl">{[p.life || "dates unknown", p.place].filter(Boolean).join(" · ")}</span>
+                </a>
+              ))}
+            </div>
+          )}
+
+          {r.more && <p class="fm-more small" set:html={F(r.more)} />}
+          {r.note && <p class="fm-note small" set:html={F(r.note)} />}
+          {r.href && r.hrefLabel && (
+            <p class="fm-go small"><a href={u(r.href)}>{r.hrefLabel} →</a></p>
+          )}
+        </article>
+      ))}
+    </section>
+  ))}
+</div>
+
+<style is:global>
+  .fm-g { margin: 0 0 1.6rem; }
+  .fm-glab {
+    font-family: var(--sans); font-size: 10px; font-weight: 600; letter-spacing: .13em;
+    text-transform: uppercase; color: var(--ink-3); margin: 0 0 .8rem;
+  }
+  .fm-gnote { text-transform: none; letter-spacing: 0; font-weight: 400; }
+  .fm-row { border-top: 1px solid var(--rule); padding: 1.2rem 0 .6rem; }
+  .fm-g .fm-row:first-of-type { border-top: 0; }
+  .fm-head { display: flex; align-items: baseline; gap: .8rem; flex-wrap: wrap; }
+  .fm-head h3 { margin: 0; font-size: 1.32rem; font-family: var(--serif); }
+  .fm-n { font-size: 12.5px; color: var(--ink-3); }
+  .fm-gloss { margin: .45rem 0 0; color: var(--ink-2); }
+  .fm-dl {
+    margin: .8rem 0 0; display: grid; grid-template-columns: minmax(0, 130px) 1fr;
+    gap: .35rem 1.2rem;
+  }
+  .fm-dl dt {
+    font-family: var(--sans); font-size: 10.5px; letter-spacing: .09em; text-transform: uppercase;
+    color: var(--ink-3); padding-top: 2px;
+  }
+  .fm-dl dd { margin: 0; font-size: 14.5px; }
+  .fm-tbl { margin: .9rem 0 0; }
+  /* Three across on a wide screen, one on a phone. The names are people and
+     a person's name must not be cut in half to make a grid tidy. */
+  .fm-people {
+    margin: .9rem 0 0; display: grid; gap: .6rem;
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  }
+  .fm-p {
+    display: block; border: 1px solid var(--rule); padding: .55rem .7rem;
+    text-decoration: none; color: inherit;
+  }
+  .fm-p:hover { border-color: var(--rule-strong); }
+  .fm-pn { display: block; font-weight: 600; font-size: 14.5px; overflow-wrap: anywhere; }
+  .fm-pl { display: block; margin-top: .2rem; font-size: 12.5px; color: var(--ink-3); }
+  .fm-more, .fm-note, .fm-go { margin: .8rem 0 0; }
+  .fm-note { color: var(--ink-3); }
+  @media (max-width: 560px) {
+    .fm-dl { grid-template-columns: 1fr; gap: .1rem; }
+    .fm-dl dt { margin-top: .5rem; }
+  }
+</style>
