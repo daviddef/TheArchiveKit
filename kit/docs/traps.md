@@ -444,3 +444,32 @@ Overstating a backlog is not the harmless direction of error. It sends
 somebody to convert a page that is already right, and the most likely way to
 "fix" Defranceski's would have been to delete the wrapper and inline the
 lookup — undoing the harmonisation to satisfy the harmonisation check.
+
+## Moving work into a component can silence the gate that watched it
+
+Luwinski's `check-search` finds the search index by scanning pages for
+`fetch(base + '/x.json')`. On 22 September its search page stopped carrying
+its own fetch and started importing the kit's shared box, which does the
+fetching instead.
+
+The gate's `wanted` set came back empty. It printed **«no page fetches a JSON
+file»** and passed — so the published check, the parse check, the empty check
+and the freshness check all stopped running, on the build that made the change
+and on every build afterwards.
+
+Nothing failed. Nothing looked wrong. A gate that had been asked for by name
+the previous day, because a stale index passes every other test, had simply
+stopped having a subject.
+
+**The rule, now third time of asking: a check that cannot find its subject
+must not report success.** The other two were `checksources` failing loudly
+when no source list exists, and `checkpages` saying «not run» on a CI runner
+with one repository. This is the same rule from a third direction — and the
+most dangerous of the three, because the other two were caught by a red build
+and this one was caught only by reading a line that said `ok`.
+
+**And the general form is worth more than the instance.** Harmonisation moves
+behaviour out of pages and into components. Any gate that recognises that
+behaviour BY ITS SHAPE IN THE PAGE goes blind exactly when the harmonisation
+succeeds. Before moving anything into a component, ask what watches it and
+how that watcher finds it.
