@@ -1,0 +1,124 @@
+---
+/* What this archive has asked of other people, and what came back.
+
+   Four archives keep an errands page and no two grade a request the same way.
+   Defranceski has `pri` — send first / worth sending / when convenient, which
+   ranks by what it would BUY. D'Arcy has `state` with a colour and a gloss
+   each, which ranks by where the request HAS GOT TO. Lerena has `status` and
+   groups by it in prose — answered, out and waiting, waiting on a person,
+   closed. Booyzen does not rank requests at all: it groups by DOOR, one
+   section per building, because its four remaining questions each end at a
+   place somebody could walk into.
+
+   Those are four different questions about the same object and none of them
+   is wrong, so this takes the grouping and the grade as given — the same
+   contract Sources settled on, for the same reason. What every one of them
+   actually does is a list of asks, each naming who is being asked, what for,
+   under what reference, and what it would settle.
+
+   THE PART WORTH KEEPING IS THE DRAFT. Defranceski writes the letter out in
+   full on the page. That is the difference between a list of things somebody
+   ought to do and a page somebody can act from, and it is why `draft` is a
+   first-class field here rather than a note.
+
+     groups   [{ label, note, rows }] — in the order the archive chose.
+     rows     [{ n, who, what, ref, why, ask, draft, sent, state, stateLabel,
+                 colour, links }]
+              Only `what` is required. `state`+`colour` draw the left rule and
+              the chip; `stateLabel` is the archive's own word for it, never
+              the raw key — the timeline shipped "back" as a filter label once
+              and this estate has not forgotten.
+              `links` is [[label, href], …].
+     u        the archive's url helper.
+     html     true when the data carries markup. Default true.
+*/
+const { groups = [], u = (p) => p, html = true } = Astro.props;
+
+const B = u("/");
+const fix = (s) => String(s ?? "").replace(/href=(['"])\//g, `href=$1${B}`);
+const F = (s) => (html ? fix(s) : String(s ?? ""));
+const rows = groups.flatMap((g) => g.rows || []);
+const sent = rows.filter((r) => r.sent).length;
+---
+<div class="er" data-rows={rows.length} data-sent={sent}>
+  {groups.map((g) => (
+    <section class="er-g">
+      {g.label && (
+        <div class="er-lab">{g.label}
+          {g.note ? <span class="er-note"> — <Fragment set:html={F(g.note)} /></span> : null}
+        </div>
+      )}
+      {(g.rows || []).map((r) => (
+        <article class="er-row" style={r.colour ? `border-left-color:${r.colour}` : null}>
+          <div class="er-head">
+            {r.n != null && <span class="er-n">{String(r.n).padStart(2, "0")}</span>}
+            {r.stateLabel && (
+              <span class="er-tag" style={r.colour ? `color:${r.colour};border-color:${r.colour}` : null}>
+                {r.stateLabel}</span>
+            )}
+            {r.sent && <span class="er-tag er-sent">Sent {r.sent}</span>}
+            <h3 set:html={F(r.what)} />
+            {r.who && <div class="er-who" set:html={F(r.who)} />}
+          </div>
+          {(r.ref || r.why || r.ask) && (
+            <dl class="er-dl">
+              {r.ref && <Fragment><dt>Reference</dt><dd class="mono" set:html={F(r.ref)} /></Fragment>}
+              {r.why && <Fragment><dt>What it settles</dt><dd set:html={F(r.why)} /></Fragment>}
+              {r.ask && <Fragment><dt>What to ask for</dt><dd set:html={F(r.ask)} /></Fragment>}
+            </dl>
+          )}
+          {r.draft && (
+            <div class="er-draft"><div class="er-dlab">Draft</div>
+              <p set:html={F(r.draft)} /></div>
+          )}
+          {(r.links || []).length > 0 && (
+            <p class="er-go">{r.links.map(([label, href], i) => (
+              <Fragment>{i > 0 ? " · " : null}<a href={u(href)}>{label} →</a></Fragment>
+            ))}</p>
+          )}
+        </article>
+      ))}
+    </section>
+  ))}
+</div>
+
+<style is:global>
+  .er-g { margin: 0 0 2rem; }
+  .er-lab {
+    font-family: var(--sans); font-size: 10px; font-weight: 600; letter-spacing: .13em;
+    text-transform: uppercase; color: var(--ink-3); margin: 0 0 .8rem;
+  }
+  .er-note { text-transform: none; letter-spacing: 0; font-weight: 400; }
+  .er-row {
+    border: 1px solid var(--rule); border-left-width: 4px; border-left-color: var(--rule-strong);
+    padding: 1.1rem 1.25rem .9rem; margin: 0 0 1.1rem;
+  }
+  .er-head { display: flex; align-items: baseline; gap: .7rem; flex-wrap: wrap; }
+  .er-n { font-size: 12px; opacity: .45; font-variant-numeric: tabular-nums; }
+  .er-tag {
+    font-family: var(--sans); font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase;
+    padding: 2px 7px; border: 1px solid currentColor; color: var(--ink-3); white-space: nowrap;
+  }
+  .er-sent { color: var(--ink-2); }
+  .er-head h3 { flex: 1 1 100%; margin: .35rem 0 0; font-size: 1.28rem; line-height: 1.25;
+                font-family: var(--serif); }
+  .er-who { flex: 1 1 100%; font-size: 13px; color: var(--ink-3); }
+  .er-dl { margin: .9rem 0 0; display: grid; grid-template-columns: minmax(0, 148px) 1fr;
+           gap: .6rem 1.4rem; }
+  .er-dl dt {
+    font-family: var(--sans); font-size: 11px; letter-spacing: .09em; text-transform: uppercase;
+    color: var(--ink-3); padding-top: 3px;
+  }
+  .er-dl dd { margin: 0; font-size: 15px; line-height: 1.66; }
+  .er-draft { margin-top: 1.1rem; padding: .85rem 1rem; border: 1px dashed var(--rule); }
+  .er-dlab {
+    font-family: var(--sans); font-size: 10.5px; letter-spacing: .09em; text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  .er-draft p { margin: .5rem 0 0; font-size: 14.5px; line-height: 1.7; }
+  .er-go { margin: .8rem 0 0; font-size: 14px; }
+  @media (max-width: 640px) {
+    .er-dl { grid-template-columns: 1fr; gap: .25rem; }
+    .er-dl dt { margin-top: .6rem; }
+  }
+</style>
