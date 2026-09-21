@@ -392,3 +392,32 @@ reproduced on a copy before the check was trusted.
 
 The habit both want: **after wiring a tool into a build, push and watch one
 deploy finish before wiring it into seven more.**
+
+## Promoting a component the kit already had
+
+`BranchRivers` has drawn families of one surname as lanes since it was
+promoted out of Defranceschi, and its own header records the trap it was born
+from: *«which is why the one other archive that wanted something like it wrote
+a second, different component of the same name rather than use this one»*.
+
+On 21 September 2026 that happened again, to the session reading that very
+file. Falco's local `Strands` said in ITS comment that it had been asked to
+copy Defranceski's figure by hand. That sentence was read as «this is
+duplicated, promote it» and not as «the original may already be in the kit».
+A second component for one figure was pushed, adopted by two archives, and
+deleted the same evening.
+
+**The tell was in the data and was never looked at.** Luwinski's lanes fitted
+`BranchRivers` with no adapter whatsoever — same field names, same nesting,
+same `unplaced` and `loose`. Data that already fits a component is data that
+was shaped by it.
+
+And the wrong component was quietly worse. `BranchRivers` marks a soft ending
+with a trailing `?` on the place name; the promoted copy used a boolean in the
+fan row. Luwinski's data uses `?`, so through the copy **four of twenty-seven
+endings that should have been dotted drew solid** — the figure asserting four
+things the archive does not claim, and looking entirely normal while doing it.
+
+Before promoting anything, grep the kit for what it does, not for what it is
+called. `checkshared` compares components of the same NAME and would never
+have caught this: the two were called `Strands` and `BranchRivers`.
