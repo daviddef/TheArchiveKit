@@ -14,13 +14,39 @@
      root         the nested node: { n, d, place, conf, arch, who, f, m }
                   f and m are the father and mother, each the same shape.
                   { wall: true, kind, label, q, arch } ends a branch instead.
+
+                  Three optional fields, all of them Booyzen's, promoted here
+                  21 September 2026 because a strict ancestor chart cannot
+                  draw what they carry and every archive eventually meets it:
+
+                  sn    a shortened name for the box. "Margaretha Wilhelmina
+                        Elizabeth Mary Kolbe" does not fit in 158px and a box
+                        that clips a name is a box that renames a woman. The
+                        full name stays as the title attribute.
+                  alt   [{ n, why }] — a SECOND MARRIAGE. The chart has one
+                        slot for a mother and can draw only one of them, so
+                        the others are listed under it with the reason they
+                        are known. Booyzen has three; two are the same man.
+                  same  a note that the line FOLDS BACK on itself — the same
+                        couple reached by two paths, which is a cousin
+                        marriage seen from the descendant's end. Drawing it
+                        would need an edge the layout has no room for, so it
+                        is stated instead of drawn.
      personHref   node → a URL, or null for no link. Optional.
 
    Nothing else is required, so an archive with a line and no person pages
    still gets the drawing. */
 import arch from "../data/archives.json";
 import { md } from "../lib/md.js";
-const { root, personHref = () => null } = Astro.props;
+/* `lists` — the walls, the second marriages and the folds, rendered under the
+   drawing. TRUE by default, because an archive that has not written them
+   should still get them said. Booyzen passes false: it had written all three
+   by hand, better than this file will, with its own links out to the notice
+   and the searches. Spine already holds this principle at the top of its own
+   file — the page is where the archive tells its story, so the prose stays
+   where it is. A shared component earns its place by drawing the picture,
+   not by overwriting the writing. */
+const { root, personHref = () => null, lists = true } = Astro.props;
 const A = Object.fromEntries(arch.archives.map(a => [a.key, a]));
 
 /* Lay the ancestor chart out by computing every box's position first, so an
@@ -49,6 +75,12 @@ function place(node, gen) {
   return row;
 }
 place(root, 0);
+
+/* What the drawing cannot hold, gathered to be said underneath it. A chart
+   that silently drops a second wife is not a simpler chart, it is a wrong
+   one. */
+const alts = boxes.filter(b => b.alt).flatMap(b => b.alt.map(a => ({ ...a, of: b })));
+const folds = boxes.filter(b => b.same);
 
 const maxGen = Math.max(...boxes.map(b => b.gen));
 const maxRow = Math.max(...boxes.map(b => b.row));
@@ -86,10 +118,23 @@ const WALL = {
   unworked:        ["Not yet worked",      "var(--ink-3)"],
   unknown:         ["Not yet worked",      "var(--terra)"],
   hard:            ["Searched, not found", "var(--ink-2)"],
+  /* Two more of Booyzen's, 21 September 2026, and both were falling through
+     to "Not yet worked" — which is the one thing neither of them is.
+       notknown  the record was found, it has the column, and the column says
+                 so. The search is over and the answer is nothing. Calling
+                 that unworked invites somebody to work it again.
+       disputed  two sources answer and disagree. Also not a gap in the
+                 looking; a gap in the agreement. */
+  notknown:        ["The record says «not known»", "var(--terra)"],
+  disputed:        ["Disputed",                    "var(--ochre)"],
 };
 const kindOf = (w) => WALL[w && w.kind] || WALL.unworked;
 const KIND = Object.fromEntries(Object.entries(WALL).map(([k, v]) => [k, v[1]]));
-const CONF = { doc: "var(--accent)", lore: "var(--ochre)", living: "var(--ink-3)" };
+/* `open` is Booyzen's: a person the chart draws and the archive is still
+   arguing about. Distinct from `lore`, which is a claim from the family's own
+   chart, and from a wall, which is where the drawing stops. */
+const CONF = { doc: "var(--accent)", lore: "var(--ochre)", living: "var(--ink-3)",
+               open: "var(--ochre)" };
 const GENLAB = ["Self", "Gen 1", "Gen 2", "Gen 3", "Gen 4", "Gen 5", "Gen 6", "Gen 7", "Gen 8"];
 ---
 <div class="ac-scroll">
@@ -122,7 +167,9 @@ const GENLAB = ["Self", "Gen 1", "Gen 2", "Gen 3", "Gen 4", "Gen 5", "Gen 6", "G
       </div>
     ) : (
       <div class="ac-box" style={`left:${X(b.gen)}px;top:${Y(b.row) + 26}px;--c:${CONF[b.conf] || "var(--ink-3)"}`}>
-        <div class="ac-n">{b.href ? <a href={b.href}>{b.n}</a> : b.n}</div>
+        <div class="ac-n" title={b.sn && b.sn !== b.n ? b.n : null}>
+          {b.href ? <a href={b.href}>{b.sn || b.n}</a> : (b.sn || b.n)}
+        </div>
         <div class="ac-m">
           {b.d && <span class="ac-d">{b.d}</span>}
           {b.place && <span class="ac-p">{b.place}</span>}
@@ -133,7 +180,7 @@ const GENLAB = ["Self", "Gen 1", "Gen 2", "Gen 3", "Gen 4", "Gen 5", "Gen 6", "G
   </div>
 </div>
 
-{walls.length > 0 && (
+{lists && walls.length > 0 && (
 <div class="ac-walls">
   {/* Falco has exactly one, which is how "The 1 walls" reached a published
       page. An archive with none gets no heading over nothing at all. */}
@@ -156,7 +203,42 @@ const GENLAB = ["Self", "Gen 1", "Gen 2", "Gen 3", "Gen 4", "Gen 5", "Gen 6", "G
 </div>
 )}
 
+{lists && alts.length > 0 && (
+<div class="ac-walls">
+  <h2>{alts.length === 1
+        ? "The marriage the chart has no slot for"
+        : `The ${alts.length} marriages the chart has no slot for`}</h2>
+  <p class="ac-lead">An ancestor chart gives each person one father and one
+    mother. Where a man married twice, only the ancestral wife can be drawn —
+    the others are here, with how this archive knows them.</p>
+  {alts.map(a => (
+    <div class="ac-wrow" style="--k:var(--ochre)">
+      <div class="ac-wk">{a.n}<span class="ac-wkind">also married {a.of.sn || a.of.n}</span></div>
+      <div class="ac-wn"><span set:html={md(a.why || "")}></span></div>
+    </div>
+  ))}
+</div>
+)}
+
+{lists && folds.length > 0 && (
+<div class="ac-walls">
+  <h2>{folds.length === 1
+        ? "Where the line folds back on itself"
+        : `The ${folds.length} places the line folds back on itself`}</h2>
+  <p class="ac-lead">The same couple reached by two paths. Read forwards it is
+    a cousin marriage; read backwards it is one set of ancestors standing in
+    two places on this chart, counted once.</p>
+  {folds.map(f => (
+    <div class="ac-wrow" style="--k:var(--accent)">
+      <div class="ac-wk">{f.sn || f.n}<span class="ac-wkind">counted once</span></div>
+      <div class="ac-wn"><span set:html={md(f.same)}></span></div>
+    </div>
+  ))}
+</div>
+)}
+
 <style is:global>
+  .ac-lead { font-size: 14px; color: var(--ink-2); margin: 0 0 12px; max-width: 62ch; }
   .ac-scroll { overflow-x: auto; padding: 4px 2px 10px; }
   .ac { position: relative; }
   .ac-gl {
