@@ -103,18 +103,28 @@ def main():
         return 1
 
     if a.report:
+        # The report must subtract exemptions or its headline is a lie. The
+        # first version did not, and reported 56 bespoke pages on an afternoon
+        # when six of them had been examined and written off in writing —
+        # which is the same fault as a check that cannot find its subject,
+        # pointing the other way.
+        ex = {arch: exemptions(os.path.join(estate, arch)) for arch, _ in archives(estate)}
         rows = []
         for n, v in shared.items():
-            bes = [arch for arch, (_, k) in v.items() if not k]
-            rows.append((len(bes), len(v), n, sum(l for l, _ in v.values()), bes))
+            bes = [arch for arch, (_, k) in v.items() if not k and n not in ex.get(arch, {})]
+            exe = [arch for arch, (_, k) in v.items() if not k and n in ex.get(arch, {})]
+            rows.append((len(bes), len(v), n, sum(l for l, _ in v.values()), bes, exe))
         rows.sort(reverse=True)
         tot_b = sum(r[0] for r in rows)
-        print("%-18s %8s %6s %8s %8s   still bespoke" % ("page", "archives", "kit", "bespoke", "lines"))
-        for bes, tot, n, L, who in rows:
-            if bes:
-                print("%-18s %8d %6d %8d %8d   %s" % (n, tot, tot - bes, bes, L, ", ".join(sorted(who))))
-        print("\n%d shared page(s) carried by %d+ archives; %d archive-pages still bespoke."
-              % (len(rows), a.threshold, tot_b))
+        tot_e = sum(len(r[5]) for r in rows)
+        print("%-18s %8s %6s %8s %7s %8s   still bespoke"
+              % ("page", "archives", "kit", "bespoke", "exempt", "lines"))
+        for bes, tot, n, L, who, exe in rows:
+            if bes or exe:
+                print("%-18s %8d %6d %8d %7d %8d   %s"
+                      % (n, tot, tot - bes - len(exe), bes, len(exe), L, ", ".join(sorted(who)) or "—"))
+        print("\n%d shared page(s) carried by %d+ archives; %d archive-pages still bespoke, "
+              "%d exempt in writing." % (len(rows), a.threshold, tot_b, tot_e))
         return 0
 
     # One archive: which shared pages does IT still draw by hand?
