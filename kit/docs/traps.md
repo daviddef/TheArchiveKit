@@ -249,3 +249,28 @@ overlaps — sixteen in twenty-three rows in one archive — **and a row may be
 re-reading a volume on purpose**, at higher resolution, because a survey is not
 a reading. A gate would refuse that build and the fix would be to stop
 recording honest re-reads. Overlap is a question for a human.
+
+## A broad `git add` does not steal work, it steals the reason for it
+
+Booyzen row 160 already said never to stage everything in a repository two
+sessions edit. On 21 September 2026 it happened three times in one afternoon,
+to the same session, from two different archives.
+
+- Falco `c92822d` — "SARA RUGGIERO WAS A MIDWIFE" — carried another session's
+  conversion of `sources.astro` to the kit component, and its kit repin.
+- Falco `1883f86` — "1817 was published as «No Falco» and holds two" — carried
+  the rewrite of that same file, +17/−2.
+- Booyzen `e212628` — "The stale-index trap documented" — carried four
+  work-list rows about the estate's sources pages.
+
+**Nothing was lost. That is not the damage.** Every line survived byte for
+byte, and in all three cases the change was already verified green. What was
+lost is the only thing these commit messages exist to carry: a reader running
+`git log -S` on "why did the sources page change" arrives at a commit about a
+midwife. The estate keeps its reasoning in its history rather than in a
+tracker, so a sweep that files work under an unrelated heading does more harm
+than a merge conflict, which at least announces itself.
+
+The tell is cheap and was available before every one of these: `git status`
+before staging, and stage **named paths**. A file you did not touch this
+session is not yours to commit, however clean the diff looks.
