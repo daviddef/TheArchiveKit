@@ -65,6 +65,30 @@ def archives(estate):
 
 
 KIT = re.compile(r"archive-kit/components/([A-Za-z]+)\.astro")
+LOCAL = re.compile(r"""import\s+\w+\s+from\s+["'](?:\.\./)*components/([A-Za-z0-9_]+)\.astro""")
+
+
+def kit_wrappers(comp_dir):
+    """Local components that are really the kit at one remove.
+
+    A page that imports ../components/Distribution.astro, which imports the
+    kit's Distribution and adds this archive's own lookup, IS on the kit — and
+    that wrapper is the pattern the estate wants, not a thing to fix. The first
+    version of this check looked for the kit import IN THE PAGE and reported
+    every such page as bespoke: Defranceski's `name` page uses the shared
+    chart three times through exactly that wrapper and was counted as hand-drawn.
+    Overstating the backlog is not a harmless error — it sends somebody to
+    convert a page that is already right."""
+    wrap = set()
+    if not os.path.isdir(comp_dir):
+        return wrap
+    for f in glob.glob(os.path.join(comp_dir, "*.astro")):
+        try:
+            if KIT.search(open(f, encoding="utf-8", errors="ignore").read()):
+                wrap.add(os.path.basename(f)[:-6])
+        except OSError:
+            pass
+    return wrap
 # Pages that are the archive's front door or its own argument, not a shared
 # idea rendered eight ways. These are never counted.
 NEVER = {"index", "404", "about", "method", "colophon", "privacy", "credits"}
@@ -87,6 +111,7 @@ def scan(estate, threshold):
     """page name -> {archive: (lines, kit components used)}"""
     pages = collections.defaultdict(dict)
     for arch, d in archives(estate):
+        wrap = kit_wrappers(os.path.join(os.path.dirname(d), "components"))
         for f in glob.glob(os.path.join(d, "**", "*.astro"), recursive=True):
             name = os.path.relpath(f, d)[:-6].replace(os.sep, "/")
             if name in NEVER or name.startswith("_"):
@@ -95,7 +120,8 @@ def scan(estate, threshold):
                 src = open(f, encoding="utf-8", errors="ignore").read()
             except OSError:
                 continue
-            pages[name][arch] = (len(src.splitlines()), set(KIT.findall(src)))
+            uses = set(KIT.findall(src)) | (set(LOCAL.findall(src)) & wrap)
+            pages[name][arch] = (len(src.splitlines()), uses)
     return {n: v for n, v in pages.items() if len(v) >= threshold}
 
 

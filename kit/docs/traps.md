@@ -421,3 +421,26 @@ things the archive does not claim, and looking entirely normal while doing it.
 Before promoting anything, grep the kit for what it does, not for what it is
 called. `checkshared` compares components of the same NAME and would never
 have caught this: the two were called `Strands` and `BranchRivers`.
+
+## A wrapper over the kit IS the kit, and the check said otherwise
+
+`checkpages` counted a page as harmonised when the kit import appeared IN THE
+PAGE. Defranceski's `name` page draws the shared distribution chart three
+times through `../components/Distribution.astro`, a nine-line local wrapper
+whose whole job is to hold this archive's own lookup and hand rows to the
+kit's component. Its header says so. The check reported the page as
+hand-drawn.
+
+That wrapper is not a failure to harmonise — **it is the shape harmonisation
+is supposed to leave behind**: the kit draws the thing, and each archive keeps
+only what it alone can say about it. `checkshared` already knew this and says
+so about components; the page check did not.
+
+Following one level of local import changed the estate's figure from **50
+bespoke pages to 32**, and Booyzen from three to none. Nearly two fifths of a
+backlog that did not exist.
+
+Overstating a backlog is not the harmless direction of error. It sends
+somebody to convert a page that is already right, and the most likely way to
+"fix" Defranceski's would have been to delete the wrapper and inline the
+lookup — undoing the harmonisation to satisfy the harmonisation check.
