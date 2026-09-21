@@ -63,7 +63,7 @@ ROW_PATHS = [
     lambda j: [r for s in j.get("sections", []) for r in s.get("rows", [])]
               if isinstance(j, dict) and "sections" in j else None,
 ]
-URL_KEYS = ("url", "href", "link", "at", "site")
+URL_KEYS = ("url", "href", "link", "at", "site")   # Lerena calls it `link`
 TITLE_KEYS = ("title", "t", "name", "source", "label")
 
 # Hosts that are never a source: the page's own plumbing and this estate's
@@ -116,10 +116,28 @@ def main():
     ap.add_argument("--quiet", action="store_true")
     a = ap.parse_args()
 
-    path = a.data or os.path.join(a.root, "src", "data", "sources.json")
-    if not os.path.exists(path):
-        print("  ok    sources    no sources.json — nothing to check")
-        return 0
+    # An archive does not have to call the file sources.json, and the first
+    # version of this check assumed it did. Lerena keeps 121 sources in
+    # sources-consulted.json, 38 of them already linked, and this tool
+    # reported "nothing to check" and passed — which made the estate-wide
+    # finding wrong, not merely incomplete. A check that cannot find its
+    # subject must say so loudly; passing quietly is the worst thing it can do.
+    CANDIDATES = ["sources.json", "sources-consulted.json", "bibliography.json"]
+    path = a.data
+    if not path:
+        d = os.path.join(a.root, "src", "data")
+        for c in CANDIDATES:
+            if os.path.exists(os.path.join(d, c)):
+                path = os.path.join(d, c)
+                break
+    if not path or not os.path.exists(path):
+        found = sorted(f for f in (os.listdir(os.path.join(a.root, "src", "data"))
+                                   if os.path.isdir(os.path.join(a.root, "src", "data")) else [])
+                       if "source" in f or "biblio" in f)
+        print("  FAIL  sources    no source list found under %s/src/data — looked for %s%s"
+              % (a.root, ", ".join(CANDIDATES),
+                 ("; did you mean " + ", ".join(found) + "?") if found else ""))
+        return 1
 
     rows = rows_of(json.load(open(path, encoding="utf-8")))
     if not rows:
