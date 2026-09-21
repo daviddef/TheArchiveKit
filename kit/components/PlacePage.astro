@@ -1,0 +1,106 @@
+---
+/* One place, and everything the archive can put in it.
+
+   This was ONE FILE COPIED FOUR TIMES. Falco, Blazevic, Mazza and D'Arcy each
+   carried an 85-line places/[slug].astro that was byte-for-byte identical,
+   down to the comment explaining why it existed — 340 lines that were one
+   idea, and four places for it to start drifting. `checkshared` was already
+   watching duplicated components and would never have seen this, because a
+   page is not a component.
+
+   The original comment is kept because it still states the point: everything
+   here is already carried by the atlas data — the narrative, the people, the
+   registers — so the page and the map marker cannot drift apart the way a
+   second hand-kept list would.
+
+   WHAT DID NOT COME WITH IT. Three archives draw this page from different
+   data and are not being flattened into it. Booyzen builds from places.json
+   and dossiers.json and shows nearby places in the same region. Defranceski
+   adds a locator map and the photographic plates. Lerena's is not this page
+   at all — it is a table of everyone of the surname recorded in the place,
+   with nationality, occupation and the record that produced each one. The
+   first two can pass their extra sections through the slot below; the third
+   is a different argument and should stay its own page.
+
+     p         the atlas row: { name, what, when, fix, n, more,
+                                people[], films[], records[], events[] }
+               `people` are { n name, w href, y born, d died }.
+               `films` and `records` are { ark, t, cc?, wc? } on FamilySearch.
+               An `event` is { when, what } or the pair [when, what].
+     u         the archive's url helper.
+     back      where "back to the atlas" goes. Default /atlas/.
+     slot      anything this archive alone shows for a place.
+*/
+const { p, u = (x) => x, back = "/atlas/" } = Astro.props;
+const people = p.people || [];
+const films = p.films || [];
+const records = p.records || [];
+const events = p.events || [];
+
+/* A film is a volume you read yourself; a record names one person. The query
+   string is only built when the archive recorded one, because an empty ?cc=
+   sends FamilySearch to a different place than no ?cc= at all. */
+const filmHref = (f) =>
+  `https://www.familysearch.org/ark:/61903/${f.ark}` +
+  (f.cc ? `?cc=${f.cc}${f.wc ? `&wc=${encodeURIComponent(f.wc)}` : ""}` : "");
+const empty = !people.length && !films.length && !records.length && !events.length;
+---
+<section class="blk">
+  <p class="cap"><a href={u(back)}>← Back to the atlas</a></p>
+
+  {events.length > 0 && (
+    <Fragment>
+      <h2>What happened here</h2>
+      <ul class="stack">
+        {events.map((e) => (
+          <li><span class="m">{Array.isArray(e) ? e[0] : e.when}</span> {Array.isArray(e) ? e[1] : e.what}</li>
+        ))}
+      </ul>
+    </Fragment>
+  )}
+
+  {people.length > 0 && (
+    <Fragment>
+      <h2 style="margin-top:28px">Who the archive puts here <span class="dim m">{p.n || people.length}</span></h2>
+      <ul class="stack">
+        {people.map((q) => (
+          <li>{q.w ? <a href={u(q.w)}>{q.n}</a> : q.n}{q.y && <span class="m dim"> {q.y}{q.d ? `–${q.d}` : ""}</span>}</li>
+        ))}
+      </ul>
+      {p.more && <p class="cap">and {p.more} more — <a href={u("/people/")}>the full roster →</a></p>}
+    </Fragment>
+  )}
+
+  {films.length > 0 && (
+    <Fragment>
+      <h2 style="margin-top:28px">The registers, open at page one <span class="dim m">{p.nfilms}</span></h2>
+      <p class="dek">Photographed for this parish, and not name-indexed. You read them yourself.</p>
+      <ul class="stack">
+        {films.map((f) => (
+          <li><a href={filmHref(f)} target="_blank" rel="noopener">{f.t} ↗</a></li>
+        ))}
+      </ul>
+    </Fragment>
+  )}
+
+  {records.length > 0 && (
+    <Fragment>
+      <h2 style="margin-top:28px">Records read about the people here <span class="dim m">{p.nrecords}</span></h2>
+      <p class="dek">Indexed entries, each naming one person rather than a volume to browse.</p>
+      <ul class="stack">
+        {records.map((f) => (
+          <li><a href={`https://www.familysearch.org/ark:/61903/${f.ark}`}
+                 target="_blank" rel="noopener">{f.t} ↗</a></li>
+        ))}
+      </ul>
+    </Fragment>
+  )}
+
+  <slot />
+
+  {empty && (
+    <p class="prose">This archive has the place and nothing in it yet — no person, no register,
+    no dated event. That is a gap rather than a finding, and it is listed here so it can be
+    closed.</p>
+  )}
+</section>
