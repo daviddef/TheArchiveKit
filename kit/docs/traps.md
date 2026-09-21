@@ -93,6 +93,37 @@ Two habits catch it, and neither is a code review:
 And the corollary for a null: **a zero from an object you have not verified
 is not a negative, it is no result.**
 
+## A many-to-one fold that assigns instead of reducing
+
+Source rows are often one-per-series, one-per-record, one-per-sitting, and a
+map wants one answer per place. The join is written in a loop, and the loop
+says `=`.
+
+- Mazza's shelf layer set a comune's colour from `coverage.json`, which holds
+  **one row per series**. Piedimonte Etneo has **six `open` rows and one
+  `route`**, and the line was
+  `cats.setdefault(head, {})["shelf"] = SHELF[row["status"]]`. **The colour
+  was therefore decided by whichever row happened to sit last in the file.**
+- It rendered correctly on the day it was written, for all seven comuni. It
+  would have turned Piedimonte green the moment anybody appended an `open`
+  row beneath its `route` one — **a silent change of published meaning caused
+  by the order of a data file**, with no error and nothing to notice.
+
+**A fold needs a rule, and `=` is not one.** Decide what many rows mean about
+one place and say it: the worst status, the earliest date, the count, the
+union. Mazza took the worst on an explicit ranking.
+
+**And the test is free: reverse the source file and re-run.** Identical
+output means the fold has a rule; different output means the file's order is
+deciding what the archive says. That is one line of shell and it distinguishes
+the two cases exactly.
+
+Not every keyed assignment is this. `out.setdefault(place, {})[arkID] = {...}`
+in Booyzen's and Blazevic's atlas builders is a **dedupe on a unique key**,
+where a second write carries the same value; both were checked when this was
+found and neither is affected. The fault needs a *many*-to-one relation, which
+is why it is worth naming the relation rather than the syntax.
+
 ## Counting files instead of reading them
 
 - Four archives were reported ready for a second map layer because they had
