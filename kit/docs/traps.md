@@ -113,10 +113,41 @@ says `=`.
 one place and say it: the worst status, the earliest date, the count, the
 union. Mazza took the worst on an explicit ranking.
 
-**And the test is free: reverse the source file and re-run.** Identical
-output means the fold has a rule; different output means the file's order is
-deciding what the archive says. That is one line of shell and it distinguishes
-the two cases exactly.
+**The test is reverse the source file and re-run — but compare the facts, not
+the bytes.** This entry first said a byte comparison "distinguishes the two
+cases exactly". It does not, and the Mazza session found out by running it
+over eight builder/input pairs: **six of the eight "failed" and every one was
+benign.** Most builders emit a *list* in file order, so reversing the input
+reverses the list and the bytes differ for a reason that is presentation
+rather than data loss. Acting on that would have meant rewriting six correct
+builders.
+
+The discriminator is that **a fold losing a row shows up as a changed value
+or a vanished key, never as a reordering.** So canonicalise both outputs
+before comparing — sort every list by its own contents — and diff the set of
+facts:
+
+    python3 - <<'EOF'
+    import json, subprocess
+    def canon(o):
+        if isinstance(o, dict):  return {k: canon(v) for k, v in sorted(o.items())}
+        if isinstance(o, list):  return sorted((canon(v) for v in o),
+                                               key=lambda v: json.dumps(v, sort_keys=True))
+        return o
+    a = canon(json.load(open(OUT)))          # build, then
+    # reverse the source rows, rebuild, and:
+    b = canon(json.load(open(OUT)))
+    print("fold has a rule" if a == b else "the file's order is deciding")
+    EOF
+
+With that, six false alarms became the one true finding.
+
+**And do not wire it into a build.** It rewrites tracked input files and
+restores them in a `finally`, which survives an exception and not a kill — a
+build killed mid-check leaves a reversed data file sitting in the tree looking
+like an ordinary edit. Keep it a deliberate `check:order`. (The same session's
+first `reverse_rows` read the file *inside* `open(src, "w")`, which truncates
+first; the restore is the only reason that cost nothing.)
 
 Not every keyed assignment is this. `out.setdefault(place, {})[arkID] = {...}`
 in Booyzen's and Blazevic's atlas builders is a **dedupe on a unique key**,
