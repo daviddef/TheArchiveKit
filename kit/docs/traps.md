@@ -357,3 +357,38 @@ block every deploy at once.
 It was caught by another session reading the run log, not by the session that
 wrote it — which is its own lesson about pushing a new gate to eight
 repositories before watching one deploy finish.
+
+## Passed locally, failed on the runner — twice in one day, two different causes
+
+Both broke deploys across the estate on 21 September 2026 and both were
+invisible where the work happened.
+
+**The loud one.** `checkpages.py` compares an archive against its sibling
+archives. A runner checks out ONE repository, so the estate is empty there;
+the first version read that as a failure and returned 1, and eight deploys
+stopped within eleven minutes. Its own entry above has the rule: a check that
+reads outside its own repository is a dev-machine check, and if it must sit in
+the build chain it has to know the difference between «nothing is wrong» and
+«I could not look».
+
+**The quiet one, five hours earlier.**
+
+    python3: can't open file '.../kit/tools/checksources.py': No such file
+
+A gate was wired into `package.json`'s build chain while that archive's kit
+pin still named a commit from before the gate existed. It ran locally because
+the working copy of `node_modules` had been installed by hand from a newer
+sha. CI installs from the committed pin and found nothing there.
+
+Nothing is wrong with the script, the package.json or the pin ON THEIR OWN.
+They only disagree once somebody else installs them — which is to say, never
+on the machine that can see the problem.
+
+`checkpin.py` is the answer to the second: every kit path a build script names
+must exist, and **the lockfile must have resolved the commit package.json
+pins**. The lockfile is the only place npm records what it actually fetched —
+the installed package.json has said `1.0.0` for months. Both faults were
+reproduced on a copy before the check was trusted.
+
+The habit both want: **after wiring a tool into a build, push and watch one
+deploy finish before wiring it into seven more.**
