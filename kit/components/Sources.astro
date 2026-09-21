@@ -198,6 +198,9 @@ const reachable = rows.filter((r) => /^https?:/.test(r.url || "")).length;
     margin: 0 0 .55rem; color: var(--ink-2); font-size: 14.5px;
   }
   .sr-held { font-size: 13px; color: var(--ink-3); margin: .5rem 0 .2rem; }
+  /* Whitespace between an element and an expression does not survive, which
+     welded "Held." to the value. Twice now — see .sr-n. */
+  .sr-held strong { margin-right: .35em; }
   .sr-go { margin: 0 0 .2rem; font-size: 14px; }
   @media (max-width: 560px) { .sr-meta { gap: .15rem .7rem; } }
 </style>
