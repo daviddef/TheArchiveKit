@@ -53,7 +53,12 @@
                qualifier that is NOT the group — Lerena's tier field has 26
                distinct values for three tiers because it concatenated the
                tier with a free-text note, so the note needs somewhere to go
-               that is not the ranking.
+               that is not the ranking. Mazza's `seen` is the other use: read
+               here / index only / the tree / unreferenced / a wall, which
+               grades the ROW and cuts across its groups. `tagTitle` carries
+               the gloss — "an index entry proves a name was written
+               somewhere" — which is the part that makes the tag mean
+               anything.
      u         the archive's url helper — hand-written HTML in source data is
                common and an href='/x' in it needs the site base, the trap
                /open-questions/ and /corrections/ both fell into.
@@ -106,7 +111,7 @@ const reachable = rows.filter((r) => /^https?:/.test(r.url || "")).length;
           <h3 class="sr-t">
             {r.url ? <a href={r.url} rel="noopener"><Fragment set:html={F(r.title)} /></a>
                    : <Fragment set:html={F(r.title)} />}
-            {r.tag ? <span class="sr-tag">{r.tag}</span> : null}
+            {r.tag ? <span class="sr-tag" title={r.tagTitle || null}>{r.tag}</span> : null}
           </h3>
           {(r.where || r.holder || r.kind || r.url) && (
             <div class="sr-meta">
