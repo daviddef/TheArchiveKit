@@ -274,3 +274,30 @@ than a merge conflict, which at least announces itself.
 The tell is cheap and was available before every one of these: `git status`
 before staging, and stage **named paths**. A file you did not touch this
 session is not yours to commit, however clean the diff looks.
+
+## The gate caught its author within the hour
+
+`checksources.py` landed on 21 September 2026 and its first real finding was
+against the person who wrote it.
+
+Twelve of Mazza's twenty-five sources were given urls, verified one by one,
+and written into `site/src/data/sources.json`. The build then reported **25 of
+25 unreachable**. Nothing had gone wrong with the gate: `tools/build_sources.py`
+regenerates that JSON from `data/sources.tsv` on every build, and had simply
+written the file back without them.
+
+Two things worth keeping from it.
+
+**A generated file is not a place to put a fact.** The estate already had
+«a generator that reads its own output» written down; this is its neighbour,
+and the tell is the same — ask what writes a file before editing it, not after.
+One grep over the estate settled the rest: only Mazza and Booyzen generate
+their `sources.json`; Falco, Blazevic, D'Arcy and Defranceski hand-maintain
+theirs, so the same edit was safe in four archives and silently useless in two.
+
+**This is what a gate is for and it is the only reason it was noticed.** The
+page would have rendered perfectly — twelve missing links look exactly like
+twelve sources that never had one. Nothing was broken, no test failed, and the
+loss would have been invisible on screen. A check that can only be satisfied
+by the data being right is worth more than one that checks the output looks
+right.
