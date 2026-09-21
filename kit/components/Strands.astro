@@ -24,7 +24,9 @@
 
      bands   [{ key, tint, title, status, read, href, spine, fan }]
              spine  [[place, year, why], …] left to right in date order
-             fan    [[place, dashed, why], …] where the strand ends up
+             fan    where the strand ends up, as [place, X, why] or
+                    { place, dashed, why, href }. X is a DASHED FLAG in one
+                    archive and an HREF in the other — see `fanOf`.
      title   the line in small capitals above the figure
      alt     the <title> a screen reader gets — say what the figure ARGUES,
              not that it is a diagram
@@ -36,7 +38,22 @@
    the reader swipes, which is what a drawing is for.
 */
 const { bands = [], title = "", alt = "", u = (p) => p } = Astro.props;
-const BANDS = bands;
+
+/* A fan entry is [place, X, why] in both archives that draw this, and X means
+   two different things. Falco's is a DASHED FLAG — "this goes nowhere we can
+   follow". Luwinski's is an HREF — the page where that ending is set out.
+   Reading one as the other would have turned every Luwinski destination into
+   a dashed negative, which is the opposite of what its data says, and the
+   figure would have looked entirely plausible while lying about all of them.
+   So the shape is normalised once, here, and a string that starts with "/"
+   is a link rather than a flag. An object form says which is meant. */
+const fanOf = (f) => {
+  if (!Array.isArray(f)) return { place: f.place, dashed: !!f.dashed, why: f.why, href: f.href };
+  const [place, x, why] = f;
+  const href = typeof x === "string" && x.startsWith("/") ? x : null;
+  return { place, dashed: !href && !!x, why, href };
+};
+const BANDS = bands.map((b) => ({ ...b, fan: (b.fan || []).map(fanOf) }));
 const W = 1180;
 const BAND_H = 176, BAND_GAP = 14, PAD_T = 46;
 const SX0 = 232, SX1 = 748;                 /* the spine reach */
@@ -80,17 +97,18 @@ const fanY = (j, n, y) => (n === 1 ? y : y - 22 + j * (44 / (n - 1)));
 
           {b.fan.map((f, j) => {
             const ty = fanY(j, b.fan.length, sy);
+            const lab = <text x={LAB_X} y={ty + 4} class={f.dashed ? "s-dest s-dim" : "s-dest"}>{f.place}</text>;
             return (
               <g class="node" tabindex="0" role="button"
-                 data-place={f[0]} data-year="" data-lane={b.title} data-why={f[2]}>
-                <title>{f[0]}</title>
+                 data-place={f.place} data-year="" data-lane={b.title} data-why={f.why}>
+                <title>{f.place}</title>
                 <path d={`M ${nodeX(n - 1, n) + 9} ${sy} C ${nodeX(n - 1, n) + 110} ${sy}, ${FAN_X - 90} ${ty}, ${FAN_X} ${ty}`}
                       fill="none" stroke={b.tint} stroke-width="2.2"
-                      opacity={f[1] ? 0.5 : 0.85}
-                      stroke-dasharray={f[1] ? "7 6" : "0"} />
-                <circle cx={FAN_X} cy={ty} r="4" fill={f[1] ? "var(--panel)" : b.tint}
+                      opacity={f.dashed ? 0.5 : 0.85}
+                      stroke-dasharray={f.dashed ? "7 6" : "0"} />
+                <circle cx={FAN_X} cy={ty} r="4" fill={f.dashed ? "var(--panel)" : b.tint}
                         stroke={b.tint} stroke-width="2" />
-                <text x={LAB_X} y={ty + 4} class={f[1] ? "s-dest s-dim" : "s-dest"}>{f[0]}</text>
+                {f.href ? <a href={u(f.href)}>{lab}</a> : lab}
               </g>
             );
           })}
