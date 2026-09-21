@@ -80,7 +80,7 @@ const reachable = rows.filter((r) => /^https?:/.test(r.url || "")).length;
     <button type="button" data-g="all" aria-pressed="true">All {rows.length}</button>
     {groups.map((g) => (
       <button type="button" data-g={g.label} aria-pressed="false">
-        {g.label} <span style="opacity:.6">{(g.rows || []).length}</span>
+        {g.label}<span class="sr-n">{(g.rows || []).length}</span>
       </button>
     ))}
   </div>
@@ -152,6 +152,8 @@ const reachable = rows.filter((r) => /^https?:/.test(r.url || "")).length;
 
 <style is:global>
   .sr-f { margin: 0 0 1.6rem; }
+  /* A count welded to the label reads as one word — "Parish registers5". */
+  .sr-n { opacity: .6; margin-left: .45em; }
   .sr-g { margin: 0 0 2.1rem; }
   .sr-lab {
     font-family: var(--sans); font-size: 10px; font-weight: 600; letter-spacing: .13em;
