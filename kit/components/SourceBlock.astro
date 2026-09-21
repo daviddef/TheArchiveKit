@@ -1,0 +1,83 @@
+---
+/* What this page rests on — and a way to actually get there.
+
+   This is the more important half of the sources work, and it was found by
+   accident while measuring the other half. Defranceski does not only have the
+   best sources page in the estate; it has THIRTY-NINE PAGES THAT DECLARE
+   WHICH SOURCES THEY REST ON, each naming source ids that must resolve in
+   sources.json. Nothing else in the estate has anything like it.
+
+   That is why its sources page does not drift. A sources page is otherwise
+   the one page in an archive that goes stale silently, because nothing breaks
+   when it does — commits to each archive's data since its sources page was
+   last touched ran Lerena 302, Defranceski 121, Luwinski 93, Blazevic 64,
+   Booyzen 57, D'Arcy 29. A page that names its sources by id cannot drift
+   that way: the id has to exist, and a reader who follows it arrives at the
+   entry rather than at the bibliography's front door.
+
+   Defranceski's own comment records why the outward link was added, and it is
+   the whole argument of this file: the block «used to link only inward, to
+   this site's own bibliography, which answered "what is this" and never
+   "take me to it"».
+
+   The honest fallback matters as much as the link. Where a source is not
+   online, this says where the thing physically is rather than silently
+   printing nothing — because "we hold a photocopy in the source library" and
+   "you can read it this minute" are different answers and a reader is owed
+   the difference.
+
+     ids       source ids, in the order this page wants them read. An id that
+               does not resolve is DROPPED and counted, never rendered as a
+               blank: see `missing`, which a build gate reads.
+     sources   the archive's sources rows — the same array its sources page
+               groups. Handed in rather than imported, because the shape and
+               the location of that file differ across the estate.
+     note      one line of the page's own words about its sources.
+     href      where "the full bibliography" goes. Default /sources/.
+     u         the archive's url helper.
+*/
+const {
+  ids = [], sources = [], note, href = "/sources/", u = (p) => p,
+  label = "What this page rests on",
+} = Astro.props;
+
+const byId = new Map(sources.map((s) => [s.id, s]));
+const list = ids.map((i) => byId.get(i)).filter(Boolean);
+const missing = ids.filter((i) => !byId.has(i));
+
+const host = (url) => String(url || "").replace(/^https?:\/\/(www\.)?/, "").replace(/\/.*$/, "");
+const where = (s) => [s.kind, s.where || s.holder].filter(Boolean).join(" · ");
+---
+{list.length > 0 && (
+  <section class="srcblock" data-missing={missing.length || null}>
+    <div class="lab">{label}</div>
+    <div class="srclist">
+      {list.map((s) => (
+        <div class="srcitem">
+          <a href={u(`${href}#${s.id}`)}>{s.title}</a>
+          {where(s) && <span>{where(s)}</span>}
+          {s.url
+            ? <a class="srcout" href={s.url} rel="noopener" target="_blank">{host(s.url)} &#8599;</a>
+            : <span class="srcheld">{s.held
+                ? s.held
+                : "not online — see the bibliography for where it is held"}</span>}
+        </div>
+      ))}
+    </div>
+    {note && <p class="cap" style="margin-top:14px">{note}</p>}
+    <p class="cap" style="margin-top:10px"><a href={u(href)}>The full bibliography, with what
+    each source gave and where it is weak →</a></p>
+  </section>
+)}
+
+<style is:global>
+  .srcblock .srcout {
+    display: block; margin-top: 3px;
+    font: 400 11px/1.3 var(--mono); letter-spacing: .02em;
+    overflow-wrap: anywhere;
+  }
+  .srcblock .srcheld {
+    display: block; margin-top: 3px;
+    font: 400 11px/1.3 var(--mono); color: var(--ink-3); letter-spacing: .02em;
+  }
+</style>
