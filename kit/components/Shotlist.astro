@@ -1,0 +1,101 @@
+---
+/* What somebody standing in the right place should photograph.
+
+   Three archives keep this page and each asks the question from a different
+   end. Blazevic lists JOBS — a place, several things to capture there, and
+   what each would settle; its data was hard-coded in the page, eight objects
+   of it, which is the state every other list in this estate has already been
+   lifted out of. Lerena lists PLACES in priority order, each with one
+   headline and a separate "what to capture" line, because a photograph of
+   the wrong part of a thing is a wasted trip. Defranceski lists FRAMES along
+   a walk — day, subject, shot — which is an itinerary rather than a queue.
+
+   Those are the same idea at three sizes and the row below is the union of
+   them, not the average: a place, an optional grade, one or several things to
+   capture, and why the picture is worth the trip. The grade and the grouping
+   stay the archive's, as everywhere else in this kit — "first / when passing
+   / if you get there" is Blazevic's ranking of effort, and a walk is not a
+   priority at all.
+
+   `what` takes a string or a list. Blazevic's places want three or four
+   frames each and Lerena's want one sentence, and forcing either into the
+   other's shape would lose something.
+
+     groups  [{ label, note, rows }]
+     rows    [{ where, what, why, capture, tag, colour, links }]
+             `where` is the place; `what` the frame or frames; `capture` the
+             "photograph THIS part of it" line that Lerena keeps separate
+             because it is the difference between a useful trip and a wasted
+             one.
+     u       the archive's url helper.
+     html    true when the data carries markup. Default true.
+*/
+const { groups = [], u = (p) => p, html = true } = Astro.props;
+
+const B = u("/");
+const fix = (s) => String(s ?? "").replace(/href=(['"])\//g, `href=$1${B}`);
+const F = (s) => (html ? fix(s) : String(s ?? ""));
+const list = (v) => (Array.isArray(v) ? v : v == null || v === "" ? [] : [v]);
+const shots = groups.flatMap((g) => g.rows || []).length;
+---
+<div class="sl" data-shots={shots}>
+  {groups.map((g) => (
+    <section class="sl-g">
+      {g.label && (
+        <div class="sl-lab">{g.label}
+          {g.note ? <span class="sl-note"> — <Fragment set:html={F(g.note)} /></span> : null}
+        </div>
+      )}
+      {(g.rows || []).map((r) => (
+        <article class="sl-row" style={r.colour ? `border-left-color:${r.colour}` : null}>
+          <div class="sl-head">
+            {r.tag && (
+              <span class="sl-tag" style={r.colour ? `color:${r.colour};border-color:${r.colour}` : null}>
+                {r.tag}</span>
+            )}
+            {r.where && <h3 set:html={F(r.where)} />}
+          </div>
+          {list(r.what).length === 1
+            ? <p class="sl-what" set:html={F(list(r.what)[0])} />
+            : list(r.what).length > 1 && (
+                <ul class="sl-what-list">{list(r.what).map((w) => <li set:html={F(w)} />)}</ul>
+              )}
+          {r.capture && (
+            <p class="sl-cap"><strong>What to capture:</strong> <Fragment set:html={F(r.capture)} /></p>
+          )}
+          {r.why && <p class="sl-why" set:html={F(r.why)} />}
+          {(r.links || []).length > 0 && (
+            <p class="sl-go">{r.links.map(([label, href], i) => (
+              <Fragment>{i > 0 ? " · " : null}<a href={u(href)}>{label} →</a></Fragment>
+            ))}</p>
+          )}
+        </article>
+      ))}
+    </section>
+  ))}
+</div>
+
+<style is:global>
+  .sl-g { margin: 0 0 2rem; }
+  .sl-lab {
+    font-family: var(--sans); font-size: 10px; font-weight: 600; letter-spacing: .13em;
+    text-transform: uppercase; color: var(--ink-3); margin: 0 0 .8rem;
+  }
+  .sl-note { text-transform: none; letter-spacing: 0; font-weight: 400; }
+  .sl-row {
+    border: 1px solid var(--rule); border-left-width: 3px; border-left-color: var(--rule-strong);
+    padding: 1rem 1.2rem .85rem; margin: 0 0 1rem;
+  }
+  .sl-head { display: flex; align-items: baseline; gap: .7rem; flex-wrap: wrap; }
+  .sl-tag {
+    font-family: var(--sans); font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase;
+    padding: 2px 7px; border: 1px solid currentColor; color: var(--ink-3); white-space: nowrap;
+  }
+  .sl-head h3 { margin: 0; font-size: 1.14rem; font-family: var(--serif); line-height: 1.3; }
+  .sl-what { margin: .6rem 0 0; font-size: 1.02rem; }
+  .sl-what-list { margin: .6rem 0 0; padding-left: 1.15em; }
+  .sl-what-list li { margin-bottom: .35rem; }
+  .sl-cap { margin: .65rem 0 0; font-size: 14px; color: var(--ink-2); }
+  .sl-why { margin: .65rem 0 0; font-size: 14.5px; color: var(--ink-2); }
+  .sl-go { margin: .7rem 0 0; font-size: 14px; }
+</style>
