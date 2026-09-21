@@ -4,7 +4,7 @@
 Two questions nothing in this estate was asking, both raised on 21 September
 2026 and both answered badly when measured.
 
-REACHABLE. Of 208 sources across the six archives that hold theirs as data,
+REACHABLE, or said not to be. Of 208 sources across the six archives that hold theirs as data,
 58 carried a link to the source itself and all 58 belonged to one archive.
 Falco 0 of 26, Mazza 0 of 25, Booyzen 0 of 42, D'Arcy 0 of 18, Blazevic 0 of
 12. Two archives do link, but inward, at their own pages — navigation, not a
@@ -126,7 +126,16 @@ def main():
         print("  FAIL  sources    %s parsed, but no rows were found in it" % path)
         return 1
 
-    unreachable = [r for r in rows if not url_of(r)]
+    # Three states, not two. A url means a reader can go and look. `held`
+    # means the thing is paper in somebody's house and the row SAYS SO, which
+    # is a different answer from a dead link and the only honest one for a
+    # certificate issued by a comune in 2003. Counting those as failures
+    # forever would mean the number could never reach zero, and a gate whose
+    # target is unreachable is a gate people stop reading.
+    reachable = [r for r in rows if url_of(r)]
+    declared = [r for r in rows
+                if not url_of(r) and isinstance(r, dict) and r.get("held")]
+    unreachable = [r for r in rows if r not in reachable and r not in declared]
     n, tot = len(unreachable), len(rows)
 
     # Staleness: hosts the archive links to in its data that its sources page
@@ -167,11 +176,13 @@ def main():
         print("  FAIL  sources    %d of %d sources cannot be reached, and the ratchet is %d — "
               "this number may only go down%s" % (n, tot, a.max_unreachable, tail))
         return 1
+    held = (" · %d held as paper and said to be" % len(declared)) if declared else ""
     if n:
-        print("  ok    sources    %d of %d reachable, %d not%s"
-              % (tot - n, tot, n, tail))
+        print("  ok    sources    %d of %d reachable%s, %d with no way to reach them%s"
+              % (len(reachable), tot, held, n, tail))
     else:
-        print("  ok    sources    all %d sources reachable%s" % (tot, tail))
+        print("  ok    sources    every source reachable or accounted for — %d of %d "
+              "linked%s%s" % (len(reachable), tot, held, tail))
     return 0
 
 
