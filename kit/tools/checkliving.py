@@ -127,15 +127,39 @@ def older_than(born, years, today):
     return bool(m) and (today.year - int(m.group(1))) > years
 
 
+UNREADABLE = []          # data files this gate could not parse — see below
+
+
 def from_data(data_dir, today):
-    """Living people and their dates, out of the committed data."""
-    living, presumed = {}, 0
+    """Living people and their dates, out of the committed data.
+
+    A FILE THIS CANNOT READ IS NOT A FILE WITH NOBODY IN IT. The parse
+    failure below used to `continue`, so a malformed people file dropped
+    every living person it held and the gate printed «0 flagged in the data
+    · ok». Tested 23 September 2026: one living person, one page naming
+    them, sound data — caught. The same build with a truncated JSON file —
+    «0 flagged», exit 0. The gate passed while knowing nothing, and its own
+    summary line read as a fact about the archive rather than as a failure
+    to read one.
+
+    The Falco session put the general form of this better than I can: a
+    refusal that is not counted is indistinguishable from a match. It found
+    it in a name test that skipped a person with `continue` and never added
+    them to the refused list. This is the same shape in the one gate in this
+    estate that must never be wrong, and it is the third instance tonight of
+    a check reporting on a question it had not managed to ask.
+
+    Unreadable files are collected and the caller refuses on them.
+    """
+    living, presumed, skipped = {}, 0, 0
+    del UNREADABLE[:]
     for f in sorted(os.listdir(data_dir)) if os.path.isdir(data_dir) else []:
         if not f.endswith(".json"):
             continue
         try:
             j = json.load(open(os.path.join(data_dir, f), encoding="utf-8"))
-        except Exception:
+        except Exception as e:
+            UNREADABLE.append((f, str(e).split("\n")[0][:90]))
             continue
         for r in rows_of(j):
             flagged = any(r.get(k) is True for k in LIVING_KEYS) or \
@@ -144,6 +168,9 @@ def from_data(data_dir, today):
                 continue
             name = norm(first(r, NAME_KEYS))
             if not name or len(name) < 3:
+                # A living person this gate cannot name is a living person it
+                # cannot protect. Counted and printed rather than dropped.
+                skipped += 1
                 continue
             born, died = first(r, BORN_KEYS), first(r, DIED_KEYS)
             if older_than(born, PRESUME_DEAD_AFTER, today):
@@ -154,7 +181,7 @@ def from_data(data_dir, today):
                 for rx in (FULL_DATE, ISO_DATE, SLASH_DATE):
                     dates.update(m.group(0) for m in rx.finditer(blob))
             living.setdefault(name, set()).update(dates)
-    return living, presumed
+    return living, presumed, skipped
 
 
 def published_names(data_dir):
@@ -408,7 +435,20 @@ def main():
                              f"for {', '.join(names)}", a.quiet)
 
     # derived: read the archive's own committed data
-    living, presumed = from_data(a.data, today)
+    living, presumed, skipped = from_data(a.data, today)
+    if UNREADABLE:
+        # THE GATE CANNOT ANSWER, SO IT MUST NOT PASS. A file it could not
+        # parse holds an unknown number of living people, and every one of
+        # them is invisible to every check below.
+        print(f"  FAIL  living      {len(UNREADABLE)} data file(s) could not be read, "
+              f"so this gate does not know who is living")
+        for f, why in UNREADABLE:
+            print(f"          {f} — {why}")
+        return 1
+    if skipped:
+        print(f"  FAIL  living      {skipped} person(s) flagged living carry no usable "
+              f"name in the data, so nothing can be searched for")
+        return 1
     if not a.quiet:
         print(f"  living: {len(living)} flagged in the data, {presumed} presumed dead "
               f"by the {PRESUME_DEAD_AFTER}-year rule · policy {a.policy}")
