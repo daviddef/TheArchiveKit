@@ -101,6 +101,17 @@ export function surnameDoors(name, { own = "", families = [], ring = [] } = {}) 
     }
   }
 
+  /* NO KEY, NO RING. The prop comment has always said the ring is not
+     consulted without `own` — and the code did not do it, so an archive
+     that forgot to pass its key was compared against every site in the
+     estate INCLUDING ITSELF. Lerena repinned without one and its own
+     pages came out carrying five doors to the Lerena Archive: links from
+     a site back to the site you are reading.
+
+     A self-door is worse than a missing door. It tells a reader there is
+     somewhere else to go and then does not take them anywhere, and it is
+     the kind of thing that survives for months because nothing errors. */
+  if (!own) return out;
   const sites = Array.isArray(ring) ? ring : Object.values(ring || {}).find(Array.isArray) || [];
   ringPass: for (const text of passes) {
     for (const a of sites) {
