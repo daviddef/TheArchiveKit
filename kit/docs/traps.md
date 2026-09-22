@@ -542,3 +542,46 @@ knowing:
 - A local `check:pin` pass, for the reason above.
 
 Only cloning settled it.
+
+## An empty slot is not a missing field, and one of them is unsafe to fill
+
+An audit of the six spines found most of `Spine`'s nineteen row fields
+unpassed, and the obvious reading — the adapters are thin, go and fill them —
+is wrong in three different ways. The Booyzen session measured what it could
+actually fill before filling anything, and the correction is worth more than
+the audit was.
+
+**`href` IS UNSAFE TO FILL MECHANICALLY, and this is the important one.**
+Booyzen's generations five and six are both *Petrus Jacobus Booysen*, father
+and son, and they slug identically. Pointing both at one dossier would
+quietly assert they are the same man — **on the page whose entire job is to
+show a descent**, and against this estate's oldest standing rule, which is
+that it never merges records on a name.
+
+It is not one archive's problem. Measured across the estate, **five of seven
+spines carry a repeated name**: Falco has two *Raffaele Falco*, generations
+four and six, born 1818 and 1873 — grandfather and grandson. D'Arcy repeats
+*George Pitt D'Arcy*, Mazza two names, Defranceski three. These families
+reuse forenames relentlessly and the spine is exactly where the reuse
+concentrates, because it follows one line of men.
+
+**A slot can be cosmetic.** `bornPlace`/`diedPlace` render as
+«born <date>, <place>» — which in Booyzen is already the whole string sitting
+in `born`. Splitting it changes markup and not one pixel. In Falco the same
+fields are separate in the data and genuinely missing from the page. The slot
+is worth filling in one archive and pure churn in the other.
+
+**A slot can be worse than empty.** `confidence` would print `doc` against
+every Booyzen generation, because all five are documented — a chip that never
+varies is furniture. And it would sit beside generation seven's `weakNote`
+and read as reassurance next to the paragraph explaining that the row rests
+on one clerk's hand against a printed genealogy that disagrees.
+
+**And an empty slot sometimes means the archive drew it better.** Booyzen
+passes no `household` because the page already prints that generation's eight
+children as a table with dates; the component would duplicate it.
+
+So the finding is not «the adapters are thin». It is that **the component is
+richer than most spines have evidence for**, and a count of filled slots is a
+prompt to look, never a target to hit. Any gate built on that count would be
+measuring the wrong thing.
