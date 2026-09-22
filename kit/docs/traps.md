@@ -583,5 +583,16 @@ children as a table with dates; the component would duplicate it.
 
 So the finding is not «the adapters are thin». It is that **the component is
 richer than most spines have evidence for**, and a count of filled slots is a
-prompt to look, never a target to hit. Any gate built on that count would be
-measuring the wrong thing.
+prompt to look, never a target to hit.
+
+A ratchet on that count was proposed and dropped, and the reason generalises
+past this case: **a metric whose cheapest win is its most dangerous action is
+worse than no metric.** The easiest way to raise a filled-slot count was
+`href`, and `href` is the one that merges people. It would have paid six
+archives to do the unsafe thing.
+
+And one pair is worse than a matching string. Falco carries *Carmine Antonio
+Falco* at generation five and *Carmine Antonio (Carminantonio) Falco* at
+generation seven. A looser slug collapses them; a stricter one does not. So
+**whether those two men are the same person becomes a property of the slug
+function** — which is not a place to keep an assertion about a family.
