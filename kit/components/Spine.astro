@@ -94,24 +94,76 @@ const clip = (v, n = 34) => {
   const c = String(v ?? "").split(/\s+[\u2013\u2014-]\s+/)[0].trim();
   return c.length > n ? c.slice(0, n - 2).replace(/[\s,(]+$/, "") + "\u2026" : c;
 };
-const place = (g) => {
-  // A PILL IS A PLACE, NOT A CLAUSE. Falco's g3 carries "Arienzo \u2014
-  // baptised in the Collegiate Church of Sant'Andrea Apostolo", which is
-  // right in the full row and a paragraph in a pill. Cut at the dash that
-  // introduces a gloss; keep commas and parentheses, because "Arienzo,
-  // strada Camellara" is one address and "(Avellino)" is the province that
-  // tells two Cervinaras apart.
-  const raw = String(g.bornPlace || g.birthPlace || g.diedPlace || g.deathPlace || g.place || "");
-  return clip(raw, 42);
+// A LONE YEAR MUST SAY WHICH YEAR IT IS. Defranceski's generation seven
+// has a death in 2026 and no birth — his widow is living and the dates are
+// withheld — so the row read "2026" and any reader takes a single year on
+// a pedigree for a birth.
+const years = (g) => {
+  const b = yr(g.born), d = yr(g.died);
+  if (b && d) return b + " \u2013 " + d;
+  if (b) return "b. " + b;
+  if (d) return "d. " + d;
+  return "?";
 };
-
+const place = (g) => {
+  // A PILL IS A PLACE, NOT A CLAUSE AND NOT A POSTAL HIERARCHY. Two faults
+  // showed up the moment real data went through it:
+  //   Falco g3   "Arienzo \u2014 baptised in the Collegiate Church of
+  //              Sant'Andrea Apostolo" — a gloss after a dash.
+  //   D'Arcy g5  "Brisbane, Brisbane, Queensland, Australia" — the town
+  //              twice and then the country, four levels deep.
+  // So: cut the gloss, drop a repeated level, drop the "Of," D'Arcy's tree
+  // prefixes seats with, then keep whole comma levels while they fit. The
+  // levels that fall off the end are the general ones, which is the right
+  // way round — "Darcy Meynill, Yorkshire" says more than "Yorkshire,
+  // England" and, in that row, does not repeat a Cattaraugus County that
+  // has no business in Yorkshire anyway.
+  const raw = String(g.bornPlace || g.birthPlace || g.diedPlace || g.deathPlace || g.place || "");
+  const parts = [];
+  for (const seg of raw.split(/\s+[\u2013\u2014-]\s+/)[0].split(",")) {
+    const t = seg.trim();
+    if (!t || /^of$/i.test(t)) continue;
+    if (parts.length && parts[parts.length - 1].toLowerCase() === t.toLowerCase()) continue;
+    parts.push(t);
+  }
+  let out = "";
+  for (const t of parts) {
+    const next = out ? out + ", " + t : t;
+    if (next.length > 30) break;
+    out = next;
+  }
+  return out || clip(parts[0] || "", 30);
+};
 // D'ARCY MARKS NINE OF FIFTEEN JOINTS UNPROVEN, and a badge repeated down
 // two thirds of a column tells the reader nothing — it reads as a rendering
 // fault, which is exactly what was reported. Past a third of the rows the
 // per-row label is dropped for one sentence underneath; the left rule stays,
 // so nothing is hidden, it is just said once.
+// Folding nine repeated badges into one sentence must not fold away a
+// grade that says something else. D'Arcy's generation nine is "disputed" —
+// the archive has looked and rejected it — which is not the same claim as
+// the eight around it that were simply never judged.
+const generic = (c) => /^(unproven|not proved|unknown|unjudged|inferred)$/i.test(String(c).trim());
 const weakCount = rows.filter((r) => r.weak).length;
 const weakIsNoise = rows.length >= 6 && weakCount > rows.length / 3;
+
+// ONE MARKER PER ROW. Defranceski's generation one is graded "family" —
+// this archive's word for a generation carried on the family's own descent
+// chart and named by no register — and the row drew that pill AND a "joint
+// unproven" badge beside it, which is the same statement twice in two
+// vocabularies. The archive's own word wins where it has one; "joint
+// unproven" is the fallback for a weak row graded only in the generic
+// terms, and it disappears entirely into the footnote when the ratio makes
+// it noise.
+const grade = (g) => {
+  if (g.living) return "";
+  const c = String(g.confidence || "").trim();
+  if (g.weak) {
+    if (c && !generic(c)) return c;
+    return weakIsNoise ? "" : "joint unproven";
+  }
+  return c;
+};
 
 const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;");
 ---
@@ -139,11 +191,10 @@ const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;");
         </span>
         {g.living
           ? <span class="sp-cy">living &#8212; named only</span>
-          : <span class="sp-cy">{[g.born, g.died].map(yr).filter(Boolean).join(" \u2013 ") || "?"}</span>}
+          : <span class="sp-cy">{years(g)}</span>}
         <span class="sp-cpills">
           {!g.living && place(g) ? <span class="sp-pill sp-place">{place(g)}</span> : null}
-          {!g.living && g.confidence ? <span class={"sp-pill sp-conf sp-" + String(g.confidence).toLowerCase().replace(/[^a-z]+/g, "-")}>{g.confidence}</span> : null}
-          {g.weak && !weakIsNoise ? <span class="sp-pill sp-unproven">joint unproven</span> : null}
+          {grade(g) ? <span class={"sp-pill sp-conf sp-" + grade(g).toLowerCase().replace(/[^a-z]+/g, "-")}>{grade(g)}</span> : null}
         </span>
         {(meta.length || kids.length) ? (
           <span class="sp-cmeta">
@@ -163,8 +214,8 @@ const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;");
       </>);})}
   </ol>
   {weakIsNoise ? (
-    <p class="sp-cfoot">{weakCount} of {rows.length} joints below are asserted by the tree and not
-      proved by a record &#8212; they are marked with a rule down the left.</p>
+    <p class="sp-cfoot">{weakCount} of these {rows.length} joints are asserted by the tree and not
+      proved by a record. They carry a rule down the left.</p>
   ) : null}
   </div>
 ) : (
@@ -242,7 +293,9 @@ const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;");
   .sp-place { color: var(--ink-2); }
   .sp-documented { border-color: var(--rule-strong); color: var(--ink-1); }
   .sp-inferred, .sp-probable { border-style: dashed; }
-  .sp-unproven, .sp-not-proved, .sp-disputed { border-color: var(--ochre); color: var(--ochre); }
+  .sp-joint-unproven, .sp-unproven, .sp-not-proved, .sp-disputed, .sp-family {
+    border-color: var(--ochre); color: var(--ochre);
+  }
   .sp-cmeta { grid-area: meta; display: flex; flex-wrap: wrap; gap: .2rem .8rem; align-items: baseline; margin-top: .1rem; }
   .sp-cm, .sp-ckids { font-size: 12.5px; color: var(--ink-2); display: flex; flex-wrap: wrap; gap: .3rem; align-items: baseline; }
   .sp-cm i, .sp-ckids i {
