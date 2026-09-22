@@ -34,9 +34,42 @@
    so a document carried the same id four times - invalid, and an anchor to it
    resolves to whichever came first. Defaults to the old value, so no archive that
    does not pass it sees any change. */
-const { rows = [], u = (p) => p, label = "Generation", Plate, idPrefix = "gen-" } = Astro.props;
+const {
+  rows = [], u = (p) => p, label = "Generation", Plate, idPrefix = "gen-",
+  /* COMPACT: the same line, one row deep, for a homepage.
+     Three of eight archives showed their line on the front page and five
+     showed none — raised by David on 22 September, and the cause was not a
+     missing component but a missing SIZE of one. Blazevic, Lerena and
+     Luwinski had each hand-built a short ladder; the other five linked to
+     the full spine and drew nothing.
+
+     `href` IS DELIBERATELY IGNORED HERE and every row links to its own
+     generation anchor on the full spine instead. A person link is not safe
+     on a spine: five of the estate's seven carry a repeating forename, and
+     Falco has two Raffaele Falco — generations four and six, grandfather and
+     grandson — who slug identically. POSITION IN A LINE IS UNIQUE BY
+     CONSTRUCTION AND A NAME IS NOT, so the anchor is the only link that
+     cannot quietly merge two men. `full` is where the anchors live. */
+  compact = false,
+  full = "/direct-line/",
+} = Astro.props;
 const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;");
 ---
+{compact ? (
+  <ol class="sp-c">
+    {rows.map((g) => (
+      <li class={"sp-cg" + (g.weak ? " sp-cweak" : "")}>
+        <span class="sp-cn mono">{(label[0] || "g").toLowerCase()}{g.gen}</span>
+        <a class="sp-cl" href={u(`${full}#${idPrefix}${g.gen}`)}>{g.name}</a>
+        {g.living
+          ? <span class="sp-cy">living — named only</span>
+          : <span class="sp-cy">{[g.born, g.died].filter(Boolean).join(" – ") || "?"}</span>}
+        <span class="sp-cp">{g.bornPlace || g.diedPlace || ""}</span>
+        {g.weak ? <span class="sp-cw" title={g.weakNote ? String(g.weakNote).replace(/<[^>]+>/g, "") : null}>joint unproven</span> : null}
+      </li>
+    ))}
+  </ol>
+) : (
 <ol class="sp">
   {rows.map((g) => (
     <li class={"sp-g" + (g.weak ? " sp-weak" : "")} id={idPrefix + g.gen}>
@@ -83,8 +116,32 @@ const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;");
     </li>
   ))}
 </ol>
+)}
 
 <style is:global>
+  /* Compact: one generation per line, for a front page. Deliberately not a
+     shrunken copy of the full row — a homepage ladder answers "how far back,
+     and where" and nothing else. */
+  .sp-c { list-style: none; margin: 1.1rem 0 0; padding: 0; }
+  .sp-cg {
+    display: grid; gap: .1rem .9rem; align-items: baseline;
+    grid-template-columns: 2.2rem minmax(0, 18rem) auto 1fr auto;
+    padding: .45rem 0; border-top: 1px solid var(--rule);
+  }
+  .sp-c li:first-child { border-top: 0; }
+  .sp-cn { font-size: 11.5px; color: var(--ink-3); }
+  .sp-cl { font-family: var(--serif); font-size: 1.04rem; overflow-wrap: anywhere; }
+  .sp-cy { font-family: var(--mono); font-size: 12.5px; color: var(--ink-2); white-space: nowrap; }
+  .sp-cp { font-size: 12.5px; color: var(--ink-3); overflow-wrap: anywhere; }
+  .sp-cweak { border-left: 2px solid var(--ochre); padding-left: .6rem; }
+  .sp-cw {
+    font-family: var(--sans); font-size: 9.5px; letter-spacing: .09em;
+    text-transform: uppercase; color: var(--ochre); white-space: nowrap;
+  }
+  @media (max-width: 620px) {
+    .sp-cg { grid-template-columns: 2.2rem 1fr; }
+    .sp-cy, .sp-cp, .sp-cw { grid-column: 2; }
+  }
   .sp { list-style:none; margin:1.2rem 0; padding:0; }
   .sp-g { display:grid; grid-template-columns:7.5rem 1fr; gap:0 1.2rem;
     border-left:2px solid var(--rule,#ddd); padding:0 0 1.3rem 1.2rem; margin-left:.4rem;
