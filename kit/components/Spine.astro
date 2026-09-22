@@ -39,6 +39,8 @@
  *           household: {label, members: [{name, dates, line, href, note}]},
  *           sources: [{label}], plates: [id]}]
  *   Plate  optional component rendered as <Plate ids={row.plates} />
+ *   archiveKey / families — see the prop comment: the off-page connectors
+ *   from a marriage to the family, and to the sibling archive, it joins.
  *
  *   `via` — how the line passes INTO this generation when that is not
  *   obvious from the surname. Mazza's eight Prostamos sit above one Mazza
@@ -54,8 +56,34 @@
    so a document carried the same id four times - invalid, and an anchor to it
    resolves to whichever came first. Defaults to the old value, so no archive that
    does not pass it sees any change. */
+import RING from "../data/archives.json";
+import { surnameDoors } from "../lib/offpage.js";
+
 const {
   rows = [], u = (p) => p, label = "Generation", Plate, idPrefix = "gen-",
+  /* OFF-PAGE CONNECTORS. «could you visually show the off page connector
+     in these lines to the "families"? … so we actually get to navigate
+     along the spine to the interlinked familiies?» — 22 September.
+
+     A spine is a column of couples and every wife on it is a door into
+     another family. Blazevic keeps a page on Papić and on Žubrinić, and
+     the only way to reach either was a dropdown in the nav; the page that
+     actually shows the marriage offered nothing. And Hedviga married out
+     of the Croatian archive into the Istrian one, which is a different
+     site and was not linked at all.
+
+       archiveKey  this archive's key in the ring, so it never doors to
+                   itself. Without it the ring is not consulted.
+       families    [{label, href, surnames?}] this site's own family pages.
+
+     Matched on a SURNAME, which is not an identity — and that is right
+     here and wrong for the person links on the same row. A family page is
+     about everyone of a name, so landing on Papić because the wife is
+     called Papić is correct even when two women share it. A person link
+     built that way would merge them. Families by name, people by
+     identifier, never the reverse. */
+  archiveKey = "",
+  families = [],
   /* COMPACT: the same line, one row deep, for a homepage.
      Three of eight archives showed their line on the front page and five
      showed none — raised by David on 22 September, and the cause was not a
@@ -199,6 +227,9 @@ const storedYoungestFirst = (rs) => {
   return down;
 };
 const ordered = storedYoungestFirst(rows) ? [...rows].reverse() : rows;
+const doorsFor = (g) =>
+  g.living || !g.spouse ? []
+    : surnameDoors(g.spouse, { own: archiveKey, families, ring: RING });
 
 const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;");
 ---
@@ -234,6 +265,14 @@ const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;");
           {!g.living && place(g) ? <span class="sp-pill sp-place">{place(g)}</span> : null}
           {grade(g) ? <span class={"sp-pill sp-conf sp-" + grade(g).toLowerCase().replace(/[^a-z]+/g, "-")}>{grade(g)}</span> : null}
         </span>
+        {doorsFor(g).length ? (
+          <span class="sp-cdoors">
+            {doorsFor(g).map((d) => (
+              <a class={"sp-door" + (d.external ? " sp-dout" : "")} href={d.external ? d.href : u(d.href)}>
+                {d.label}{d.external ? " \u2197" : " \u2192"}</a>
+            ))}
+          </span>
+        ) : null}
         {(meta.length || kids.length) ? (
           <span class="sp-cmeta">
             {meta.map(([k, v]) => <span class="sp-cm"><i>{k}</i>{v}</span>)}
@@ -306,6 +345,15 @@ const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;");
           <p class="sp-w"><strong>The joint here will not bear weight.</strong>{" "}
             {g.weakNote ? <Fragment set:html={g.weakNote} /> : "The tree asserts it and no record names the father."}</p>
         ) : null}
+        {doorsFor(g).length ? (
+          <p class="sp-doors">
+            <span class="sp-k">joins</span>
+            {doorsFor(g).map((d) => (
+              <a class={"sp-door" + (d.external ? " sp-dout" : "")} href={d.external ? d.href : u(d.href)}>
+                {d.label}{d.external ? " \u2197" : " \u2192"}</a>
+            ))}
+          </p>
+        ) : null}
         {!g.living && g.household && (g.household.members || []).length ? (
           <div class="sp-house">
             <p class="sp-hl">{g.household.label || "In the house"}</p>
@@ -349,7 +397,7 @@ const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;");
   .sp-cg {
     display: grid; gap: .15rem .9rem; align-items: baseline;
     grid-template-columns: 2.2rem minmax(0, 1fr) auto auto;
-    grid-template-areas: "n names years pills" ". meta meta meta";
+    grid-template-areas: "n names years pills" ". meta meta meta" ". doors doors doors";
     padding: .5rem 0; border-top: 1px solid var(--rule);
   }
   .sp-c li:first-child { border-top: 0; }
@@ -390,12 +438,24 @@ const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;");
     font-family: var(--sans); font-size: 10.5px; letter-spacing: .06em;
     text-transform: uppercase; color: var(--ink-3);
   }
+  .sp-cdoors { grid-area: doors; display: flex; flex-wrap: wrap; gap: .3rem; margin-top: .15rem; }
+  .sp-doors { margin: .45rem 0 0; display: flex; flex-wrap: wrap; gap: .3rem; align-items: baseline; }
+  .sp-door {
+    font-family: var(--sans); font-size: 10px; letter-spacing: .08em; text-transform: uppercase;
+    border: 1px solid var(--rule); padding: .1rem .4rem; text-decoration: none;
+    color: var(--ink-2); white-space: nowrap;
+  }
+  .sp-door:hover { border-color: var(--rule-strong); }
+  /* A door to another SITE is not the same promise as a door to another
+     page of this one, and the reader should be able to see which is which
+     before clicking. */
+  .sp-dout { border-style: dashed; }
   .sp-cweak { border-left: 2px solid var(--ochre); padding-left: .6rem; }
   .sp-cfoot { margin: .7rem 0 0; font-size: 12.5px; color: var(--ink-3); border-top: 1px solid var(--rule); padding-top: .6rem; }
   @media (max-width: 680px) {
     .sp-cg {
       grid-template-columns: 2.2rem 1fr;
-      grid-template-areas: "n names" ". years" ". pills" ". meta";
+      grid-template-areas: "n names" ". years" ". pills" ". meta" ". doors";
     }
     .sp-cpills { justify-content: flex-start; }
   }
