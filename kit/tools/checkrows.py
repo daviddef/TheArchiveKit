@@ -56,23 +56,35 @@ ROW = re.compile(r'<li class="sp-(?:cg|g)[^"]*"', re.I)
 
 
 def pages(root):
-    """The two pages that draw a line, wherever the build put them."""
+    """EVERY BUILT PAGE THAT DRAWS A SPINE ROW, not a list of two.
+
+    The first version looked at index.html and direct-line/index.html and
+    nothing else — which left Lerena's Argentina and Uruguay descents and
+    Luwinski's Wear line outside the gate entirely. That is the same
+    mistake this tool exists to correct, committed inside the correction:
+    a measure that inspects part of the estate and reports on all of it.
+
+    Person pages are scanned too and cost nothing, because they draw
+    `pt-` nodes rather than spine rows and simply do not match.
+    """
+    dist = os.path.join(root, "dist")
+    if not os.path.isdir(dist):
+        return []
     out = []
-    for rel in ("index.html", "direct-line/index.html"):
-        p = os.path.join(root, "dist", rel)
-        if os.path.exists(p):
-            out.append((rel, p))
+    for f in sorted(glob.glob(os.path.join(dist, "**", "*.html"), recursive=True)):
+        try:
+            s = open(f, encoding="utf-8", errors="ignore").read()
+        except OSError:
+            continue
+        if ROW.search(s):
+            out.append((os.path.relpath(f, dist).replace(os.sep, "/"), f, s))
     return out
 
 
 def count(root):
     tally, rows = {k: 0 for k in MARKS}, 0
     looked = []
-    for rel, p in pages(root):
-        try:
-            s = open(p, encoding="utf-8", errors="ignore").read()
-        except OSError:
-            continue
+    for rel, _p, s in pages(root):
         n = len(ROW.findall(s))
         if not n:
             continue
