@@ -77,6 +77,25 @@ RX = {k: re.compile("|".join(pats)) for k, pats in MARKS.items()}
 ROW = re.compile(r'<li class="sp-(?:cg|g)[^"]*"|<div class="dsc-gen"', re.I)
 
 
+def outdir(root):
+    """WHICH BUILT DIRECTORY TO READ, and why it is not always `dist`.
+
+    Several sessions build these archives at once and they share a working
+    tree, so `dist` is routinely half-written by somebody else — it has
+    already produced one false «868 broken links» and one false «187 record
+    lines reach 0 of 60 people», each costing ten minutes of hunting a fault
+    in the data. The estate's answer is to build to a private directory,
+    `ARCHIVE_OUT=dist-verify`, which every other tool in this kit honours.
+
+    THIS ONE DID NOT, and it was the worst one to miss: run under
+    `ARCHIVE_OUT=dist-verify --write-floor`, it read a stale `dist` and wrote
+    a floor from a build nobody had just made. A ratchet set from the wrong
+    directory is worse than no ratchet — it passes whatever is there and
+    silently forgives whatever is not.
+    """
+    return os.path.join(root, os.environ.get("ARCHIVE_OUT", "dist"))
+
+
 def pages(root):
     """EVERY BUILT PAGE THAT DRAWS A SPINE ROW, not a list of two.
 
@@ -89,7 +108,7 @@ def pages(root):
     Person pages are scanned too and cost nothing, because they draw
     `pt-` nodes rather than spine rows and simply do not match.
     """
-    dist = os.path.join(root, "dist")
+    dist = outdir(root)
     if not os.path.isdir(dist):
         return []
     out = []
@@ -151,7 +170,7 @@ def main():
         # own repository: a gate that cannot find its subject must say so
         # and must not pass silently.
         print("  --    rows       not run: no built page under %s draws a spine row"
-              % os.path.join(a.root, "dist"))
+              % outdir(a.root))
         return 0
 
     fp = floor_path(a.root, a.floor_file)
