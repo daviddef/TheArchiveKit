@@ -36,6 +36,8 @@
  *
  *   rows  [{gen, name, latin, spouse, href, born, bornPlace, died, diedPlace,
  *           trade, living, weak, weakNote, note, confidence, married, via,
+ *           offpage: [{label, href, external, through}] — doors the archive
+ *           states itself, `through` naming who the join runs by,
  *           household: {label, members: [{name, dates, line, href, note}]},
  *           sources: [{label}], plates: [id]}]
  *   Plate  optional component rendered as <Plate ids={row.plates} />
@@ -234,8 +236,27 @@ const ordered = storedYoungestFirst(rows) ? [...rows].reverse() : rows;
    estate: Falco's living generation nine married a D'Arcy, which is the
    join between two of these archives, and it was the one row that would
    not say so. */
-const doorsFor = (g) =>
-  !g.spouse ? [] : surnameDoors(g.spouse, { own: archiveKey, families, ring: RING });
+/* SOME DOORS CANNOT BE DERIVED FROM A SURNAME, and they are the ones that
+   matter most. D'Arcy's last two rows are living, carry no spouse in the
+   data, and were therefore dead ends — at exactly the point where this
+   estate joins up. As David put it on 22 September: «ian kenneth has
+   Cristina and Stefanie as children. stefanie is marreid to mazza, and
+   cristina is married to defranceski — thats your connectors».
+
+   Neither is visible to the surname rule: one is a marriage of a daughter
+   who is not on this spine at all, and the other is a living woman whose
+   husband the archive does not list. So a row may state its own doors,
+   with `through` to say who the join runs by, and they are drawn before the
+   derived ones. A stated door is the archive speaking; it is never
+   guessed here.
+
+   This is a relationship, which is what the estate's rule on living
+   people allows — a name and a relationship and nothing else. No date,
+   no place, and no more than the sibling archive already publishes. */
+const doorsFor = (g) => [
+  ...(Array.isArray(g.offpage) ? g.offpage : []),
+  ...(g.spouse ? surnameDoors(g.spouse, { own: archiveKey, families, ring: RING }) : []),
+];
 
 const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;");
 ---
@@ -274,8 +295,9 @@ const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;");
         {doorsFor(g).length ? (
           <span class="sp-cdoors">
             {doorsFor(g).map((d) => (
-              <a class={"sp-door" + (d.external ? " sp-dout" : "")} href={d.external ? d.href : u(d.href)}>
-                {d.label}{d.external ? " \u2197" : " \u2192"}</a>
+              <a class={"sp-door" + (d.external ? " sp-dout" : "")} href={d.external ? d.href : u(d.href)}
+                 title={d.through || undefined}>
+                {d.through ? `${d.through}: ` : ""}{d.label}{d.external ? " \u2197" : " \u2192"}</a>
             ))}
           </span>
         ) : null}
@@ -355,8 +377,9 @@ const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;");
           <p class="sp-doors">
             <span class="sp-k">joins</span>
             {doorsFor(g).map((d) => (
-              <a class={"sp-door" + (d.external ? " sp-dout" : "")} href={d.external ? d.href : u(d.href)}>
-                {d.label}{d.external ? " \u2197" : " \u2192"}</a>
+              <a class={"sp-door" + (d.external ? " sp-dout" : "")} href={d.external ? d.href : u(d.href)}
+                 title={d.through || undefined}>
+                {d.through ? `${d.through}: ` : ""}{d.label}{d.external ? " \u2197" : " \u2192"}</a>
             ))}
           </p>
         ) : null}

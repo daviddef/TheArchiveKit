@@ -42,6 +42,23 @@ const B = u("/");
 const fix = (s) => String(s ?? "").replace(/href=(['"])\//g, `href=$1${B}`);
 const F = (s) => (html ? fix(s) : String(s ?? ""));
 const list = (v) => (Array.isArray(v) ? v : []);
+
+/* AN ANCHOR PER SURNAME, so a spine can door straight to the family a
+   marriage joined. Asked for on 22 September: «we actually get to
+   navigate along the spine to the interlinked familiies». Blazevic keeps
+   a page per surname and can be linked directly; D'Arcy and Falco keep
+   one page with a section each, and until now there was nothing to aim
+   at but the top of it — thirteen families deep, in D'Arcy's case.
+
+   Taken from the row's own `slug` when it has one, and otherwise folded
+   off the label, so no archive has to add a field to be reachable. */
+const anchorOf = (r) =>
+  r.slug ||
+  String(r.label ?? "")
+    .replace(/<[^>]+>/g, " ")
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") ||
+  null;
 ---
 <div class="fm">
   {groups.map((g) => (
@@ -52,7 +69,7 @@ const list = (v) => (Array.isArray(v) ? v : []);
         </div>
       )}
       {list(g.rows).map((r) => (
-        <article class="fm-row">
+        <article class="fm-row" id={anchorOf(r)}>
           <div class="fm-head">
             <h3 set:html={F(r.label)} />
             {r.count != null && (
