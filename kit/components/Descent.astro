@@ -407,7 +407,25 @@ const sibCount = (g) => list(g.hisSiblings).length + list(g.herSiblings).length;
     .dsc-rail { flex-direction: row; align-items: center; justify-content: flex-start; gap: .7rem; padding-top: 0; }
     .dsc-era { text-align: left; }
     .dsc-couple, .dsc-sibs { grid-template-columns: 1fr; }
-    .dsc-x { justify-content: flex-start; padding: .35rem 0; }
+    /* THE MULTIPLICATION SIGN STOPS MEANING ANYTHING ONCE THE COLUMNS STACK.
+     *
+     * Between two columns it reads as «this person and that person». Once the
+     * couple becomes one column it is a lone glyph on its own line between two
+     * names — a typo, or a button that deletes something. Seen on a phone on
+     * the published Kosina page, which is where this was asked for in the
+     * first place: «ideally with collapsed text, but it is simple».
+     *
+     * It becomes a rule with the sign sitting in it, which says «these two
+     * belong together» in a shape that survives the stack. Still
+     * aria-hidden, so a screen reader hears the two people and no glyph. */
+    .dsc-x {
+      justify-content: flex-start; padding: 0; margin: .55rem 0 .15rem;
+      align-items: center; gap: .55rem; font-size: .95rem;
+    }
+    .dsc-x::before, .dsc-x::after {
+      content: ""; flex: 1 1 auto; height: 1px; background: var(--rule);
+    }
+    .dsc-x::before { flex-grow: 0; width: .9rem; }
     .dsc-sibs > div:nth-child(3) { margin-top: .9rem; }
   }
 </style>
