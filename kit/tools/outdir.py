@@ -62,3 +62,75 @@ def note(dist):
     """One line for a tool to print, or "" when nothing was overridden."""
     return ("" if not os.environ.get("ARCHIVE_OUT")
             else "  ..    reading %s (ARCHIVE_OUT)" % dist)
+
+# ---------------------------------------------------------------------------
+# A PRIVATE NAME THAT EVERYBODY USES IS NOT PRIVATE.
+#
+# `dist` was shared, so the estate moved to `ARCHIVE_OUT=dist-verify` — and on
+# 23 September two sessions collided in `dist-verify` inside one archive, which
+# is `dist` again with an extra word. The gate caught it, loudly and correctly:
+# «dist-verify changed while this ran — another build is in flight. Results
+# would be noise, so nothing is reported.» That refusal is the thing that
+# worked; the shared name is the thing that failed.
+#
+# Two answers, and the estate needs both.
+#
+# THE NAME. Pick one nobody else will pick. `ARCHIVE_OUT=dist-$$` is per
+# process and wrong here, because a build and the checks that read it run in
+# separate shells; the value has to be stable for a working session and unique
+# between them. `suggest()` below composes one from whatever the host offers —
+# a session id, a tmux pane, a PPID — and falls back to the user name.
+#
+# THE GUARD. A name cannot be relied on, because the operator chooses it and
+# may choose badly. `settled()` fingerprints the tree before and after a run,
+# so a check that straddles somebody else's build throws its results away
+# instead of reporting them. checkarchive has done this since it was written
+# and it is the reason the collision was visible at all; it belongs to every
+# tool that reads a build.
+# ---------------------------------------------------------------------------
+
+
+def suggest():
+    """A build directory name unlikely to collide with another session's."""
+    import getpass
+    for var in ("CLAUDE_SESSION_ID", "TMUX_PANE", "TERM_SESSION_ID", "STY"):
+        v = os.environ.get(var)
+        if v:
+            tag = "".join(c for c in v if c.isalnum())[-10:]
+            if tag:
+                return "dist-" + tag
+    try:
+        who = getpass.getuser()
+    except Exception:
+        who = "x"
+    return "dist-%s-%d" % (who, os.getppid())
+
+
+def fingerprint(dist):
+    """Name and size of every file under a built tree."""
+    out = []
+    for root, _, files in os.walk(dist):
+        for f in files:
+            p = os.path.join(root, f)
+            try:
+                out.append((p, os.path.getsize(p)))
+            except OSError:
+                out.append((p, -1))
+    return sorted(out)
+
+
+def settled(dist, before, label):
+    """0 when the tree did not move under the run, 1 when it did.
+
+    `astro build` empties a directory before it refills it, so a check that
+    reads a half-written tree reports hundreds of absences that are simply not
+    copied yet. A run that straddles a build has no result worth printing.
+    """
+    if fingerprint(dist) == before:
+        return 0
+    print("  --    %-10s %s changed while this ran — another build is in flight."
+          % (label, dist))
+    print("        Results would be noise, so nothing is reported. Re-run when "
+          "the build has finished,")
+    print("        or build to a directory of your own: ARCHIVE_OUT=%s" % suggest())
+    return 1

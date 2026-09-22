@@ -44,6 +44,7 @@ import argparse, glob, json, os, re, sys
 import os.path as _up, sys as _us
 _us.path.insert(0, _up.dirname(_up.abspath(__file__)))
 import unread as _unread  # a file a gate could not read; see kit/tools/unread.py
+import outdir as _outdir  # ARCHIVE_OUT, and the in-flight guard
 
 # What a reader actually looks for, and the marks the kit's rows draw it
 # with. Compact row and full row both, because an archive may show a
@@ -169,7 +170,16 @@ def main():
             print("%-16s %5d %s" % (arch[:16], rows, " ".join("%-10d" % t[k] for k in MARKS)))
         return 0
 
+    # A RUN THAT STRADDLES SOMEBODY ELSE'S BUILD HAS NO RESULT WORTH
+    # PRINTING, and a ratchet written from one is worse than no ratchet:
+    # it forgives whatever happens to be missing. `astro build` empties a
+    # directory before it refills it, and two sessions collided inside one
+    # `dist-verify` on 23 September 2026.
+    _dir = outdir(a.root)
+    _before = _outdir.fingerprint(_dir)
     t, rows, looked = count(a.root)
+    if _outdir.settled(_dir, _before, 'rows'):
+        return 0
 
     if not looked:
         # COULD-NOT-LOOK IS NOT NOTHING-WRONG. The same mistake that broke
