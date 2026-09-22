@@ -165,12 +165,47 @@ const grade = (g) => {
   return c;
 };
 
+/* OLDEST AT THE TOP, YOUNGEST AT THE BOTTOM — ONE STANDARD, ENFORCED HERE.
+ *
+ * Raised on 22 September: «blazevic starts with the latest generation and
+ * goes down to the oldest. defranceski and others goes the other way».
+ * Measured across the estate, five of six ladders already ran oldest-first
+ * and Blazevic ran the other way, because its line.json is stored
+ * proband-first and numbers generation one as the living end.
+ *
+ * Fixing the one page would have left the next archive free to drift, so
+ * the component decides. It reads the years it can parse: if two or more
+ * rows carry one and the sequence never increases, the rows are stored
+ * youngest-first and are reversed for drawing. A line whose years are
+ * unknown or mixed is left exactly as the archive gave it, because a guess
+ * about descent order is worse than an archive's own ordering.
+ *
+ * Nothing else moves: generation numbers, anchors and ids are per-row, so
+ * an archive that numbers its proband g1 keeps doing so and simply reads
+ * from g8 down to g1, as D'Arcy already did from g15.
+ */
+const firstYear = (r) => {
+  const m = `${(r && r.born) ?? ""} ${(r && r.died) ?? ""}`.match(/\b(1[0-9]{3}|20[0-9]{2})\b/);
+  return m ? Number(m[1]) : null;
+};
+const storedYoungestFirst = (rs) => {
+  const ys = rs.map(firstYear).filter((y) => y !== null);
+  if (ys.length < 2) return false;
+  let down = false;
+  for (let i = 1; i < ys.length; i++) {
+    if (ys[i] > ys[i - 1]) return false;   // an increase: already oldest-first
+    if (ys[i] < ys[i - 1]) down = true;
+  }
+  return down;
+};
+const ordered = storedYoungestFirst(rows) ? [...rows].reverse() : rows;
+
 const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;");
 ---
 {compact ? (
   <div class="sp-cwrap">
   <ol class="sp-c">
-    {rows.map((g) => {
+    {ordered.map((g) => {
       // A LIVING PERSON GETS A NAME AND A RELATIONSHIP, NOTHING ELSE. Falco's
       // generation nine is living, and the first draft of this row printed
       // her birthplace, her marriage date and an evidence grade beside it.
@@ -187,7 +222,10 @@ const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;");
         <span class="sp-cn mono">{(label[0] || "g").toLowerCase()}{g.gen}</span>
         <span class="sp-cnames">
           <a class="sp-cl" href={u(`${full}#${idPrefix}${g.gen}`)}>{g.name}</a>
-          {g.spouse ? <span class="sp-csp"><span class="sp-cx">&#215;</span>{g.spouse}</span> : null}
+          {g.spouse ? (
+            <span class="sp-csp"><span class="sp-cx">&#215;</span>
+              {g.spouseHref ? <a href={u(g.spouseHref)}>{g.spouse}</a> : g.spouse}</span>
+          ) : null}
         </span>
         {g.living
           ? <span class="sp-cy">living &#8212; named only</span>
@@ -231,13 +269,22 @@ const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;");
   </div>
 ) : (
 <ol class="sp">
-  {rows.map((g) => (
+  {ordered.map((g) => (
     <li class={"sp-g" + (g.weak ? " sp-weak" : "")} id={idPrefix + g.gen}>
       <div class="sp-n"><span class="mono">{label} {g.gen}</span></div>
       <div class="sp-b">
         <h3 class="sp-h">
           {g.href ? <a href={u(g.href)}>{g.name}</a> : g.name}
-          {g.spouse ? <span class="sp-sp"> and {g.spouse}</span> : null}
+          {/* THE WIVES WERE NOT LINKS AND THE HUSBANDS WERE. Asked on 22
+              September, and the honest answer was that the spouse arrives
+              as a bare name string with no identifier behind it — so there
+              was nothing to link her by, and a slug guessed from her name
+              would merge two women as readily as it merges the estate's two
+              Raffaele Falcos. Archives that DO hold her identifier can now
+              pass `spouseHref` and she becomes a link like her husband. */}
+          {g.spouse ? (
+            <span class="sp-sp"> and {g.spouseHref ? <a href={u(g.spouseHref)}>{g.spouse}</a> : g.spouse}</span>
+          ) : null}
         </h3>
         {g.latin ? <p class="sp-lat">{g.latin}</p> : null}
         {g.living ? (
@@ -247,6 +294,11 @@ const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;");
             {g.born ? <><span class="sp-k">born</span>{g.born}{g.bornPlace ? ", " + g.bornPlace : ""}</> : null}
             {g.died ? <><span class="sp-k">died</span>{g.died}{g.diedPlace ? ", " + g.diedPlace : ""}</> : null}
             {g.trade ? <><span class="sp-k">trade</span>{g.trade}</> : null}
+            {/* The compact row has drawn the marriage since it was written
+                and the full one never did, so the smaller rendering of the
+                same row carried a fact the larger one dropped. Falco holds
+                a marriage date for five of its nine generations. */}
+            {g.married ? <><span class="sp-k">married</span>{g.married}</> : null}
             {g.confidence ? <span class="chip">{g.confidence}</span> : null}
           </p>
         )}
