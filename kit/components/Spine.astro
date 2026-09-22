@@ -60,6 +60,7 @@
    does not pass it sees any change. */
 import RING from "../data/archives.json";
 import { surnameDoors } from "../lib/offpage.js";
+import { tidyPlace } from "../lib/place.js";
 
 const {
   rows = [], u = (p) => p, label = "Generation", Plate, idPrefix = "gen-",
@@ -135,35 +136,8 @@ const years = (g) => {
   if (d) return "d. " + d;
   return "?";
 };
-const place = (g) => {
-  // A PILL IS A PLACE, NOT A CLAUSE AND NOT A POSTAL HIERARCHY. Two faults
-  // showed up the moment real data went through it:
-  //   Falco g3   "Arienzo \u2014 baptised in the Collegiate Church of
-  //              Sant'Andrea Apostolo" — a gloss after a dash.
-  //   D'Arcy g5  "Brisbane, Brisbane, Queensland, Australia" — the town
-  //              twice and then the country, four levels deep.
-  // So: cut the gloss, drop a repeated level, drop the "Of," D'Arcy's tree
-  // prefixes seats with, then keep whole comma levels while they fit. The
-  // levels that fall off the end are the general ones, which is the right
-  // way round — "Darcy Meynill, Yorkshire" says more than "Yorkshire,
-  // England" and, in that row, does not repeat a Cattaraugus County that
-  // has no business in Yorkshire anyway.
-  const raw = String(g.bornPlace || g.birthPlace || g.diedPlace || g.deathPlace || g.place || "");
-  const parts = [];
-  for (const seg of raw.split(/\s+[\u2013\u2014-]\s+/)[0].split(",")) {
-    const t = seg.trim();
-    if (!t || /^of$/i.test(t)) continue;
-    if (parts.length && parts[parts.length - 1].toLowerCase() === t.toLowerCase()) continue;
-    parts.push(t);
-  }
-  let out = "";
-  for (const t of parts) {
-    const next = out ? out + ", " + t : t;
-    if (next.length > 30) break;
-    out = next;
-  }
-  return out || clip(parts[0] || "", 30);
-};
+const place = (g) =>
+  tidyPlace(g.bornPlace || g.birthPlace || g.diedPlace || g.deathPlace || g.place || "", 30);
 // D'ARCY MARKS NINE OF FIFTEEN JOINTS UNPROVEN, and a badge repeated down
 // two thirds of a column tells the reader nothing — it reads as a rendering
 // fault, which is exactly what was reported. Past a third of the rows the
