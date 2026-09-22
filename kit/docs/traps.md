@@ -511,3 +511,34 @@ entirely in what each archive hands it, which means the fix is a wider
 contract and not a new component — and every field has to be optional,
 because an archive that cannot name an occupation must not be made to look
 as though it has none.
+
+## A pin and its lockfile are one change, and CI reads the lockfile
+
+`npm ci` installs from `package-lock.json`, not from `package.json`. So a
+commit that carries a new kit pin WITHOUT its lockfile ships a build that
+fetches the OLD kit — and then fails on whichever gate calls a tool the old
+kit does not have.
+
+On 22 September an estate-wide repin left the pair uncommitted in SEVEN
+archives. Nothing was broken: every HEAD was internally consistent and every
+working tree had both files. The hazard was purely at the commit boundary,
+and it was armed — the first session in each repository to stage
+`package.json` for any reason of its own would have shipped the mismatch.
+One did, within the hour, by sweeping a shared file into an unrelated commit.
+
+**`check:pin` was right about this and silent anyway**, which is the part
+worth keeping. It compares build scripts against the INSTALLED kit, and every
+developer machine had the new one. It was correct about the machine it ran on
+and had nothing to say about the runner. That gap is exactly what a lockfile
+exists to encode, and no local check can close it.
+
+Three instruments gave wrong answers on the way to finding it, all worth
+knowing:
+
+- `git ls-remote <sha>` proves nothing. It lists refs; a commit is not a ref.
+- `git fetch --depth=1 <sha>` reported a real commit and an invented one as
+  equally unfetchable, because GitHub refuses arbitrary-SHA fetches by
+  default. **A test that cannot distinguish its two cases has not been run.**
+- A local `check:pin` pass, for the reason above.
+
+Only cloning settled it.
