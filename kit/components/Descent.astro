@@ -349,7 +349,30 @@ const sibCount = (g) => list(g.hisSiblings).length + list(g.herSiblings).length;
     border: 1px solid var(--rule); padding: .6rem .7rem;
     text-decoration: none; color: inherit;
   }
+  /* A CARD WITH A PAGE BEHIND IT HAS TO LOOK LIKE ONE, AT REST.
+   *
+   * Every card was `color: inherit; text-decoration: none`, and the only
+   * thing separating a link from a plain name was `a.dsc-kid:hover` — which
+   * does not exist on a phone. So a child with a page and a child without
+   * were the same object to a reader, and on a page where some children are
+   * published and some are not there was no way to tell which. Blazevic
+   * draws 2,497 children and 330 of them have no page; all 2,497 looked
+   * identical.
+   *
+   * Found on 23 September 2026 by opening the built site and looking at it.
+   * It was invisible to every gate in this kit: `checkrows` counts the card,
+   * the link checker follows the href, and both were right. What neither
+   * asks is whether a reader can see that the href is there. The estate's
+   * own note for this is older than the component — «two names side by side,
+   * one clickable and one not, for no reason they can see».
+   *
+   * The name takes the archive's own link colour, which is the idiom the
+   * row's own names already use. No underline at rest: a strip of thirty
+   * children would be a thicket. */
+  a.dsc-kid .dsc-kn { color: var(--accent); }
   a.dsc-kid:hover { border-color: var(--rule-strong); }
+  a.dsc-kid:hover .dsc-kn { text-decoration: underline; }
+  a.dsc-kid:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   .dsc-line { border-color: var(--accent); }
   .dsc-kn { display: block; font-size: .95rem; overflow-wrap: anywhere; }
   .dsc-kd { display: block; font-size: 12px; color: var(--ink-3); margin-top: .2rem; }
