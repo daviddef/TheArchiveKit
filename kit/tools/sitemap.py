@@ -8,11 +8,27 @@ hand exactly those pages to search engines. This reads each built file and
 skips anything that noindexes itself, so the sitemap can never disagree with
 the privacy rule the pages already state.
 """
-import os, re, sys, json, datetime, subprocess, functools
+import os, re, sys, json, datetime, subprocess, functools, argparse
+
+_ap = argparse.ArgumentParser()
+# THE ODD ONE OUT UNTIL NOW. checkarchive, checkliving and checksources all
+# take --dist; this computed site/dist and took no arguments at all, so an
+# archive building into a directory of its own got its pages in one place and
+# its sitemap in another — and then check:kit refused, correctly, with
+# "robots.txt points at sitemap.xml and no sitemap.xml was built".
+#
+# Asked for by the Booyzen session, which had measured it before asking and
+# was straight about the weight: seven archives use this tool, only one sets
+# outDir, so nothing is broken in the field today. It is a capability none of
+# the seven has, and the first to want it hits a wall in a shared file.
+# Default "dist" leaves the other six byte-identical, because none passes it.
+_ap.add_argument("--dist", default="dist",
+                 help="where the pages were built, relative to the site directory")
+_args = _ap.parse_args()
 
 here = os.getcwd()                      # run from the site directory
 site = here if os.path.basename(here) == "site" else os.path.join(here, "site")
-dist = os.path.join(site, "dist")
+dist = _args.dist if os.path.isabs(_args.dist) else os.path.join(site, _args.dist)
 cfg = open(os.path.join(site, "astro.config.mjs"), encoding="utf-8").read()
 
 origin = re.search(r"site:\s*['\"]([^'\"]+)", cfg).group(1).rstrip("/")
