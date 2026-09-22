@@ -1,0 +1,365 @@
+---
+/* The descent: a couple per generation, the children under them, the
+ * brothers and sisters under whichever of the two they belong to.
+ *
+ * WHY THIS EXISTS AND WHAT IT REPLACES. `Spine` draws a line as a column of
+ * men with a wife appended after the word "and". David asked four times for
+ * the front pages to show «spouses, location pills, siblings», and on 22
+ * September named the shape he wanted: a union of the Lerena section «One
+ * tree, and the joint that is missing» and the Defranceschi /tree/ — «places
+ * wives as equals alongside husbands, shows siblings».
+ *
+ * So the row is two equal columns with a × between. She has her own name,
+ * her own link, her own dates, her own pill, her own line of siblings. That
+ * is not decoration: in five of these archives her family is the better
+ * documented one, and Mary Septima Taylor's line goes back further than the
+ * man the Lerena archive is named for.
+ *
+ * WHAT GOES WHERE, AND WHY IT IS NOT A LABEL BUT A POSITION.
+ *   children  span the full width, because they are both parents'.
+ *   siblings  sit in one column under their own parent, because they are
+ *             one parent's. The layout carries the fact; nothing has to
+ *             assert it, and a reader cannot mistake his brothers for hers.
+ *
+ * EVERYTHING IS SHUT. A nine-generation line is a page of names with every
+ * strip closed, and the summary still carries the one fact the descent needs
+ * — which child took it on. Opening a generation is a choice, not a scroll.
+ *
+ * ONE CARD SIZE EVERYWHERE. The two sibling columns are separate grids, so
+ * tracks sized in fractions gave a lone card a narrower box than a row of
+ * three and its name wrapped: the same person looked different depending on
+ * how many brothers he had. The card is a fixed box.
+ *
+ * COLOUR IS THE ARCHIVE'S. Every value below is a token — the estate runs
+ * cream sites and near-black ones and this component must not decide which.
+ *
+ *   rows [{
+ *     gen, era, living, weak, weakNote,
+ *     name, alt, href, born, died, trade, country, confidence,
+ *     spouse, spouseAlt, spouseHref, spouseBorn, spouseCountry,
+ *     place, married,
+ *     children:    [{name, href, dates, line, note}]
+ *     hisSiblings: [...]   herSiblings: [...]
+ *     hisLabel, herLabel   the column heads; default to the two names
+ *     note, sources: [{label, note}], offpage: [{label, href, external, through}],
+ *     brk: {head, note}    a break drawn INSTEAD of a couple — Lerena's
+ *                          «And here the tree breaks»
+ *   }]
+ *   archiveKey / families — as `Spine`: the off-page connectors from a
+ *            marriage to the family, and the sibling archive, it joins.
+ *   u        the archive's url helper
+ *   label    the word before a generation number, default "Generation"
+ *   idPrefix anchors, as Spine — a page may hold more than one descent
+ */
+import RING from "../data/archives.json";
+import { surnameDoors } from "../lib/offpage.js";
+
+const {
+  rows = [], u = (p) => p, label = "Generation", idPrefix = "gen-",
+  /* The same two props `Spine` takes, deriving the same doors, so moving a
+     page from one component to the other does not quietly drop the
+     connectors. It did exactly that on the first attempt here: Defranceski
+     lost all fifteen and only the row gate noticed. */
+  archiveKey = "", families = [],
+} = Astro.props;
+
+const list = (v) => (Array.isArray(v) ? v : []);
+const esc = (s) => String(s ?? "");
+
+/* A living person gets a name and a relationship and nothing else. Enforced
+   here rather than trusted to eight archives, exactly as in `Spine`: the
+   rule has been broken twice this month in data that looked fine. */
+const shown = (g, k) => (g.living ? "" : esc(g[k]));
+
+const years = (g) => {
+  if (g.living) return "living — named only";
+  const b = esc(g.born), d = esc(g.died);
+  if (b && d) return `b. ${b}   d. ${d}`;
+  if (b) return `b. ${b}`;
+  if (d) return `d. ${d}`;
+  return "";
+};
+
+const anyFold = (g) =>
+  list(g.children).length || list(g.hisSiblings).length ||
+  list(g.herSiblings).length || g.note || list(g.sources).length;
+
+/* Doors the archive states, then doors the surname implies. No key, no
+   ring — the guard that stopped Lerena linking to Lerena. */
+const doorsFor = (g) => [
+  ...(Array.isArray(g.offpage) ? g.offpage : []),
+  ...(g.spouse ? surnameDoors(g.spouse, { own: archiveKey, families, ring: RING }) : []),
+];
+const carrier = (g) => (list(g.children).find((c) => c.line) || {}).name || "";
+const sibCount = (g) => list(g.hisSiblings).length + list(g.herSiblings).length;
+---
+<div class="dsc">
+  {rows.map((g) => (
+    <div class="dsc-gen" id={g.gen != null ? idPrefix + g.gen : undefined}>
+      <div class="dsc-rail">
+        {g.brk ? null : <div class="dsc-no mono">{g.gen}</div>}
+        {g.era ? <div class="dsc-era">{g.era}</div> : null}
+      </div>
+
+      {g.brk ? (
+        /* Lerena's break, drawn where a couple would be. A line that stops
+           says so in the place the reader is already looking. */
+        <div class="dsc-brk">
+          <div class="dsc-brkhead">
+            <h3>{g.brk.head}</h3>
+            <span class="dsc-pill dsc-notproved">Not proved</span>
+          </div>
+          {g.brk.note ? <p set:html={g.brk.note} /> : null}
+        </div>
+      ) : (
+        <div class={"dsc-card" + (g.weak ? " dsc-weak" : "")}>
+          <div class="dsc-couple">
+            <div class="dsc-side">
+              {g.href ? <a class="dsc-nm" href={u(g.href)}>{g.name}</a> : <span class="dsc-nm">{g.name}</span>}
+              {!g.living && g.alt ? <div class="dsc-alt">as the register writes {g.alt.startsWith("as ") ? "" : "— "}{g.alt}</div> : null}
+              {years(g) ? <div class="dsc-dt mono">{years(g)}</div> : null}
+              {shown(g, "trade") ? <div class="dsc-trade">{g.trade}</div> : null}
+              {shown(g, "country") ? <div class="dsc-pills"><span class="dsc-pill dsc-ctry">{g.country}</span></div> : null}
+            </div>
+
+            <div class="dsc-x" aria-hidden="true">&#215;</div>
+
+            <div class="dsc-side">
+              {g.spouse
+                ? (g.spouseHref
+                    ? <a class="dsc-nm" href={u(g.spouseHref)}>{g.spouse}</a>
+                    : <span class="dsc-nm">{g.spouse}</span>)
+                : <span class="dsc-nm dsc-nonamed">Not named</span>}
+              {!g.living && g.spouseAlt ? <div class="dsc-alt">{g.spouseAlt}</div> : null}
+              {!g.living && g.spouseBorn ? <div class="dsc-dt mono">b. {g.spouseBorn}</div> : null}
+              {!g.spouse ? <div class="dsc-alt">this generation&rsquo;s wife is in no source the archive holds</div> : null}
+              {!g.living && g.spouseCountry ? <div class="dsc-pills"><span class="dsc-pill dsc-ctry">{g.spouseCountry}</span></div> : null}
+            </div>
+          </div>
+
+          {(shown(g, "place") || shown(g, "married") || (!g.living && g.confidence) || doorsFor(g).length) ? (
+            <div class="dsc-meta">
+              {shown(g, "place") ? <span class="dsc-place">{g.place}</span> : null}
+              {shown(g, "married") ? <span class="dsc-mar mono">married {g.married}</span> : null}
+              <span class="dsc-gap"></span>
+              {doorsFor(g).map((d) => (
+                <a class={"dsc-door" + (d.external ? " dsc-out" : "")} href={d.external ? d.href : u(d.href)}>
+                  {d.through ? `${d.through}: ` : ""}{d.label}{d.external ? " ↗" : " →"}</a>
+              ))}
+              {!g.living && g.confidence ? <span class="dsc-pill dsc-conf">{g.confidence}</span> : null}
+            </div>
+          ) : null}
+
+          {g.weak ? (
+            <p class="dsc-warn"><strong>The joint here will not bear weight.</strong>{" "}
+              {g.weakNote ? <Fragment set:html={g.weakNote} /> : "The tree asserts it and no record names the father."}</p>
+          ) : null}
+
+          {/* Living people get no strips at all — not their children, not
+              their brothers and sisters, not a citation. */}
+          {!g.living && list(g.children).length ? (
+            <details class="dsc-fold">
+              <summary class="dsc-sum">
+                <span>{list(g.children).length} {list(g.children).length === 1 ? "child" : "children"} recorded</span>
+                {carrier(g) ? <span class="dsc-carr">{carrier(g)} carries the line</span> : null}
+                <span class="dsc-cue dsc-more">show &darr;</span>
+                <span class="dsc-cue dsc-less">hide &uarr;</span>
+              </summary>
+              <div class="dsc-strip">
+                {list(g.children).map((c) => (
+                  c.href
+                    ? <a class={"dsc-kid" + (c.line ? " dsc-line" : "")} href={u(c.href)} title={c.note || undefined}>
+                        <span class="dsc-kn">{c.name}</span>
+                        {c.dates ? <span class="dsc-kd mono">{c.dates}</span> : null}
+                        {c.line ? <span class="dsc-kc">Carries the line</span> : null}
+                      </a>
+                    : <span class={"dsc-kid" + (c.line ? " dsc-line" : "")} title={c.note || undefined}>
+                        <span class="dsc-kn">{c.name}</span>
+                        {c.dates ? <span class="dsc-kd mono">{c.dates}</span> : null}
+                        {c.line ? <span class="dsc-kc">Carries the line</span> : null}
+                      </span>
+                ))}
+              </div>
+            </details>
+          ) : null}
+
+          {!g.living && sibCount(g) ? (
+            <details class="dsc-fold">
+              <summary class="dsc-sum">
+                <span>Brothers and sisters &middot; {sibCount(g)}</span>
+                <span class="dsc-cue dsc-more">show &darr;</span>
+                <span class="dsc-cue dsc-less">hide &uarr;</span>
+              </summary>
+              <div class="dsc-sibs">
+                <div>
+                  <span class="dsc-sidelab dsc-his">{g.hisLabel || g.name}{list(g.hisSiblings).length ? ` · ${list(g.hisSiblings).length}` : " · none recorded"}</span>
+                  {list(g.hisSiblings).length ? (
+                    <div class="dsc-strip dsc-half">
+                      {list(g.hisSiblings).map((c) => (
+                        c.href
+                          ? <a class="dsc-kid" href={u(c.href)} title={c.note || undefined}><span class="dsc-kn">{c.name}</span>{c.dates ? <span class="dsc-kd mono">{c.dates}</span> : null}</a>
+                          : <span class="dsc-kid" title={c.note || undefined}><span class="dsc-kn">{c.name}</span>{c.dates ? <span class="dsc-kd mono">{c.dates}</span> : null}</span>
+                      ))}
+                    </div>
+                  ) : <p class="dsc-none">No household has been read for this side.</p>}
+                </div>
+                <div></div>
+                <div>
+                  <span class="dsc-sidelab dsc-hers">{g.herLabel || g.spouse || "Her"}{list(g.herSiblings).length ? ` · ${list(g.herSiblings).length}` : " · none recorded"}</span>
+                  {list(g.herSiblings).length ? (
+                    <div class="dsc-strip dsc-half">
+                      {list(g.herSiblings).map((c) => (
+                        c.href
+                          ? <a class="dsc-kid" href={u(c.href)} title={c.note || undefined}><span class="dsc-kn">{c.name}</span>{c.dates ? <span class="dsc-kd mono">{c.dates}</span> : null}</a>
+                          : <span class="dsc-kid" title={c.note || undefined}><span class="dsc-kn">{c.name}</span>{c.dates ? <span class="dsc-kd mono">{c.dates}</span> : null}</span>
+                      ))}
+                    </div>
+                  ) : <p class="dsc-none">Her line has no archive of its own yet, so the register names her parents and nobody else.</p>}
+                </div>
+              </div>
+            </details>
+          ) : null}
+
+          {!g.living && (g.note || list(g.sources).length) ? (
+            <details class="dsc-fold">
+              <summary class="dsc-sum">
+                <span>The evidence</span>
+                <span class="dsc-cue dsc-more">show &darr;</span>
+                <span class="dsc-cue dsc-less">hide &uarr;</span>
+              </summary>
+              {g.note ? <p class="dsc-note" set:html={g.note} /> : null}
+              {list(g.sources).length ? (
+                <div class="dsc-src mono">
+                  {list(g.sources).map((x) => (
+                    <div>{x.label ?? x}{x.note ? ` — ${x.note}` : ""}</div>
+                  ))}
+                </div>
+              ) : null}
+            </details>
+          ) : null}
+        </div>
+      )}
+    </div>
+  ))}
+</div>
+
+<style is:global>
+  .dsc { margin: 1.4rem 0 0; display: flex; flex-direction: column; gap: 1.5rem; }
+  .dsc-gen { display: grid; grid-template-columns: 7rem minmax(0, 1fr); gap: 0 1.3rem; }
+  .dsc-rail { display: flex; flex-direction: column; align-items: flex-end; gap: .5rem; padding-top: 1.3rem; }
+  .dsc-no {
+    width: 2.5rem; height: 2.5rem; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; background: var(--panel-2, var(--panel, transparent));
+    border: 1px solid var(--rule-strong, var(--rule)); color: var(--ink-2);
+  }
+  .dsc-era {
+    font-family: var(--sans); font-size: 10px; letter-spacing: .13em; text-transform: uppercase;
+    color: var(--ink-3); text-align: right;
+  }
+  .dsc-card {
+    border-left: 3px solid var(--rule-strong, var(--rule));
+    background: var(--panel, transparent);
+    padding: 1.3rem 1.5rem 1.1rem;
+  }
+  .dsc-weak { border-left-style: dashed; border-left-color: var(--ochre); }
+
+  /* SHE IS A COLUMN, NOT A SUFFIX. */
+  .dsc-couple { display: grid; grid-template-columns: minmax(0, 1fr) 2.1rem minmax(0, 1fr); align-items: start; }
+  .dsc-side { display: flex; flex-direction: column; gap: .3rem; min-width: 0; }
+  .dsc-x { display: flex; justify-content: center; padding-top: .55rem; color: var(--ink-3); font-size: 1.15rem; }
+  .dsc-nm {
+    font-family: var(--serif); font-size: 1.32rem; font-weight: 600;
+    align-self: flex-start; overflow-wrap: anywhere; line-height: 1.25;
+  }
+  .dsc-nonamed { color: var(--ink-3); font-weight: 400; font-style: italic; }
+  .dsc-alt { font-style: italic; font-size: .9rem; color: var(--ink-3); }
+  .dsc-dt { font-size: 13.5px; color: var(--ink-2); margin-top: .1rem; white-space: pre-wrap; }
+  .dsc-trade { font-size: .95rem; color: var(--ink-2); }
+  .dsc-pills { display: flex; flex-wrap: wrap; gap: .3rem; margin-top: .3rem; }
+  .dsc-pill {
+    font-family: var(--sans); font-size: 9.5px; letter-spacing: .1em; text-transform: uppercase;
+    padding: .1rem .5rem; border-radius: 999px; white-space: nowrap;
+  }
+  .dsc-ctry { color: var(--ink-2); border: 1px solid var(--rule); }
+  .dsc-conf { color: var(--ink-2); border: 1px solid var(--rule-strong, var(--rule)); }
+  .dsc-notproved { color: var(--ochre); border: 1px dashed var(--ochre); }
+
+  .dsc-meta {
+    display: flex; flex-wrap: wrap; align-items: center; gap: .5rem 1.2rem;
+    margin-top: 1rem; padding-top: .8rem; border-top: 1px solid var(--rule);
+  }
+  .dsc-gap { flex-grow: 1; }
+  .dsc-place { font-size: .95rem; color: var(--ink-2); }
+  .dsc-mar { font-size: 12.5px; color: var(--ink-3); }
+  .dsc-door {
+    font-family: var(--sans); font-size: 9.5px; letter-spacing: .09em; text-transform: uppercase;
+    border: 1px solid var(--rule); padding: .1rem .45rem; text-decoration: none;
+    color: var(--ink-2); white-space: nowrap;
+  }
+  .dsc-door:hover { border-color: var(--rule-strong); }
+  .dsc-out { border-style: dashed; }
+  .dsc-warn { margin: .7rem 0 0; color: var(--ochre); font-size: .95rem; }
+
+  /* The folds. Shut by default; the summary keeps the one fact that matters. */
+  .dsc-fold { margin-top: .5rem; }
+  .dsc-fold summary { list-style: none; cursor: pointer; }
+  .dsc-fold summary::-webkit-details-marker { display: none; }
+  .dsc-sum {
+    font-family: var(--sans); font-size: 10px; letter-spacing: .13em; text-transform: uppercase;
+    color: var(--ink-3); padding: .3rem 0; display: flex; align-items: center;
+    gap: .75rem; flex-wrap: wrap;
+  }
+  .dsc-sum:hover { color: var(--ink-2); }
+  .dsc-carr { font-weight: 600; letter-spacing: .11em; color: var(--accent); }
+  .dsc-cue { letter-spacing: .07em; text-transform: none; color: var(--ink-3); }
+  .dsc-less { display: none; }
+  .dsc-fold[open] .dsc-more { display: none; }
+  .dsc-fold[open] .dsc-less { display: inline; }
+
+  /* ONE CARD SIZE EVERYWHERE — a child's and a sibling's alike. */
+  .dsc-strip { display: grid; grid-template-columns: repeat(auto-fill, 148px); gap: .6rem; margin-top: .5rem; }
+  .dsc-kid {
+    display: block; box-sizing: border-box; width: 148px; min-height: 76px;
+    border: 1px solid var(--rule); padding: .6rem .7rem;
+    text-decoration: none; color: inherit;
+  }
+  a.dsc-kid:hover { border-color: var(--rule-strong); }
+  .dsc-line { border-color: var(--accent); }
+  .dsc-kn { display: block; font-size: .95rem; overflow-wrap: anywhere; }
+  .dsc-kd { display: block; font-size: 12px; color: var(--ink-3); margin-top: .2rem; }
+  .dsc-kc {
+    display: block; font-family: var(--sans); font-size: 9px; font-weight: 600;
+    letter-spacing: .11em; text-transform: uppercase; color: var(--accent); margin-top: .4rem;
+  }
+
+  /* SIBLINGS UNDER THE PARENT THEY BELONG TO — the same tracks as the couple. */
+  .dsc-sibs { display: grid; grid-template-columns: minmax(0, 1fr) 2.1rem minmax(0, 1fr); align-items: start; margin-top: .6rem; }
+  .dsc-half { margin-top: .45rem; }
+  .dsc-sidelab {
+    display: inline-block; font-family: var(--sans); font-size: 9.5px; letter-spacing: .11em;
+    text-transform: uppercase; padding: .1rem .5rem; border-radius: 999px; border: 1px solid var(--rule);
+    color: var(--ink-3);
+  }
+  .dsc-his { border-color: var(--rule-strong, var(--rule)); }
+  .dsc-hers { border-style: dashed; }
+  .dsc-none { margin: .45rem 0 0; font-size: .88rem; color: var(--ink-3); line-height: 1.5; }
+
+  .dsc-note { margin: .5rem 0 0; line-height: 1.68; }
+  .dsc-src { margin: .7rem 0 0; font-size: 12px; color: var(--ink-3); line-height: 1.6; }
+
+  /* The break, where a couple would be. */
+  .dsc-brk { border: 1px dashed var(--ochre); padding: 1.2rem 1.5rem; }
+  .dsc-brkhead { display: flex; align-items: center; gap: .8rem; flex-wrap: wrap; }
+  .dsc-brkhead h3 { margin: 0; font-size: 1.2rem; }
+  .dsc-brk p { margin: .6rem 0 0; line-height: 1.6; }
+
+  @media (max-width: 760px) {
+    .dsc-gen { grid-template-columns: 1fr; gap: .5rem; }
+    .dsc-rail { flex-direction: row; align-items: center; justify-content: flex-start; gap: .7rem; padding-top: 0; }
+    .dsc-era { text-align: left; }
+    .dsc-couple, .dsc-sibs { grid-template-columns: 1fr; }
+    .dsc-x { justify-content: flex-start; padding: .35rem 0; }
+    .dsc-sibs > div:nth-child(3) { margin-top: .9rem; }
+  }
+</style>

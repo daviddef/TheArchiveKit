@@ -44,15 +44,37 @@ import argparse, glob, json, os, re, sys
 # What a reader actually looks for, and the marks the kit's rows draw it
 # with. Compact row and full row both, because an archive may show a
 # spouse on one and not the other and that is still a hole.
+# TWO COMPONENTS DRAW A LINE IN THIS ESTATE AND THIS MUST SEE BOTH. `Spine`
+# emits sp-*; `Descent` — the couple-and-children row adopted on 22 September
+# — emits dsc-*. Defranceski moved to Descent and this gate reported spouses,
+# places, grades and trades all halving and the doors going to zero, because
+# it was counting the marks of the component that had been replaced.
+#
+# That is the same fault as `checkpages`, in the tool written to fix it: a
+# measure that tracks one implementation and reports on the estate. A count
+# here is of the THING A READER SEES, so every way the estate draws that
+# thing belongs in its list.
 MARKS = {
-    "spouse":   [r'class="sp-csp"', r'class="sp-sp"'],
-    "place":    [r'class="sp-pill sp-place"', r'<span class="sp-k">born</span>'],
-    "grade":    [r'class="sp-pill sp-conf', r'<span class="chip">'],
-    "trade":    [r'<i>trade</i>', r'<span class="sp-k">trade</span>'],
-    "household":[r'class="sp-ckids"', r'class="sp-house"'],
-    "door":     [r'class="sp-door', r'class="sp-door sp-dout'],
+    "spouse":   [r'class="sp-csp"', r'class="sp-sp"', r'class="dsc-side"'],
+    "place":    [r'class="sp-pill sp-place"', r'<span class="sp-k">born</span>',
+                 r'class="dsc-place"'],
+    "grade":    [r'class="sp-pill sp-conf', r'<span class="chip">',
+                 r'class="dsc-pill dsc-conf"'],
+    "trade":    [r'<i>trade</i>', r'<span class="sp-k">trade</span>',
+                 r'class="dsc-trade"'],
+    "household":[r'class="sp-ckids"', r'class="sp-house"', r'class="dsc-kid'],
+    "door":     [r'class="sp-door', r'class="sp-door sp-dout', r'class="dsc-door'],
 }
-ROW = re.compile(r'<li class="sp-(?:cg|g)[^"]*"', re.I)
+# ONE ALTERNATION PER MARK, NOT A SUM OVER PATTERNS. Summing `findall` for
+# each pattern counts an element once per pattern it matches, and these
+# patterns nest: `class="sp-door sp-dout"` matches both `class="sp-door` and
+# `class="sp-door sp-dout`, so every EXTERNAL door scored two. Defranceski's
+# floor was written at 15 doors for a page that draws 3, and the gate then
+# reported a loss when the true number had not moved. A single alternation
+# consumes the match once.
+RX = {k: re.compile("|".join(pats)) for k, pats in MARKS.items()}
+
+ROW = re.compile(r'<li class="sp-(?:cg|g)[^"]*"|<div class="dsc-gen"', re.I)
 
 
 def pages(root):
@@ -90,8 +112,8 @@ def count(root):
             continue
         looked.append(rel)
         rows += n
-        for key, pats in MARKS.items():
-            tally[key] += sum(len(re.findall(p_, s)) for p_ in pats)
+        for key, rx in RX.items():
+            tally[key] += len(rx.findall(s))
     return tally, rows, looked
 
 
