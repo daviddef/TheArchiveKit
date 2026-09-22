@@ -54,6 +54,10 @@ it — which is the only moment anyone will fix it cheaply.
 
 import argparse, os, re, sys, glob, collections
 
+import os.path as _up, sys as _us
+_us.path.insert(0, _up.dirname(_up.abspath(__file__)))
+import unread as _unread  # a file a gate could not read; see kit/tools/unread.py
+
 # An archive is a directory with site/src/pages in it. Discovered rather than
 # listed, because components.py kept a hand-written list and spent two months
 # counting seven archives in an estate of eight.
@@ -118,7 +122,8 @@ def scan(estate, threshold):
                 continue
             try:
                 src = open(f, encoding="utf-8", errors="ignore").read()
-            except OSError:
+            except OSError as e:
+                _unread.note(f, e)
                 continue
             uses = set(KIT.findall(src)) | (set(LOCAL.findall(src)) & wrap)
             pages[name][arch] = (len(src.splitlines()), uses)
@@ -219,4 +224,8 @@ def main():
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+
+# COULD-NOT-LOOK IS NOT NOTHING-WRONG, and it belongs at the exit rather than
+# at each `return 0` inside main(). If this gate passed but could not read
+# part of its subject, it has no honest verdict to give and gives none.
+    sys.exit(main() or _unread.refuse("pages"))

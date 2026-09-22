@@ -41,6 +41,10 @@ extracted tomorrow; what is stopped is the sixty-sixth.
 
 import argparse, glob, os, re, sys
 
+import os.path as _up, sys as _us
+_us.path.insert(0, _up.dirname(_up.abspath(__file__)))
+import unread as _unread  # a file a gate could not read; see kit/tools/unread.py
+
 # Above both of these, or it is not worth anybody's morning.
 MIN_BYTES = 900
 MIN_ROWS = 4
@@ -102,7 +106,8 @@ def scan(root):
         rel = os.path.relpath(f, root).replace(os.sep, "/")
         try:
             src = open(f, encoding="utf-8", errors="ignore").read()
-        except OSError:
+        except OSError as e:
+            _unread.note(f, e)
             continue
         for name, size, rows in arrays(src):
             if name.lower() in CONFIG and "/layouts/" in rel:
@@ -169,4 +174,8 @@ def main():
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+
+# COULD-NOT-LOOK IS NOT NOTHING-WRONG, and it belongs at the exit rather than
+# at each `return 0` inside main(). If this gate passed but could not read
+# part of its subject, it has no honest verdict to give and gives none.
+    sys.exit(main() or _unread.refuse("inline"))

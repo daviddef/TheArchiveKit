@@ -192,7 +192,15 @@ def published_names(data_dir):
             continue
         try:
             j = json.load(open(os.path.join(data_dir, f), encoding="utf-8"))
-        except Exception:
+        except Exception as e:
+            # THE SAME SWALLOW AS `from_data`, IN ITS SIBLING. That one was
+            # fixed earlier tonight and this was not looked at, which is the
+            # ordinary way a fixed bug survives: the fix went where the
+            # symptom was rather than where the pattern was. This set is the
+            # published names that get SUBTRACTED from the leak search, so
+            # losing a file here makes the gate noisier rather than quieter
+            # — the safe direction, and still a lie about what was read.
+            UNREADABLE.append((f, str(e).split("\n")[0][:90]))
             continue
         for r in rows_of(j):
             if any(r.get(k) is True for k in LIVING_KEYS):
@@ -419,8 +427,16 @@ def main():
             print("checkliving: the declaration forbids nothing — nothing to check.")
             return 1
         fails = []
+        # AN ALLOW THAT SILENCES A FINDING HAS TO BE COUNTED. `check_names`
+        # tallies `allowed_hits` for exactly this and this branch did not, so
+        # a declaration could suppress every hit on the page and read the same
+        # as a page with no hits on it. It also means a STALE allow — one
+        # nobody has matched for months — is invisible, and an exemption
+        # nobody revisits is the estate's oldest complaint about itself.
+        skipped_files, allowed_hits = 0, 0
         for rel, raw in pages.items():
             if rel in allow_files:
+                skipped_files += 1
                 continue
             for rx, lbl in terms:
                 m = rx.search(raw)
@@ -428,11 +444,16 @@ def main():
                     continue
                 ctx = re.sub(r"\s+", " ", raw[max(0, m.start() - 45):m.end() + 45])
                 if any(x in ctx.lower() for x in allow):
+                    allowed_hits += 1
                     continue
                 fails.append((rel, lbl, ctx))
                 break
+        said = ""
+        if allowed_hits or skipped_files:
+            said = (f" — {allowed_hits} hit(s) allowed by the declaration, "
+                    f"{skipped_files} file(s) exempt")
         return report(fails, f"{len(pages)} pages carry no name and no birth year "
-                             f"for {', '.join(names)}", a.quiet)
+                             f"for {', '.join(names)}{said}", a.quiet)
 
     # derived: read the archive's own committed data
     living, presumed, skipped = from_data(a.data, today)

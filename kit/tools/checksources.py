@@ -51,6 +51,10 @@ skipped, and an archive can skip more with --ignore.
 """
 
 import argparse, json, os, re, sys
+
+import os.path as _up, sys as _us
+_us.path.insert(0, _up.dirname(_up.abspath(__file__)))
+import unread as _unread  # a file a gate could not read; see kit/tools/unread.py
 import os.path as _p, sys as _sys
 _sys.path.insert(0, _p.dirname(_p.abspath(__file__)))
 import outdir as _outdir  # ARCHIVE_OUT beats --dist; see kit/tools/outdir.py
@@ -81,7 +85,8 @@ def rows_of(j):
     for f in ROW_PATHS:
         try:
             r = f(j)
-        except Exception:
+        except Exception as e:
+            _unread.note(p, e)
             continue
         if isinstance(r, list) and r and all(isinstance(x, (dict, list)) for x in r):
             return r
@@ -210,4 +215,8 @@ def main():
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+
+# COULD-NOT-LOOK IS NOT NOTHING-WRONG, and it belongs at the exit rather than
+# at each `return 0` inside main(). If this gate passed but could not read
+# part of its subject, it has no honest verdict to give and gives none.
+    sys.exit(main() or _unread.refuse("sources"))

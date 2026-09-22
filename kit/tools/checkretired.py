@@ -54,6 +54,10 @@ fix is to wrap it in the mark, which is what the house style wanted anyway.
 """
 import io, os, re, sys, json, argparse
 
+import os.path as _up, sys as _us
+_us.path.insert(0, _up.dirname(_up.abspath(__file__)))
+import unread as _unread  # a file a gate could not read; see kit/tools/unread.py
+
 # Generated artefacts: a retired phrase surviving in one of these is a fault in
 # the builder that wrote it, and it will be rewritten on the next build anyway.
 SKIP = {"searchindex.json", "changes.json", "researchlog.json", "research-log.json",
@@ -108,7 +112,8 @@ def main():
                 p = os.path.join(root, fn)
                 try:
                     body = io.open(p, encoding="utf-8", errors="replace").read()
-                except Exception:
+                except Exception as e:
+                    _unread.note(fn, e)
                     continue
                 scanned += 1
                 clean = strip_marks(body, marks)
@@ -138,4 +143,8 @@ def main():
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+
+# COULD-NOT-LOOK IS NOT NOTHING-WRONG, and it belongs at the exit rather than
+# at each `return 0` inside main(). If this gate passed but could not read
+# part of its subject, it has no honest verdict to give and gives none.
+    sys.exit(main() or _unread.refuse("retired"))

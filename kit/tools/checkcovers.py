@@ -78,6 +78,10 @@ first.
 import argparse
 import json
 import os
+
+import os.path as _up, sys as _us
+_us.path.insert(0, _up.dirname(_up.abspath(__file__)))
+import unread as _unread  # a file a gate could not read; see kit/tools/unread.py
 import sys
 
 USUAL_FILES = ["sources/searched.json", "site/src/data/searched.json",
@@ -122,7 +126,8 @@ def undeclared_report(root, name):
             continue
         try:
             rows = rows_of(load(p))
-        except Exception:
+        except Exception as e:
+            _unread.note(p, e)
             continue
         if not rows:
             continue
@@ -322,4 +327,8 @@ def main():
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+
+# COULD-NOT-LOOK IS NOT NOTHING-WRONG, and it belongs at the exit rather than
+# at each `return 0` inside main(). If this gate passed but could not read
+# part of its subject, it has no honest verdict to give and gives none.
+    sys.exit(main() or _unread.refuse("covers"))

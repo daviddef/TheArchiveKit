@@ -41,6 +41,10 @@ itself on every run is not a gate.
 
 import argparse, glob, json, os, re, sys
 
+import os.path as _up, sys as _us
+_us.path.insert(0, _up.dirname(_up.abspath(__file__)))
+import unread as _unread  # a file a gate could not read; see kit/tools/unread.py
+
 # What a reader actually looks for, and the marks the kit's rows draw it
 # with. Compact row and full row both, because an archive may show a
 # spouse on one and not the other and that is still a hole.
@@ -117,7 +121,8 @@ def pages(root):
     for f in sorted(glob.glob(os.path.join(dist, "**", "*.html"), recursive=True)):
         try:
             s = open(f, encoding="utf-8", errors="ignore").read()
-        except OSError:
+        except OSError as e:
+            _unread.note(f, e)
             continue
         if ROW.search(s):
             out.append((os.path.relpath(f, dist).replace(os.sep, "/"), f, s))
@@ -210,4 +215,8 @@ def main():
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+
+# COULD-NOT-LOOK IS NOT NOTHING-WRONG, and it belongs at the exit rather than
+# at each `return 0` inside main(). If this gate passed but could not read
+# part of its subject, it has no honest verdict to give and gives none.
+    sys.exit(main() or _unread.refuse("rows"))
