@@ -34,13 +34,16 @@
  * cream sites and near-black ones and this component must not decide which.
  *
  *   rows [{
- *     gen, era, living, weak, weakNote,
+ *     gen, era, living, weak, weakNote, via,
  *     name, alt, href, born, died, trade, country, confidence,
  *     spouse, spouseAlt, spouseHref, spouseBorn, spouseCountry,
  *     place, married,
  *     children:    [{name, href, dates, line, note}]
  *     hisSiblings: [...]   herSiblings: [...]
  *     hisLabel, herLabel   the column heads; default to the two names
+ *     hisNone, herNone     what to say when THAT side has no siblings recorded;
+ *                          the defaults assume a married couple and a wife who
+ *                          married in, which is not every row
  *     note, sources: [{label, note}], offpage: [{label, href, external, through}],
  *     brk: {head, note}    a break drawn INSTEAD of a couple — Lerena's
  *                          «And here the tree breaks»
@@ -95,6 +98,15 @@ const sibCount = (g) => list(g.hisSiblings).length + list(g.herSiblings).length;
 ---
 <div class="dsc">
   {rows.map((g) => (
+    <Fragment>
+    {g.via ? (
+      /* EIGHT PROSTAMOS ABOVE ONE MAZZA. The surname changes where a line
+         passes through a daughter, and a ladder that says nothing about it
+         reads as a rendering fault — which is how it was reported. Carried
+         over from `Spine`: the sentence belongs between the two rows it
+         joins, and it must not be lost by moving a page to this component. */
+      <div class="dsc-via"><span>{g.via}</span></div>
+    ) : null}
     <div class="dsc-gen" id={g.gen != null ? idPrefix + g.gen : undefined}>
       <div class="dsc-rail">
         {g.brk ? null : <div class="dsc-no mono">{g.gen}</div>}
@@ -132,7 +144,14 @@ const sibCount = (g) => list(g.hisSiblings).length + list(g.herSiblings).length;
                 : <span class="dsc-nm dsc-nonamed">Not named</span>}
               {!g.living && g.spouseAlt ? <div class="dsc-alt">{g.spouseAlt}</div> : null}
               {!g.living && g.spouseBorn ? <div class="dsc-dt mono">b. {g.spouseBorn}</div> : null}
-              {!g.spouse ? <div class="dsc-alt">this generation&rsquo;s wife is in no source the archive holds</div> : null}
+              {/* The fixed sentence assumed the left column is the husband. It is
+                  not always: the Kosina line runs through GERTRAUD, who never
+                  married, and telling a reader that "this generation's wife is in
+                  no source" when the woman is the one on the line is simply wrong.
+                  A row that knows its own case says so in `spouseAlt`, which is
+                  already drawn above; only a row that says nothing gets the
+                  default. */}
+              {!g.spouse && !g.spouseAlt ? <div class="dsc-alt">this generation&rsquo;s wife is in no source the archive holds</div> : null}
               {!g.living && g.spouseCountry ? <div class="dsc-pills"><span class="dsc-pill dsc-ctry">{g.spouseCountry}</span></div> : null}
             </div>
           </div>
@@ -201,7 +220,7 @@ const sibCount = (g) => list(g.hisSiblings).length + list(g.herSiblings).length;
                           : <span class="dsc-kid" title={c.note || undefined}><span class="dsc-kn">{c.name}</span>{c.dates ? <span class="dsc-kd mono">{c.dates}</span> : null}</span>
                       ))}
                     </div>
-                  ) : <p class="dsc-none">No household has been read for this side.</p>}
+                  ) : <p class="dsc-none">{g.hisNone || "No household has been read for this side."}</p>}
                 </div>
                 <div></div>
                 <div>
@@ -214,7 +233,7 @@ const sibCount = (g) => list(g.hisSiblings).length + list(g.herSiblings).length;
                           : <span class="dsc-kid" title={c.note || undefined}><span class="dsc-kn">{c.name}</span>{c.dates ? <span class="dsc-kd mono">{c.dates}</span> : null}</span>
                       ))}
                     </div>
-                  ) : <p class="dsc-none">Her line has no archive of its own yet, so the register names her parents and nobody else.</p>}
+                  ) : <p class="dsc-none">{g.herNone || "Her line has no archive of its own yet, so the register names her parents and nobody else."}</p>}
                 </div>
               </div>
             </details>
@@ -240,11 +259,17 @@ const sibCount = (g) => list(g.hisSiblings).length + list(g.herSiblings).length;
         </div>
       )}
     </div>
+    </Fragment>
   ))}
 </div>
 
 <style is:global>
   .dsc { margin: 1.4rem 0 0; display: flex; flex-direction: column; gap: 1.5rem; }
+  .dsc-via { padding: .2rem 0 .2rem 8.3rem; }
+  .dsc-via span {
+    font-family: var(--sans); font-size: 10.5px; letter-spacing: .06em;
+    text-transform: uppercase; color: var(--ink-3);
+  }
   .dsc-gen { display: grid; grid-template-columns: 7rem minmax(0, 1fr); gap: 0 1.3rem; }
   .dsc-rail { display: flex; flex-direction: column; align-items: flex-end; gap: .5rem; padding-top: 1.3rem; }
   .dsc-no {
