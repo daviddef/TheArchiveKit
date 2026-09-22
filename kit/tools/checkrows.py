@@ -62,8 +62,14 @@ MARKS = {
                  r'class="dsc-pill dsc-conf"'],
     "trade":    [r'<i>trade</i>', r'<span class="sp-k">trade</span>',
                  r'class="dsc-trade"'],
-    "household":[r'class="sp-ckids"', r'class="sp-house"', r'class="dsc-kid'],
-    "door":     [r'class="sp-door', r'class="sp-door sp-dout', r'class="dsc-door'],
+    "household":[r'class="sp-ckids"', r'class="sp-house"', r'class="dsc-kid[ "]'],
+    # A PREFIX IS NOT A CLASS. `class="sp-door` also matches `class="sp-doors"`
+    # — the PARAGRAPH the doors sit in — so every spine row that drew any door
+    # at all scored one extra for the box around them. Lerena's floor was
+    # written at 3 for a page with one door and one wrapper, and when the
+    # wrapper count could not rise the gate reported a door lost that had
+    # never existed. The class has to end where the class ends.
+    "door":     [r'class="sp-door[ "]', r'class="dsc-door[ "]'],
 }
 # ONE ALTERNATION PER MARK, NOT A SUM OVER PATTERNS. Summing `findall` for
 # each pattern counts an element once per pattern it matches, and these
