@@ -11,7 +11,18 @@
  * hand in their own way. A spine without it is a claim; with it, it is
  * evidence with a gap named in the middle.
  *
- * Living people get a name and nothing else, as everywhere.
+ * LIVING PEOPLE GET A NAME AND A RELATIONSHIP, NOTHING ELSE — and this
+ * component now enforces that rather than trusting eight archives to. The
+ * facts paragraph was already gated; the note, the household, the sources
+ * and the plates were not, and Falco's generation nine is living and
+ * carried «Born at Benevento; her twin daughters were born at Brisbane in
+ * 1988» straight onto /direct-line/, together with a date of birth, a
+ * birthplace and a marriage date the compact row printed too.
+ *
+ * The data is still wrong and Falco's own session should cut it. But a rule
+ * that depends on every archive remembering it is not a rule, so the row
+ * that draws a living person now draws the name, the spouse and the words
+ * "living — named only", whatever the row underneath it holds.
  *
  * A HOUSEHOLD IS NOT A LIST OF FACTS ABOUT ONE MAN. Defranceschi's spine is
  * built on two rows of a Status Animarum, and a book of souls registers
@@ -24,10 +35,19 @@
  * plate renderer is its own; the spine only says where in the row it goes.
  *
  *   rows  [{gen, name, latin, spouse, href, born, bornPlace, died, diedPlace,
- *           trade, living, weak, weakNote, note, confidence,
+ *           trade, living, weak, weakNote, note, confidence, married, via,
  *           household: {label, members: [{name, dates, line, note}]},
  *           sources: [{label}], plates: [id]}]
  *   Plate  optional component rendered as <Plate ids={row.plates} />
+ *
+ *   `via` — how the line passes INTO this generation when that is not
+ *   obvious from the surname. Mazza's eight Prostamos sit above one Mazza
+ *   because generation two is a daughter; the ladder said nothing and read
+ *   as a fault. Drawn as a band between the two rows it joins, compact only.
+ *   `married` — the marriage, when the archive holds the date.
+ *   Place is read from bornPlace/birthPlace/diedPlace/deathPlace/place,
+ *   because the estate spells it three ways and no archive should have to
+ *   rename a column to be drawn.
  */
 /* `idPrefix` exists because a PAGE MAY HOLD SEVERAL SPINES. /argentina/ draws four
    lines of descent and /uruguay/ three, and every one of them emitted id="gen-1",
@@ -53,22 +73,100 @@ const {
   compact = false,
   full = "/direct-line/",
 } = Astro.props;
+// A homepage ladder shows a YEAR, not a paragraph. Falco's `born` reads
+// "about 1747 — «annorum 55 circiter» at his death", which is the right
+// thing to keep and the wrong thing to print in a 6rem column.
+const yr = (v) => {
+  const t = String(v ?? "");
+  const m = t.match(/\b(1[0-9]{3}|20[0-9]{2})\b/);
+  if (!m) return "";
+  // A QUALIFIER IS NOT DECORATION. "bef. 1900" printed as "1900" states a
+  // date the archive has not got, which is the one thing a ladder of
+  // evidence must never do.
+  const q = /\bbef(ore)?\b|\bante\b/i.test(t) ? "bef. "
+          : /\baft(er)?\b|\bpost\b/i.test(t) ? "aft. "
+          : /\babout\b|\bc\.|\bcirca\b|circiter/i.test(t) ? "c." : "";
+  return q + m[1];
+};
+// The same cut the place pill takes: everything up to the dash that
+// introduces a gloss, then a length cap.
+const clip = (v, n = 34) => {
+  const c = String(v ?? "").split(/\s+[\u2013\u2014-]\s+/)[0].trim();
+  return c.length > n ? c.slice(0, n - 2).replace(/[\s,(]+$/, "") + "\u2026" : c;
+};
+const place = (g) => {
+  // A PILL IS A PLACE, NOT A CLAUSE. Falco's g3 carries "Arienzo \u2014
+  // baptised in the Collegiate Church of Sant'Andrea Apostolo", which is
+  // right in the full row and a paragraph in a pill. Cut at the dash that
+  // introduces a gloss; keep commas and parentheses, because "Arienzo,
+  // strada Camellara" is one address and "(Avellino)" is the province that
+  // tells two Cervinaras apart.
+  const raw = String(g.bornPlace || g.birthPlace || g.diedPlace || g.deathPlace || g.place || "");
+  return clip(raw, 42);
+};
+
+// D'ARCY MARKS NINE OF FIFTEEN JOINTS UNPROVEN, and a badge repeated down
+// two thirds of a column tells the reader nothing — it reads as a rendering
+// fault, which is exactly what was reported. Past a third of the rows the
+// per-row label is dropped for one sentence underneath; the left rule stays,
+// so nothing is hidden, it is just said once.
+const weakCount = rows.filter((r) => r.weak).length;
+const weakIsNoise = rows.length >= 6 && weakCount > rows.length / 3;
+
 const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;");
 ---
 {compact ? (
+  <div class="sp-cwrap">
   <ol class="sp-c">
-    {rows.map((g) => (
+    {rows.map((g) => {
+      // A LIVING PERSON GETS A NAME AND A RELATIONSHIP, NOTHING ELSE. Falco's
+      // generation nine is living, and the first draft of this row printed
+      // her birthplace, her marriage date and an evidence grade beside it.
+      // The full row below has always known this; the compact one did not,
+      // and a rule kept in one branch of a component is not kept.
+      const kids = g.living ? [] : (g.household && g.household.members) || [];
+      const meta = g.living ? [] : [
+        g.trade ? ["trade", g.trade] : null,
+        g.married ? ["married", clip(g.married)] : null,
+      ].filter(Boolean);
+      return (<>
+      {g.via ? <li class="sp-cvia"><span>{g.via}</span></li> : null}
       <li class={"sp-cg" + (g.weak ? " sp-cweak" : "")}>
         <span class="sp-cn mono">{(label[0] || "g").toLowerCase()}{g.gen}</span>
-        <a class="sp-cl" href={u(`${full}#${idPrefix}${g.gen}`)}>{g.name}</a>
+        <span class="sp-cnames">
+          <a class="sp-cl" href={u(`${full}#${idPrefix}${g.gen}`)}>{g.name}</a>
+          {g.spouse ? <span class="sp-csp"><span class="sp-cx">&#215;</span>{g.spouse}</span> : null}
+        </span>
         {g.living
-          ? <span class="sp-cy">living — named only</span>
-          : <span class="sp-cy">{[g.born, g.died].filter(Boolean).join(" – ") || "?"}</span>}
-        <span class="sp-cp">{g.bornPlace || g.diedPlace || ""}</span>
-        {g.weak ? <span class="sp-cw" title={g.weakNote ? String(g.weakNote).replace(/<[^>]+>/g, "") : null}>joint unproven</span> : null}
+          ? <span class="sp-cy">living &#8212; named only</span>
+          : <span class="sp-cy">{[g.born, g.died].map(yr).filter(Boolean).join(" \u2013 ") || "?"}</span>}
+        <span class="sp-cpills">
+          {!g.living && place(g) ? <span class="sp-pill sp-place">{place(g)}</span> : null}
+          {!g.living && g.confidence ? <span class={"sp-pill sp-conf sp-" + String(g.confidence).toLowerCase().replace(/[^a-z]+/g, "-")}>{g.confidence}</span> : null}
+          {g.weak && !weakIsNoise ? <span class="sp-pill sp-unproven">joint unproven</span> : null}
+        </span>
+        {(meta.length || kids.length) ? (
+          <span class="sp-cmeta">
+            {meta.map(([k, v]) => <span class="sp-cm"><i>{k}</i>{v}</span>)}
+            {kids.length ? (
+              <span class="sp-ckids">
+                <i>{kids.length} {kids.length === 1 ? "child" : "children"}</i>
+                {kids.slice(0, 8).map((m) => (
+                  <span class={"sp-ckid" + (m.line ? " sp-cline" : "")}>{m.name}</span>
+                ))}
+                {kids.length > 8 ? <span class="sp-ckid sp-cmore">+{kids.length - 8}</span> : null}
+              </span>
+            ) : null}
+          </span>
+        ) : null}
       </li>
-    ))}
+      </>);})}
   </ol>
+  {weakIsNoise ? (
+    <p class="sp-cfoot">{weakCount} of {rows.length} joints below are asserted by the tree and not
+      proved by a record &#8212; they are marked with a rule down the left.</p>
+  ) : null}
+  </div>
 ) : (
 <ol class="sp">
   {rows.map((g) => (
@@ -94,7 +192,7 @@ const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;");
           <p class="sp-w"><strong>The joint here will not bear weight.</strong>{" "}
             {g.weakNote ? <Fragment set:html={g.weakNote} /> : "The tree asserts it and no record names the father."}</p>
         ) : null}
-        {g.household && (g.household.members || []).length ? (
+        {!g.living && g.household && (g.household.members || []).length ? (
           <div class="sp-house">
             <p class="sp-hl">{g.household.label || "In the house"}</p>
             <p class="sp-kids">
@@ -105,11 +203,11 @@ const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;");
             </p>
           </div>
         ) : null}
-        {g.note ? <p class="sp-note" set:html={g.note} /> : null}
-        {(g.sources || []).length ? (
+        {!g.living && g.note ? <p class="sp-note" set:html={g.note} /> : null}
+        {!g.living && (g.sources || []).length ? (
           <p class="sp-src mono">{g.sources.map((x, i) => <>{i > 0 ? " \u00b7 " : ""}{x.label ?? x}</>)}</p>
         ) : null}
-        {Plate && (g.plates || []).length ? (
+        {!g.living && Plate && (g.plates || []).length ? (
           <div class="sp-plates"><Plate ids={g.plates} cols={g.plates.length} /></div>
         ) : null}
       </div>
@@ -124,23 +222,55 @@ const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;");
      and where" and nothing else. */
   .sp-c { list-style: none; margin: 1.1rem 0 0; padding: 0; }
   .sp-cg {
-    display: grid; gap: .1rem .9rem; align-items: baseline;
-    grid-template-columns: 2.2rem minmax(0, 18rem) auto 1fr auto;
-    padding: .45rem 0; border-top: 1px solid var(--rule);
+    display: grid; gap: .15rem .9rem; align-items: baseline;
+    grid-template-columns: 2.2rem minmax(0, 1fr) auto auto;
+    grid-template-areas: "n names years pills" ". meta meta meta";
+    padding: .5rem 0; border-top: 1px solid var(--rule);
   }
   .sp-c li:first-child { border-top: 0; }
-  .sp-cn { font-size: 11.5px; color: var(--ink-3); }
-  .sp-cl { font-family: var(--serif); font-size: 1.04rem; overflow-wrap: anywhere; }
-  .sp-cy { font-family: var(--mono); font-size: 12.5px; color: var(--ink-2); white-space: nowrap; }
-  .sp-cp { font-size: 12.5px; color: var(--ink-3); overflow-wrap: anywhere; }
-  .sp-cweak { border-left: 2px solid var(--ochre); padding-left: .6rem; }
-  .sp-cw {
-    font-family: var(--sans); font-size: 9.5px; letter-spacing: .09em;
-    text-transform: uppercase; color: var(--ochre); white-space: nowrap;
+  .sp-cn { grid-area: n; font-size: 11.5px; color: var(--ink-3); }
+  .sp-cnames { grid-area: names; overflow-wrap: anywhere; }
+  .sp-cl { font-family: var(--serif); font-size: 1.04rem; }
+  .sp-csp { font-family: var(--serif); font-size: 1.04rem; color: var(--ink-2); }
+  .sp-cx { color: var(--ink-3); margin: 0 .35rem; font-size: .85em; }
+  .sp-cy { grid-area: years; font-family: var(--mono); font-size: 12.5px; color: var(--ink-2); white-space: nowrap; }
+  .sp-cpills { grid-area: pills; display: flex; gap: .3rem; flex-wrap: wrap; justify-content: flex-end; }
+  .sp-pill {
+    font-family: var(--sans); font-size: 9.5px; letter-spacing: .09em; text-transform: uppercase;
+    border: 1px solid var(--rule); padding: .1rem .4rem; white-space: nowrap; color: var(--ink-3);
   }
-  @media (max-width: 620px) {
-    .sp-cg { grid-template-columns: 2.2rem 1fr; }
-    .sp-cy, .sp-cp, .sp-cw { grid-column: 2; }
+  .sp-place { color: var(--ink-2); }
+  .sp-documented { border-color: var(--rule-strong); color: var(--ink-1); }
+  .sp-inferred, .sp-probable { border-style: dashed; }
+  .sp-unproven, .sp-not-proved, .sp-disputed { border-color: var(--ochre); color: var(--ochre); }
+  .sp-cmeta { grid-area: meta; display: flex; flex-wrap: wrap; gap: .2rem .8rem; align-items: baseline; margin-top: .1rem; }
+  .sp-cm, .sp-ckids { font-size: 12.5px; color: var(--ink-2); display: flex; flex-wrap: wrap; gap: .3rem; align-items: baseline; }
+  .sp-cm i, .sp-ckids i {
+    font-style: normal; font-family: var(--sans); font-size: 9.5px; letter-spacing: .09em;
+    text-transform: uppercase; color: var(--ink-3);
+  }
+  .sp-ckid { font-size: 12px; border: 1px solid var(--rule); padding: .02rem .35rem; }
+  .sp-cline { border-color: var(--accent); font-weight: 600; }
+  .sp-cmore { color: var(--ink-3); border-style: dashed; }
+  /* MAZZA'S LADDER CHANGES SURNAME AT GENERATION TWO and said nothing about
+     it, so eight Prostamos above one Mazza read as a rendering fault. The
+     line really does pass through a daughter there. `via` is the one line
+     that says so, and it belongs between the two rows it joins. */
+  .sp-cvia {
+    display: block; padding: .35rem 0 .35rem 2.2rem; border-top: 1px solid var(--rule);
+  }
+  .sp-cvia span {
+    font-family: var(--sans); font-size: 10.5px; letter-spacing: .06em;
+    text-transform: uppercase; color: var(--ink-3);
+  }
+  .sp-cweak { border-left: 2px solid var(--ochre); padding-left: .6rem; }
+  .sp-cfoot { margin: .7rem 0 0; font-size: 12.5px; color: var(--ink-3); border-top: 1px solid var(--rule); padding-top: .6rem; }
+  @media (max-width: 680px) {
+    .sp-cg {
+      grid-template-columns: 2.2rem 1fr;
+      grid-template-areas: "n names" ". years" ". pills" ". meta";
+    }
+    .sp-cpills { justify-content: flex-start; }
   }
   .sp { list-style:none; margin:1.2rem 0; padding:0; }
   .sp-g { display:grid; grid-template-columns:7.5rem 1fr; gap:0 1.2rem;
