@@ -473,3 +473,41 @@ behaviour out of pages and into components. Any gate that recognises that
 behaviour BY ITS SHAPE IN THE PAGE goes blind exactly when the harmonisation
 succeeds. Before moving anything into a component, ask what watches it and
 how that watcher finds it.
+
+## Seven archives share the chart and show seven different things in it
+
+Raised by David on 22 September, after a session spent harmonising other
+pages: «we had a whole session dedicated to harmonising trees across the
+platforms. nothing seems to have been improved here.»
+
+He was right, and the reason is worth keeping. **`checkpages` asks whether a
+page uses a shared component, not what the page shows.** All eight homepages
+use `WaysIn`, `Numbers`, `PlaceSpark` and `MarriageChart`, so all eight score
+as harmonised — while only three of them show the family's line at all.
+Component reuse and content parity are different measurements, and only one
+of them was being taken.
+
+Audited from the LIVE pages, because a local `dist` proved untrustworthy —
+Blazevic's had no `/tree/` and no `/who/` on disk while both were live and
+returning 200, a partial build left by a raced session.
+
+  field              Defr  Falco  Blaz  Booy  DArcy  Mazza  Ler  Luw
+  ancestor boxes      18    17     70    26    31     42     8    —
+  children            15    53      —     —     —      —     —    —
+  which child carries  4     —      —     —     —      —     —    —
+  occupation          11     3      —     1     —      —     —    —
+  evidence grade       7     —      —     —     —      —     —   14
+  citation on chart   10     —      —     —     —      —     —    —
+  where the line stops —     —     22     —    15     33     6    —
+
+**Nobody is the model.** Defranceski is richest per person and never says
+where it stops. Blazevic has the biggest tree — seventy people — and names
+twenty-two walls. Falco is the only one that shows CHILDREN, fifty-three of
+them, so it alone draws a family rather than a line. Mazza names thirty-three
+walls. Luwinski has no ancestor chart at all.
+
+Seven of the eight already call the same `AncChart`. The divergence is
+entirely in what each archive hands it, which means the fix is a wider
+contract and not a new component — and every field has to be optional,
+because an archive that cannot name an occupation must not be made to look
+as though it has none.
