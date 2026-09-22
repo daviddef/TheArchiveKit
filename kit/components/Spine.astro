@@ -36,7 +36,7 @@
  *
  *   rows  [{gen, name, latin, spouse, href, born, bornPlace, died, diedPlace,
  *           trade, living, weak, weakNote, note, confidence, married, via,
- *           household: {label, members: [{name, dates, line, note}]},
+ *           household: {label, members: [{name, dates, line, href, note}]},
  *           sources: [{label}], plates: [id]}]
  *   Plate  optional component rendered as <Plate ids={row.plates} />
  *
@@ -210,8 +210,11 @@ const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;");
                 <i>{(g.household && g.household.label)
                     || `${kids.length} ${kids.length === 1 ? "child" : "children"}`}</i>
                 {kids.slice(0, 8).map((m) => (
-                  <span class={"sp-ckid" + (m.line ? " sp-cline" : "")}
-                        title={m.note || m.dates || undefined}>{m.name}</span>
+                  m.href
+                    ? <a class={"sp-ckid" + (m.line ? " sp-cline" : "")} href={u(m.href)}
+                         title={m.note || m.dates || undefined}>{m.name}</a>
+                    : <span class={"sp-ckid" + (m.line ? " sp-cline" : "")}
+                            title={m.note || m.dates || undefined}>{m.name}</span>
                 ))}
                 {kids.length > 8 ? <span class="sp-ckid sp-cmore">+{kids.length - 8}</span> : null}
               </span>
@@ -255,9 +258,20 @@ const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;");
           <div class="sp-house">
             <p class="sp-hl">{g.household.label || "In the house"}</p>
             <p class="sp-kids">
+              {/* A SIBLING WITH A PAGE SHOULD REACH IT. Blazevic's generation
+                  two has a sister, Anka Blažević, and /kosina/ is an entire
+                  page about what became of her household — a page the spine
+                  she belongs to could not reach. The href is the archive's
+                  own, never built from a name here: this estate has two
+                  Raffaele Falcos and two Petrus Jacobus Booysens, and a slug
+                  guessed from a name would merge them. */}
               {g.household.members.map((m) => (
-                <span class={"sp-kid" + (m.line ? " sp-line" : "")} title={m.note || undefined}>
-                  {m.name}{m.dates ? <i>{m.dates}</i> : null}</span>
+                m.href
+                  ? <a class={"sp-kid" + (m.line ? " sp-line" : "")} href={u(m.href)}
+                       title={m.note || undefined}>
+                      {m.name}{m.dates ? <i>{m.dates}</i> : null}</a>
+                  : <span class={"sp-kid" + (m.line ? " sp-line" : "")} title={m.note || undefined}>
+                      {m.name}{m.dates ? <i>{m.dates}</i> : null}</span>
               ))}
             </p>
           </div>
