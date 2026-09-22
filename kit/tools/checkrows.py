@@ -80,18 +80,14 @@ ROW = re.compile(r'<li class="sp-(?:cg|g)[^"]*"|<div class="dsc-gen"', re.I)
 def outdir(root):
     """WHICH BUILT DIRECTORY TO READ, and why it is not always `dist`.
 
-    Several sessions build these archives at once and they share a working
-    tree, so `dist` is routinely half-written by somebody else — it has
-    already produced one false «868 broken links» and one false «187 record
-    lines reach 0 of 60 people», each costing ten minutes of hunting a fault
-    in the data. The estate's answer is to build to a private directory,
-    `ARCHIVE_OUT=dist-verify`, which every other tool in this kit honours.
-
-    THIS ONE DID NOT, and it was the worst one to miss: run under
-    `ARCHIVE_OUT=dist-verify --write-floor`, it read a stale `dist` and wrote
-    a floor from a build nobody had just made. A ratchet set from the wrong
-    directory is worse than no ratchet — it passes whatever is there and
-    silently forgives whatever is not.
+    RETRACTION. The commit that added this function said `ARCHIVE_OUT` is
+    «the directory every other tool in this kit honours». No tool in this kit
+    honoured it. Four of them take a `--dist` flag and every archive's
+    package.json passes `--dist dist` on the command line, so the variable
+    was read by nothing and overridden by everything — including by
+    `check:living`, which is the one gate in this estate that must never be
+    wrong. The claim is now true, and kit/tools/outdir.py is where it is made
+    true for all of them.
     """
     return os.path.join(root, os.environ.get("ARCHIVE_OUT", "dist"))
 

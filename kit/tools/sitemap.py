@@ -9,6 +9,10 @@ skips anything that noindexes itself, so the sitemap can never disagree with
 the privacy rule the pages already state.
 """
 import os, re, sys, json, datetime, subprocess, functools, argparse
+import os.path as _p, sys as _sys
+_sys.path.insert(0, _p.dirname(_p.abspath(__file__)))
+import outdir as _outdir  # ARCHIVE_OUT beats --dist; see kit/tools/outdir.py
+
 
 _ap = argparse.ArgumentParser()
 # THE ODD ONE OUT UNTIL NOW. checkarchive, checkliving and checksources all
@@ -26,6 +30,7 @@ _ap.add_argument("--dist", default="dist",
                  help="where the pages were built, relative to the site directory")
 _args = _ap.parse_args()
 
+_args.dist = _outdir.resolve(_args.dist)
 here = os.getcwd()                      # run from the site directory
 site = here if os.path.basename(here) == "site" else os.path.join(here, "site")
 dist = _args.dist if os.path.isabs(_args.dist) else os.path.join(site, _args.dist)

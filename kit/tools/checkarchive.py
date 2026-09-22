@@ -28,6 +28,10 @@ Usage:  python3 checkarchive.py [--dist site/dist] [--base /TheX] [--strict]
 Exit 1 on any failure, so it can gate a deploy.
 """
 import os, re, sys, json, html, argparse, collections
+import os.path as _p, sys as _sys
+_sys.path.insert(0, _p.dirname(_p.abspath(__file__)))
+import outdir as _outdir  # ARCHIVE_OUT beats --dist; see kit/tools/outdir.py
+
 
 CANON = {"documented", "probable", "inferred", "family", "disputed"}
 RING = ["TheDefranceski", "TheFalco", "TheBooyzen", "TheDArcy",
@@ -83,6 +87,7 @@ def main():
                     help="treat advisory checks as failures too")
     a = ap.parse_args()
 
+    a.dist = _outdir.resolve(a.dist)
     if not os.path.isdir(a.dist):
         print(f"checkarchive: no {a.dist} — build first")
         return 1

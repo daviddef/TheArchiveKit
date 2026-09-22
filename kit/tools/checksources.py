@@ -51,6 +51,10 @@ skipped, and an archive can skip more with --ignore.
 """
 
 import argparse, json, os, re, sys
+import os.path as _p, sys as _sys
+_sys.path.insert(0, _p.dirname(_p.abspath(__file__)))
+import outdir as _outdir  # ARCHIVE_OUT beats --dist; see kit/tools/outdir.py
+
 
 # Shapes, measured rather than assumed. Seven archives, seven arrangements of
 # the same rows, so the rows are found rather than declared.
@@ -116,6 +120,7 @@ def main():
     ap.add_argument("--quiet", action="store_true")
     a = ap.parse_args()
 
+    a.dist = _outdir.resolve(a.dist)
     # An archive does not have to call the file sources.json, and the first
     # version of this check assumed it did. Lerena keeps 121 sources in
     # sources-consulted.json, 38 of them already linked, and this tool

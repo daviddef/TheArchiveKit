@@ -55,6 +55,10 @@ import argparse
 import datetime
 import collections
 
+import os.path as _p, sys as _sys
+_sys.path.insert(0, _p.dirname(_p.abspath(__file__)))
+import outdir as _outdir  # ARCHIVE_OUT beats --dist; see kit/tools/outdir.py
+
 PRESUME_DEAD_AFTER = 80
 MIN_PHRASE = 7
 
@@ -352,6 +356,7 @@ def main():
     ap.add_argument("--declared", default=None)
     ap.add_argument("--quiet", action="store_true")
     a = ap.parse_args()
+    a.dist = _outdir.resolve(a.dist)
     today = datetime.date.today()
 
     if not os.path.isdir(a.dist):
