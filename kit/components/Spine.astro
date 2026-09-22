@@ -201,9 +201,17 @@ const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;");
             {meta.map(([k, v]) => <span class="sp-cm"><i>{k}</i>{v}</span>)}
             {kids.length ? (
               <span class="sp-ckids">
-                <i>{kids.length} {kids.length === 1 ? "child" : "children"}</i>
+                {/* The full row has always drawn `household.label` and
+                    fallen back to "In the house"; the compact row ignored
+                    it and hard-coded "children". A book of souls registers
+                    a household, not always a nursery, and an archive that
+                    has named its own group should not be overruled by the
+                    smaller of two renderings of the same row. */}
+                <i>{(g.household && g.household.label)
+                    || `${kids.length} ${kids.length === 1 ? "child" : "children"}`}</i>
                 {kids.slice(0, 8).map((m) => (
-                  <span class={"sp-ckid" + (m.line ? " sp-cline" : "")}>{m.name}</span>
+                  <span class={"sp-ckid" + (m.line ? " sp-cline" : "")}
+                        title={m.note || m.dates || undefined}>{m.name}</span>
                 ))}
                 {kids.length > 8 ? <span class="sp-ckid sp-cmore">+{kids.length - 8}</span> : null}
               </span>
