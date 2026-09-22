@@ -2,10 +2,23 @@
 
 THE CLAIM THIS FILE EXISTS TO MAKE TRUE. On 22 September 2026 a commit in
 this kit said, of `ARCHIVE_OUT`, that it is «the directory every other tool
-in this kit honours». That was not true of a single one of them. Four tools
-take a `--dist` flag and every archive's package.json passes `--dist dist`
-on the command line, so the environment variable was read by nothing and
+in this kit honours». That was not true of a single tool in this kit.
+Four of them take a `--dist` flag, and it was passed as the literal
+`--dist dist` on the command line, so the variable was read by nothing and
 overridden by everything.
+
+AND THE SENTENCE ABOVE IS ITSELF ONE ARCHIVE TOO WIDE, twice. Two of the
+eight had solved it already and both sessions had to tell me so, having
+verified it in both directions before they did. Booyzen has passed
+`--dist "${ARCHIVE_OUT:-dist}"` since 21 September — the shell expands it
+before the flag exists, so the flag CARRIED the variable rather than
+overriding it. Defranceski never calls the scripts directly: its
+`gate-isolated.sh` builds into `dist-gate-$$` and passes `--dist "$OUT"` by
+name, written in early September after three builds died when a foreign
+build wiped `site/dist` underneath them. So the fault reached six of the
+eight, and the claim that it reached all of them went out in two commit
+messages that are now in those archives' histories. Correcting it here
+because this file is where the claim will be read next.
 
 WHY IT MATTERS MORE THAN IT SOUNDS. Several sessions build this estate at
 the same time and share a working tree, so `dist` is routinely half-written,
