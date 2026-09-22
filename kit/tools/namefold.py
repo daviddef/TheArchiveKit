@@ -30,6 +30,10 @@ read before it is committed.
   python3 namefold.py --root site --dry      # print the clusters, write nothing
 """
 import io, os, re, sys, json, glob, argparse, unicodedata
+
+import os.path as _up, sys as _us
+_us.path.insert(0, _up.dirname(_up.abspath(__file__)))
+import unread as _unread  # see kit/tools/unread.py
 from collections import Counter, defaultdict
 
 
@@ -134,7 +138,11 @@ def corpus(data, extra_skip=()):
             continue
         try:
             txt = io.open(p, encoding="utf-8").read()
-        except Exception:
+        except Exception as e:
+            # This builds the corpus the name-variant work is judged against.
+            # A file that never opened makes a rare spelling look rarer than
+            # it is, which is the direction that loses a person.
+            _unread.note(p, e)
             continue
         for w in re.findall(r"\b[A-Z][A-Za-zÀ-ſ']{3,}\b", txt):
             if not ROMAN.match(w):
@@ -161,7 +169,8 @@ def canon_surnames(data):
             continue
         try:
             d = json.load(io.open(p, encoding="utf-8"))
-        except Exception:
+        except Exception as e:
+            _unread.note(p, e)
             continue
         rows = d if isinstance(d, list) else None
         if rows is None and isinstance(d, dict):
@@ -359,4 +368,9 @@ def main():
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    # A GENERATOR STILL HAS OUTPUT TO PRODUCE, so this says what it could
+    # not read and does not refuse: a fold list missing four files and one
+    # missing none look identical once written.
+    rc = main()
+    _unread.mention("namefold")
+    sys.exit(rc)
