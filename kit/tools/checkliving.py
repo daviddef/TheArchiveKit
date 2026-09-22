@@ -367,12 +367,6 @@ def feed(dist, living_names, publishable, allow=(), allow_files=(), quiet=False,
     D'Arcy calls this. The archive answers «who is alive»; this file answers
     «did any of them reach the build», which is the part worth having once.
     """
-    # An in-flight build is not a build. `astro build` empties a directory
-    # before it refills it, so a gate that reads a half-written tree finds
-    # absences that are simply not copied yet — and for THIS gate the
-    # dangerous direction is the other one: a page not yet written cannot
-    # leak, so a straddling run reports a clean estate it never saw.
-    _before = _outdir.fingerprint(a.dist)
     pages = load_pages(dist)
     if len(pages) < 5:
         print(f"checkliving: only {len(pages)} page(s) under {dist} — the build is "
@@ -404,6 +398,12 @@ def main():
         print(f"checkliving: no {a.dist} — build first")
         return 1
     pages = load_pages(a.dist)
+    # AN IN-FLIGHT BUILD IS NOT A BUILD, and for this gate the dangerous
+    # direction is the opposite of the usual one: a page not yet copied
+    # cannot leak, so a run that straddles somebody else's build reports a
+    # clean estate it never saw. Fingerprinted here, checked before the
+    # verdict is printed.
+    _before = _outdir.fingerprint(a.dist)
     if len(pages) < 5:
         print(f"checkliving: only {len(pages)} page(s) under {a.dist} — the build is "
               f"unfinished or in flight. Refusing to pass.")
