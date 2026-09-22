@@ -227,9 +227,15 @@ const storedYoungestFirst = (rs) => {
   return down;
 };
 const ordered = storedYoungestFirst(rows) ? [...rows].reverse() : rows;
+/* A DOOR IS NOT PRIVATE DETAIL. The first version suppressed these on a
+   living row along with the dates and the places — but the row already
+   shows the spouse's name, and a door built from that name reveals
+   nothing further. It also hid the single most useful connector in the
+   estate: Falco's living generation nine married a D'Arcy, which is the
+   join between two of these archives, and it was the one row that would
+   not say so. */
 const doorsFor = (g) =>
-  g.living || !g.spouse ? []
-    : surnameDoors(g.spouse, { own: archiveKey, families, ring: RING });
+  !g.spouse ? [] : surnameDoors(g.spouse, { own: archiveKey, families, ring: RING });
 
 const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;");
 ---

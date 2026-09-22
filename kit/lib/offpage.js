@@ -50,34 +50,42 @@ const fold = (s) =>
    r./rođ. markers are dropped, and what is left is every word, because a
    surname can sit anywhere in these names — "Tereza Žubrinić Zubrinic"
    and "Milka Lucia Papic" put it in different places. */
-const words = (name) =>
-  fold(String(name ?? "").replace(/[""'']/g, " "))
-    .split(/\s+/)
-    .filter((w) => w.length > 2 && !["nee", "born", "rod", "rodj", "the", "von", "van", "de"].includes(w));
-
 /* A MAIDEN NAME IS THE DOOR THE READER WANTS. "Cheryl Anne Defranceski,
    née Lerena" carries two real surnames: the one she married into, which
-   is the archive the row is already on or beside, and the one she came
-   from, which is the family this row is actually a join to. Matched on
-   what follows née / born / r. / rođ. first, and only on the whole name if
-   that finds nothing. */
+   is the archive this row already sits in or beside, and the one she came
+   from, which is the family this row is actually a join to. */
 const maidenPart = (name) => {
-  const m = String(name ?? "").split(/\b(?:n[ée]e|born|rod|rođ\.?|r\.)\s+/i);
-  return m.length > 1 ? m[m.length - 1] : "";
+  const parts = String(name ?? "").split(/\b(?:n[\u00e9e]e|born|rod|ro\u0111\.?|r\.)\s+/i);
+  return parts.length > 1 ? parts[parts.length - 1] : "";
 };
 
-const matchIn = (needles, text) => {
-  const w = new Set(words(text));
-  // Longest first, so "Defranceschi" beats a stray "de".
-  return [...needles].sort((a, b) => b.length - a.length).find((n) => w.has(fold(n)));
-};
+const STOP = new Set(["nee", "born", "rod", "rodj", "the", "von", "van", "de", "der", "di", "du"]);
 
-/* TWO PASSES OVER THE WHOLE RING, NOT A FALLBACK PER ARCHIVE. Trying
-   maiden-then-married inside each archive's turn lets the FIRST archive in
-   the ring win on the married name before any archive has been offered the
-   maiden one: "Cheryl Anne Defranceski, née Lerena" doored to Defranceschi
-   because defranceski is listed first, and Lerena — her own family, and
-   the join this row actually makes — was never reached. */
+/* Quotes and nicknames out; what is left is the folded name as a single
+   spaced string, because a surname can sit anywhere in these — "Tereza
+   Žubrinić Zubrinic" and "Milka Lucia Papic" put it in different places. */
+const text = (name) => " " + fold(String(name ?? "").replace(/[""'']/g, " ")) + " ";
+
+/* A SURNAME IS NOT ALWAYS ONE WORD. The first version folded each side to
+   single tokens and asked whether a token set contained the needle — which
+   can never be true for "D'Arcy", because folding strips the apostrophe
+   and leaves the two words "d arcy". So every apostrophed or particled
+   surname failed silently, and the estate's most important connector went
+   with it: Falco's generation nine married Ian Kenneth D'Arcy, the join
+   between two of these archives, and the row would not say so.
+   Matched as a whole phrase on word boundaries instead. */
+const matchIn = (needles, name) => {
+  const hay = text(name);
+  if (hay.trim().length < 2) return null;
+  return [...needles]
+    .filter(Boolean)
+    .sort((a, b) => String(b).length - String(a).length)   // "Defranceschi" beats a stray "de"
+    .find((n) => {
+      const f = fold(n).trim();
+      if (!f || f.length < 3 || STOP.has(f)) return false;
+      return hay.includes(" " + f + " ");
+    });
+};
 
 export function surnameDoors(name, { own = "", families = [], ring = [] } = {}) {
   const out = [];
