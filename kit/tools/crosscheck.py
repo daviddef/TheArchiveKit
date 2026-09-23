@@ -15,6 +15,10 @@ Usage:  python3 crosscheck.py --root "/path/to/Projects" [--json out.json]
 """
 import os, re, sys, json, glob, html, argparse, collections
 
+import os.path as _up, sys as _us
+_us.path.insert(0, _up.dirname(_up.abspath(__file__)))
+import outdir as _outdir  # ARCHIVE_OUT; see kit/tools/outdir.py
+
 SITES = [
     ("Defranceski", "Defranceski Family", "TheDefranceski"),
     ("Falco",       "Falco Family",       "TheFalco"),
@@ -60,7 +64,7 @@ def dist_sig(dist):
 def survey(root, key, folder, base):
     d = os.path.join(root, folder)
     site = os.path.join(d, "site")
-    dist = os.path.join(site, "dist")
+    dist = os.path.join(site, _outdir.resolve("dist"))   # ARCHIVE_OUT, not whoever built last
     sig0 = dist_sig(dist)
     r = {"key": key, "dir": folder, "base": base, "exists": os.path.isdir(site)}
     if not r["exists"]:

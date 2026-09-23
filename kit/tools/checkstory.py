@@ -27,6 +27,10 @@ should be told is an editorial matter and stays with whoever writes it.
 """
 import argparse, io, json, os, re, subprocess, sys
 
+import os.path as _up, sys as _us
+_us.path.insert(0, _up.dirname(_up.abspath(__file__)))
+import outdir as _outdir  # ARCHIVE_OUT; see kit/tools/outdir.py
+
 # the umbrella's family slug -> the repo whose spine and pictures it draws on
 ARCHIVE = {
     "defranceski": "Defranceski Family", "falco": "Falco Family",
@@ -63,7 +67,11 @@ def families(story):
 
 def weak_joints(root, repo):
     """How many joints that archive marks as not bearing weight."""
-    p = os.path.join(root, repo, "site", "dist", "direct-line", "index.html")
+    # A HARD-WIRED `dist` GRADES WHOEVER BUILT LAST. Several sessions share
+    # this tree, and a chain that builds to a directory of its own was being
+    # checked against the shared one — which is how one archive reported
+    # «spouse fell 585 to 489» about a build that had lost nothing.
+    p = os.path.join(root, repo, "site", _outdir.resolve("dist"), "direct-line", "index.html")
     if not os.path.exists(p):
         return None
     h = io.open(p, encoding="utf-8", errors="ignore").read()
@@ -74,7 +82,7 @@ def has_pictures(root, repo):
     """Whether that archive publishes photographs anywhere a reader can see."""
     n = 0
     for page in ("gallery", "documents"):
-        p = os.path.join(root, repo, "site", "dist", page, "index.html")
+        p = os.path.join(root, repo, "site", _outdir.resolve("dist"), page, "index.html")
         if os.path.exists(p):
             n += len(re.findall(r'class="gy-p"', io.open(p, encoding="utf-8", errors="ignore").read()))
     return n
