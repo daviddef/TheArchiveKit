@@ -539,22 +539,46 @@ def main():
         print(f"  FAIL  living      {skipped} person(s) flagged living carry no usable "
               f"name in the data, so nothing can be searched for")
         return 1
-    # AN EMPTY HARVEST HAS TO PROVE IT CAN SEE. Zero living people is a fact
-    # about some archives and a broken gathering in others, and the summary
-    # line reads the same either way. See prove_harvest.
-    if not living:
-        proved, why = prove_harvest(today)
-        if not proved:
-            print(f"  FAIL  living      no living person was found in {a.data}, and the "
-                  f"empty result is not evidence that the rule is being kept: {why}")
-            return 1
+    # AN EMPTY HARVEST HAS TO PROVE IT CAN SEE. Zero is a fact about some
+    # archives and a broken gathering in others, and the summary line reads the
+    # same either way. There are TWO empty results here and they fail for
+    # different reasons, so each is probed where it arises: DETECTION, below,
+    # when nobody is flagged living at all; and EXTRACTION, after check_dates,
+    # when living people were found and not one date was harvested from any of
+    # them. The Falco session named that pair, having found that their own
+    # version of this guard could only run in the second case and so was blind
+    # in the first — the one where the gate has stopped seeing living people.
+    _probe = []
+
+    def proven(what):
+        """The self-test, run at most once, reported against one empty result."""
+        if not _probe:
+            _probe.append(prove_harvest(today))
+        ok, why = _probe[0]
+        if not ok:
+            print(f"  FAIL  living      {what}, and the empty result is not evidence "
+                  f"that the rule is being kept: {why}")
+            return False
         if not a.quiet:
-            print(f"        note  living      nobody here is living, and that is a "
-                  f"finding rather than a gate that stopped looking — {why}")
+            print(f"        note  living      {what}, and the harvest still works, so "
+                  f"that is a finding rather than a gate that stopped looking — {why}")
+        return True
+
+    if not living and not proven(f"no living person was found in {a.data}"):
+        return 1
     if not a.quiet:
         print(f"  living: {len(living)} flagged in the data, {presumed} presumed dead "
               f"by the {PRESUME_DEAD_AFTER}-year rule · policy {a.policy}")
     fails, ndates = check_dates(pages, living, set())
+    # THE INVERSE EMPTY. Living people found and not one date string harvested
+    # from any of them: either the archive keeps no dates for the living, which
+    # is the rule being held upstream where it belongs, or the date patterns
+    # stopped matching and every one of those dates is now unguarded while the
+    # summary reads «0 dates guarded · ok».
+    if living and ndates == 0 and not proven(
+            f"{len(living)} living person(s) are flagged and not one date was "
+            f"harvested from any of them"):
+        return 1
     extra = ""
     if a.policy == "absent":
         nf, nph, allowed, covered = check_names(
