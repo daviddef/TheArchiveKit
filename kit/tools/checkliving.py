@@ -47,6 +47,8 @@ An archive that omits living people from its data altogether passes with
 nothing to check, which is correct rather than a gap.
 """
 import os
+import shutil
+import tempfile
 import re
 import sys
 import json
@@ -182,6 +184,67 @@ def from_data(data_dir, today):
                     dates.update(m.group(0) for m in rx.finditer(blob))
             living.setdefault(name, set()).update(dates)
     return living, presumed, skipped
+
+
+def prove_harvest(today):
+    """Does the harvest still work when it finds nobody?
+
+    THE SENTENCE THAT CANNOT TELL YOU. «0 living, 0 dates guarded» is printed
+    both by an archive that holds no living people and by a gate whose
+    gathering has stopped working: a living-flag key renamed upstream, a date
+    pattern that no longer matches the format somebody switched to, a file
+    that quietly stopped being read. The reading is identical and reassuring
+    in both cases, and the second case is the one where the rule is already
+    broken.
+
+    The Falco session found the general form, in the archive where this
+    matters most: when a check reports zero, ask whether zero is a finding or
+    a failure to look. Booyzen reads «0 living» and it is a finding — its two
+    youngest people are infants who died in 1946 and 1947, days old, holding
+    death dates — but nothing in that sentence said so, and the only way to
+    learn it was to go and read the data by hand, which is not a check.
+
+    So an empty harvest is made to prove itself. A synthetic living person
+    goes through THE REAL `from_data`, on a real directory, because a test
+    that exercises a copy of the code proves only that the copy works. Two
+    assertions, because two different halves can fail: the person is found
+    AND their date is harvested, so a broken name path and a broken date
+    pattern are told apart; and somebody born long ago is still presumed
+    dead, so an `older_than` that has stopped refusing anybody cannot pass by
+    flagging everyone.
+
+    Returns (ok, detail). The caller refuses when ok is false.
+    """
+    d = tempfile.mkdtemp(prefix="checkliving-selftest-")
+    saved = list(UNREADABLE)
+    try:
+        json.dump([
+            {"name": "Selftest Livingperson", "living": True,
+             "born": "11 May 1990", "died": ""},
+            {"name": "Selftest Deadperson", "living": True,
+             "born": "11 May 1880", "died": ""},
+        ], open(os.path.join(d, "people.json"), "w", encoding="utf-8"))
+        living, presumed, _ = from_data(d, today)
+        who = norm("Selftest Livingperson")
+        if who not in living:
+            return False, ("the synthetic living person was not found at all — the "
+                           "living flag or the name field is no longer being read")
+        if "11 May 1990" not in living[who]:
+            return False, ("the synthetic person was found but their date was not "
+                           f"harvested (got {sorted(living[who]) or 'nothing'}) — the "
+                           "date patterns no longer match this format")
+        if presumed < 1:
+            return False, ("nobody born in 1880 was presumed dead, so the %d-year rule "
+                           "is refusing nobody and a pass means only that everyone was "
+                           "flagged" % PRESUME_DEAD_AFTER)
+        return True, ("a synthetic living person and their date were both harvested, "
+                      "and an 1880 birth was still presumed dead")
+    except Exception as e:                      # a self-test that cannot run is a fail
+        return False, "the self-test itself could not run — %s" % str(e)[:70]
+    finally:
+        shutil.rmtree(d, ignore_errors=True)
+        del UNREADABLE[:]
+        UNREADABLE.extend(saved)
 
 
 def published_names(data_dir):
@@ -476,6 +539,18 @@ def main():
         print(f"  FAIL  living      {skipped} person(s) flagged living carry no usable "
               f"name in the data, so nothing can be searched for")
         return 1
+    # AN EMPTY HARVEST HAS TO PROVE IT CAN SEE. Zero living people is a fact
+    # about some archives and a broken gathering in others, and the summary
+    # line reads the same either way. See prove_harvest.
+    if not living:
+        proved, why = prove_harvest(today)
+        if not proved:
+            print(f"  FAIL  living      no living person was found in {a.data}, and the "
+                  f"empty result is not evidence that the rule is being kept: {why}")
+            return 1
+        if not a.quiet:
+            print(f"        note  living      nobody here is living, and that is a "
+                  f"finding rather than a gate that stopped looking — {why}")
     if not a.quiet:
         print(f"  living: {len(living)} flagged in the data, {presumed} presumed dead "
               f"by the {PRESUME_DEAD_AFTER}-year rule · policy {a.policy}")
