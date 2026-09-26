@@ -59,6 +59,14 @@
  * using the component at all (Lerena's Taylor chart, which is three generations
  * rather than one person). Import it wherever the vocabulary is used.
  *
+ * dropped  [{ name, rel, dates, born, died, why, href }] relatives the archive
+ *          recorded and chose not to draw. Non-empty `dropped` alone is enough
+ *          to draw the figure, so a person whose only kin information is a name
+ *          nobody could resolve gets a page that says so instead of a page that
+ *          silently shows nothing. `dates` are printed only for somebody the
+ *          80-year rule puts beyond it; everybody else keeps a name and a
+ *          relationship. Emits .omit / .omit-h / .omit-rel / .omit-y.
+ *
  * Slots: "before-caption" sits between the chart and the caption, "notes"
  * inside the caption under the keys, "after" below the
  * whole caption. Both take the archive's own prose, which is an argument it is
@@ -73,6 +81,14 @@ const {
      why it is empty — the tree records nobody, or everybody they connect to is
      alive and withheld. That sentence is worth more than a hidden figure. */
   always = false,
+  /* Relatives the archive's own builder REFUSED to draw, and why. A name in the
+     record that could not be tied to one person is not an absence: the page that
+     shows nothing tells the reader the archive knows nothing, which is a
+     different and false claim. Rows are { name, rel, dates, why, href }; the
+     archive supplies them, this component decides what of each row may be SHOWN,
+     because the living rule is estate policy and seven pages cannot each be
+     trusted to reimplement it. */
+  dropped = [],
   keys = [],
   palette = {},
 } = Astro.props;
@@ -86,8 +102,30 @@ const groups = childGroups.length ? childGroups
          rows: children }]
     : [];
 
-const has = always || parents.length || spouses.length || siblings.length
-  || groups.some((g) => g.rows.length);
+/* The estate rule, matching checkliving.py's PRESUME_DEAD_AFTER and its strict
+   `>`: a birth more than 80 years ago is presumed a death, anything later is
+   presumed a life. Evaluated at BUILD time on purpose — somebody turns 80 and
+   their dates appear without a person having edited a file, and the same person
+   stops being withheld in the gate on the same day. */
+const PRESUME_DEAD_AFTER = 80;
+const _now = new Date().getFullYear();
+const _year = (v) => {
+  const m = /\b(1[5-9]\d\d|20\d\d)\b/.exec(String(v == null ? "" : v));
+  return m ? Number(m[1]) : null;
+};
+/* A row earns its dates only if something proves the person is beyond the rule:
+   an explicit died, or a birth older than the cutoff. Otherwise the row keeps a
+   name and a relationship, which is all a living person ever gets here. */
+const _shown = dropped.map((r) => {
+  const born = _year(r.born != null ? r.born : r.dates);
+  const died = _year(r.died) || (r.died === true ? -1 : null);
+  const dead = Boolean(died) || (born != null && (_now - born) > PRESUME_DEAD_AFTER);
+  return { name: r.name, rel: r.rel, why: r.why, href: r.href,
+           dates: dead ? (r.dates || null) : null, withheld: !dead };
+});
+
+const has = always || dropped.length || parents.length || spouses.length
+  || siblings.length || groups.some((g) => g.rows.length);
 
 /* node, small, gap, spouse, then the archive's class — the order the three
    originals emitted, so the markup is unchanged where it is compared. */
@@ -215,6 +253,24 @@ const sty = Object.entries(palette).map(([k, v]) => `--pt-${k}:${v}`).join(";") 
       <span class="key"><i class={"sw " + k.cls}></i>{" " + k.label}</span>
     ))}
     <slot name="keys" />
+    {_shown.length ? (
+      <p class="omit">
+        <span class="omit-h">{(_shown.length === 1
+          ? "One name in the record is not drawn above"
+          : `${_shown.length} names in the record are not drawn above`) + ":"}</span>
+        {_shown.map((r, i) => (
+          <span class="omit-r">
+            {i ? " · " : " "}
+            {r.rel ? <span class="omit-rel">{r.rel}</span> : null}
+            {r.href
+              ? <a class="nm" href={r.href}>{r.name}</a>
+              : <span class="nm">{r.name}</span>}
+            {r.dates ? <span class="dt">{r.dates}</span> : null}
+            {r.why ? <span class="omit-y">{"\u2014 " + r.why}</span> : null}
+          </span>
+        ))}
+      </p>
+    ) : null}
     <slot name="notes" />
   </figcaption>
   <slot name="after" />

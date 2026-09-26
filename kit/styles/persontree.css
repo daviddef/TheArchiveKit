@@ -84,6 +84,19 @@
                    background:var(--panel-2);border-radius:2px;color:var(--ink-2)}
   .ptree figcaption b{color:var(--ink-2);font-weight:600}
 
+  /* Names the archive recorded and refused to draw. Set as prose inside the
+     caption, not as nodes in the chart, because that is what they are: a claim
+     the record makes which the archive will not turn into a line between two
+     people. The relationship leads, since "a father" is the part that tells the
+     reader what is missing; the reason trails in the quieter colour. */
+  .ptree .omit{margin:.6rem 0 0;line-height:1.6;max-width:86ch}
+  .ptree .omit-h{color:var(--ink-2);font-weight:600}
+  .ptree .omit-r .nm{color:var(--ink-1)}
+  .ptree .omit-r a.nm:hover{text-decoration:underline}
+  .ptree .omit-rel{margin-right:.3rem}
+  .ptree .omit-r .dt{margin-left:.3rem}
+  .ptree .omit-y{margin-left:.35rem;font-style:italic;color:var(--ink-3,var(--ink-2))}
+
   /* Booyzen and D'Arcy each set the names in their own face. That is a real
      choice about how the archive reads, not drift, so it is a knob. */
   .ptree .nm{font-family:var(--pt-name-font,inherit);font-size:var(--pt-name-size,inherit);
