@@ -55,6 +55,54 @@ def locked_sha(root):
     return None, "the lockfile does not record a commit for the kit"
 
 
+def note_change(root, pinned, quiet):
+    """Say so when the pin MOVED, because a steady «ok» line is not read.
+
+    THE ONE THAT MADE THIS NECESSARY. The D'Arcy session told me their pin was
+    2790d85 and asked me to re-audit ten repositories on the strength of it. It
+    was 8ec58e6: their own deliberate repin had been superseded by fadb87c, a
+    commit about gating a relationship, which carried package.json along with it.
+    Their build had printed «ok pin kit 8ec58e6 installed and pinned» on every
+    run — three times that day, including in the run executing while they wrote
+    me the correction.
+
+    Their diagnosis is the useful part and it indicts most of what I built today:
+    the instrument was not silent, it was UNREAD, because a line beginning «ok»
+    does not get read. A number restated identically every build is noise, and
+    noise is where a change hides.
+
+    So the number is written down, and the build speaks only when it MOVES. The
+    file is committed on purpose — then a pin that shifts inside a commit about
+    something else shows up as a diff in a file whose only subject is the pin,
+    which is the second place D'Arcy could have caught it.
+
+    A missing file is not a change: the first run records and says nothing, so
+    adopting this cannot manufacture an alarm. An unreadable one is not a change
+    either, and is reported as unreadable rather than guessed at.
+    """
+    path = os.path.join(root, ".kitpin")
+    was = None
+    try:
+        with open(path, encoding="utf-8") as f:
+            was = f.read().strip() or None
+    except FileNotFoundError:
+        pass
+    except Exception as e:
+        print("        note  pin        .kitpin could not be read (%s), so a move "
+              "cannot be reported this run" % str(e)[:50])
+        return
+    if was and was != pinned:
+        print("        CHANGED pin      the kit moved from %s to %s since the last "
+              "build here. If that was not deliberate, look for a commit about "
+              "something else that carried package.json with it."
+              % (was[:12], pinned[:12]))
+    try:
+        with open(path, "w", encoding="utf-8") as f:
+            f.write(pinned + "\n")
+    except Exception:
+        pass                      # a record that cannot be written is not a failure
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--root", default=".")
@@ -107,6 +155,7 @@ def main():
         print("  ok    pin        %d kit file(s) referenced, all present (%s)"
               % (len(scripts), why))
         return 0
+    note_change(a.root, pinned, a.quiet)
     print("  ok    pin        kit %s installed and pinned, every referenced file present"
           % pinned[:12])
     return 0
