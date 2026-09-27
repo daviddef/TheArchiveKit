@@ -105,11 +105,18 @@ def main():
         return 1
 
     infants, impossible, aged = [], [], []
+    tested = 0                 # rows where BOTH dates parsed — see below
+    has_born = has_died = 0    # rows carrying the field at all, parsed or not
     for r in rows:
+        if r.get(a.born) not in (None, "", []):
+            has_born += 1
+        if r.get(a.died) not in (None, "", []):
+            has_died += 1
         b, d = year(r.get(a.born)), year(r.get(a.died))
         nm = str(r.get(a.name) or "?")
         if b is None or d is None:
             continue
+        tested += 1
         if d < b:
             impossible.append((nm, r.get(a.born), r.get(a.died), d - b))
             continue
@@ -120,6 +127,48 @@ def main():
             ch, sp = kin(r)
             if ch or sp:
                 infants.append((nm, r.get(a.born), r.get(a.died), len(ch), len(sp)))
+
+    # WHAT THIS GATE ACTUALLY EXAMINED, which is not the same as how many
+    # people it was given. Every test below needs BOTH a birth and a death, so
+    # a row with one of them is skipped, and a run that skipped every row
+    # reported «N people · 0 impossible relationship(s) · ok» having examined
+    # nobody. Lerena did exactly that: 357 people, 191 with a birth, and no
+    # `died` field anywhere in the file, so it tested 0 and passed, for as long
+    # as this gate has existed.
+    #
+    # The Falco session put the rule that catches it — when a check reports
+    # zero, ask whether zero is a finding or a failure to look — and the range
+    # form it generalises to: a gate has two ends, and a gate that stops
+    # finding anybody passes by refusing everyone just as surely as one that
+    # stops refusing anybody passes by flagging everyone.
+    #
+    # Three cases, deliberately not one, because only two of them are faults:
+    #   no rows at all           the register is gone or unreadable as a list
+    #   the field is ABSENT      this archive does not record deaths in this
+    #                            file. Not a fault, and not an «ok» either:
+    #                            the gate declines and says whose fault it is
+    #                            not, rather than claiming a clean archive.
+    #   the field is PRESENT     and nothing parsed — a format or a key changed
+    #                            and every test below silently did nothing.
+    if not rows:
+        print("  FAIL  kin        %s holds no people, so nothing was examined and a "
+              "clean reading here would mean only that the register is gone" % a.data)
+        return 1
+    if not tested:
+        if not has_died or not has_born:
+            missing = "%s%s%s" % ("«%s»" % a.born if not has_born else "",
+                                  " and " if not has_born and not has_died else "",
+                                  "«%s»" % a.died if not has_died else "")
+            print("  --    kin        not run: not one of the %d row(s) in %s carries "
+                  "%s, so every test here needs a date this register does not hold. "
+                  "Nothing was examined, and that is not the same as nothing being "
+                  "wrong." % (len(rows), a.data, missing))
+            return 0
+        print("  FAIL  kin        %d row(s) carry %s and %d carry %s, and not one "
+              "yielded a usable pair of years — the field names still match but "
+              "nothing parses, so every test below examined nobody"
+              % (has_born, "«%s»" % a.born, has_died, "«%s»" % a.died))
+        return 1
 
     n = len(infants) + len(impossible)
     refusing = n > a.max if a.max is not None else bool(n)
@@ -148,8 +197,10 @@ def main():
     if a.max is None and n:
         print("  FAIL  kin        %d relationship(s) no chart should draw" % n)
         return 1
-    print("  ok    kin        %d people · %d impossible relationship(s)%s · %d aged past %d"
-          % (len(rows), n, (", the ratchet is %d" % a.max) if a.max is not None else "",
+    print("  ok    kin        %d of %d people carry both dates and were examined · "
+          "%d impossible relationship(s)%s · %d aged past %d"
+          % (tested, len(rows), n,
+             (", the ratchet is %d" % a.max) if a.max is not None else "",
              len(aged), IMPLAUSIBLE_AGE))
     return 0
 
