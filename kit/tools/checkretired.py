@@ -137,8 +137,29 @@ def main():
               "quotation of the dead version in the archive's own withdrawal mark; "
               "an unquoted one is a claim." % len(seen))
         return 1
-    print("  ok    retired    %d withdrawn reading(s), none stated as fact in %d file(s)"
-          % (len(phrases), scanned))
+    # WHAT A GREEN LINE HERE DOES AND DOES NOT MEAN. This gate matches DECLARED
+    # PHRASES, so its coverage is exactly as wide as somebody's memory: it can
+    # say that none of the phrases written down is asserted, and it can never say
+    # the archive holds no stale claim. Widening it is not available — the estate
+    # tried four general prose checkers and abandoned all four at roughly 100%
+    # false positives, which is why the docstring above insists on the quoting
+    # rule.
+    #
+    # The Luwinski session proved the gap in their own equivalent, and the shape
+    # is worth having: it matches withdrawn VALUES — a date, a name, a string
+    # somebody declared — and what got past it was a stale CHARACTERISATION.
+    # Their /derrick panel called a DNA exclusion «disputed» for two days after
+    # the exclusion was settled. Nobody had thought to declare «disputed» as a
+    # withdrawn way of DESCRIBING something, so there was nothing to match, and
+    # the gate could not have caught it.
+    #
+    # So the line says what it checked against, not what it proved about the
+    # archive. A reader who takes «ok retired» for «no stale claims here» is
+    # reading a coverage number as a verdict, which is the same substitution as
+    # a key count printed as a count of people.
+    print("  ok    retired    none of the %d declared withdrawn reading(s) is stated as "
+          "fact in %d file(s) — this gate knows only what is declared, so it cannot "
+          "say the archive holds no others" % (len(phrases), scanned))
     return 0
 
 
