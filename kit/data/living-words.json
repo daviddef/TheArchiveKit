@@ -1,0 +1,25 @@
+{
+  "_why": [
+    "HOW THIS ESTATE WRITES DOWN THAT SOMEBODY IS ALIVE, in one place, because three",
+    "separate readers of the same question each missed the same person.",
+    "",
+    "Tersia Booyzen is recorded b = \"living\" in the Booyzen archive — the archive",
+    "stating she is alive in the field a birth date would occupy, with no boolean",
+    "anywhere. checkliving.py read living FLAGS and counted zero. The kit's chart",
+    "helper rendered «b. living» as though it were a date. And register.astro",
+    "published, in bold, «No living person is in this register, and none is anywhere",
+    "in this archive: of the 354 people it holds, not one is living» — which is false",
+    "about a living woman, on the one rule this estate treats as absolute.",
+    "",
+    "Three readers, three languages, one blind spot, and each agreed with the others",
+    "for the same wrong reason. Two implementations agreeing is evidence only when",
+    "they CAN disagree; these could not. So the vocabulary is declared here and read",
+    "rather than restated, and a fourth reader cannot quietly know less than the gate."
+  ],
+  "flags": ["living", "presumedLiving", "alive", "isLiving"],
+  "confValues": ["living"],
+  "dateFields": ["born", "b", "birth", "byear", "b_date",
+                 "died", "d", "death", "dyear", "d_date", "dates"],
+  "saidLiving": ["living", "alive", "still living", "presumed living", "vivente"],
+  "presumeDeadAfter": 80
+}

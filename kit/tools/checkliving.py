@@ -61,13 +61,30 @@ import os.path as _p, sys as _sys
 _sys.path.insert(0, _p.dirname(_p.abspath(__file__)))
 import outdir as _outdir  # ARCHIVE_OUT beats --dist; see kit/tools/outdir.py
 
-PRESUME_DEAD_AFTER = 80
+# THE VOCABULARY IS DECLARED, NOT RESTATED. kit/data/living-words.json holds how
+# this estate writes down that somebody is alive, and three separate readers of
+# that question each missed the same person by knowing a different subset of it —
+# this gate, the chart helper, and a page that published «not one is living» in
+# bold about a living woman. A fourth reader must not be able to quietly know
+# less than the gate, so both sides read one file.
+#
+# The fallback is the previous hard-coded set, and it is deliberate: a kit
+# installed without its data directory should still enforce the rule, and
+# refusing to run is the one outcome this particular gate must never have.
+_WORDS_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                           os.pardir, "data", "living-words.json")
+try:
+    _W = json.load(open(_WORDS_PATH, encoding="utf-8"))
+except Exception:
+    _W = {}
+
+PRESUME_DEAD_AFTER = _W.get("presumeDeadAfter", 80)
 MIN_PHRASE = 7
 
 NAME_KEYS = ("name", "n", "who", "t")
 BORN_KEYS = ("born", "b", "birth", "byear", "b_date")
 DIED_KEYS = ("died", "d", "death", "dyear", "d_date")
-LIVING_KEYS = ("living", "presumedLiving", "alive", "isLiving")
+LIVING_KEYS = tuple(_W.get("flags", ("living", "presumedLiving", "alive", "isLiving")))
 
 MONTHS = (r"Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec|"
           r"January|February|March|April|June|July|August|September|October|"
@@ -115,7 +132,7 @@ def visible(src):
 # `surname` is literally "living" — the Italian formula noting a parent was alive
 # at the act, on people baptised in the 1800s — and treating any field would
 # turn three long-dead men into living people and withhold their dates.
-SAID_LIVING = ("living", "alive", "still living", "presumed living", "vivente")
+SAID_LIVING = tuple(_W.get("saidLiving", ("living", "alive", "still living", "presumed living", "vivente")))
 
 
 def said_living(r):
