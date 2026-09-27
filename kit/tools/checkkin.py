@@ -107,6 +107,7 @@ def main():
     infants, impossible, aged = [], [], []
     tested = 0                 # rows where BOTH dates parsed — see below
     has_born = has_died = 0    # rows carrying the field at all, parsed or not
+    born_only = died_only = no_year = 0    # the archive's evidence shape
     for r in rows:
         if r.get(a.born) not in (None, "", []):
             has_born += 1
@@ -114,6 +115,14 @@ def main():
             has_died += 1
         b, d = year(r.get(a.born)), year(r.get(a.died))
         nm = str(r.get(a.name) or "?")
+        if b is not None and d is not None:
+            pass
+        elif b is not None:
+            born_only += 1
+        elif d is not None:
+            died_only += 1
+        else:
+            no_year += 1
         if b is None or d is None:
             continue
         tested += 1
@@ -197,9 +206,18 @@ def main():
     if a.max is None and n:
         print("  FAIL  kin        %d relationship(s) no chart should draw" % n)
         return 1
+    # THE SHAPE OF THE EVIDENCE, in the line that is read every build. The
+    # Falco session took the examined-of-handed ratio and asked what the rest
+    # of their register was made of: 451 of 866 people — fifty-two per cent —
+    # carry no year at all, each known from a single act. That was true of
+    # their archive before anybody measured it and had never been stated
+    # anywhere. It is between 29% and 64% in all seven, so it is not a fault
+    # and not news; it is what these registers ARE, and a reader of this line
+    # should not have to ask.
     print("  ok    kin        %d of %d people carry both dates and were examined · "
+          "%d a birth only, %d a death only, %d no year at all · "
           "%d impossible relationship(s)%s · %d aged past %d"
-          % (tested, len(rows), n,
+          % (tested, len(rows), born_only, died_only, no_year, n,
              (", the ratchet is %d" % a.max) if a.max is not None else "",
              len(aged), IMPLAUSIBLE_AGE))
     return 0
