@@ -177,6 +177,7 @@ def from_data(data_dir, today):
     Unreadable files are collected and the caller refuses on them.
     """
     living, presumed, skipped = {}, 0, 0
+    nrows = 0                  # ROWS flagged living, before names collapse
     del UNREADABLE[:]
     for f in sorted(os.listdir(data_dir)) if os.path.isdir(data_dir) else []:
         if not f.endswith(".json"):
@@ -198,6 +199,7 @@ def from_data(data_dir, today):
                 # cannot protect. Counted and printed rather than dropped.
                 skipped += 1
                 continue
+            nrows += 1
             born, died = first(r, BORN_KEYS), first(r, DIED_KEYS)
             if older_than(born, PRESUME_DEAD_AFTER, today):
                 presumed += 1
@@ -207,7 +209,7 @@ def from_data(data_dir, today):
                 for rx in (FULL_DATE, ISO_DATE, SLASH_DATE):
                     dates.update(m.group(0) for m in rx.finditer(blob))
             living.setdefault(name, set()).update(dates)
-    return living, presumed, skipped
+    return living, presumed, skipped, nrows
 
 
 def prove_harvest(today):
@@ -248,7 +250,7 @@ def prove_harvest(today):
             {"name": "Selftest Deadperson", "living": True,
              "born": "11 May 1880", "died": ""},
         ], open(os.path.join(d, "people.json"), "w", encoding="utf-8"))
-        living, presumed, _ = from_data(d, today)
+        living, presumed, _, _n = from_data(d, today)
         who = norm("Selftest Livingperson")
         if who not in living:
             return False, ("the synthetic living person was not found at all — the "
@@ -553,7 +555,7 @@ def main():
                              f"for {', '.join(names)}{said}", a.quiet)
 
     # derived: read the archive's own committed data
-    living, presumed, skipped = from_data(a.data, today)
+    living, presumed, skipped, nrows = from_data(a.data, today)
     if UNREADABLE:
         # THE GATE CANNOT ANSWER, SO IT MUST NOT PASS. A file it could not
         # parse holds an unknown number of living people, and every one of
@@ -628,8 +630,32 @@ def main():
         "absent":     "and no name phrase of theirs either",
         "declared":   "against the declaration",
     }[a.policy]
-    ok = (f"{len(pages)} pages — {len(living)} living person(s), {ndates} date(s) "
-          f"guarded{extra} · {enforced}")
+    # NEITHER NUMBER HERE IS A COUNT OF PEOPLE, and this line said «person(s)»
+    # for one of them until it said it for the other.
+    #
+    # Keys UNDER-count: living people are keyed by NORMALISED name, and norm()
+    # strips a parenthetical married surname, so «Renata Kovač (Defranceski)» and
+    # «Renata Kovač» collapse into one. The Defranceski session found their 58
+    # flagged rows reading as 54 — not a leak, since the bare form is a substring
+    # of the parenthetical one and both stay protected, but a count of keys
+    # printed as a count of people. The Falco session found the same shape in
+    # their own guard, 105 names for 106 people, two living men of one name.
+    #
+    # Rows OVER-count: the same person flagged in several data files is several
+    # rows. Booyzen's Tersia Booyzen is one living woman recorded in people.json
+    # and dossiers.json, and calling that «2 living person(s)» would have been a
+    # fresh wrong label replacing the old one.
+    #
+    # So the line states what each number IS. Both unconditionally: an
+    # explanation printed only when the gap exists cannot be read, because once
+    # it closes a missing explanation and an absent gap look identical.
+    collapsed = nrows - len(living)
+    who = ("%d flagged row(s) across the data, under %d distinct name(s)"
+           % (nrows, len(living))) + (
+        " — %d row(s) collapse, being the same person in another file or a "
+        "married form of a name already counted" % collapsed if collapsed > 0
+        else ", one row each")
+    ok = (f"{len(pages)} pages — {who}, {ndates} date(s) guarded{extra} · {enforced}")
     return report(fails, ok, a.quiet)
 
 

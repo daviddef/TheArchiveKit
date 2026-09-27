@@ -9,7 +9,30 @@
    family      told, remembered, or written on a family chart — not sourced
    disputed    two sources disagree and neither has been ruled out
 
-   Older labels used by individual archives are folded in rather than broken. */
+   Older labels used by individual archives are folded in rather than broken.
+
+   AND «family» IS NO LONGER WHERE UNKNOWN VALUES GO. It was, twice over: `no`
+   and `open` were listed as aliases of it, and the fallback resolved anything
+   unrecognised to it as well. So an archive passing `conn: "no"` — its own field
+   for «is this person related at all», answered NO — got a badge reading
+   «Family», in a column headed «Link to this family», against six people that
+   archive explicitly states are not relatives. Piero della Francesca among them,
+   two lines under a dek saying that a shared patronymic is not a shared ancestor
+   and that saying otherwise is how family myths start.
+
+   Nothing failed, which is why it stood. This component grades how well a claim
+   is EVIDENCED, on five levels. `conn` asks whether a link exists at all, and
+   «no» is an answer to that question rather than a weak grade on this one. A
+   default that always returns a valid-looking answer cannot report that it was
+   never given a valid input — and of the five levels available to fall back to,
+   this one fell to the most credulous, in an estate whose whole purpose is not
+   asserting kinship it cannot show.
+
+   Unrecognised values now render «Ungraded» and say so. Not a build failure:
+   several archives compute the level in an expression, so a throw here would
+   turn a visible wrong word into seven broken builds, and the point is that the
+   reader can see it. The Defranceski session found this and fixed their own
+   misuse in 639d2a6 without touching the kit; this is the kit half. */
 const { level, children } = Astro.props;
 
 const ALIAS = {
@@ -17,13 +40,13 @@ const ALIAS = {
   probable: "probable", likely: "probable",
   inferred: "inferred", inf: "inferred", unproven: "inferred", untested: "inferred",
   family: "family", lore: "family", tradition: "family", asserted: "family",
-  no: "family", open: "family",
   disputed: "disputed", contested: "disputed", conflict: "disputed",
 };
 const LABEL = {
   documented: "Documented", probable: "Probable", inferred: "Inferred",
   family: "Family", disputed: "Disputed",
+  ungraded: "Ungraded — this is not one of the five levels",
 };
-const key = ALIAS[String(level ?? "").toLowerCase()] ?? "family";
+const key = ALIAS[String(level ?? "").toLowerCase()] ?? "ungraded";
 ---
-<span class={`ev ev-${key}`} title={LABEL[key]}>{children ?? LABEL[key]}</span>
+<span class={`ev ev-${key}`} title={LABEL[key]}>{children ?? (key === "ungraded" ? "Ungraded" : LABEL[key])}</span>
