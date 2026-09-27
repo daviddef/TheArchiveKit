@@ -103,6 +103,29 @@ def visible(src):
 
 # ---- reading the archive's own data ----------------------------------------
 
+# «living» WRITTEN WHERE A DATE GOES. The Booyzen archive records Tersia Booyzen
+# with b = "living" — the archive knows, and says so, in the field a birth date
+# would occupy. No boolean anywhere, so this gate counted 0 living people and
+# passed its own self-test, because the harvest mechanism was working perfectly
+# on an encoding it did not read. Zero was true of the FLAGS and false of the
+# archive, which is the failure the self-test cannot see: it proves the gate can
+# still find what it looks for, never that it looks in the right place.
+#
+# Only the date fields are read for this. Falco's register holds rows whose
+# `surname` is literally "living" — the Italian formula noting a parent was alive
+# at the act, on people baptised in the 1800s — and treating any field would
+# turn three long-dead men into living people and withhold their dates.
+SAID_LIVING = ("living", "alive", "still living", "presumed living", "vivente")
+
+
+def said_living(r):
+    """True when a DATE field says the person is living instead of giving a date."""
+    for k in BORN_KEYS + DIED_KEYS + ("dates",):
+        if str(r.get(k) or "").strip().lower() in SAID_LIVING:
+            return True
+    return False
+
+
 def rows_of(j):
     if isinstance(j, list):
         return [r for r in j if isinstance(r, dict)]
@@ -165,7 +188,8 @@ def from_data(data_dir, today):
             continue
         for r in rows_of(j):
             flagged = any(r.get(k) is True for k in LIVING_KEYS) or \
-                      str(r.get("conf", "")).lower() == "living"
+                      str(r.get("conf", "")).lower() == "living" or \
+                      said_living(r)
             if not flagged:
                 continue
             name = norm(first(r, NAME_KEYS))
