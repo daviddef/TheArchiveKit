@@ -517,10 +517,14 @@ def main():
                     continue
                 fails.append((rel, lbl, ctx))
                 break
-        said = ""
-        if allowed_hits or skipped_files:
-            said = (f" — {allowed_hits} hit(s) allowed by the declaration, "
-                    f"{skipped_files} file(s) exempt")
+        # AN EXPLANATION PRINTED ONLY WHEN IT IS NEEDED cannot be read. Once
+        # the gap closes, a missing explanation and an absent gap look
+        # identical — which is the ambiguity the clause was added to remove.
+        # The Falco session found this in their own date guard one level up:
+        # they printed "1 of whom share a name with another" only while the
+        # discrepancy existed. Unconditional, both ways.
+        said = (f" — {allowed_hits} hit(s) allowed by the declaration, "
+                f"{skipped_files} file(s) exempt")
         return report(fails, f"{len(pages)} pages carry no name and no birth year "
                              f"for {', '.join(names)}{said}", a.quiet)
 
@@ -587,8 +591,21 @@ def main():
         extra = f", {nph:,} name phrases"
     if _outdir.settled(a.dist, _before, 'living'):
         return 1
-    ok = (f"{len(pages)} pages — no living person reaches the build "
-          f"({len(living)} living, {ndates} dates{extra} guarded)")
+    # SAY WHAT WAS ENFORCED, NOT SOMETHING STRONGER. «no living person reaches
+    # the build» is what this line said for every archive, and under the policy
+    # every archive runs it is an overclaim: named-bare exists precisely so a
+    # living person's NAME may appear, bare, with no date and no place. Their
+    # names do reach the build, by design and by David's rule. The policy that
+    # qualifies the claim was printed on a different line, which --quiet drops,
+    # so the strong claim could travel alone.
+    enforced = {
+        "named-bare": "no date beside any of them; their names may appear bare, "
+                      "which is the rule and not a gap",
+        "absent":     "and no name phrase of theirs either",
+        "declared":   "against the declaration",
+    }[a.policy]
+    ok = (f"{len(pages)} pages — {len(living)} living person(s), {ndates} date(s) "
+          f"guarded{extra} · {enforced}")
     return report(fails, ok, a.quiet)
 
 
