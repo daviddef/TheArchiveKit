@@ -1,0 +1,19 @@
+# macOS writes these into any directory Finder has opened. Two were tracked, so
+# every session working in the kit saw a dirty tree it had not made — and two
+# sessions agreed today that committing named paths and leaving the tree CLEAN is
+# the only thing that has kept them out of each other's way. Noise in `git status`
+# costs that discipline directly.
+#
+# They never reached an archive: npm excludes .DS_Store from a package by default,
+# and I checked four installed copies before writing this rather than assuming the
+# `files: ["kit"]` field carried them.
+.DS_Store
+**/.DS_Store
+
+# Python leaves these beside the tools when a gate imports another gate.
+__pycache__/
+*.pyc
+
+# A local build of the kit's own pages, if anybody makes one.
+dist/
+node_modules/
