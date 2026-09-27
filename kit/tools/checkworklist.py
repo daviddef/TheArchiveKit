@@ -69,9 +69,27 @@ def check(path, name):
         if st not in STATES:
             bad.append(f"{where}: state {st!r} is not one of " + ", ".join(sorted(STATES)))
         n = r.get("n")
-        if n in seen:
+        # ONE COLUMN, ONE TYPE. `n` is the row's address: pages link to it,
+        # commit messages cite it, and sessions compare it. This gate already
+        # refused two rows numbered the same — but it compared VALUES, and 196
+        # and "196" are different values, so a string row beside two hundred
+        # integer ones collided with nothing and the column went mixed in
+        # silence. JSON was happy, the page rendered, the build was green.
+        #
+        # It cost the Booyzen session a broken `max(r["n"] for r in rows)`
+        # within minutes of my writing such a row — I read the column with an
+        # int() coercion and then wrote a string back into it, which is the
+        # whole fault in one line. The cost is never the one row: it is that
+        # every consumer from now on has to defend itself against a column that
+        # is supposed to have one type, and none of them will.
+        if isinstance(n, bool) or not isinstance(n, int):
+            bad.append(f"{where}: row number {n!r} is {type(n).__name__}, not an "
+                       f"integer — one column, one type, or every reader of it "
+                       f"has to guess")
+        key = n if isinstance(n, int) and not isinstance(n, bool) else str(n).strip()
+        if key in seen:
             bad.append(f"{where}: two rows numbered {n}")
-        seen.add(n)
+        seen.add(key)
         since = str(r.get("since", "")).strip()
         if since:
             try:
