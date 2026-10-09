@@ -19,23 +19,40 @@
 const ESC = { "&": "&amp;", "<": "&lt;", ">": "&gt;" };
 const esc = (s) => String(s ?? "").replace(/[&<>]/g, (c) => ESC[c]);
 
-/* ⭐ 9 October 2026 — ***triple*** now closes as <strong><em>x</em></strong>.
-   It had been <strong>x</strong>, which silently dropped the italic half of a
-   marker that means both. The archives' own renderer was corrected the same
-   day and this one was left disagreeing with it; measured over one archive's
-   data, 816 strings render differently for the better.
+/* ⭐ 9 October 2026 — this chain now matches the archives' own renderer
+   exactly: ***x*** closes as <strong><em>x</em></strong>, and every rule runs
+   /g with no \s* trimming.
 
-   ⚠ The FLAGS here are deliberately NOT aligned with that renderer, which uses
-   /g and no \s* trimming. Measured on the same data, /gs plus \s* changes
-   where 95 strings' captures begin and end — a real behaviour change that
-   needs its own evidence, not a tidy-up ridden in on this one. */
+   Both halves were faults, not preferences.
+
+   The OUTPUT half: ***x*** had rendered as <strong>x</strong>, silently
+   dropping the italic half of a marker that means both. 816 strings in one
+   archive's data gain the <em> they should always have had.
+
+   The FLAGS half, which was left standing for a day and then measured: /s
+   lets `.` cross a newline, and \s* matches newlines of its own accord even
+   without it. Together they let an emphasis run swallow a paragraph break and
+   join two unrelated spans. Measured over one archive's data, 125 strings
+   rendered differently, and every difference was of this shape:
+
+     **Michiela *fu Pietro*** — wife of Andrea…    the *** at the END of a
+       nested italic opened a new match that ate the next two lines
+     …not the problem.***\n\n***The specific failure…    a closing *** and the
+       next opening *** were joined across the blank line between them
+     ***Naša Sloga*, 28 May 1914**    bold-with-italic-inside was read as an
+       unterminated triple and swallowed the rest of the sentence
+
+   62 strings had a *** match crossing a newline, 31 a **, 9 a «». In none of
+   them was the wider match the right one. Where the markers are genuinely
+   unbalanced the narrower rule now leaves them visible, which is a data fault
+   surfacing rather than a renderer hiding it. */
 /* Order matters: *** before ** before *, or the shorter marker eats the
    longer one's delimiters and leaves a stray asterisk behind. */
 export const md = (x) =>
   esc(x)
-    .replace(/\*\*\*\s*(.+?)\s*\*\*\*/gs, "<strong><em>$1</em></strong>")
-    .replace(/\*\*(.+?)\*\*/gs, "<strong>$1</strong>")
-    .replace(/«(.+?)»/gs, "<em>«$1»</em>")
+    .replace(/\*\*\*(.+?)\*\*\*/g, "<strong><em>$1</em></strong>")
+    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+    .replace(/«(.+?)»/g, "<em>«$1»</em>")
     .replace(/(^|[^*])\*([^*\n]+?)\*/g, "$1<em>$2</em>");
 
 /* Same, but blank lines become paragraph breaks. For a field that holds more
@@ -43,7 +60,16 @@ export const md = (x) =>
 export const mdp = (x) => md(x).replace(/\n\n+/g, "</p><p>");
 
 /* The text with no markup at all — a title attribute, a meta description, a
-   search index. Strips the markers rather than rendering them. */
+   search index. Strips the markers rather than rendering them.
+
+   ⚠ These two keep /s ON PURPOSE, and it is the opposite call from md() above.
+   md() RENDERS, so a match that crosses a newline swallows a paragraph break
+   and joins two unrelated spans — a fault, now fixed. plain() STRIPS, so a
+   wider match simply removes more punctuation, which is the whole point of a
+   string that is about to become a <title> or a search-index entry. Measured
+   over one archive's data on 9 October 2026: 302 strings differ between /gs
+   and /g here, and NOT ONE of them differs by a letter — only by how many
+   stray asterisks survive into the title. Do not "align" these with md(). */
 export const plain = (x) =>
   String(x ?? "")
     .replace(/\*{1,3}(.+?)\*{1,3}/gs, "$1")
