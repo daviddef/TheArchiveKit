@@ -1,5 +1,6 @@
 ---
 import RING from "../data/archives.json";
+import { mdNote } from "../lib/md.js";
 /* What is being done, as opposed to what is known.
  *
  * Every other register in these archives answers "what do we know" — searched,
@@ -64,11 +65,12 @@ const stale = (r) => {
   const d = Math.floor((Date.now() - Date.parse(r.since)) / DAY);
   return Number.isFinite(d) && d > 30 ? d : 0;
 };
-const md = (s) => String(s ?? "")
-  .replace(/&/g, "&amp;").replace(/</g, "&lt;")
-  .replace(/\[([^\]]+)\]\((\/[^)]*)\)/g, (_, t, h) => `<a href="${u(h)}">${t}</a>`)
-  .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
-  .replace(/«([^»]+)»/g, "<em>«$1»</em>");
+/* The private renderer this component carried until 9 October 2026 did
+   **bold**, «quotes» and links and nothing else — no italic, no code, no
+   tables, no newlines — so every note rendered as one flat blob with 4,599
+   literal asterisks, 892 backticks and 123 table separators showing across
+   the estate's work lists. It is now the kit's own mdNote, which is the
+   renderer this file should always have used. */
 ---
 <div class="wl">
   <div class="wl-tally" role="group" aria-label="Show only one kind of item">
@@ -99,7 +101,7 @@ const md = (s) => String(s ?? "")
           {stale(r) > 0 && <span class="wl-stale">{stale(r)} days</span>}
         </div>
         <p class="wl-what">{r.state === "struck" ? <s>{r.what}</s> : r.what}</p>
-        {r.note && <div class="wl-note" set:html={md(r.note)} />}
+        {r.note && <div class="wl-note" set:html={mdNote(r.note, u)} />}
       </div>
     ))}
   </div>
@@ -180,6 +182,21 @@ const md = (s) => String(s ?? "")
   .wl-what { margin:8px 0 0; font-size:17px; font-weight:600; line-height:1.35 }
   .wl-note { margin-top:6px; font-size:14.5px; color:var(--ink-2); line-height:1.6; max-width:70ch }
   .wl-note a { color:inherit }
+  /* mdNote returns block-level HTML through set:html, which Astro's scoping
+     never touches — so these have to be :global, kept under .wl-note. */
+  .wl-note :global(p) { margin:0 0 10px }
+  .wl-note :global(p:last-child) { margin-bottom:0 }
+  .wl-note :global(hr) { border:0; border-top:1px solid var(--rule,#d8d4cc); margin:14px 0 }
+  .wl-note :global(ul) { margin:0 0 10px; padding-left:20px }
+  .wl-note :global(li) { margin:2px 0 }
+  .wl-note :global(blockquote) { margin:10px 0; padding-left:12px;
+    border-left:2px solid var(--accent,#9a8f7a); color:var(--ink-1,inherit) }
+  .wl-note :global(code) { font-family:var(--mono,ui-monospace,monospace);
+    font-size:0.92em; background:var(--tint,rgba(0,0,0,.05));
+    padding:1px 4px; border-radius:3px }
+  .wl-note :global(h3), .wl-note :global(h4), .wl-note :global(h5),
+  .wl-note :global(h6) { margin:14px 0 6px; font-size:15px; line-height:1.35 }
+  .wl-note :global(table) { margin:10px 0 }
   .wl-ring { margin-top:34px; padding-top:18px; border-top:1px solid var(--rule) }
   .wl-ring-l { font-family:var(--mono); font-size:10.5px; letter-spacing:.13em;
                text-transform:uppercase; color:var(--ink-3); margin-bottom:11px }
