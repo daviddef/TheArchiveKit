@@ -300,6 +300,72 @@
         "Defranceski",
         "Booyzen"
       ]
+    },
+    {
+      "key": "errands",
+      "route": "/errands/",
+      "on": 5,
+      "state": "partial",
+      "tier": 1,
+      "component": "Errands",
+      "using": 5,
+      "drawingTheirOwn": [],
+      "note": "**On five of eight: Blazevic, Booyzen, D'Arcy, Defranceski, Lerena. Not on Falco, Mazza or Luwinski, and it was never registered here, so nothing counted the gap.** It spread by copying (Defranceski 9 Sep, Booyzen 13 Sep, D'Arcy and Lerena 10 Sep from the Defranceski audit, Blazevic 9 Oct) and the component was lifted afterwards. Three other pages ask the same question under another name and are folded into it by `evidence-menu.json`: **Photograph these** (Blazevic, Defranceski, Lerena: the kit's own Shotlist header says it is «what somebody standing in the right place should photograph»), **The Letters** (Booyzen) and **Letters out** (Luwinski, which alone has a chase schedule worth keeping). Falco and Mazza have asks that exist and are not on the site: Mazza's drafted Scilla request is in `notes/requests/scilla-comune.md`; Falco's notes name the Arienzo liber IX baptism register and two Benevento volumes to order."
+    },
+    {
+      "key": "photograph-these",
+      "route": "/photograph-these/",
+      "on": 3,
+      "state": "partial",
+      "tier": 2,
+      "component": "Shotlist",
+      "using": 3,
+      "drawingTheirOwn": [],
+      "note": "**An errand where the person asked is standing in a place.** Blazevic, Defranceski and Lerena. Same fields as an errand: a place, why the photograph is worth the trip, what it would settle. Defranceski's is an itinerary of frames along a walk, which is the one real difference and is a grouping, not a different object (Booyzen groups errands by door in the same way). Folds into `/errands/` as a `kind`; the old route keeps working."
+    },
+    {
+      "key": "letters",
+      "route": "/letters/",
+      "on": 2,
+      "state": "partial",
+      "tier": 2,
+      "component": null,
+      "using": 0,
+      "drawingTheirOwn": [
+        "Booyzen",
+        "Luwinski"
+      ],
+      "note": "**The sent half of errands.** Booyzen's `/letters/` says it replaced enquiries that «existed in three places». Luwinski's `/letters/` («Letters out», 18 rows) carries sent, acknowledged, answered and a per-recipient chase interval, which no other archive has and which the kit's Errands does not yet model. **Do not flatten it**: add `chase` to the Errands row, then fold."
+    },
+    {
+      "key": "research-log",
+      "route": "/research-log/",
+      "on": 4,
+      "state": "partial",
+      "tier": 2,
+      "component": null,
+      "using": 0,
+      "drawingTheirOwn": [
+        "Booyzen",
+        "Defranceski",
+        "Falco",
+        "Luwinski"
+      ],
+      "note": "**A second view of what `/changes/` already holds.** Booyzen's research log and its What changed page are built from the same `log.json`; the kit's `Changes` already separates what was done from what was found. Falco's own note records the cost of two pages for one thing: its research log said 15 volumes read while `/searched/` said 57 death and 32 birth registers. Falco's page is partly an index of working files, which is a different job and should keep a home. Folds into `/changes/`."
+    },
+    {
+      "key": "gaps",
+      "route": "/gaps/",
+      "on": 2,
+      "state": "partial",
+      "tier": 3,
+      "component": null,
+      "using": 0,
+      "drawingTheirOwn": [
+        "Defranceski",
+        "Lerena"
+      ],
+      "note": "**Open questions that may never close.** Lerena says its page is not the open questions: the work has been done properly and the record may not exist. That is a state of a question. Folds into `/open-questions/` as a state. Hypotheses (Lerena), Disputed (Booyzen), Status and Roadmap are single-archive pages with the same pull and are named in `evidence-menu.json` folds, but are not registered here because one archive is not a shared page."
     }
   ]
 }

@@ -1,0 +1,35 @@
+{
+  "note": "The Evidence menu, as the estate means it. Written 9 October 2026 after a comparison of all eight menus (122 entries, 9 to 25 per archive, five labels common to all). The 15 September menu canon fixed the ORDER OF THE GROUPS and one label per shared route; it never said what Evidence contains, so each archive filled it with whatever it had built. This file says. A menu label is estate-wide so a reader learns it once; a page TITLE may stay the archive's own voice.",
+  "group": "Evidence",
+  "core": [
+    { "key": "method",         "route": "/method/",         "label": "Method",             "asks": "What would make you believe or not believe this?" },
+    { "key": "sources",        "route": "/sources/",        "label": "Sources",            "asks": "What does this stand on, and where do I check?" },
+    { "key": "searched",       "route": "/searched/",       "label": "What Has Been Read", "asks": "What was looked at, and what did it not turn up?" },
+    { "key": "open-questions", "route": "/open-questions/", "label": "Open Questions",     "asks": "What is not known, and what would settle it?" },
+    { "key": "errands",        "route": "/errands/",        "label": "Errands",            "asks": "What has been asked of other people, or needs someone standing in a place?" },
+    { "key": "worklist",       "route": "/worklist/",       "label": "The work list",      "asks": "What is being done, by whom, since when?" },
+    { "key": "corrections",    "route": "/corrections/",    "label": "Corrections",        "asks": "What did this archive get wrong?" },
+    { "key": "changes",        "route": "/changes/",        "label": "What changed",       "asks": "What happened, most recent first?" }
+  ],
+  "optional": [
+    { "key": "documents", "route": "/documents/", "label": "Documents", "asks": "What is reproduced whole?" },
+    { "key": "gallery",   "route": "/gallery/",   "label": "Gallery",   "asks": "What has been photographed?" }
+  ],
+  "aliases": {
+    "/what-changed/": "changes",
+    "/evidence": "searched",
+    "/evidence/": "searched"
+  },
+  "folds": {
+    "note": "Pages that do the same job as a core page under another name. Until each is folded they stay reachable; the checker names them so the fold is visible work, not a surprise. Each fold keeps its old route working.",
+    "errands":        ["photograph-these", "letters"],
+    "worklist":       ["status", "roadmap"],
+    "open-questions": ["gaps", "hypotheses", "disputed"],
+    "searched":       ["negatives", "audit"],
+    "changes":        ["research-log"]
+  },
+  "overflow": {
+    "label": "Investigations",
+    "note": "Where an archive's OWN pages go once they leave Evidence: catalogues of where the records are, analyses, and the exhibits that are not Documents or Gallery. Optional, local, in the archive's own voice. Evidence stays the same eight everywhere; this group is allowed to differ."
+  }
+}
