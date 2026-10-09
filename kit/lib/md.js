@@ -19,11 +19,21 @@
 const ESC = { "&": "&amp;", "<": "&lt;", ">": "&gt;" };
 const esc = (s) => String(s ?? "").replace(/[&<>]/g, (c) => ESC[c]);
 
+/* ⭐ 9 October 2026 — ***triple*** now closes as <strong><em>x</em></strong>.
+   It had been <strong>x</strong>, which silently dropped the italic half of a
+   marker that means both. The archives' own renderer was corrected the same
+   day and this one was left disagreeing with it; measured over one archive's
+   data, 816 strings render differently for the better.
+
+   ⚠ The FLAGS here are deliberately NOT aligned with that renderer, which uses
+   /g and no \s* trimming. Measured on the same data, /gs plus \s* changes
+   where 95 strings' captures begin and end — a real behaviour change that
+   needs its own evidence, not a tidy-up ridden in on this one. */
 /* Order matters: *** before ** before *, or the shorter marker eats the
    longer one's delimiters and leaves a stray asterisk behind. */
 export const md = (x) =>
   esc(x)
-    .replace(/\*\*\*\s*(.+?)\s*\*\*\*/gs, "<strong>$1</strong>")
+    .replace(/\*\*\*\s*(.+?)\s*\*\*\*/gs, "<strong><em>$1</em></strong>")
     .replace(/\*\*(.+?)\*\*/gs, "<strong>$1</strong>")
     .replace(/«(.+?)»/gs, "<em>«$1»</em>")
     .replace(/(^|[^*])\*([^*\n]+?)\*/g, "$1<em>$2</em>");
@@ -81,7 +91,7 @@ const inlineRich = (s, u) =>
   linkify(
     esc(s)
       .replace(/`([^`\n]+)`/g, "<code>$1</code>")
-      .replace(/\*\*\*(.+?)\*\*\*/g, "<strong>$1</strong>")
+      .replace(/\*\*\*(.+?)\*\*\*/g, "<strong><em>$1</em></strong>")
       .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
       .replace(/«(.+?)»/g, "<em>«$1»</em>")
       .replace(/(^|[^*])\*([^*\n]+?)\*/g, "$1<em>$2</em>"),
