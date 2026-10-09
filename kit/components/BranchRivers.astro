@@ -44,6 +44,13 @@
    neutral ink rather than either lane's colour, thinner and fainter than any
    lane, with its reason written small. It reads as a question. */
 import { u } from "../lib/url.js";
+/* An SVG <title> is the graphic's accessible name and its tooltip, so whatever
+   goes in is READ ALOUD and shown on hover. These take their text straight
+   from the data, which is written in the archives' light markup — so a rich
+   «why» was being announced to a screen reader as "star CORRECTED 8 Oct 2026.
+   asterisk asterisk 1931 is the year he DIED…" with its brackets and hrefs
+   intact. plain() is in the next file along and exists for exactly this. */
+import { plain } from "../lib/md.js";
 
 /* THE CAPTION IS THE ARCHIVE'S, NOT THE KIT'S.
    This component was promoted out of Defranceschi and its caption came with
@@ -136,7 +143,7 @@ const BR_LOST = BRIDGES.length - BR.length;
                  data-place={e.replace("?","")} data-year={soft ? "unverified" : ""}
                  data-why={ewhy} data-lane={lane.label}
                  data-href={u(ehref)} data-read={`Read the ${e.replace("?","")} story`}>
-                <title>{e.replace("?","")} — {ewhy}</title>
+                <title>{e.replace("?","")} — {plain(ewhy)}</title>
                 <path d={`M ${Math.max(lineEnd, X1)} ${b.sp} C ${X1 + 90} ${b.sp}, ${XE - 90} ${y}, ${XE} ${y}`}
                       fill="none" stroke={lane.colour} stroke-width="1.6" opacity="0.5"
                       stroke-dasharray={soft ? "3 4" : ""} />
@@ -154,7 +161,7 @@ const BR_LOST = BRIDGES.length - BR.length;
               <g class="node" tabindex="0" role="button"
                  data-place={place} data-year={year} data-why={why} data-lane={lane.label}
                  data-href={u(lane.href)} data-read={lane.read.replace(" →","")}>
-                <title>{place}{year !== "—" ? ` · ${year}` : ""} — {why}</title>
+                <title>{place}{year !== "—" ? ` · ${year}` : ""} — {plain(why)}</title>
                 <circle cx={x} cy={b.sp} r="8.5" fill="var(--panel)" stroke={lane.colour} stroke-width="2.6" />
                 <circle cx={x} cy={b.sp} r="3" fill={lane.colour} />
                 <text x={x} y={b.sp - 19} class="place">{place}</text>
@@ -198,7 +205,7 @@ const BR_LOST = BRIDGES.length - BR.length;
         <g class="node" tabindex="0" role="button"
            data-place={l[0]} data-year="unplaced" data-why={l[2]}
            data-lane="Not yet placed on a line" data-href={u(l[1])} data-read={`Where ${l[0]} is written up`}>
-          <title>{l[0]} — {l[2]}</title>
+          <title>{l[0]} — {plain(l[2])}</title>
           <circle cx={110 + (i % 3) * 310} cy={LOOSE_Y + 40 + Math.floor(i / 3) * 26} r="7" fill="transparent" />
           <circle cx={110 + (i % 3) * 310} cy={LOOSE_Y + 40 + Math.floor(i / 3) * 26} r="4.5" fill="none" stroke="var(--ink-2)" stroke-width="1.8" />
           <text x={122 + (i % 3) * 310} y={LOOSE_Y + 44 + Math.floor(i / 3) * 26} class="loose">{l[0]}</text>
@@ -210,7 +217,7 @@ const BR_LOST = BRIDGES.length - BR.length;
         <g class="node" tabindex="0" role="button"
            data-place={l[0]} data-year="—" data-why={l[2]}
            data-lane="Attached to no line here" data-href={u(l[1])} data-read={`Where ${l[0]} is written up`}>
-          <title>{l[0]} — {l[2]}</title>
+          <title>{l[0]} — {plain(l[2])}</title>
           <circle cx={150 + i * 200} cy={LOOSE_Y + 100 + (Math.ceil(UNPLACED.length / 3) - 1) * 26} r="7" fill="transparent" />
           <circle cx={150 + i * 200} cy={LOOSE_Y + 100 + (Math.ceil(UNPLACED.length / 3) - 1) * 26} r="4.5" fill="none" stroke="var(--ink-3)" stroke-width="1.6" stroke-dasharray="2 2" />
           <text x={162 + i * 200} y={LOOSE_Y + 104 + (Math.ceil(UNPLACED.length / 3) - 1) * 26} class="loose">{l[0]}</text>

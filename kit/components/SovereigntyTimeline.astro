@@ -15,6 +15,12 @@
      events  draw the family's own events above the lanes
 */
 
+/* An SVG <title> is the graphic's accessible name and its tooltip — whatever
+   goes in is read aloud. The text comes from the data, which is written in the
+   archives' light markup, so it is stripped first. Same reason as
+   BranchRivers. */
+import { plain } from "../lib/md.js";
+
 const { sov, events = true, label } = Astro.props;
 /* The description read "Sovereignty over Central Istria, Senj and Vinodol,
    Carnia and Dalmatia" on every archive that drew this, because it was written
@@ -54,7 +60,7 @@ const world = sov.world || [];
          aria-label={`${y}: ${fam[y].join(". ")}`}>
         <circle cx={x(y)} cy="44" r="9" fill="transparent"/>
         <circle cx={x(y)} cy="44" r="3.2" style="fill:var(--terra)"/>
-        <title>{y} — {fam[y].join(" · ")}</title>
+        <title>{y} — {plain(fam[y].join(" · "))}</title>
       </g>
     ))}
   </>}
@@ -91,7 +97,7 @@ const world = sov.world || [];
        aria-label={`${y}: ${text}`}>
       <circle cx={x(y)} cy={WORLD_Y} r="9" fill="transparent"/>
       <rect x={x(y)-2.6} y={WORLD_Y-2.6} width="5.2" height="5.2" style="fill:var(--ochre)"/>
-      <title>{y} — {text}</title>
+      <title>{y} — {plain(text)}</title>
     </g>
   ))}
 </svg>
