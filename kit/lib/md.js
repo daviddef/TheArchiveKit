@@ -99,8 +99,18 @@ export const mdp = (x) => md(x).replace(/\n\n+/g, "</p><p>");
    stray asterisks survive into the title. Do not "align" these with md(). */
 export const plain = (x) =>
   String(x ?? "")
+    /* A markdown link is markup too, and this function promises none. Keep the
+       words, drop the brackets and the href — a <title> reading
+       "[The Gologorica line](/gologorica-line/)" helps nobody. */
+    .replace(/\[([^\]\n]{1,120})\]\((?:\/|https?:\/\/)[^)\s]{1,200}\)/g, "$1")
     .replace(/\*{1,3}(.+?)\*{1,3}/gs, "$1")
     .replace(/«(.+?)»/gs, "$1")
+    /* Backticks go unconditionally, not in pairs. The emphasis rules above are
+       pair-based because a lone * can be meaningful — a footnote mark, a glob
+       in a filename — but a backtick never carries meaning in plain text, and
+       the ones that reach a <title> are precisely the UNBALANCED ones a
+       pair-based rule would leave behind. */
+    .replace(/`/g, "")
     .replace(/\s+/g, " ")
     .trim();
 
