@@ -34,6 +34,10 @@ WHAT IT SAYS ABOUT EACH ENTRY IN THE EVIDENCE MENU
   local     the archive's own page, which belongs in Investigations once it
             leaves Evidence
 
+AND ABOUT THE INVESTIGATIONS GROUP
+  A fold page parked there is reported as PENDING, not as a departure: it is
+  where the page should wait, and the work of merging it is still owed.
+
 AND ABOUT EACH CORE PAGE
   absent    the page is not built at all, so the archive has nothing to list
             (this is the real gap: Falco and Mazza have no Errands)
@@ -118,6 +122,8 @@ def audit(dist, canon):
                          "not an archive with no evidence" % canon["group"])
 
     base = base_of(groups)
+    over = next((links for name, links in groups
+                 if name == canon["overflow"]["label"]), [])
     core = {c["key"]: c for c in canon["core"]}
     opt = {c["key"]: c for c in canon["optional"]}
     alias = {norm(k): v for k, v in canon["aliases"].items()}
@@ -169,10 +175,19 @@ def audit(dist, canon):
     first_other = next((i for i, k in enumerate(kinds) if k != "core"), len(kinds))
     interleaved = any(k == "core" for k in kinds[first_other:])
     extras = [e for e in entries if e["kind"] in ("fold", "local")]
+    # Pages that do a core page's job but have been moved out of Evidence into
+    # the overflow group. That is the right interim home and not a departure, but
+    # it is work that is not finished, so it is named on every run.
+    parked = []
+    for href, label in over:
+        route = norm(href[len(base):] if base and href.startswith(base) else href)
+        if route in fold_of:
+            parked.append(dict(route=route, label=label, key=fold_of[route]))
     ok = not (problems["absent"] or problems["unlinked"] or problems["label"]
               or problems["order"] or interleaved or extras)
     return dict(dist=dist, base=base, entries=entries, problems=problems,
-                interleaved=interleaved, extras=extras, ok=ok, total=len(entries))
+                interleaved=interleaved, extras=extras, parked=parked, ok=ok,
+                total=len(entries), overflow=len(over))
 
 
 def render(a, canon):
@@ -204,7 +219,14 @@ def render(a, canon):
         if local:
             out.append("  LOCAL    %d page(s) to move to %s: %s" % (
                 len(local), canon["overflow"]["label"], "; ".join(e["label"] for e in local)))
-    out.append("  result  " + ("conforms" if a["ok"] else "departs from the canon"))
+    if a["overflow"]:
+        out.append("  %s  %d page(s) of the archive's own" % (canon["overflow"]["label"], a["overflow"]))
+    if a["parked"]:
+        out.append("  PENDING  %d fold(s) parked in %s, not yet merged: %s" % (
+            len(a["parked"]), canon["overflow"]["label"],
+            "; ".join("%s -> %s" % (e["label"], e["key"]) for e in a["parked"])))
+    out.append("  result  " + ("conforms" if a["ok"] else "departs from the canon")
+               + ("  (folds pending)" if a["ok"] and a["parked"] else ""))
     return "\n".join(out)
 
 

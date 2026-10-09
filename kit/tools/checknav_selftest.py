@@ -111,6 +111,23 @@ for label, d in (("no topnav at all", tree(None, raw="<html><body>no nav</body><
 rc = checknav.main(["--dist", tempfile.mkdtemp(prefix="checknav-")])
 expect("main() exits 2 when it could not see a menu", rc == 2)
 
+# 7b. folds parked in Investigations conform, but are still named
+def tree2(evidence, overflow):
+    d = tree(evidence)
+    links = "".join('<a href="%s%s" class>%s</a>' % (BASE, r, l) for r, l in overflow)
+    idx = os.path.join(d, "index.html")
+    h = open(idx).read().replace("</nav>",
+        '<details class="menu"><summary>Investigations</summary><div class="panel">%s</div></details></nav>' % links)
+    open(idx, "w").write(h)
+    return d
+
+a2 = checknav.audit(tree2(CORE, [("/photograph-these/", "Photograph these"), ("/the-stones/", "The Stones")]), CANON)
+expect("a fold parked in Investigations does not fail the menu", a2["ok"])
+expect("...but it is still named as pending", [p["key"] for p in a2["parked"]] == ["errands"])
+expect("a local page in Investigations is not a pending fold", len(a2["parked"]) == 1 and a2["overflow"] == 2)
+a3 = checknav.audit(tree2(CORE + [("/photograph-these/", "Photograph these")], []), CANON)
+expect("the same fold left in Evidence still departs", not a3["ok"])
+
 # 8. advisory vs strict
 d = tree(CORE + [("/the-stones/", "The Stones")])
 expect("advisory mode exits 0 on a departure", checknav.main(["--dist", d]) == 0)
