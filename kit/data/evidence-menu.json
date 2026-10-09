@@ -71,24 +71,16 @@
     "/evidence/": "searched"
   },
   "folds": {
-    "note": "Pages that do the same job as a core page under another name. Until each is folded they stay reachable; the checker names them so the fold is visible work, not a surprise. Each fold keeps its old route working. Read on 9 October 2026 and deliberately NOT folds: Lerena's Hypotheses (fourteen argued propositions with tables and an image analysis, and the build checks its contents list against its sections) and Roadmap (an argued ranking of routes with results). A fold is for a list that does a core page's job; an argued dossier stays a local page under Investigations.",
+    "note": "Pages that do the same job as a core page under another name, where the fold is MECHANICAL: a list that does a core page's job. Each fold keeps its old route working. Folded on 9 October 2026: Photograph these (Lerena, Blazevic, Defranceski), The Letters (Booyzen), What we cannot close (Lerena, Defranceski), the research log (Booyzen into What changed, Defranceski into Open Questions), and Luwinski's Letters out, Research log and Bounded negatives into its Errands, What changed and What has been read pages. READ AND DELIBERATELY NOT FOLDS, because each is an argued dossier or a different object, not a list: Lerena's Hypotheses and Roadmap, Mazza's The Audit, Booyzen's Disputed (its own dossiers.py records that it concerns contested facts about people), Luwinski's Status (a dated snapshot whose items mostly are not work-list rows) and Falco's Research log (an index of its working-notes files). 'Research log' turned out to be FOUR different things across four archives: the same log.json as What changed (Booyzen), a second view of the open questions (Defranceski), an index of working notes (Falco) and a chronology (Luwinski), which is why the fold table cannot name it.",
     "errands": [
       "photograph-these",
       "letters"
     ],
-    "worklist": [
-      "status"
-    ],
     "open-questions": [
-      "gaps",
-      "disputed"
+      "gaps"
     ],
     "searched": [
-      "negatives",
-      "audit"
-    ],
-    "changes": [
-      "research-log"
+      "negatives"
     ]
   },
   "overflow": {

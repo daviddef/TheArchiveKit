@@ -304,40 +304,15 @@
     {
       "key": "errands",
       "route": "/errands/",
-      "on": 7,
+      "on": 8,
       "state": "partial",
       "tier": 1,
       "component": "Errands",
       "using": 7,
-      "drawingTheirOwn": [],
-      "note": "**On five of eight: Blazevic, Booyzen, D'Arcy, Defranceski, Lerena. Not on Falco, Mazza or Luwinski, and it was never registered here, so nothing counted the gap.** It spread by copying (Defranceski 9 Sep, Booyzen 13 Sep, D'Arcy and Lerena 10 Sep from the Defranceski audit, Blazevic 9 Oct) and the component was lifted afterwards. Three other pages ask the same question under another name and are folded into it by `evidence-menu.json`: **Photograph these** (Blazevic, Defranceski, Lerena: the kit's own Shotlist header says it is «what somebody standing in the right place should photograph»), **The Letters** (Booyzen) and **Letters out** (Luwinski, which alone has a chase schedule worth keeping). Falco and Mazza had asks that existed and were not on the site: **both now have an Errands page (9 October 2026)**: Mazza `5a04330` (five asks at four doors, from a drafted Scilla request and work-list rows 9, 59 and 158) and Falco `5c8951bf` (five asks at three doors, from questions and rows 20 and 21). *An earlier version of this note said Falco's notes named the Arienzo liber IX register as an ask to the museum; that came from a 13 September note that row 100 (27 September) superseded, and it is not on the page.* **9 Oct 2026, Booyzen: The Letters folded into `/errands/#sent`** (`241adb4`), `/letters/` redirects, and the fold exposed a stale hand-written count on the page it joined. Luwinski's `Letters out` is now the only separate sent-letters page left. **9 Oct 2026, Lerena:** gaps («What we cannot close») folded into `/open-questions/#may-never-close` in the same commit; Defranceski's `/gaps/` is the only one left, so it is no longer a shared page."
-    },
-    {
-      "key": "photograph-these",
-      "route": "/photograph-these/",
-      "on": 2,
-      "state": "partial",
-      "tier": 2,
-      "component": "Shotlist",
-      "using": 2,
-      "drawingTheirOwn": [],
-      "note": "**An errand where the person asked is standing in a place.** Blazevic, Defranceski and Lerena. Same fields as an errand: a place, why the photograph is worth the trip, what it would settle. Defranceski's is an itinerary of frames along a walk, which is the one real difference and is a grouping, not a different object (Booyzen groups errands by door in the same way). Folds into `/errands/` as a `kind`; the old route keeps working. **9 Oct 2026, Lerena: Photograph these folded into `/errands/#photographs`** (`5f6c52b`), `/photograph-these/` redirects. Blazevic and Defranceski still have the page."
-    },
-    {
-      "key": "research-log",
-      "route": "/research-log/",
-      "on": 4,
-      "state": "partial",
-      "tier": 2,
-      "component": null,
-      "using": 0,
       "drawingTheirOwn": [
-        "Booyzen",
-        "Defranceski",
-        "Falco",
         "Luwinski"
       ],
-      "note": "**A second view of what `/changes/` already holds.** Booyzen's research log and its What changed page are built from the same `log.json`; the kit's `Changes` already separates what was done from what was found. Falco's own note records the cost of two pages for one thing: its research log said 15 volumes read while `/searched/` said 57 death and 32 birth registers. Falco's page is partly an index of working files, which is a different job and should keep a home. Folds into `/changes/`."
+      "note": "**On five of eight: Blazevic, Booyzen, D'Arcy, Defranceski, Lerena. Not on Falco, Mazza or Luwinski, and it was never registered here, so nothing counted the gap.** It spread by copying (Defranceski 9 Sep, Booyzen 13 Sep, D'Arcy and Lerena 10 Sep from the Defranceski audit, Blazevic 9 Oct) and the component was lifted afterwards. Three other pages ask the same question under another name and are folded into it by `evidence-menu.json`: **Photograph these** (Blazevic, Defranceski, Lerena: the kit's own Shotlist header says it is «what somebody standing in the right place should photograph»), **The Letters** (Booyzen) and **Letters out** (Luwinski, which alone has a chase schedule worth keeping). Falco and Mazza had asks that existed and were not on the site: **both now have an Errands page (9 October 2026)**: Mazza `5a04330` (five asks at four doors, from a drafted Scilla request and work-list rows 9, 59 and 158) and Falco `5c8951bf` (five asks at three doors, from questions and rows 20 and 21). *An earlier version of this note said Falco's notes named the Arienzo liber IX register as an ask to the museum; that came from a 13 September note that row 100 (27 September) superseded, and it is not on the page.* **9 Oct 2026, Booyzen: The Letters folded into `/errands/#sent`** (`241adb4`), `/letters/` redirects, and the fold exposed a stale hand-written count on the page it joined. Luwinski's `Letters out` is now the only separate sent-letters page left. **9 Oct 2026, Lerena:** gaps («What we cannot close») folded into `/open-questions/#may-never-close` in the same commit; Defranceski's `/gaps/` is the only one left, so it is no longer a shared page. **Status 9 Oct 2026, evening: all eight archives now have /errands/.** Seven draw it with the kit's component; Luwinski's is its Letters out page whole (the per-recipient chase schedule is not modelled by the kit's Errands row, so it stays bespoke until `chase` is added)."
     }
   ]
 }
