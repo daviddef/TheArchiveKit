@@ -57,13 +57,30 @@ const esc = (s) => String(s ?? "").replace(/[&<>]/g, (c) => ESC[c]);
    surfacing rather than a renderer hiding it. */
 /* Order matters: *** before ** before *, or the shorter marker eats the
    longer one's delimiters and leaves a stray asterisk behind. */
-export const md = (x) =>
-  esc(x)
-    .replace(/`([^`\n]+)`/g, "<code>$1</code>")
+/* ⚠ A code span's CONTENT must not be touched by the rules that follow it.
+   Putting the code rule first was not enough: `*.json` came out as a <code>
+   with the asterisk eaten by the italic rule, and `\s*` as <code>\s<em></code>.
+   Across the estate 85 code spans hold a * or a « », and every one is the kind
+   of thing a code span is FOR — a glob, a flag, a file pattern. So they are
+   lifted out, the markup runs on what is left, and they go back in untouched.
+   The sentinel is NUL, which no data file in the estate contains. */
+const holdCode = (s) => {
+  const spans = [];
+  const held = String(s ?? "").replace(/`([^`\n]+)`/g, (_, c) => {
+    spans.push(c);
+    return `\u0000C${spans.length - 1}\u0000`;
+  });
+  return [held, (t) => t.replace(/\u0000C(\d+)\u0000/g, (_, i) => `<code>${spans[+i]}</code>`)];
+};
+
+export const md = (x) => {
+  const [held, restore] = holdCode(esc(x));
+  return restore(held
     .replace(/\*\*\*(.+?)\*\*\*/g, "<strong><em>$1</em></strong>")
     .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
     .replace(/«(.+?)»/g, "<em>«$1»</em>")
-    .replace(/(^|[^*])\*([^*\n]+?)\*/g, "$1<em>$2</em>");
+    .replace(/(^|[^*])\*([^*\n]+?)\*/g, "$1<em>$2</em>"));
+};
 
 /* Same, but blank lines become paragraph breaks. For a field that holds more
    than one paragraph of prose. */
@@ -123,15 +140,14 @@ const linkify = (s, u) =>
 /* Inline markers only. Order matters here for the same reason as in md():
    *** before ** before *, and code spans FIRST so that `**x**` inside backticks
    stays literal. */
-const inlineRich = (s, u) =>
-  linkify(
-    esc(s)
-      .replace(/`([^`\n]+)`/g, "<code>$1</code>")
-      .replace(/\*\*\*(.+?)\*\*\*/g, "<strong><em>$1</em></strong>")
-      .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
-      .replace(/«(.+?)»/g, "<em>«$1»</em>")
-      .replace(/(^|[^*])\*([^*\n]+?)\*/g, "$1<em>$2</em>"),
-    u);
+const inlineRich = (s, u) => {
+  const [held, restore] = holdCode(esc(s));
+  return restore(linkify(held
+    .replace(/\*\*\*(.+?)\*\*\*/g, "<strong><em>$1</em></strong>")
+    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+    .replace(/«(.+?)»/g, "<em>«$1»</em>")
+    .replace(/(^|[^*])\*([^*\n]+?)\*/g, "$1<em>$2</em>"), u));
+};
 
 const isRow = (l) => /^\s*\|.*\|\s*$/.test(l || "");
 const isSep = (l) => /^\s*\|[\s:|-]+\|\s*$/.test(l || "") && /-/.test(l || "");
