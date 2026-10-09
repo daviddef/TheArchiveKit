@@ -23,6 +23,15 @@ const esc = (s) => String(s ?? "").replace(/[&<>]/g, (c) => ESC[c]);
    exactly: ***x*** closes as <strong><em>x</em></strong>, and every rule runs
    /g with no \s* trimming.
 
+   ⭐ A `code` rule was added on 9 October 2026, FIRST in the chain so that a
+   ** inside backticks stays literal. It had none at all, and the estate's data
+   is full of file names, field names and shell: measured across the seven
+   archives on that day, 2,581 backticks were printing as backticks in visible
+   text — Blazevic 799, Booyzen 733, Falco 427, Mazza 338, D'arcy 226, and the
+   rest in ones and tens. ⚠ Only one archive has a code{} rule in its own
+   stylesheet; the other five will render browser-default monospace until they
+   add one, which is still the right way round from where they are.
+
    Both halves were faults, not preferences.
 
    The OUTPUT half: ***x*** had rendered as <strong>x</strong>, silently
@@ -50,6 +59,7 @@ const esc = (s) => String(s ?? "").replace(/[&<>]/g, (c) => ESC[c]);
    longer one's delimiters and leaves a stray asterisk behind. */
 export const md = (x) =>
   esc(x)
+    .replace(/`([^`\n]+)`/g, "<code>$1</code>")
     .replace(/\*\*\*(.+?)\*\*\*/g, "<strong><em>$1</em></strong>")
     .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
     .replace(/«(.+?)»/g, "<em>«$1»</em>")
