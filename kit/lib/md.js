@@ -16,6 +16,8 @@
    inject HTML — only the markers become tags. Returns an HTML string, so the
    caller must use set:html. */
 
+import { emphasis } from "./emphasis.js";
+
 const ESC = { "&": "&amp;", "<": "&lt;", ">": "&gt;" };
 const esc = (s) => String(s ?? "").replace(/[&<>]/g, (c) => ESC[c]);
 
@@ -55,8 +57,6 @@ const esc = (s) => String(s ?? "").replace(/[&<>]/g, (c) => ESC[c]);
    them was the wider match the right one. Where the markers are genuinely
    unbalanced the narrower rule now leaves them visible, which is a data fault
    surfacing rather than a renderer hiding it. */
-/* Order matters: *** before ** before *, or the shorter marker eats the
-   longer one's delimiters and leaves a stray asterisk behind. */
 /* ⚠ A code span's CONTENT must not be touched by the rules that follow it.
    Putting the code rule first was not enough: `*.json` came out as a <code>
    with the asterisk eaten by the italic rule, and `\s*` as <code>\s<em></code>.
@@ -73,13 +73,14 @@ const holdCode = (s) => {
   return [held, (t) => t.replace(/\u0000C(\d+)\u0000/g, (_, i) => `<code>${spans[+i]}</code>`)];
 };
 
+/* ⭐ 11 October 2026 — the four-rule chain that stood here, and the identical
+   copy of it in inlineRich() below, are both now one call to inline(). The
+   duplication was the smaller problem; see emphasis.js for the larger one. */
+const inline = (s) => emphasis(s).replace(/«(.+?)»/g, "<em>«$1»</em>");
+
 export const md = (x) => {
   const [held, restore] = holdCode(esc(x));
-  return restore(held
-    .replace(/\*\*\*(.+?)\*\*\*/g, "<strong><em>$1</em></strong>")
-    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
-    .replace(/«(.+?)»/g, "<em>«$1»</em>")
-    .replace(/(^|[^*])\*([^*\n]+?)\*/g, "$1<em>$2</em>"));
+  return restore(inline(held));
 };
 
 /* Same, but blank lines become paragraph breaks. For a field that holds more
@@ -147,16 +148,11 @@ export const plain = (x) =>
 const linkify = (s, u) =>
   s.replace(/\[([^\]]+)\]\((\/[^)\s]*)\)/g, (_, t, h) => `<a href="${u(h)}">${t}</a>`);
 
-/* Inline markers only. Order matters here for the same reason as in md():
-   *** before ** before *, and code spans FIRST so that `**x**` inside backticks
-   stays literal. */
+/* Inline markers, plus links. Code spans are held out FIRST so that `**x**`
+   inside backticks stays literal; the rest is the same inline() as md(). */
 const inlineRich = (s, u) => {
   const [held, restore] = holdCode(esc(s));
-  return restore(linkify(held
-    .replace(/\*\*\*(.+?)\*\*\*/g, "<strong><em>$1</em></strong>")
-    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
-    .replace(/«(.+?)»/g, "<em>«$1»</em>")
-    .replace(/(^|[^*])\*([^*\n]+?)\*/g, "$1<em>$2</em>"), u));
+  return restore(linkify(inline(held), u));
 };
 
 const isRow = (l) => /^\s*\|.*\|\s*$/.test(l || "");
