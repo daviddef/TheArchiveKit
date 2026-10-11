@@ -56,6 +56,24 @@ console.log("\nan unmatched marker stays visible, rather than being closed for t
 expect("an opener with no closer", md("unclosed **bold"), "unclosed **bold");
 expect("three open, two closed", md("***x**"), "***x**");
 
+/* ⚠ THE REGRESSION THIS BLOCK EXISTS FOR. The first version of emphasis.js
+   made every run flank, which reads as a tidy rule and silently stopped
+   rendering the padded delimiters this estate actually writes. It passed a
+   sweep of all nine archives' data, because that sweep counted misnestings
+   and asterisks and not the emphasis it had dropped: 3,174 strings lost
+   16,578 tags, Lerena 2,777 of them. It was caught by a repin comparison of
+   every built page, on one Booyzen work-list row. */
+console.log("\npadded delimiters render — a run of two or three need not flank");
+expect("a padded run of three",
+  md("*** OVERTURNS ROW 167. ***"),
+  "<strong><em> OVERTURNS ROW 167. </em></strong>");
+expect("a padded run of two",
+  md("** a heading ** and after"),
+  "<strong> a heading </strong> and after");
+expect("padding does not stop the nesting fix",
+  md("**54 records, either *Baptisms* or *Ireland Births***"),
+  "<strong>54 records, either <em>Baptisms</em> or <em>Ireland Births</em></strong>");
+
 console.log("\na lone asterisk is a wildcard, not emphasis");
 expect("a NAAIRS wildcard", md("BOOY* in the depot"), "BOOY* in the depot");
 expect("a trailing wildcard does not pair with the next one",
@@ -72,6 +90,12 @@ expect("a trailing wildcard does not pair with the next one",
 expect("a wildcard inside a word still pairs — the caller must not render such a column",
   md("q.surname=B*rry and Kolb*"), "q.surname=B<em>rry and Kolb</em>");
 expect("spaced asterisks are not emphasis", md("2 * 3 * 4"), "2 * 3 * 4");
+/* 56 strings in the estate open a line with one, and the old chain italicised
+   from there to the next stray asterisk. mdNote() takes - and · for bullets;
+   this only has to leave the marker alone. */
+expect("a bullet opening a line is not an italic",
+  md("* Reference: a source\n* Reference: another"),
+  "* Reference: a source\n* Reference: another");
 
 console.log("\ncode spans are held out of everything else");
 expect("a glob inside backticks keeps its asterisk",

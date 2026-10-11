@@ -37,9 +37,29 @@
 
    A LONE ASTERISK IS NOT ALWAYS EMPHASIS. `BOOY*` is a NAAIRS wildcard and
    `q.surname=B*rry` is a FamilySearch query; the estate's registers are full
-   of them. A run opens a span only when the character after it is not a space
-   and closes one only when the character before it is not — the flanking rule
-   — so a wildcard has nothing to pair with and is printed as itself. */
+   of them. So a run of ONE opens a span only when the character after it is
+   not a space and closes one only when the character before it is not — the
+   flanking rule — and a wildcard, having nothing to pair with, is printed as
+   itself.
+
+   ⚠ THE FLANKING RULE APPLIES TO A RUN OF ONE AND TO NOTHING ELSE, and the
+   first draft of this file applied it to all three lengths. That draft was
+   measured against the estate's data and passed, because the measurement
+   counted misnestings and asterisks and not the thing it broke. This estate
+   writes padded delimiters —
+
+     *** OVERTURNS ROW 167. ***        a Booyzen work-list row
+
+   — and the chain this replaced paired any two runs whatever sat beside them,
+   so it rendered those and the draft did not. Caught in the Booyzen repin,
+   which compares every built page: the row came out as four literal
+   asterisks. Measured properly then: 3,174 strings across eight archives lost
+   16,578 emphasis tags, Lerena 2,777 of them, Luwinski 189, Defranceski 88.
+
+   A run of two or three is never a wildcard in this estate's data — every
+   wildcard found in it is a single asterisk on the end or inside of a word —
+   so lengths of two and three pair the way the old chain paired them, and
+   only the lone asterisk has to earn it. */
 
 const WS = (c) => c === undefined || /\s/.test(c);
 
@@ -71,7 +91,10 @@ const line = (s) => {
     let n = 1;
     while (s[i + n] === "*") n++;
     let rem = n;
-    const shut = WS(s[i - 1]) ? 0 : closes(stack, n);
+    /* See the header: only a lone asterisk has to flank, because only a lone
+       asterisk is ever a wildcard. */
+    const lone = n === 1;
+    const shut = (lone && WS(s[i - 1])) ? 0 : closes(stack, n);
     if (shut) {
       for (let k = 0; k < shut; k++) {
         const t = stack.pop();
@@ -79,7 +102,7 @@ const line = (s) => {
         rem -= t.tag === "strong" ? 2 : 1;
         out.push(`</${t.tag}>`);
       }
-    } else if (!WS(s[i + n])) {
+    } else if (!lone || !WS(s[i + n])) {
       while (rem >= 2) { const t = { tag: "strong", mark: "**" }; stack.push(t); out.push(t); rem -= 2; }
       if (rem === 1)   { const t = { tag: "em",     mark: "*"  }; stack.push(t); out.push(t); rem -= 1; }
     }
