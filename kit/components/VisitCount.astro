@@ -37,8 +37,18 @@ const endpoint = code ? `https://${code}.goatcounter.com/counter/TOTAL.json` : n
         fetch(endpoint)
           .then(function (r) { return r.ok ? r.json() : Promise.reject(r.status); })
           .then(function (d) {
-            if (d && d.count) { n.textContent = d.count; box.removeAttribute("hidden"); }
-            else box.remove();
+            /* GoatCounter sends the count as a STRING, and formats it with
+               thousands separators, so both "0" and "1,234" arrive as text.
+               `if (d.count)` was meant to keep a nought off the page and did
+               not: "0" IS TRUTHY IN JAVASCRIPT, so a newly registered archive
+               printed "0 times read" — the very untrue nought the catch below
+               exists to avoid. It stayed invisible because every archive that
+               had a counter already had visits. Test the digits; display the
+               formatted string, separators and all. */
+            var raw = d && d.count != null ? String(d.count) : "";
+            if (parseInt(raw.replace(/[^0-9]/g, ""), 10) > 0) {
+              n.textContent = raw; box.removeAttribute("hidden");
+            } else box.remove();
           })
           /* an archive that cannot reach its counter says nothing, rather than
              showing a nought that is not true */
