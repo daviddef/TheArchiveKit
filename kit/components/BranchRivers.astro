@@ -21,6 +21,10 @@
              nodes are the places along the lane, ends the fan at its right
    unplaced  households of the name that are documented and not yet placed
    loose     the labels under the rule at the foot
+   unplacedAfter
+             a lane key. The unplaced block is drawn under THAT lane rather
+             than under every lane, and everything below it moves down to
+             make room. Omit it and the block stays at the foot.
    bridges   [{from, to, conf, label, href}] — A CANDIDATE JOIN BETWEEN TWO
              LANES, or between a lane and an unplaced household, on evidence
              short of a document. `from` and `to` are lane keys, and `to` may
@@ -68,9 +72,36 @@ const DEFAULT_CAPTION = `The teal river is the one this archive descends from, a
 
 const W = 1040;
 const BH = 140, BGAP = 152;
-const BANDS = LANES.map((_, i) => ({ y0: 34 + i * BGAP, sp: 34 + i * BGAP + 76, h: BH }));
-const LOOSE_Y = 34 + LANES.length * BGAP + 22;   // rule
-const VH = LOOSE_Y + 124 + (Math.ceil(UNPLACED.length / 3) - 1) * 26;   // viewBox height
+/* HOW FAR DOWN THE UNPLACED BLOCK PUSHES WHATEVER FOLLOWS IT: the 22px gap
+   above its rule, its two headings and the loose row (124 between them), and
+   26 more for every row of households past the first. */
+const UROWS = Math.max(1, Math.ceil(UNPLACED.length / 3));
+const BLOCK = 22 + 124 + (UROWS - 1) * 26;
+
+/* WHERE THE BLOCK SITS IN THE STACK, AND WHY IT IS NO LONGER ALWAYS LAST.
+   It began at the foot, because "everything not yet placed" belongs after
+   everything that is. But the lanes are ordered by the archive, and the first
+   of them is usually the line that archive descends from — so the reader who
+   has just finished it is at the exact moment the unplaced households are
+   worth showing, and instead has five more families to scroll past before
+   meeting them. Naming a lane in `unplacedAfter` puts the block directly
+   under that lane and moves the rest of the stack down to make room. Naming
+   nothing, or naming a lane that is not drawn, leaves it at the foot exactly
+   where it was, so no archive that does not ask for this sees any change. */
+let CUT = LANES.length;
+if (rivers?.unplacedAfter) {
+  const ci = LANES.findIndex((l) => l.key === rivers.unplacedAfter);
+  if (ci > -1) CUT = ci + 1;
+}
+/* The 36 is not padding for its own sake: it is the one empty row a bridge
+   label can use when the block is in the middle of the stack. See GAPS. */
+const INSET = CUT < LANES.length ? BLOCK + 36 : 0;
+const BANDS = LANES.map((_, i) => {
+  const y0 = 34 + i * BGAP + (i >= CUT ? INSET : 0);
+  return { y0, sp: y0 + 76, h: BH };
+});
+const LOOSE_Y = 34 + CUT * BGAP + 22;   // rule
+const VH = 34 + LANES.length * BGAP + INSET + (CUT < LANES.length ? 20 : BLOCK);
 const X0 = 150, X1 = 700, XE = 902;
 
 /* Where a bridge may attach. A lane is anchored at the head of its own spine,
@@ -100,11 +131,36 @@ const anchor = (key) => {
    12px strip with nothing in it at any x. The label goes in the strip nearest
    the curve's midpoint, and runs rightward across a row that is empty by
    construction. Below the last band there are no strips and no node rows
-   either, so the midpoint is used as it is. */
-const GAPS = LANES.map((_, i) => 34 + i * BGAP + BH + 6);
+   either, so the midpoint is used as it is.
+
+   ⚠ AND NO STRIP MAY TAKE TWO LABELS. Nearest-strip is a function of the
+   curve, not of the drawing, so two bridges whose midpoints fall either side
+   of the same strip were both sent to it and printed on top of each other —
+   two sentences superimposed into a line of nonsense, which is worse than
+   either being absent. Measured on the Defranceschi page the moment the
+   unplaced block moved up the stack: the Kobler join and the Sanvincenti
+   godparent join both landed at y=180. So a strip is CLAIMED when a label
+   takes it, and the next label falls to the nearest strip still free. A
+   label one band away from its curve can still be followed — the curve is
+   dotted and the eye follows it — and a label nobody can read cannot. */
+const GAPS = BANDS.map((b) => b.y0 + BH + 6);
+/* When the unplaced block is in the middle of the stack it opens one more
+   empty row, 20px under its last line and 14px above the band that follows —
+   which is what the 36 in INSET buys. It must be UNDER that line and not
+   beside it: the block's own labels run right across the drawing at three
+   fixed x positions, so a strip level with them is not empty at the x a
+   bridge label starts from. Measured: a label put 12px higher ran straight
+   through «Ticino» and «Michigan». */
+if (CUT < LANES.length) GAPS.push(LOOSE_Y + 124 + (UROWS - 1) * 26);
+GAPS.sort((a, b) => a - b);
+const TAKEN = new Set();
 const labelY = (y) => {
   if (!GAPS.length || y > GAPS[GAPS.length - 1] + BGAP) return y;
-  return GAPS.reduce((best, g) => (Math.abs(g - y) < Math.abs(best - y) ? g : best), GAPS[0]);
+  const free = GAPS.filter((g) => !TAKEN.has(g));
+  if (!free.length) return y;
+  const g = free.reduce((best, c) => (Math.abs(c - y) < Math.abs(best - y) ? c : best), free[0]);
+  TAKEN.add(g);
+  return g;
 };
 const BR = BRIDGES.map((b) => ({ ...b, a: anchor(b.from), b: anchor(b.to) }))
                   .filter((x) => x.a && x.b);
@@ -212,18 +268,18 @@ const BR_LOST = BRIDGES.length - BR.length;
         </g>
       ))}
 
-      <text x="12" y={LOOSE_Y + 80 + (Math.ceil(UNPLACED.length / 3) - 1) * 26} class="loose-head">Attached to no line here — a different stock of a very common name</text>
+      <text x="12" y={LOOSE_Y + 80 + (UROWS - 1) * 26} class="loose-head">Attached to no line here — a different stock of a very common name</text>
       {LOOSE.map((l, i) => (
         <g class="node" tabindex="0" role="button"
            data-place={l[0]} data-year="—" data-why={l[2]}
            data-lane="Attached to no line here" data-href={u(l[1])} data-read={`Where ${l[0]} is written up`}>
           <title>{l[0]} — {plain(l[2])}</title>
-          <circle cx={150 + i * 200} cy={LOOSE_Y + 100 + (Math.ceil(UNPLACED.length / 3) - 1) * 26} r="7" fill="transparent" />
-          <circle cx={150 + i * 200} cy={LOOSE_Y + 100 + (Math.ceil(UNPLACED.length / 3) - 1) * 26} r="4.5" fill="none" stroke="var(--ink-3)" stroke-width="1.6" stroke-dasharray="2 2" />
-          <text x={162 + i * 200} y={LOOSE_Y + 104 + (Math.ceil(UNPLACED.length / 3) - 1) * 26} class="loose">{l[0]}</text>
+          <circle cx={150 + i * 200} cy={LOOSE_Y + 100 + (UROWS - 1) * 26} r="7" fill="transparent" />
+          <circle cx={150 + i * 200} cy={LOOSE_Y + 100 + (UROWS - 1) * 26} r="4.5" fill="none" stroke="var(--ink-3)" stroke-width="1.6" stroke-dasharray="2 2" />
+          <text x={162 + i * 200} y={LOOSE_Y + 104 + (UROWS - 1) * 26} class="loose">{l[0]}</text>
         </g>
       ))}
-      <text x={760} y={LOOSE_Y + 104 + (Math.ceil(UNPLACED.length / 3) - 1) * 26} class="loose-note">— the commonest patronymic in Italy</text>
+      <text x={760} y={LOOSE_Y + 104 + (UROWS - 1) * 26} class="loose-note">— the commonest patronymic in Italy</text>
     </g>
   </svg>
   <div class="riverread" id="riverread" aria-live="polite">
