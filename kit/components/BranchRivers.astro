@@ -63,7 +63,15 @@ import { plain } from "../lib/md.js";
    describing rivers it does not have. Raised by that session, whose words they
    are. It is a prop now, defaulting to the text that was hardcoded, so the
    page it was written for reads exactly as it did. */
-const { rivers, caption } = Astro.props;
+/* THE SVG TITLE IS THE GRAPHIC'S ACCESSIBLE NAME, AND IT CARRIED A COUNT.
+   «Six families of one surname, and the road each of them took» was hardcoded
+   here, so it was what a screen reader announced for the whole drawing — and
+   it went on announcing six after Defranceschi drew its seventh lane, because
+   a number written into a component cannot follow the data it describes. An
+   archive that renames its lanes has no way to correct it, and nobody sees an
+   accessible name in a page diff. It is a prop now, defaulting to the string
+   that was hardcoded so no adopting archive changes. */
+const { rivers, caption, title } = Astro.props;
 const LANES = rivers?.lanes ?? [];
 const UNPLACED = rivers?.unplaced ?? [];
 const LOOSE = rivers?.loose ?? [];
@@ -168,7 +176,7 @@ const BR_LOST = BRIDGES.length - BR.length;
 ---
 <figure class="rivers">
   <svg viewBox={`0 0 1040 ${VH}`} role="img" aria-labelledby="riversttl">
-    <title id="riversttl">Six families of one surname, and the road each of them took</title>
+    <title id="riversttl">{title ?? "Six families of one surname, and the road each of them took"}</title>
     {LANES.map((lane, li) => {
       const b = BANDS[li];
       const n = lane.nodes.length;
