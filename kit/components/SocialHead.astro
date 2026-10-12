@@ -19,7 +19,21 @@ import fs from "node:fs";
 import path from "node:path";
 import ring from "../data/archives.json";
 
-const { title, description = "", site, image } = Astro.props;
+/* `canonical` OVERRIDES THE SELF-CANONICAL BELOW, AND EXISTS FOR ONE SHAPE OF
+   PAGE THAT EVERY ARCHIVE HERE HAS. These sites publish a NAME page gathering
+   everyone recorded under a name, and a PERSON page for one individual. When a
+   name has exactly one bearer the two are the same subject, and both were
+   claiming themselves canonical: measured on Defranceschi, 1,274 pairs with an
+   identical <title> and about 70% of their words in common, each telling a
+   search engine it was the original. That is the textbook way to have several
+   thousand pages crawled and a few hundred indexed.
+
+   A redirect would be wrong — both pages are wanted, and one of them is a
+   minted, frozen address. A canonical is the honest statement: two URLs, one
+   subject, here is the one to keep. Pass an ABSOLUTE url of a page that really
+   exists; passing nothing keeps the self-canonical, so no archive that does
+   not use this changes at all. */
+const { title, description = "", site, image, canonical: canonicalOverride } = Astro.props;
 
 const base = (import.meta.env.BASE_URL || "/").replace(/\/$/, "");
 const me = ring.archives.find((a) => a.base === base);
@@ -44,7 +58,10 @@ const ORIGIN_ROOT = ORIGIN.replace(/(https?:\/\/[^/]+).*/, "$1");
    thing a canonical must not be. */
 const _p = (here.startsWith("/") ? here : "/" + here).replace(/\/+$/, "");
 const _slashed = /\.[a-z0-9]{2,5}$/i.test(_p) ? _p : _p + "/";
-const canonical = ORIGIN_ROOT ? ORIGIN_ROOT + _slashed : null;
+const selfCanonical = ORIGIN_ROOT ? ORIGIN_ROOT + _slashed : null;
+/* og:url must stay the page's own address even when the canonical points
+   elsewhere: a share of THIS page should resolve to this page. */
+const canonical = canonicalOverride || selfCanonical;
 
 /* Only claim an asset that exists. public/ is resolved from the site root. */
 const pub = path.join(process.cwd(), "public");
@@ -63,7 +80,7 @@ const shareUrl = shareFile && ORIGIN
 <meta property="og:site_name" content={NAME} />
 <meta property="og:title" content={full} />
 <meta property="og:description" content={LINE} />
-{canonical && <meta property="og:url" content={canonical} />}
+{selfCanonical && <meta property="og:url" content={selfCanonical} />}
 {shareUrl && <meta property="og:image" content={shareUrl} />}
 
 <meta name="twitter:card" content={shareUrl ? "summary_large_image" : "summary"} />
