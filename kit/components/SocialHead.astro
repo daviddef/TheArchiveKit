@@ -18,6 +18,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import ring from "../data/archives.json";
+import { whoami } from "../lib/ring.js";
 
 /* `canonical` OVERRIDES THE SELF-CANONICAL BELOW, AND EXISTS FOR ONE SHAPE OF
    PAGE THAT EVERY ARCHIVE HERE HAS. These sites publish a NAME page gathering
@@ -36,7 +37,7 @@ import ring from "../data/archives.json";
 const { title, description = "", site, image, canonical: canonicalOverride } = Astro.props;
 
 const base = (import.meta.env.BASE_URL || "/").replace(/\/$/, "");
-const me = ring.archives.find((a) => a.base === base);
+const me = whoami(base);
 const isKids = !me && /our-family/i.test(base);
 
 const NAME = site || me?.name || ring.children?.name || "";

@@ -6,10 +6,11 @@
    than written into the prose, because it was wrong within a fortnight of being
    written there. */
 import ring from "../data/archives.json";
+import { whoami } from "../lib/ring.js";
 
 const here = (import.meta.env.BASE_URL || "/").replace(/\/$/, "");
-const others = ring.archives.filter(a => a.base !== here);
-const mine = ring.archives.find(a => a.base === here);
+const mine = whoami(here);
+const others = ring.archives.filter(a => a !== mine);
 const WORDS = ["", "one", "two", "three", "four", "five", "six", "seven", "eight",
   "nine", "ten", "eleven", "twelve"];
 const howMany = WORDS[ring.archives.length] || String(ring.archives.length);
