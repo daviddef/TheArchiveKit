@@ -20,9 +20,9 @@
     },
     {
       "key": "falco",
-      "base": "/TheFalco",
+      "base": "",
       "name": "The Falco Archive",
-      "url": "https://daviddef.github.io/TheFalco/",
+      "url": "https://falco.defranceski.com/",
       "accent": "#8A2B16",
       "where": "Arienzo, near Naples",
       "line": "Nine documented generations born, married and buried in one valley, and then a migrant ship to Brisbane.",
