@@ -1,0 +1,148 @@
+---
+/* The family chart of a people page, in one vocabulary: a person drawn with the
+ * people they belong to, every line marked by where it came from, and a
+ * sentence when nothing can be drawn.
+ *
+ * WHAT THIS REPLACES, said exactly because the brief this was written against
+ * had it wrong. Six archives (Falco, Blazevic, Lerena, D'Arcy, Mazza, Booyzen)
+ * each keep a `PersonTree.astro` of 115 to 171 lines. They are NOT forks of the
+ * kit's chart: all six import the kit's PersonTree.astro and persontree.css and
+ * draw nothing themselves. They are ADAPTERS, and what they adapt is the part
+ * that drifted: which source words exist, how a date is written, what a living
+ * relative looks like, why an empty chart is empty. Measured on the built sites:
+ *
+ *   · Falco prints «13 Dec 1854», «b. Dec 13 1854» and «1813 – June 8 1876» in one
+ *     chart, and when a person has neither birth nor death its adapter falls back
+ *     to the date of their first EVENT and prints it bare
+ *     (thefalco/site/src/components/PersonTree.astro:38-39). A father's chart date
+ *     can be the day his child was born, and reads as his own birth.
+ *   · Defranceski's /person/ adapter folds `index` into `via-tree` and forces every
+ *     child's source to empty, so 1,397 children print «named here only» when the
+ *     data holds index 888, read 456, line 22, tree 14.
+ *   · Blazevic's `indexed` state gets a CSS class that does not exist and no label.
+ *   · Mazza colours the PERSON but its caption says it marks the LINK.
+ *   · «line» (the direct line) is drawn as a provenance border in all seven, though
+ *     it is a result argued elsewhere and not evidence of anything.
+ *
+ * So this component takes ROWS THAT SAY WHAT THEY KNOW and makes the choices that
+ * had been made seven ways. It draws with the kit's own PersonTree and the kit's
+ * persontree.css, unchanged, so adopting it moves no pixel an archive has not
+ * chosen to move.
+ *
+ * PROPS (all optional; an archive that cannot supply a field must not be made to
+ * look as though it has none)
+ *
+ *   person      { name, born, died, living, presumedLiving, gen, line, relations }
+ *   relations   { parents, spouses, children, siblings, dropped } — also accepted
+ *               as its own prop if the archive keeps them apart. Each row:
+ *                 name       required
+ *                 href       a link, ONLY when the archive holds an id for this very
+ *                            person. Never fill it from a name (traps.md: an empty
+ *                            href is not a missing field).
+ *                 born, died any date shape lib/person.js parses; the chart prints
+ *                            years, labelled. `dates` (pre-formatted) is IGNORED —
+ *                            that is the door Falco's unlabelled dates came through.
+ *                 source     ANY of the archives' own words (register, read, doc,
+ *                            index, tree, lore, inf ...). Folded to one by
+ *                            readSource(); a word it does not know shows as
+ *                            «unmarked» with the word quoted, never as a kind default.
+ *                 line       true if this relative is on the direct line
+ *                 ambiguous  true if the archive holds several people of this name
+ *                            and cannot say which: drawn unlinked, and said
+ *                 living     the relative is living: name only, no dates
+ *                 gap        withheld entirely: «— living, withheld —», never a name
+ *                 superseded a retracted edge, drawn struck through
+ *                 disputed   a record contradicts this edge
+ *                 mar        the word above a spouse (default «married»)
+ *   edgeLevel   true (default) when `source` is the source of the LINK; false when
+ *               the archive only knows it of the PERSON (Blazevic, Mazza today), and
+ *               the caption then says so instead of claiming more
+ *   nameHref    the name page for this person, when the chart is empty because kin
+ *               are recorded against a name (Defranceski's 887 chartless pages)
+ *   emptyWhy    override the empty-chart reason code, or `emptyText` the sentence
+ *   nameStyle   "asRecorded" (default here: relatives are other people's names)
+ *               or "titleCase"; decision 4 in PERSON-PAGE-SPEC.md
+ *   now, presumeDeadAfter   the living rule's clock and horizon (default 80)
+ *   palette, labels, keys   passed straight to PersonTree
+ *
+ * SLOTS: "notes" and "after" go to PersonTree's slots of the same name, below
+ * the archive's own prose about why this chart looks as it does.
+ *
+ * WHAT IT WILL NOT DO. Decide how good a source is (that is the owner's, spec
+ * decision 3), merge two relatives of one name, or draw a living person's dates.
+ * A chart that draws nothing still draws: a page that shows no chart makes a claim
+ * in silence, and the claim is that nobody is recorded.
+ */
+import PersonTree from "./PersonTree.astro";
+import LW from "../data/living-words.json";
+import { readSource, SOURCES, lifespan, isLiving, displayName, splitQualifier, chartEmptyReason, EMPTY_TEXT } from "../lib/person.js";
+
+const {
+  person = {}, nameHref = null, edgeLevel = true, emptyWhy = null, emptyText = null,
+  nameStyle = "asRecorded", now = new Date().getFullYear(), presumeDeadAfter = LW.presumeDeadAfter ?? 80,
+  palette = {}, labels = {}, keys = [], always = true,
+} = Astro.props;
+const rel = Astro.props.relations || person.relations || {};
+const rule = { now, presumeDeadAfter };
+
+const used = new Set(); let anyLine = false;
+const row = (r, { spouse = false, small = false } = {}) => {
+  if (r.gap) return { gap: true, name: "— living, withheld —" };
+  const living = r.living === true || r.presumedLiving === true || isLiving({ born: r.born, died: r.died }, rule);
+  const s = readSource(r.source);
+  if (s.line || r.line) anyLine = true;
+  used.add(s.source);
+  const word = SOURCES[s.source].label + (s.known ? "" : ` (“${String(r.source)}”)`);
+  const mark = r.ambiguous ? "several people of this name — not linked"
+    : (r.superseded ? "superseded — " : "") + word + (s.line || r.line ? " · direct line" : "");
+  return {
+    name: displayName(r.name, { style: nameStyle }),
+    href: r.ambiguous ? undefined : r.href,
+    dates: living ? "" : lifespan(r.born, r.died),
+    cls: SOURCES[s.source].cls + (s.line || r.line ? " is-line" : "") + (r.superseded ? " gone" : "") + (r.disputed ? " disputed" : ""),
+    mark: small ? undefined : mark,
+    title: "Recorded by: " + word,
+    mar: spouse ? (r.mar || "married") : undefined,
+    small,
+  };
+};
+const parents = (rel.parents || []).map((r) => row(r));
+const spouses = (rel.spouses || []).map((r) => row(r, { spouse: true }));
+const children = (rel.children || []).map((r) => row(r));
+const siblings = (rel.siblings || []).map((r) => row(r, { small: true }));
+const dropped = rel.dropped || [];
+
+const selfLiving = isLiving(person, rule);
+const self = {
+  /* the qualifier («m. Alejandro LERENA the younger, 1854») tells two women of one name
+     apart and belongs under the heading; in a 15rem node it is a paragraph */
+  name: splitQualifier(displayName(person.name, { style: nameStyle })).name,
+  dates: selfLiving ? "" : lifespan(person.born, person.died),
+  gen: person.gen ? (/^\d+$/.test(String(person.gen)) ? `generation ${person.gen}` : String(person.gen)) : "",
+  note: selfLiving ? "living — name only" : (person.line ? "direct line" : ""),
+  noteCls: selfLiving ? "living" : "",
+};
+
+const empty = !(parents.length || spouses.length || children.length || siblings.length || dropped.length);
+const why = empty ? (emptyWhy ?? chartEmptyReason({ relations: rel }, { nameHref })) : null;
+const sentence = empty ? (emptyText ?? (why && EMPTY_TEXT[why]) ?? EMPTY_TEXT["none-recorded"]) : null;
+
+/* legend: only the words actually drawn, so an empty chart does not imply lines exist */
+const legend = [...used].filter((k) => k !== "none" || used.size === 1).map((k) => ({ cls: k, label: SOURCES[k].label }));
+if (anyLine) legend.push({ cls: "is-line", label: "on the direct line" });
+const allKeys = empty ? [] : [...legend, ...keys];
+---
+<PersonTree {always} {self} {parents} {spouses} {children} {siblings} {palette} {labels} keys={allKeys} {dropped}>
+  <Fragment slot="notes">
+    {empty ? (
+      <p class="warn pempty" data-why={why}><strong>This chart is empty, and that is a statement rather than an omission.</strong>{" "}{sentence}{" "}
+        {nameHref ? <a href={nameHref}>The name page</a> : null}</p>
+    ) : (
+      <p class="pbasis">{edgeLevel
+        ? "Each person is marked by where that line came from, in words as well as colour."
+        : "Each person is marked by what is known of them, not of the line to them: this archive does not yet keep a source for the link itself."}</p>
+    )}
+    <slot name="notes" />
+  </Fragment>
+  <Fragment slot="after"><slot name="after" /></Fragment>
+</PersonTree>

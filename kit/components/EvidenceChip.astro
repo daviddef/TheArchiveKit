@@ -1,0 +1,39 @@
+---
+/* The grade of a claim and the source of a link, side by side, each in its own
+ * word, so the two questions stop being answered with one.
+ *
+ * THE TWO QUESTIONS (PERSON-PAGE-SPEC.md, section 5)
+ *   GRADE   how well is this CLAIM evidenced   Documented · Probable · Inferred ·
+ *           Family · Disputed — the kit's Evidence component, used unchanged
+ *   SOURCE  where did this LINK come from      a record read here · an index entry,
+ *           not read · image held, not yet read · family tree, unverified ·
+ *           inferred · disputed · named here only
+ * Archives used one vocabulary for both, which is why «index» meant three things
+ * (Defranceski: a FamilySearch transcription; Mazza: a record; Blazevic: somebody
+ * else's transcription) and why the five-level ladder, in person data, is in
+ * practice three (documented, family, disputed): `probable` is produced by one
+ * archive and `inferred` by two.
+ *
+ * WHAT IS NOT DECIDED HERE. Which grade an INDEX ENTRY or an IMAGE HELD is. Pass
+ * `level` yourself where you know it; leave it off and only the source is drawn.
+ * The suggested mapping (lib/person.js GRADE_HINT) is null for both on purpose,
+ * pending the owner's answer to decision 3.
+ *
+ * PROPS  level   a grade word or any alias the kit's Evidence knows; unknown is
+ *                drawn «Ungraded», visibly (Evidence's own rule, kept)
+ *        source  any archive's word for where the link came from
+ *        line    true for «direct line» — drawn as a separate word, never as a grade
+ *        text    override the visible text of the grade
+ */
+import Evidence from "./Evidence.astro";
+import { readSource, SOURCES } from "../lib/person.js";
+const { level = null, source = null, line = false, text = null } = Astro.props;
+const s = source == null ? null : readSource(source);
+const word = s ? SOURCES[s.source].label + (s.known ? "" : ` (“${String(source)}”)`) : null;
+const isLine = line || (s && s.line);
+---
+<span class="pchip">
+  {level != null ? <Evidence level={level}>{text}</Evidence> : null}
+  {word ? <span class={"pv " + SOURCES[s.source].cls} title={"Source: " + word}>{word}</span> : null}
+  {isLine ? <span class="pv is-line">direct line</span> : null}
+</span>

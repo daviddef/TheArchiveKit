@@ -1,0 +1,69 @@
+/* The parts of a people page that persontree.css does not draw: the head, the
+   section frame, the source words the chart did not have a class for, and the
+   notices (living, stub, empty).
+
+   NEW CLASSES ONLY. Nothing here restyles .ptree, so an archive that imports this
+   beside persontree.css moves no pixel of its chart except where it chooses to use
+   a source word the kit's chart never styled (via-indexed, via-unmarked) or the
+   direct-line bar (is-line).
+
+   Archives keep their voice through the variables they already define (--ink,
+   --ink-2, --rule, --accent, --panel, --serif, --sans, --mono). Every colour here
+   is one of those with a fallback, never a literal, except the one red the chart
+   already uses for «disputed». Colour is always paired with a word.
+
+   Contrast: --ink-2 is the lightest text colour used for anything a reader must
+   read here. The estate's muted greys measure 3.35 to 3.63 : 1 on their paper
+   (Falco's --ink-3 on #fff, measured 13 October 2026), under the 4.5 : 1 that WCAG
+   AA asks of body text, so none of them is used for text on this page. */
+.ppage{max-width:60rem}
+.ppage .phead{margin:0 0 1.4rem}
+.ppage .phead h1{margin:0 0 .2rem;line-height:1.1;overflow-wrap:anywhere}
+.ppage .pqual{margin:.1rem 0 .3rem;font-family:var(--sans,system-ui);font-size:.95rem;color:var(--ink-2,#444)}
+.ppage .plife{margin:.1rem 0 .3rem;font-family:var(--mono,monospace);font-size:.9rem;color:var(--ink-2,#444)}
+.ppage .pdek{margin:.5rem 0 0;max-width:46rem;color:var(--ink-2,#444)}
+.ppage .pliving{margin:.6rem 0 0;max-width:46rem;padding:.6rem .8rem;border:1px dashed var(--rule,#bbb);
+                border-radius:.3rem;color:var(--ink-2,#444);background:var(--panel,transparent)}
+
+/* sections: one rhythm, so two archives' pages space alike */
+.ppage .psec{margin:0 0 1.8rem}
+.ppage .psec-h{margin:0 0 .6rem;font-size:1.25rem;line-height:1.25}
+.ppage .psec-local .psec-h::after{content:" (this archive only)";font-family:var(--sans,system-ui);font-size:.7rem;
+                                  letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2,#444);font-weight:400}
+.ppage .pnone{margin:0;color:var(--ink-2,#444);font-style:italic}
+.ppage .pstub{font-style:normal}
+.ppage .pfoot{margin-top:2rem}
+.ppage .pbasis{margin:.4rem 0 0;font-size:.9rem;color:var(--ink-2,#444)}
+
+/* an empty chart, said (the claim a blank page makes in silence) */
+.ppage .pempty{margin:.4rem 0 0}
+
+/* source words the kit's chart never styled */
+.ptree .node.via-indexed{border-left:3px dashed var(--pt-tree,var(--ink-2,#444))}
+.ptree .via-indexed .via{color:var(--ink-2,#444)}
+.ptree .node.via-unmarked{border-left:3px double #9b2c2c;background:rgba(155,44,44,.05)}
+.ptree .via-unmarked .via{color:#9b2c2c;font-weight:600}
+/* the direct line is a bar on top, so it can sit WITH a source border instead of
+   replacing it: membership of the line is a result, not evidence */
+.ptree .node.is-line{box-shadow:inset 0 3px 0 var(--pt-line,var(--ink,currentColor))}
+/* legend swatches for the canonical words */
+.ptree .sw.read{border-left:3px solid var(--accent)}
+.ptree .sw.indexed{border-left:3px dashed var(--pt-tree,var(--ink-2,#444))}
+.ptree .sw.scanned{border-left:3px dashed var(--accent)}
+.ptree .sw.inferred{border-left:3px dashed var(--accent)}
+.ptree .sw.disputed{border-left:3px solid #9b2c2c}
+.ptree .sw.none{border-left:3px dotted var(--ink-2,#444)}
+.ptree .sw.unmarked{border-left:3px double #9b2c2c}
+.ptree .sw.is-line{box-shadow:inset 0 3px 0 var(--pt-line,var(--ink,currentColor))}
+
+/* the evidence chip: grade and source, each in its own word */
+.pchip{display:inline-flex;flex-wrap:wrap;gap:.35rem;align-items:baseline}
+.pchip .pv{font-family:var(--sans,system-ui);font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2,#444)}
+.pchip .pv.via-unmarked{color:#9b2c2c;font-weight:600}
+.pchip .pv.is-line{border-top:2px solid var(--pt-line,var(--ink,currentColor))}
+
+/* phone: names never push the page sideways */
+@media (max-width:640px){
+  .ppage .phead h1{font-size:1.7rem}
+  .ppage .ptree .node{max-width:100%}
+}
