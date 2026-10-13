@@ -19,7 +19,12 @@
 
   /* A printed claim without its source is just an assertion. */
   a[href^="http"]::after { content: " (" attr(href) ")"; font-size: 9pt; color: #555; word-break: break-all; }
-  a[href^="/"]::after    { content: " (daviddef.github.io" attr(href) ")"; font-size: 9pt; color: #555; }
+  /* A plain CSS file cannot know which archive it is printing, and this line used to
+     name one host for all of them: once an archive moved to its own domain, every
+     internal link printed beside it an address on the wrong site. So the path is all
+     this file prints. SocialHead.astro, which every page renders, knows the origin
+     from archives.json and overrides this rule with the full address. */
+  a[href^="/"]::after    { content: " (" attr(href) ")"; font-size: 9pt; color: #555; }
   a[href^="#"]::after    { content: ""; }
 
   /* The evidence ladder has to survive losing its colour. */

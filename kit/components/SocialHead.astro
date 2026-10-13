@@ -73,6 +73,12 @@ const shareUrl = shareFile && ORIGIN
   ? (/^https?:/.test(shareFile) ? shareFile : `${ORIGIN}/${shareFile.replace(/^\//, "")}`)
   : null;
 ---
+{/* Print: expand an internal link to its full address, on THIS archive's host. The
+    rule in styles/print.css can only print the path, because a stylesheet shared by
+    eight sites cannot name a host. ORIGIN_ROOT has no path; the href already carries
+    the base. Emitted only when the archive is known, so an unknown one prints the
+    path rather than somebody else's address. */}
+{ORIGIN_ROOT && <style media="print" set:html={`a[href^="/"]::after{content:" (${ORIGIN_ROOT}" attr(href) ")" !important}`}></style>}
 {icon && <link rel="icon" href={`${base}/${icon}`} type={icon.endsWith(".svg") ? "image/svg+xml" : undefined} />}
 <meta name="theme-color" content={ACCENT} />
 {canonical && <link rel="canonical" href={canonical} />}
