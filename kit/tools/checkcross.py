@@ -5,7 +5,7 @@ A CONFIRMED pair is drawn as a pointer on both pages (kit/components/AlsoIn.astr
 This refuses a file that could draw a wrong or one-sided pointer:
 
   schema      every pair has two ends (archive key from kit/data/archives.json, path starting and ending
-              with "/"), a status of candidate or confirmed, and a note on a confirmed pair
+              with "/"), a status of candidate, confirmed or rejected, and a note on a confirmed or rejected pair
   same site   a pair joining an archive to itself (that is a duplicate, not a cross-archive pair)
   repeat      the same pair twice, in either order
   conflict    one page confirmed against two different pages of the same other archive (one person
@@ -42,8 +42,10 @@ def check(pairs, ring):
             if not (path.startswith("/") and path.endswith("/")):
                 bad.append("pair %d: end %s path must start and end with '/'" % (i, side))
             ends.append((e.get("archive"), path))
-        if p.get("status") not in ("candidate", "confirmed"):
-            bad.append("pair %d: status must be candidate or confirmed" % i)
+        if p.get("status") not in ("candidate", "confirmed", "rejected"):
+            bad.append("pair %d: status must be candidate, confirmed or rejected" % i)
+        if p.get("status") == "rejected" and not p.get("note"):
+            bad.append("pair %d: a rejected pair needs a note saying why" % i)
         if ends[0][0] == ends[1][0]:
             bad.append("pair %d: both ends are the same archive (%s): that is a duplicate, not a cross-archive pair" % (i, ends[0][0]))
         key = frozenset(ends)

@@ -1,5 +1,5 @@
 {
- "note": "One person documented in two archives is two pages by design. A CONFIRMED pair makes each page point to the other (kit/components/AlsoIn.astro). A CANDIDATE is the audit's guess (13 Oct 2026, conservative matching, never on a name alone) and is NEVER drawn: the research owner of each archive confirms or rejects it, by changing `status` (and giving `note`). Low-confidence candidates were not carried over.",
+ "note": "One person documented in two archives is two pages by design. A CONFIRMED pair makes each page point to the other (kit/components/AlsoIn.astro). A REJECTED pair was checked and is not drawn (kept so it is not proposed again). A CANDIDATE is the audit's guess (13 Oct 2026, conservative matching, never on a name alone) and is NEVER drawn: the research owner of each archive confirms or rejects it, by changing `status` (and giving `note`). Low-confidence candidates were not carried over.",
  "pairs": [
   {
    "a": {
@@ -47,8 +47,9 @@
     "archive": "darcy",
     "path": "/people/angelo-zampiello/"
    },
-   "status": "candidate",
-   "basis": "same birth year 1895; same death year 1972; shared spouse: giuseppa ferrara; shared child: francesca zampiello"
+   "status": "confirmed",
+   "basis": "same birth year 1895; same death year 1972; shared spouse: giuseppa ferrara; shared child: francesca zampiello",
+   "note": "Same person, 1895-1972, spouse and seven children agree. Verified by the D'Arcy session 17 Oct 2026."
   },
   {
    "a": {
@@ -59,8 +60,9 @@
     "archive": "darcy",
     "path": "/people/carmine-antonio-carminantonio-falco/"
    },
-   "status": "candidate",
-   "basis": "same birth year 1901; same death year 1988; shared parent: constanza maione; shared spouse: filomena annecchino"
+   "status": "confirmed",
+   "basis": "same birth year 1901; same death year 1988; shared parent: constanza maione; shared spouse: filomena annecchino",
+   "note": "Born 1901, died 1988, same parents and wife. D'Arcy also holds a different Carmine Antonio Falco (b.1850, his grandfather) who is in no pair."
   },
   {
    "a": {
@@ -71,8 +73,9 @@
     "archive": "darcy",
     "path": "/people/claudia-di-lucia/"
    },
-   "status": "candidate",
-   "basis": "same birth year 1760; same death year 1830; shared spouse: giuseppe pesce; shared child: vincenza pesce"
+   "status": "confirmed",
+   "basis": "same birth year 1760; same death year 1830; shared spouse: giuseppe pesce; shared child: vincenza pesce",
+   "note": "1760-1830, same husband and three children."
   },
   {
    "a": {
@@ -107,8 +110,9 @@
     "archive": "darcy",
     "path": "/people/francesca-zampiello/"
    },
-   "status": "candidate",
-   "basis": "same birth year 1928; same death year 2022; shared parent: angelo zampiello"
+   "status": "confirmed",
+   "basis": "same birth year 1928; same death year 2022; shared parent: angelo zampiello",
+   "note": "1928-2022, same parents."
   },
   {
    "a": {
@@ -131,8 +135,9 @@
     "archive": "darcy",
     "path": "/people/raffaele-falco-1818/"
    },
-   "status": "candidate",
-   "basis": "same birth year 1818; same death year 1880; shared parent: andrea andreana crisci; shared spouse: angela rosa morgillo; shared child: carmine antonio falco"
+   "status": "confirmed",
+   "basis": "same birth year 1818; same death year 1880; shared parent: andrea andreana crisci; shared spouse: angela rosa morgillo; shared child: carmine antonio falco",
+   "note": "1818-1880, wife Angela Rosa Morgillo. Falco's page is Raffaele as head of his own household, the page with the baptism, wife and children."
   },
   {
    "a": {
@@ -143,8 +148,9 @@
     "archive": "darcy",
     "path": "/people/raffaele-falco-1818/"
    },
-   "status": "candidate",
-   "basis": "same birth year 1818; shared parent: vincenzo falco"
+   "status": "rejected",
+   "basis": "same birth year 1818; shared parent: vincenzo falco",
+   "note": "The same man as a CHILD in his parents' household. Rejected as a pointer target only, because pointing at both would draw two lines on one page: Falco keeps one page per household role."
   },
   {
    "a": {
@@ -155,8 +161,9 @@
     "archive": "darcy",
     "path": "/people/vincenza-pesce/"
    },
-   "status": "candidate",
-   "basis": "same birth year 1789; same death year 1859; shared parent: claudia di lucia; shared spouse: orazio morgillo; shared child: angela rosa morgillo"
+   "status": "confirmed",
+   "basis": "same birth year 1789; same death year 1859; shared parent: claudia di lucia; shared spouse: orazio morgillo; shared child: angela rosa morgillo",
+   "note": "1789-1859, married Orazio Morgillo. Falco also has no register act for her, so neither archive holds better evidence; the identity is right."
   },
   {
    "a": {
@@ -167,8 +174,9 @@
     "archive": "darcy",
     "path": "/people/vincenzo-falco/"
    },
-   "status": "candidate",
-   "basis": "same birth year 1793; same death year 1875; shared parent: chiara rivetti rivotti; shared spouse: andrea andreana crisci; shared child: raffaele falco"
+   "status": "confirmed",
+   "basis": "same birth year 1793; same death year 1875; shared parent: chiara rivetti rivotti; shared spouse: andrea andreana crisci; shared child: raffaele falco",
+   "note": "1793-1875, same parents and wife. Falco's page holds the 1814 civil marriage act giving his age as 23 (birth about 1791, not the tree's 1793), which the D'Arcy page does not have."
   }
  ]
 }
