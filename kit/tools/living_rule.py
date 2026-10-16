@@ -16,12 +16,15 @@ Falco's hand-set flags, Lerena's one-line register. David's ruling replaces them
   3. Age is by year: today's year minus the birth year. 80 or less is living, 81 or
      more is not. A person with NO birth year cannot be shown to be 80 or younger,
      so is not living by this test.
-  4. HELD OUT is separate from LIVING. Two exceptions (David, 16 October 2026): a
-     person who is living-or-undated and might be a child, and named people whose
-     privacy is promised by id (the DNA tester). A held-out person is not published
-     at all: no page, no name as anyone's relative.
-        possible minor = not recorded dead, no public source, and EITHER a birth
-        year giving an age under 18, OR no birth year and a living parent.
+  4. HELD OUT is separate from LIVING. Two exceptions (David, 16 October 2026): an
+     UNDATED person with a living parent, who might be a child, and named people
+     whose privacy is promised by id (the DNA tester). A held-out person is not
+     published at all: no page, no name as anyone's relative.
+        possible minor = not recorded dead, no public source, no birth year, and a
+        living parent.
+     A child with a KNOWN birth year under 18 is NOT held out: David ruled on
+     16 October 2026 that every child follows the same standard as any living
+     person (name, relationships, town and country, a page, no dates).
 
 An archive imports this instead of writing its own test:
 
@@ -36,7 +39,6 @@ import os
 import datetime
 
 LIVING_YEARS = 80
-MINOR_AGE = 18
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 _SRC = os.path.join(os.path.dirname(_HERE), "data", "public-sources.json")
@@ -81,12 +83,13 @@ def is_living(birth_year, recorded_dead, citations=(), today_year=None):
 
 
 def possible_minor(birth_year, recorded_dead, citations=(), parent_living=False, today_year=None):
-    """Held out: might be a child. Not for anyone recorded dead or evidenced by a public source."""
+    """Held out: an UNDATED person with a living parent, who might be a child.
+    Not for anyone recorded dead or evidenced by a public source, and not for a child
+    whose birth year is known (David, 16 Oct 2026: known children follow the standard)."""
     if recorded_dead or public_source(citations):
         return False
-    y = today_year or this_year()
     if birth_year is not None:
-        return (y - int(birth_year)) < MINOR_AGE
+        return False
     return bool(parent_living)
 
 
