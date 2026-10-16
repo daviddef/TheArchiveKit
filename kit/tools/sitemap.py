@@ -41,7 +41,8 @@ base = re.search(r"base:\s*['\"]([^'\"]+)", cfg)
 base = base.group(1).rstrip("/") if base else ""
 
 NOINDEX = re.compile(r'name=["\']robots["\'][^>]*noindex', re.I)
-urls, skipped = [], 0
+CANON = re.compile(r'<link[^>]*rel=["\']canonical["\'][^>]*href=["\']([^"\']+)["\']', re.I)
+urls, skipped, canonicalised = [], 0, 0
 for dp, _, fns in os.walk(dist):
     for fn in fns:
         if fn != "index.html":
@@ -56,9 +57,25 @@ for dp, _, fns in os.walk(dist):
             continue
         rel = os.path.relpath(dp, dist).replace(os.sep, "/")
         path = "" if rel == "." else rel + "/"
-        urls.append((f"{origin}{base}/{path}", path))
+        url = f"{origin}{base}/{path}"
+        # A page whose canonical names ANOTHER address says "I am not the original":
+        # listing it in the sitemap tells a crawler the opposite. Defranceschi had
+        # 1,010 name pages canonicalised to a person page and still listed (16 Oct
+        # 2026, found by the cloud audit). Compared without the trailing slash.
+        m = CANON.search(html[:6000])
+        if m and m.group(1).rstrip("/") != url.rstrip("/"):
+            canonicalised += 1
+            continue
+        urls.append((url, path))
 
 urls.sort()
+
+# AN EMPTY SITEMAP IS NOT A SITEMAP. It used to write "0 urls" and exit 0, and this is a CI step,
+# so a broken build would have published an empty sitemap (Blazevic sweep, 16 October 2026).
+if not urls:
+    print(f"sitemap: REFUSED: no page under {dist} is indexable (0 urls; {skipped} withheld, "
+          f"{canonicalised} canonicalised elsewhere). The build is empty or unfinished.")
+    sys.exit(1)
 
 # ---- lastmod ---------------------------------------------------------------
 # It used to be today's date on every URL, every build — which tells a crawler
@@ -101,4 +118,4 @@ if not os.path.exists(robots):
     open(robots, "w", encoding="utf-8").write(
         f"User-agent: *\nAllow: /\nSitemap: {origin}{base}/sitemap.xml\n")
 # and copy whatever robots.txt exists into dist, since public/ was already copied
-print(f"sitemap: {len(urls)} urls, {skipped} withheld (noindex or redirect)")
+print(f"sitemap: {len(urls)} urls, {skipped} withheld (noindex or redirect), {canonicalised} withheld (canonical names another page)")

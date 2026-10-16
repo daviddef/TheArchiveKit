@@ -11,7 +11,7 @@
    Archives keep their own voice through the custom properties at the top:
    colour, and the face the names are set in. Everything below that is geometry
    and is the same everywhere, which is the whole point. */
-  .ptree{--pt-bg:var(--ground,transparent);--pt-node-bg:var(--paper,#fff);
+  .ptree{--pt-bg:var(--ground,transparent);--pt-node-bg:var(--paper,var(--panel,#fff));
          --pt-line:var(--ink,currentColor);--pt-tree:var(--ink-2);
          --pt-via:var(--ink-2);--pt-gen:var(--accent);
          margin:0 0 1.4rem;padding:1rem 1rem .8rem;border:1px solid var(--rule);
@@ -30,9 +30,9 @@
   .ptree .node.gap .nm{font-weight:400;font-style:italic;color:var(--ink-2)}
   .ptree .nm{font-weight:600;line-height:1.2}
   .ptree .dt{font-family:var(--mono,monospace);font-size:11px;color:var(--ink-2)}
-  .ptree .mar{font-family:var(--sans);font-size:9px;letter-spacing:.13em;text-transform:uppercase;
+  .ptree .mar{font-family:var(--sans);font-size:11px;letter-spacing:.13em;text-transform:uppercase;
               color:var(--ink-2)}
-  .ptree .via{font-family:var(--sans);font-size:9px;letter-spacing:.1em;text-transform:uppercase;
+  .ptree .via{font-family:var(--sans);font-size:11px;letter-spacing:.1em;text-transform:uppercase;
               color:var(--pt-via);margin-top:.15rem}
   /* provenance said in colour AND in words — colour alone is no use to a reader
      who cannot see it */

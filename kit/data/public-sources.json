@@ -1,0 +1,39 @@
+{
+  "note": "Sources whose records are public. A person with at least one citation from one of these is not treated as living (David, 16 October 2026: 'any sources such as those publicly available are automatically deemed ok to show, e.g. FamilySearch, MyHeritage, Findmypast'). A match is a case-insensitive substring of the citation's provider, URL or title. This lists RECORD collections only: a private family-tree entry (a MyHeritage, Ancestry or Geni TREE profile, a GEDCOM, family lore) is not on it and does not count. Edit this file to change the rule for every archive; each archive reads it through kit/tools/living_rule.py. FamilySearch always counts, including its Family Tree, because FamilySearch hides living people (David, 16 October 2026). MyHeritage files other sites' user-built trees (Geni's World Family Tree, WikiTree, Filae, GenealogieOnline) under 'research' or 'Collection'; those are private-tree entries, not records, so they are excluded (found 16 Oct 2026 by the Blazevic agent: 20 living people would otherwise have counted as public-sourced and been shown with dates).",
+  "providers": [
+    "familysearch.org",
+    "familysearch",
+    "myheritage.com/research",
+    "myheritage record",
+    "findmypast",
+    "ancestry.com/search",
+    "antenati.cultura.gov.it",
+    "archive.org",
+    "trove.nla.gov.au",
+    "freebmd",
+    "findagrave",
+    "billiongraves",
+    "nationalarchives.gov.uk",
+    "naairs",
+    "eGGSA",
+    "arolsen",
+    "naa.gov.au",
+    "recordsearch",
+    "national archives of australia"
+  ],
+  "excluded": [
+    "myheritage.com/person",
+    "myheritage family tree",
+    "ancestry.com/family-tree",
+    "geni.com",
+    "gedcom",
+    "family lore",
+    "geni world family tree",
+    "world family tree",
+    "geni world",
+    "wikitree",
+    "filae",
+    "genealogieonline",
+    "smart match"
+  ]
+}

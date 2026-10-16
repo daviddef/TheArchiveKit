@@ -91,7 +91,10 @@ MONTHS = (r"Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec|"
           r"November|December|"
           r"Gennaio|Febbraio|Marzo|Aprile|Maggio|Giugno|Luglio|Agosto|"
           r"Settembre|Ottobre|Novembre|Dicembre")
-FULL_DATE = re.compile(r"\b\d{1,2}\s+(?:" + MONTHS + r")[a-z]*\.?\s+(?:1[89]\d\d|20\d\d)\b")
+# re.I: a GEDCOM writes "11 MAY 1990". This pattern was case-sensitive, so such a date was never
+# harvested, and the summary read "0 date(s) guarded, ok" with the identical date on a page
+# (found by the Blazevic sweep, 16 October 2026).
+FULL_DATE = re.compile(r"\b\d{1,2}\s+(?:" + MONTHS + r")[a-z]*\.?\s+(?:1[89]\d\d|20\d\d)\b", re.I)
 ISO_DATE = re.compile(r"\b(?:1[89]\d\d|20\d\d)-\d{2}-\d{2}\b")
 SLASH_DATE = re.compile(r"\b\d{1,2}/\d{1,2}/(?:1[89]\d\d|20\d\d)\b")
 YEAR = re.compile(r"\b(1[89]\d\d|20\d\d)\b")
@@ -266,6 +269,10 @@ def prove_harvest(today):
              "born": "11 May 1990", "died": ""},
             {"name": "Selftest Deadperson", "living": True,
              "born": "11 May 1880", "died": ""},
+            # A GEDCOM writes dates in capitals. The date pattern was case-sensitive
+            # and never harvested these; this person makes that regression fail here.
+            {"name": "Selftest Gedcomperson", "living": True,
+             "born": "11 MAY 1991", "died": ""},
         ], open(os.path.join(d, "people.json"), "w", encoding="utf-8"))
         living, presumed, _, _n = from_data(d, today)
         who = norm("Selftest Livingperson")
@@ -276,6 +283,14 @@ def prove_harvest(today):
             return False, ("the synthetic person was found but their date was not "
                            f"harvested (got {sorted(living[who]) or 'nothing'}) — the "
                            "date patterns no longer match this format")
+        ged = norm("Selftest Gedcomperson")
+        if ged not in living or "11 MAY 1991" not in living[ged]:
+            return False, ("a GEDCOM-style date in capitals (11 MAY 1991) was not harvested "
+                           f"(got {sorted(living.get(ged, [])) or 'nothing'}): the date patterns "
+                           "are case-sensitive again")
+        if not check_dates({"p.html": "<p>born 11 May 1991</p>"}, living, set())[0]:
+            return False, ("the same date written 11 May 1991 on a page was not found: "
+                           "the page match is case-sensitive again")
         if presumed < 1:
             return False, ("nobody born in 1880 was presumed dead, so the %d-year rule "
                            "is refusing nobody and a pass means only that everyone was "
@@ -331,8 +346,9 @@ def check_dates(pages, living, allow_files):
             continue
         text = visible(raw)
         for d, owners in forbidden.items():
-            if d in text or d in raw:
-                i = text.find(d)
+            # case-insensitive: the data may say "11 MAY 1990" and the page "11 May 1990"
+            if d.lower() in text.lower() or d.lower() in raw.lower():
+                i = text.lower().find(d.lower())
                 ctx = re.sub(r"\s+", " ", text[max(0, i - 50):i + 50]).strip()
                 fails.append((rel, f"the date «{d}» — the data attaches it to "
                                    f"{', '.join(sorted(owners))} (living)", ctx))
@@ -572,6 +588,11 @@ def main():
                              f"for {', '.join(names)}{said}", a.quiet)
 
     # derived: read the archive's own committed data
+    # A MISSING DATA DIRECTORY IS NOT "NOBODY LIVING". It made the empty harvest look like a finding.
+    if not os.path.isdir(a.data):
+        print(f"  FAIL  living      the data directory {a.data} does not exist, so this gate does "
+              f"not know who is living. Pass --data, or run from the site directory.")
+        return 1
     living, presumed, skipped, nrows = from_data(a.data, today)
     if UNREADABLE:
         # THE GATE CANNOT ANSWER, SO IT MUST NOT PASS. A file it could not

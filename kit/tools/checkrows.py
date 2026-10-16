@@ -156,6 +156,8 @@ def main():
     ap.add_argument("--floor-file", default=".rowfloor")
     ap.add_argument("--write-floor", action="store_true")
     ap.add_argument("--quiet", action="store_true")
+    ap.add_argument("--require", action="store_true",
+                    help="a 'not run' result is a failure, not a pass")
     a = ap.parse_args()
 
     if a.report:
@@ -188,7 +190,7 @@ def main():
         # and must not pass silently.
         print("  --    rows       not run: no built page under %s draws a spine row"
               % outdir(a.root))
-        return 0
+        return 1 if a.require else 0
 
     fp = floor_path(a.root, a.floor_file)
     if a.write_floor:

@@ -140,6 +140,8 @@ def main():
     ap.add_argument("--max-bespoke", type=int, default=None)
     ap.add_argument("--report", action="store_true", help="the whole estate, ranked")
     ap.add_argument("--quiet", action="store_true")
+    ap.add_argument("--require", action="store_true",
+                    help="a 'not run' result is a failure, not a pass")
     a = ap.parse_args()
 
     estate = a.estate or os.path.abspath(os.path.join(a.root, "..", ".."))
@@ -151,7 +153,7 @@ def main():
         print("  --    pages      not run: %d archive(s) beside %s, and comparing pages "
               "needs the estate. This check only works where the other archives are."
               % (len(found), os.path.abspath(estate)))
-        return 0
+        return 1 if a.require else 0
     shared = scan(estate, a.threshold)
     if not shared:
         print("  ok    pages      %d archives found, no page carried by %d or more of them"

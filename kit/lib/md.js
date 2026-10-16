@@ -145,8 +145,18 @@ export const plain = (x) =>
    block qualifies only if a row of |cells| is followed immediately by a
    |---|---| separator. A stray pipe in prose is left exactly as written. */
 
+/* Two kinds of link. A site path ([text](/people/x/)) goes through the archive's
+   own base helper `u`. An EXTERNAL address ([FIBIS](https://…)) is kept as written:
+   it is linked only if it starts with http:// or https:// and holds no quote, angle
+   bracket or space, so a note can never close the href attribute and inject markup.
+   External links open as plain links with rel="noopener". Before 16 October 2026
+   only site paths were linked, and a work-list note citing FIBIS or FamilySearch
+   printed as literal brackets. The path rule also excludes quotes now: esc() above
+   does not escape them, so a path containing one could have broken the attribute. */
 const linkify = (s, u) =>
-  s.replace(/\[([^\]]+)\]\((\/[^)\s]*)\)/g, (_, t, h) => `<a href="${u(h)}">${t}</a>`);
+  s.replace(/\[([^\]]+)\]\((\/[^)\s"<>]*)\)/g, (_, t, h) => `<a href="${u(h)}">${t}</a>`)
+   .replace(/\[([^\]]+)\]\((https?:\/\/[^)\s"<>]+)\)/g,
+            (_, t, h) => `<a href="${h}" rel="noopener">${t}</a>`);
 
 /* Inline markers, plus links. Code spans are held out FIRST so that `**x**`
    inside backticks stays literal; the rest is the same inline() as md(). */

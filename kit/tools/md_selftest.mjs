@@ -36,6 +36,23 @@ expect("a bold with an italic inside, both closed by one run of three",
   md("**54 records, either *Baptisms* or *Ireland Births***"),
   "<strong>54 records, either <em>Baptisms</em> or <em>Ireland Births</em></strong>");
 
+console.log("\nlinks in a note");
+expect("a site path is linked through the base helper",
+  mdNote("see [the work list](/worklist/)", (p) => "/X" + p),
+  '<p>see <a href="/X/worklist/">the work list</a></p>');
+expect("an external https address is linked and kept as written",
+  mdNote("[FIBIS](https://www.fibis.org/search?a=1&b=2)"),
+  '<p><a href="https://www.fibis.org/search?a=1&amp;b=2" rel="noopener">FIBIS</a></p>');
+expect("a javascript: address is not linked",
+  mdNote("[x](javascript:alert(1))"),
+  "<p>[x](javascript:alert(1))</p>");
+expect("a quote in an external address cannot close the attribute",
+  mdNote('[x](https://a.example/"onmouseover="y)'),
+  '<p>[x](https://a.example/"onmouseover="y)</p>');
+expect("a quote in a site path cannot close the attribute",
+  mdNote('[x](/a"onmouseover="y)'),
+  '<p>[x](/a"onmouseover="y)</p>');
+
 console.log("\nthe ordinary markers still read as before");
 expect("bold", md("**b**"), "<strong>b</strong>");
 expect("italic", md("*i*"), "<em>i</em>");
