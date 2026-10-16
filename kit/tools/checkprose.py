@@ -16,6 +16,7 @@ or the JSON record the name sits in:
     a full date, an ISO date, a slash date, or a year (1800-2099)         fail
     a life-event word: died, buried, baptised, christened, funeral,
     obituary, aged                                                         fail
+    a DNA result (cM, haplogroup, DNA match / result / kit, 23andMe ...)    fail
     JSON only: a record whose name field is a living person's and that
     carries any field outside --allow-keys                                 fail
 
@@ -99,6 +100,11 @@ SLASH_DATE = re.compile(r"\b\d{1,2}/\d{1,2}/(?:1[89]\d\d|20\d\d)\b")
 YEAR = re.compile(r"(?<![\w/])(?<![A-Za-z]-)(?:1[89]\d\d|20\d\d)(?![\w/]|-[A-Za-z])")
 SLUG_YEAR = re.compile(r"[A-Za-z]+-(?:[A-Za-z]+-)*(?:1[89]\d\d|20\d\d)\b")
 EVENT = re.compile(r"\b(?:died|buried|baptis(?:ed|m)|baptiz(?:ed|m)|christened|funeral|obituary|aged)\b", re.I)
+# A living person's DNA result is a detail the standard does not allow (it says more than name, relationships and
+# place, and a match or a haplogroup identifies a living relative). Lerena found /dna/ discussing exactly that.
+DNA = re.compile(r"\b(?:\d+(?:\.\d+)?\s*cM|centimorgans?|haplogroups?|mtDNA|Y-?DNA|autosomal|shared DNA|"
+                 r"DNA\s+(?:match(?:es)?|results?|tests?|kits?|segments?|cousins?)|ethnicity estimates?|"
+                 r"AncestryDNA|23andMe|FamilyTreeDNA|GEDmatch)\b", re.I)
 URLISH = re.compile(r"(?:https?://\S+|/[A-Za-z][\w%.~-]*(?:/[\w%.~-]*)*)")
 BLOCK_BREAK = re.compile(r"(?:\n|</?(?:p|li|tr|td|th|h[1-6]|div|section|article|figure|dd|dt|blockquote|br)\b[^>]*>)", re.I)
 
@@ -147,6 +153,9 @@ def flags_in(text):
     m = EVENT.search(bare)
     if m:
         why.append(("a life-event word", m.group(0).lower()))
+    m = DNA.search(bare)
+    if m:
+        why.append(("a DNA result", m.group(0).lower()))
     return why, slug_years
 
 

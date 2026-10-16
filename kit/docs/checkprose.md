@@ -31,7 +31,8 @@ person; this guards what somebody typed.
 ## What it does and does not do
 
 - Fails on a year (1800-2099), a full date, a month and year, a slash date or an ISO date, or a life-event word
-  (died, buried, baptised, christened, funeral, obituary, aged), within 150 characters of a living name inside one
+  (died, buried, baptised, christened, funeral, obituary, aged), or a DNA result (centimorgans, haplogroup, DNA match,
+  result, kit, segment, a testing company), within 150 characters of a living name inside one
   paragraph / list item / table row / JSON string. In a JSON record whose name field is a living person's, any field
   outside `--allow-keys` fails.
 - A year inside a URL or id is counted and printed, not failed (a slug such as `/person/anna-rossi-1846/` still tells a
