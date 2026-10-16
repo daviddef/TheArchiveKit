@@ -11,7 +11,8 @@
   "undated-living-parent",
   "known-child",
   "held-by-id",
-  "recent-child"
+  "recent-child",
+  "said-living"
  ],
  "cases": [
   {
@@ -630,6 +631,60 @@
    },
    "want": {
     "public_source": true,
+    "is_living": false
+   }
+  },
+  {
+   "id": "said-living-undated",
+   "tags": [
+    "said-living"
+   ],
+   "why": "an undated person the archive says in so many words is living counts as living (Booyzen, David 17 Oct 2026)",
+   "in": {
+    "said_living": true
+   },
+   "want": {
+    "is_living": true
+   }
+  },
+  {
+   "id": "said-living-recorded-death",
+   "tags": [
+    "said-living"
+   ],
+   "why": "a recorded death settles it over a living statement",
+   "in": {
+    "said_living": true,
+    "recorded_dead": true
+   },
+   "want": {
+    "is_living": false
+   }
+  },
+  {
+   "id": "said-living-public-source",
+   "tags": [
+    "said-living"
+   ],
+   "why": "a public source settles it over a living statement",
+   "in": {
+    "said_living": true,
+    "citations": [
+     "FamilySearch"
+    ]
+   },
+   "want": {
+    "is_living": false
+   }
+  },
+  {
+   "id": "said-living-default-off",
+   "tags": [
+    "said-living"
+   ],
+   "why": "with no statement and no year the person is not living (the default)",
+   "in": {},
+   "want": {
     "is_living": false
    }
   }

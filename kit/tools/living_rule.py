@@ -88,17 +88,21 @@ def recent_child(youngest_child_year, today_year=None):
     return ((today_year or this_year()) - int(youngest_child_year)) <= CHILD_LIVING_YEARS
 
 
-def is_living(birth_year, recorded_dead, citations=(), today_year=None, youngest_child_year=None):
+def is_living(birth_year, recorded_dead, citations=(), today_year=None, youngest_child_year=None,
+              said_living=False):
     """David's rule. birth_year: int or None. recorded_dead: any death or burial event, dated or not.
     youngest_child_year: the birth year of this person's youngest child with a known birth year, or None.
     An undated person with no recorded death and no public source is living if that child is 60 years old
-    or younger; a dated person is judged by their own birth year alone."""
+    or younger; a dated person is judged by their own birth year alone.
+    said_living: the archive's own data says in so many words that the person is living (Booyzen records
+    three people so, with no year). David ruled on 17 October 2026 that for Booyzen such a statement counts;
+    an archive passes True only for that. Default False: no year and no statement is not living."""
     if recorded_dead:
         return False
     if public_source(citations):
         return False
     if birth_year is None:
-        return recent_child(youngest_child_year, today_year)
+        return bool(said_living) or recent_child(youngest_child_year, today_year)
     y = today_year or this_year()
     return (y - int(birth_year)) <= LIVING_YEARS
 

@@ -233,10 +233,10 @@ export const livingRule = {
     if (youngestChildYear == null) return false;
     return ((todayYear || new Date().getFullYear()) - Number(youngestChildYear)) <= CHILD_LIVING_YEARS;
   },
-  isLiving(birthYear, recordedDead, citations = [], todayYear = null, sources = null, youngestChildYear = null) {
+  isLiving(birthYear, recordedDead, citations = [], todayYear = null, sources = null, youngestChildYear = null, saidLiving = false) {
     if (recordedDead) return false;
     if (publicSource(citations, sources)) return false;
-    if (birthYear == null) return livingRule.recentChild(youngestChildYear, todayYear);
+    if (birthYear == null) return Boolean(saidLiving) || livingRule.recentChild(youngestChildYear, todayYear);
     return ((todayYear || new Date().getFullYear()) - Number(birthYear)) <= LIVING_YEARS;
   },
   possibleMinor(birthYear, recordedDead, citations = [], parentLiving = false, todayYear = null, sources = null, youngestChildYear = null) {
@@ -283,7 +283,7 @@ export function citationsOf(p) {
 /* The rule, applied to a person. `now` and `sources` are passed in. */
 export function isLiving(p, { now = null, sources = null } = {}) {
   if (!p) return false;
-  return livingRule.isLiving(birthYearOf(p), recordedDead(p), citationsOf(p), now, sources, p.youngestChildYear ?? null);
+  return livingRule.isLiving(birthYearOf(p), recordedDead(p), citationsOf(p), now, sources, p.youngestChildYear ?? null, p.saidLiving === true);
 }
 /* Held out of the archive entirely: promised by id, or undated with a living parent.
    `parentLiving` is the caller's knowledge, or the row's own `parentLiving`. */

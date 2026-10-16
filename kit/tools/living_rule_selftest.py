@@ -31,7 +31,7 @@ def answers(case):
     cit = i.get("citations", [])
     return {
         "public_source": lr.public_source(cit),
-        "is_living": lr.is_living(i.get("birth_year"), i.get("recorded_dead", False), cit, Y, i.get("youngest_child_year")),
+        "is_living": lr.is_living(i.get("birth_year"), i.get("recorded_dead", False), cit, Y, i.get("youngest_child_year"), i.get("said_living", False)),
         "possible_minor": lr.possible_minor(i.get("birth_year"), i.get("recorded_dead", False), cit, i.get("parent_living", False), Y, i.get("youngest_child_year")),
         "is_held_out": lr.is_held_out(i.get("id", "none"), i.get("birth_year"), i.get("recorded_dead", False), cit,
                                       i.get("parent_living", False), i.get("held_ids", []), Y, i.get("youngest_child_year")),
@@ -90,6 +90,11 @@ lr.recent_child = lambda *a, **k: False
 hit = [c["id"] for c, miss in run_all() if miss]
 check(f"with the recent child ignored the child cases catch it ({len(hit)} fail)", "undated-recent-child" in hit)
 lr.recent_child = orig_rc
+_il = lr.is_living
+lr.is_living = lambda b, d, c=(), t=None, y=None, said_living=False: _il(b, d, c, t, y, False)
+hit = [c["id"] for c, miss in run_all() if miss]
+check(f"with a living statement ignored the said-living case catches it ({len(hit)} fail)", "said-living-undated" in hit)
+lr.is_living = _il
 saved = lr.EXCLUDED
 lr.EXCLUDED = []
 hit = [c["id"] for c, miss in run_all() if miss]
