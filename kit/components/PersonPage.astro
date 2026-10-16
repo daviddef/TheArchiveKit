@@ -28,16 +28,21 @@
  * the whole «Family» section when a person has no edges; Defranceski's /person/
  * draws no chart for 887 of 1,961 people and says so in a different place.
  *
- * LIVING PEOPLE. When `isLiving(person)` is true this component draws the name,
- * the relationship in the chart (names of relatives, no dates, living relatives
- * withheld) and one fixed sentence, and REFUSES to render the record, sources,
- * namesakes, media and notes slots at all. It does not trust the archive to have
- * emptied them: the rule that a living person is a name and a relationship is the
- * estate's one absolute, and this is the place where it can be made impossible to
- * forget rather than a thing seven pages each remember. The page also sets
- * `data-living="1"` so kit/tools/checkperson.py can find it from the built HTML.
- * An archive that publishes more (Defranceski «named, placed»; Mazza «country
- * only») is departing from this and the departure is visible in the checker.
+ * LIVING PEOPLE (the estate's standard, version 2, 16 October 2026). When
+ * `isLiving(person)` is true (born 80 years ago or less by year, no death or burial
+ * recorded, no public record source) this component draws the NAME, the
+ * RELATIONSHIPS (the chart: relatives by name, no dates, no source words) and the
+ * FULL TOWN AND COUNTRY, and nothing else: no lede, no qualifier, no record, no
+ * sources, no namesakes, no photographs, no notes, no occupation, no "what the record
+ * says" or "where this comes from" at all. It does not trust the archive to have
+ * emptied the slots: it does not render them. It sets `data-living="1"` so
+ * kit/tools/checkperson.py can find the page from the built HTML, and the archive
+ * takes `noindex` (and no `Person` structured data) from lib/person.js personMeta().
+ * A child with a KNOWN birth year under 18 is a living person like any other: she gets
+ * this page. A person the rule HOLDS OUT (an undated person with a living parent, or
+ * promised privacy by id) must not reach this component at all, and it THROWS if one
+ * does, because a page for them is the leak.
+ * Every person the archive names has a page, living people included.
  *
  * STUBS. A page with a name and nothing else (stubReason) keeps its URL — a link
  * to it exists — and says what it is, in a sentence, with `data-stub` set:
@@ -51,57 +56,63 @@
  *        stubNote   what the person is known from, for the stub sentence
  *        lede       one plain sentence under the name (also the meta description
  *                   via personMeta); never drawn for a living person
- *        nameStyle  "titleCase" (default) | "asRecorded" — spec decision 4
+ *        nameStyle  "titleCase" (default, RULED) | "asRecorded"
+ *        heldIds    ids promised privacy; a person with one of them must not be rendered
+ *        now, sources   the living rule's clock and kit/data/public-sources.json
  *        edgeLevel, emptyWhy, emptyText, palette, labels   passed to PersonChart
  * SLOTS  record · sources · namesakes · media · notes · chart-notes · after
  *        (and the unnamed slot, drawn after the six as kind="more" sections)
  */
 import PersonChart from "./PersonChart.astro";
 import PersonSection from "./PersonSection.astro";
-import LW from "../data/living-words.json";
-import { isLiving, displayName, splitQualifier, lifespan, stubReason, LIVING_SENTENCE } from "../lib/person.js";
+import PS from "../data/public-sources.json";
+import { isLiving, isHeldOut, displayName, splitQualifier, lifespan, stubReason, livingPlace, LIVING_SENTENCE } from "../lib/person.js";
 
 const {
   person = {}, nameHref = null, peopleHref = "/people/", registerHref = null, stubNote = "", lede = person.lede || "",
   nameStyle = "titleCase", edgeLevel = true, emptyWhy = null, emptyText = null, palette = {}, labels = {},
-  now = new Date().getFullYear(), presumeDeadAfter = LW.presumeDeadAfter ?? 80,
+  now = new Date().getFullYear(), sources = PS, heldIds = [],
 } = Astro.props;
-const rule = { now, presumeDeadAfter };
+const rule = { now, sources };
+if (isHeldOut(person, { ...rule, heldIds })) {
+  throw new Error("PersonPage: this person is held out by the living rule (an undated person with a living parent, or promised privacy by id). A held-out person has no page and no name anywhere: do not build one.");
+}
 const living = isLiving(person, rule);
 const nm = splitQualifier(displayName(person.name, { style: nameStyle }));
 const life = living ? "" : lifespan(person.born, person.died, { years: false });
+const place = living ? livingPlace(person) : { text: "", refused: false };
 const stub = living ? null : stubReason(person);
 const has = (k) => !living && Astro.slots.has(k);
 ---
-<article class="ppage" data-person-page="1" data-living={living ? "1" : "0"} data-stub={stub || undefined}>
+<article class="ppage" data-person-page="1" data-living={living ? "1" : "0"} data-stub={stub || undefined} data-place-refused={place.refused ? "1" : undefined}>
   <header class="phead">
     <h1>{nm.name}</h1>
     {nm.qualifier && !living ? <p class="pqual">{nm.qualifier}</p> : null}
     {life ? <p class="plife">{life}</p> : null}
     {living ? <p class="pliving">{LIVING_SENTENCE}</p> : (lede ? <p class="pdek">{lede}</p> : null)}
+    {living && place.text ? <p class="pplace">{place.text}</p> : null}
   </header>
 
   <PersonSection kind="family">
-    <PersonChart {person} {nameHref} {edgeLevel} {emptyWhy} {emptyText} {palette} {labels} {nameStyle} {now} {presumeDeadAfter}>
+    <PersonChart {person} {nameHref} {edgeLevel} {emptyWhy} {emptyText} {palette} {labels} {nameStyle} {now} {sources} {heldIds}>
       <Fragment slot="notes"><slot name="chart-notes" /></Fragment>
       <Fragment slot="after"><slot name="after" /></Fragment>
     </PersonChart>
   </PersonSection>
 
-  <PersonSection kind="record">
-    {living
-      ? <p class="pnone">Nothing else is published about a living person.</p>
-      : has("record") ? <slot name="record" />
-      : stub ? <p class="pnone pstub">Known only from {stubNote || "the place that names them"}; nothing else is recorded yet.</p>
-      : <p class="pnone">No event is recorded for this person in this archive.</p>}
-  </PersonSection>
+  {living ? null : (
+    <PersonSection kind="record">
+      {has("record") ? <slot name="record" />
+        : stub ? <p class="pnone pstub">Known only from {stubNote || "the place that names them"}; nothing else is recorded yet.</p>
+        : <p class="pnone">No event is recorded for this person in this archive.</p>}
+    </PersonSection>
+  )}
 
-  <PersonSection kind="sources">
-    {living
-      ? <p class="pnone">Nothing is published about a living person, so there is nothing to cite.</p>
-      : has("sources") ? <slot name="sources" />
-      : <p class="pnone">No source is attached to this person in this archive.</p>}
-  </PersonSection>
+  {living ? null : (
+    <PersonSection kind="sources">
+      {has("sources") ? <slot name="sources" /> : <p class="pnone">No source is attached to this person in this archive.</p>}
+    </PersonSection>
+  )}
 
   {has("namesakes") ? <PersonSection kind="namesakes"><slot name="namesakes" /></PersonSection> : null}
   {has("media") ? <PersonSection kind="media"><slot name="media" /></PersonSection> : null}

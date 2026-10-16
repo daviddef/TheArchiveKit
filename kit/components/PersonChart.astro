@@ -32,76 +32,98 @@
  * PROPS (all optional; an archive that cannot supply a field must not be made to
  * look as though it has none)
  *
- *   person      { name, born, died, living, presumedLiving, gen, line, relations }
+ *   person      { name, born, died, buried, dead, citations, sources, gen, line, relations }
  *   relations   { parents, spouses, children, siblings, dropped } — also accepted
  *               as its own prop if the archive keeps them apart. Each row:
  *                 name       required
- *                 href       a link, ONLY when the archive holds an id for this very
- *                            person. Never fill it from a name (traps.md: an empty
- *                            href is not a missing field).
- *                 born, died any date shape lib/person.js parses; the chart prints
- *                            years, labelled. `dates` (pre-formatted) is IGNORED —
- *                            that is the door Falco's unlabelled dates came through.
+ *                 href       the relative's own person page. EVERY person the archive
+ *                            names has one (living standard, item 7), so a row with no
+ *                            href is a defect: it is drawn, marked `nopage`, and
+ *                            kit/tools/checkperson.py fails it. Never fill it from a
+ *                            name (traps.md): it is the id of that very person.
+ *                 id         the person's id, matched against `heldIds`
+ *                 born, died, buried, dead, citations, sources
+ *                            what the living rule needs (lib/person.js isLiving):
+ *                            ANY date shape; the chart prints years, labelled.
+ *                            `dates` (pre-formatted) is IGNORED — that is the door
+ *                            Falco's unlabelled dates came through. A hand-set
+ *                            `living` or `presumedLiving` is NOT read.
+ *                 parentLiving  true if this relative has a living parent (decides the
+ *                            hold on an UNDATED relative)
  *                 source     ANY of the archives' own words (register, read, doc,
- *                            index, tree, lore, inf ...). Folded to one by
+ *                            index, tree, lore, inf ...). Folded to one of the seven by
  *                            readSource(); a word it does not know shows as
  *                            «unmarked» with the word quoted, never as a kind default.
- *                 line       true if this relative is on the direct line
+ *                 line       true if this relative is on the direct line (drawn as a bar)
  *                 ambiguous  true if the archive holds several people of this name
  *                            and cannot say which: drawn unlinked, and said
- *                 living     the relative is living: name only, no dates
- *                 gap        withheld entirely: «— living, withheld —», never a name
  *                 superseded a retracted edge, drawn struck through
  *                 disputed   a record contradicts this edge
  *                 mar        the word above a spouse (default «married»)
+ *   heldIds     ids promised privacy; such a row is never drawn
  *   edgeLevel   true (default) when `source` is the source of the LINK; false when
  *               the archive only knows it of the PERSON (Blazevic, Mazza today), and
  *               the caption then says so instead of claiming more
  *   nameHref    the name page for this person, when the chart is empty because kin
- *               are recorded against a name (Defranceski's 887 chartless pages)
+ *               are recorded against a name (Defranceski's chartless pages)
  *   emptyWhy    override the empty-chart reason code, or `emptyText` the sentence
- *   nameStyle   "asRecorded" (default here: relatives are other people's names)
- *               or "titleCase"; decision 4 in PERSON-PAGE-SPEC.md
- *   now, presumeDeadAfter   the living rule's clock and horizon (default 80)
+ *   nameStyle   "titleCase" (default, RULED: title-case on display) or "asRecorded"
+ *   now, sources   the living rule's clock and kit/data/public-sources.json (default:
+ *               the kit's own file)
  *   palette, labels, keys   passed straight to PersonTree
+ *
+ * LIVING PEOPLE ARE DRAWN BY NAME ONLY (living standard v2, 16 October 2026). A living
+ * relative is a name and a relationship: no dates, no source word, no hover text, no
+ * direct-line bar, and class `is-living`. On a LIVING person's own page the chart goes
+ * further: no relative carries a source word and there is no legend, because «a record
+ * read here» beside a line to a living child is a statement about records of that
+ * child. The old dashed «living, withheld» node is gone: it would reveal that a
+ * held-out person exists. A held-out relative (promised by id, or an undated child
+ * of a living person) is not drawn and not counted.
  *
  * SLOTS: "notes" and "after" go to PersonTree's slots of the same name, below
  * the archive's own prose about why this chart looks as it does.
  *
- * WHAT IT WILL NOT DO. Decide how good a source is (that is the owner's, spec
- * decision 3), merge two relatives of one name, or draw a living person's dates.
- * A chart that draws nothing still draws: a page that shows no chart makes a claim
- * in silence, and the claim is that nobody is recorded.
+ * WHAT IT WILL NOT DO. Decide how good a source is, merge two relatives of one name,
+ * or draw a living person's dates. A chart that draws nothing still draws: a page
+ * that shows no chart makes a claim in silence, and the claim is that nobody is
+ * recorded. The colours come from persontree.css, which already falls back from
+ * --paper to --panel, so an archive that never defined --paper is not left with a
+ * transparent node.
  */
 import PersonTree from "./PersonTree.astro";
-import LW from "../data/living-words.json";
-import { readSource, SOURCES, lifespan, isLiving, displayName, splitQualifier, chartEmptyReason, EMPTY_TEXT } from "../lib/person.js";
+import PS from "../data/public-sources.json";
+import { readSource, SOURCES, lifespan, isLiving, displayName, splitQualifier, publishedRelations, chartEmptyReason, EMPTY_TEXT } from "../lib/person.js";
 
 const {
   person = {}, nameHref = null, edgeLevel = true, emptyWhy = null, emptyText = null,
-  nameStyle = "asRecorded", now = new Date().getFullYear(), presumeDeadAfter = LW.presumeDeadAfter ?? 80,
+  nameStyle = "titleCase", now = new Date().getFullYear(), sources = PS, heldIds = [],
   palette = {}, labels = {}, keys = [], always = true,
 } = Astro.props;
-const rel = Astro.props.relations || person.relations || {};
-const rule = { now, presumeDeadAfter };
+const rule = { now, sources, heldIds };
+const rel = publishedRelations({ ...person, relations: Astro.props.relations || person.relations || {} }, rule);
+const selfLiving = isLiving(person, rule);
 
 const used = new Set(); let anyLine = false;
 const row = (r, { spouse = false, small = false } = {}) => {
-  if (r.gap) return { gap: true, name: "— living, withheld —" };
-  const living = r.living === true || r.presumedLiving === true || isLiving({ born: r.born, died: r.died }, rule);
+  const living = isLiving(r, rule);
+  const quiet = living || selfLiving;            // no source word, no hover text, no line bar
   const s = readSource(r.source);
-  if (s.line || r.line) anyLine = true;
-  used.add(s.source);
+  const isLine = !quiet && (s.line || r.line);
+  if (isLine) anyLine = true;
+  if (!quiet) used.add(s.source);
   const word = SOURCES[s.source].label + (s.known ? "" : ` (“${String(r.source)}”)`);
-  const mark = r.ambiguous ? "several people of this name — not linked"
-    : (r.superseded ? "superseded — " : "") + word + (s.line || r.line ? " · direct line" : "");
+  const mark = quiet ? undefined : r.ambiguous ? "several people of this name — not linked"
+    : (r.superseded ? "superseded — " : "") + word + (isLine ? " · direct line" : "");
+  const href = r.ambiguous ? undefined : r.href;
   return {
     name: displayName(r.name, { style: nameStyle }),
-    href: r.ambiguous ? undefined : r.href,
+    href,
     dates: living ? "" : lifespan(r.born, r.died),
-    cls: SOURCES[s.source].cls + (s.line || r.line ? " is-line" : "") + (r.superseded ? " gone" : "") + (r.disputed ? " disputed" : ""),
+    cls: [quiet ? "" : SOURCES[s.source].cls, isLine ? "is-line" : "", r.superseded ? "gone" : "", r.disputed ? "disputed" : "",
+          living ? "is-living" : "", r.ambiguous ? "ambiguous" : !href ? "nopage" : ""].filter(Boolean).join(" "),
     mark: small ? undefined : mark,
-    title: "Recorded by: " + word,
+    title: quiet ? undefined : "Recorded by: " + word,
     mar: spouse ? (r.mar || "married") : undefined,
     small,
   };
@@ -110,39 +132,41 @@ const parents = (rel.parents || []).map((r) => row(r));
 const spouses = (rel.spouses || []).map((r) => row(r, { spouse: true }));
 const children = (rel.children || []).map((r) => row(r));
 const siblings = (rel.siblings || []).map((r) => row(r, { small: true }));
-const dropped = rel.dropped || [];
+/* names the archive recorded and could not draw: the living rule decides what PersonTree
+   may print of each (a living one keeps a name and a relationship, never a date) */
+const dropped = (rel.dropped || []).map((r) => (isLiving(r, rule) ? { ...r, born: undefined, died: undefined, dates: undefined } : r));
 
-const selfLiving = isLiving(person, rule);
 const self = {
   /* the qualifier («m. Alejandro LERENA the younger, 1854») tells two women of one name
      apart and belongs under the heading; in a 15rem node it is a paragraph */
   name: splitQualifier(displayName(person.name, { style: nameStyle })).name,
   dates: selfLiving ? "" : lifespan(person.born, person.died),
-  gen: person.gen ? (/^\d+$/.test(String(person.gen)) ? `generation ${person.gen}` : String(person.gen)) : "",
-  note: selfLiving ? "living — name only" : (person.line ? "direct line" : ""),
+  gen: !selfLiving && person.gen ? (/^\d+$/.test(String(person.gen)) ? `generation ${person.gen}` : String(person.gen)) : "",
+  note: selfLiving ? "living" : (person.line ? "direct line" : ""),
   noteCls: selfLiving ? "living" : "",
 };
 
 const empty = !(parents.length || spouses.length || children.length || siblings.length || dropped.length);
-const why = empty ? (emptyWhy ?? chartEmptyReason({ relations: rel }, { nameHref })) : null;
+const why = empty ? (emptyWhy ?? chartEmptyReason({ ...person, relations: rel }, { nameHref, ...rule })) : null;
 const sentence = empty ? (emptyText ?? (why && EMPTY_TEXT[why]) ?? EMPTY_TEXT["none-recorded"]) : null;
 
-/* legend: only the words actually drawn, so an empty chart does not imply lines exist */
-const legend = [...used].filter((k) => k !== "none" || used.size === 1).map((k) => ({ cls: k, label: SOURCES[k].label }));
-if (anyLine) legend.push({ cls: "is-line", label: "on the direct line" });
-const allKeys = empty ? [] : [...legend, ...keys];
+/* legend: only the words actually drawn, so an empty chart does not imply lines exist;
+   none at all on a living person's page */
+const legend = selfLiving ? [] : [...used].filter((k) => k !== "none" || used.size === 1).map((k) => ({ cls: k, label: SOURCES[k].label }));
+if (anyLine) legend.push({ cls: "is-line", label: "on the direct line (a bar, not a grade)" });
+const allKeys = empty || selfLiving ? [] : [...legend, ...keys];
 ---
 <PersonTree {always} {self} {parents} {spouses} {children} {siblings} {palette} {labels} keys={allKeys} {dropped}>
   <Fragment slot="notes">
     {empty ? (
       <p class="warn pempty" data-why={why}><strong>This chart is empty, and that is a statement rather than an omission.</strong>{" "}{sentence}{" "}
         {nameHref ? <a href={nameHref}>The name page</a> : null}</p>
-    ) : (
+    ) : selfLiving ? null : (
       <p class="pbasis">{edgeLevel
         ? "Each person is marked by where that line came from, in words as well as colour."
         : "Each person is marked by what is known of them, not of the line to them: this archive does not yet keep a source for the link itself."}</p>
     )}
-    <slot name="notes" />
+    {selfLiving ? null : <slot name="notes" />}
   </Fragment>
-  <Fragment slot="after"><slot name="after" /></Fragment>
+  <Fragment slot="after">{selfLiving ? null : <slot name="after" />}</Fragment>
 </PersonTree>

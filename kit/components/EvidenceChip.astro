@@ -14,26 +14,33 @@
  * practice three (documented, family, disputed): `probable` is produced by one
  * archive and `inferred` by two.
  *
- * WHAT IS NOT DECIDED HERE. Which grade an INDEX ENTRY or an IMAGE HELD is. Pass
- * `level` yourself where you know it; leave it off and only the source is drawn.
- * The suggested mapping (lib/person.js GRADE_HINT) is null for both on purpose,
- * pending the owner's answer to decision 3.
+ * RULED 16 OCTOBER 2026 (spec section 13, ruling 3): two axes plus a flag. An INDEX
+ * ENTRY and an IMAGE HELD stay UNGRADED. They say where a link came from and that
+ * nobody has read it, which is not a level of proof, so this chip never draws a grade
+ * beside them: a `level` passed with source «indexed» or «scanned» is not drawn, and
+ * the chip says `data-ungraded` so the page is not silently making a claim either way.
+ * The direct line is a BAR (the .is-line rule in personpage.css), not a word on either
+ * axis. No grade is guessed from a source: pass `level` where the archive knows it.
  *
  * PROPS  level   a grade word or any alias the kit's Evidence knows; unknown is
- *                drawn «Ungraded», visibly (Evidence's own rule, kept)
+ *                drawn «Ungraded», visibly (Evidence's own rule, kept), and
+ *                checkperson.py fails it
  *        source  any archive's word for where the link came from
- *        line    true for «direct line» — drawn as a separate word, never as a grade
+ *        line    true for «direct line» — drawn as a separate bar-marked word, never as a grade
  *        text    override the visible text of the grade
  */
 import Evidence from "./Evidence.astro";
-import { readSource, SOURCES } from "../lib/person.js";
+import { readSource, SOURCES, gradeAllowed } from "../lib/person.js";
 const { level = null, source = null, line = false, text = null } = Astro.props;
 const s = source == null ? null : readSource(source);
 const word = s ? SOURCES[s.source].label + (s.known ? "" : ` (“${String(source)}”)`) : null;
 const isLine = line || (s && s.line);
+/* an index entry or an image held is ungraded by ruling: a grade beside it is not drawn */
+const ungraded = s ? !gradeAllowed(s.source) : false;
+const showGrade = level != null && !ungraded;
 ---
-<span class="pchip">
-  {level != null ? <Evidence level={level}>{text}</Evidence> : null}
+<span class="pchip" data-ungraded={ungraded ? "1" : undefined}>
+  {showGrade ? <Evidence level={level}>{text}</Evidence> : null}
   {word ? <span class={"pv " + SOURCES[s.source].cls} title={"Source: " + word}>{word}</span> : null}
   {isLine ? <span class="pv is-line">direct line</span> : null}
 </span>

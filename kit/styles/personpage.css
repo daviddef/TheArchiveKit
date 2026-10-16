@@ -21,6 +21,7 @@
 .ppage .phead h1{margin:0 0 .2rem;line-height:1.1;overflow-wrap:anywhere}
 .ppage .pqual{margin:.1rem 0 .3rem;font-family:var(--sans,system-ui);font-size:.95rem;color:var(--ink-2,#444)}
 .ppage .plife{margin:.1rem 0 .3rem;font-family:var(--mono,monospace);font-size:.9rem;color:var(--ink-2,#444)}
+.ppage .pplace{margin:.4rem 0 0;font-family:var(--sans,system-ui);font-size:.95rem;color:var(--ink-2,#444)}
 .ppage .pdek{margin:.5rem 0 0;max-width:46rem;color:var(--ink-2,#444)}
 .ppage .pliving{margin:.6rem 0 0;max-width:46rem;padding:.6rem .8rem;border:1px dashed var(--rule,#bbb);
                 border-radius:.3rem;color:var(--ink-2,#444);background:var(--panel,transparent)}
@@ -46,6 +47,12 @@
 /* the direct line is a bar on top, so it can sit WITH a source border instead of
    replacing it: membership of the line is a result, not evidence */
 .ptree .node.is-line{box-shadow:inset 0 3px 0 var(--pt-line,var(--ink,currentColor))}
+/* a person the archive names but holds no page for, and a name that could be several people:
+   both are DEFECTS under «every person named gets a page», so they are drawn and say so */
+.ptree .node.nopage .nm::after{content:" (no page)";font-size:.7rem;font-weight:400;color:#9b2c2c}
+.ptree .node.ambiguous .nm::after{content:" (which one?)";font-size:.7rem;font-weight:400;color:var(--ink-2,#444)}
+/* a living relative: a name and a relationship, so no border says anything about records */
+.ptree .node.is-living{border-left:3px solid transparent}
 /* legend swatches for the canonical words */
 .ptree .sw.read{border-left:3px solid var(--accent)}
 .ptree .sw.indexed{border-left:3px dashed var(--pt-tree,var(--ink-2,#444))}
