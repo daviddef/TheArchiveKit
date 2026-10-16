@@ -159,11 +159,11 @@ def flags_in(text):
     return why, slug_years
 
 
-def blocks_with(text, rx):
+def blocks_with(text, rx, folded=None):
     """Yield (start, end, block) for each block of `text` containing a match of rx. A block runs between
     paragraph / list / row / heading breaks and is capped to WINDOW characters either side of the name."""
     breaks = sorted({0, len(text)} | {x for m in BLOCK_BREAK.finditer(text) for x in (m.start(), m.end())})
-    for m in rx.finditer(fold_keep(text)):
+    for m in rx.finditer(folded if folded is not None else fold_keep(text)):
         s, e = m.start(), m.end()
         lo = max([b for b in breaks if b <= s] or [0])
         hi = min([b for b in breaks if b >= e] or [len(text)])
@@ -215,8 +215,11 @@ def walk_json(node, rxs, allow_keys, found, path=""):
         for i, v in enumerate(node):
             walk_json(v, rxs, allow_keys, found, path + "[%d]" % i)
     elif isinstance(node, str):
+        folded = fold_keep(node)         # once per string, not once per phrase
         for ph, rx in rxs:
-            for pos, block in blocks_with(node, rx):
+            if ph.split(" ", 1)[0] not in folded:
+                continue
+            for pos, block in blocks_with(node, rx, folded):
                 why, sy = flags_in(block)
                 found.append((ph, why, sy, path))
 
@@ -248,8 +251,11 @@ def scan_text(raw, rel, rxs, allow_keys):
     text = html.unescape(raw)
     if rel.endswith((".astro", ".js", ".mjs", ".ts")):
         text = strip_code_comments(text)
+    folded = fold_keep(text)             # once per file, not once per phrase
     for ph, rx in rxs:
-        for pos, block in blocks_with(text, rx):
+        if ph.split(" ", 1)[0] not in folded:
+            continue
+        for pos, block in blocks_with(text, rx, folded):
             why, sy = flags_in(block)
             found.append((ph, why, sy, "offset %d" % pos))
     return found
