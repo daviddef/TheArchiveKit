@@ -43,3 +43,10 @@ person; this guards what somebody typed.
 - It is a proximity test on names. It cannot know a sentence's subject, so it errs toward flagging, and it cannot
   separate a living person from an ancestor who shares the exact name unless the feed lists the ancestor.
   It does not read images, PDFs or built HTML (checkliving.py and each archive's own gate cover the built site).
+
+## Two traps found by the D'Arcy session
+
+- The Python `run(include=...)` REPLACES the default file set; the command line's `--include` ADDS to it. A wrapper that
+  calls `run` with only its own data files reads no pages or notes and reports fewer failures than the command does.
+  Pass `DEFAULT_INCLUDE + [...]`.
+- A failing run now prints what it examined (files, phrases, places) after the failure list, as a passing run does.

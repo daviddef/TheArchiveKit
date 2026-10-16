@@ -293,7 +293,10 @@ def list_files(root, include, exclude, use_git):
 
 def run(root, living, dead_names, include=None, exclude=None, allow=None, allow_keys=None,
         use_git=True, allow_none=False, allow_untracked=False, quiet=False):
-    """Return (failures, summary). living: list of name lists. dead_names: published dead people."""
+    """Return (failures, summary). living: list of name lists. dead_names: published dead people.
+    NOTE: `include` REPLACES the default file set here (the command line's --include ADDS to it). A caller
+    that wants the defaults plus its own files passes DEFAULT_INCLUDE + [...]; passing only its own list
+    reads no pages or notes and undercounts (found by the D'Arcy session, 17 Oct 2026)."""
     include = include or DEFAULT_INCLUDE
     exclude = exclude or DEFAULT_EXCLUDE
     allow_keys = set(allow_keys or DEFAULT_ALLOW_KEYS)
@@ -417,6 +420,9 @@ def main():
         print("checkprose: FAIL (%d)" % len(fails))
         for f in fails:
             print("  - " + f)
+        if s:
+            print("  examined: %(files)d tracked files read, %(phrases)d living phrases searched "
+                  "(%(ambiguous)d skipped as shared with a dead person), %(places)d places name a living person" % s)
         return 1
     print("checkprose: ok. %(files)d tracked files read, %(phrases)d living phrases searched "
           "(%(ambiguous)d skipped as shared with a dead person), %(places)d places name a living person, "

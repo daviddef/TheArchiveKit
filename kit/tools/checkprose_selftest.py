@@ -130,6 +130,16 @@ f, s = go({P: "<p>%s, born 11 May 1899 in Zagreb.</p>" % NAME})
 out = " ".join(f)
 case("a failure line names no date, year or person", "1899" not in out and "Zzyzx" not in out and "Fixtura" not in out, out)
 
+print("a failing run still says what it examined")
+t0 = tree({P: "<p>%s, born 1899.</p>" % NAME})
+try:
+    fd = os.path.join(t0, "feed.json"); json.dump(FEED, open(fd, "w"))
+    r0 = subprocess.run([sys.executable, os.path.join(HERE, "checkprose.py"), "--root", t0, "--feed", fd, "--no-git"],
+                        capture_output=True, text=True)
+    case("a failure prints files read, phrases and places as well", r0.returncode == 1 and "examined:" in r0.stdout and "1899" not in r0.stdout, r0.stdout)
+finally:
+    shutil.rmtree(t0, ignore_errors=True)
+
 print("tracked files only")
 t = tree({P: "<p>%s, of Zagreb.</p>" % NAME})
 try:
