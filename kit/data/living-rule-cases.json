@@ -615,6 +615,23 @@
     "possible_minor": false,
     "is_held_out": false
    }
+  },
+  {
+   "id": "matricula-is-public",
+   "tags": [
+    "public-source"
+   ],
+   "why": "Matricula Online (parish registers) is a public record source (found by the Blazevic session 17 Oct 2026)",
+   "in": {
+    "birth_year": 1990,
+    "citations": [
+     "Matricula Online, parish register, Zagreb"
+    ]
+   },
+   "want": {
+    "public_source": true,
+    "is_living": false
+   }
   }
  ],
  "place_cases": [
