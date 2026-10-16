@@ -1,0 +1,174 @@
+{
+ "note": "One person documented in two archives is two pages by design. A CONFIRMED pair makes each page point to the other (kit/components/AlsoIn.astro). A CANDIDATE is the audit's guess (13 Oct 2026, conservative matching, never on a name alone) and is NEVER drawn: the research owner of each archive confirms or rejects it, by changing `status` (and giving `note`). Low-confidence candidates were not carried over.",
+ "pairs": [
+  {
+   "a": {
+    "archive": "lerena",
+    "path": "/people/nuno-fernando-lerena/"
+   },
+   "b": {
+    "archive": "booyzen",
+    "path": "/people/nuno-fernando-lerena/"
+   },
+   "status": "candidate",
+   "basis": "same birth year 1924; same death year 1971; shared spouse: catherine mary sophia booyzen"
+  },
+  {
+   "a": {
+    "archive": "falco",
+    "path": "/people/alfonso-prostamo/"
+   },
+   "b": {
+    "archive": "mazza",
+    "path": "/people/alfonso-prostamo-1936/"
+   },
+   "status": "candidate",
+   "basis": "same birth year 1936; same death year 1980; shared parent: maria rosa melluso"
+  },
+  {
+   "a": {
+    "archive": "falco",
+    "path": "/people/angela-rosa-morgillo/"
+   },
+   "b": {
+    "archive": "darcy",
+    "path": "/people/angela-rosa-morgillo/"
+   },
+   "status": "confirmed",
+   "basis": "same birth year 1818; same death year 1880; shared parent: orazio morgillo; shared spouse: raffaele falco; shared child: carmine antonio falco",
+   "note": "One person documented in both archives; the Falco page cites the Antenati birth act, the D'Arcy page holds the tree's statement. Each page says what its own archive holds."
+  },
+  {
+   "a": {
+    "archive": "falco",
+    "path": "/people/angelo-zampiello/"
+   },
+   "b": {
+    "archive": "darcy",
+    "path": "/people/angelo-zampiello/"
+   },
+   "status": "candidate",
+   "basis": "same birth year 1895; same death year 1972; shared spouse: giuseppa ferrara; shared child: francesca zampiello"
+  },
+  {
+   "a": {
+    "archive": "falco",
+    "path": "/people/carmine-antonio-falco-of-carmine-antonio-falco-filomena-ann/"
+   },
+   "b": {
+    "archive": "darcy",
+    "path": "/people/carmine-antonio-carminantonio-falco/"
+   },
+   "status": "candidate",
+   "basis": "same birth year 1901; same death year 1988; shared parent: constanza maione; shared spouse: filomena annecchino"
+  },
+  {
+   "a": {
+    "archive": "falco",
+    "path": "/people/claudia-di-lucia/"
+   },
+   "b": {
+    "archive": "darcy",
+    "path": "/people/claudia-di-lucia/"
+   },
+   "status": "candidate",
+   "basis": "same birth year 1760; same death year 1830; shared spouse: giuseppe pesce; shared child: vincenza pesce"
+  },
+  {
+   "a": {
+    "archive": "falco",
+    "path": "/people/domenica-prostamo/"
+   },
+   "b": {
+    "archive": "mazza",
+    "path": "/people/domenica-prostamo/"
+   },
+   "status": "candidate",
+   "basis": "same birth year 1928; same death year 2010; shared parent: maria rosa melluso; shared child: frank mazza"
+  },
+  {
+   "a": {
+    "archive": "falco",
+    "path": "/people/domenico-prostamo/"
+   },
+   "b": {
+    "archive": "mazza",
+    "path": "/people/domenico-prostamo-1930/"
+   },
+   "status": "candidate",
+   "basis": "same birth year 1930; shared parent: maria rosa melluso"
+  },
+  {
+   "a": {
+    "archive": "falco",
+    "path": "/people/francesca-zampiello/"
+   },
+   "b": {
+    "archive": "darcy",
+    "path": "/people/francesca-zampiello/"
+   },
+   "status": "candidate",
+   "basis": "same birth year 1928; same death year 2022; shared parent: angelo zampiello"
+  },
+  {
+   "a": {
+    "archive": "falco",
+    "path": "/people/maria-rosa-melluso/"
+   },
+   "b": {
+    "archive": "mazza",
+    "path": "/people/maria-rosa-melluso-1907/"
+   },
+   "status": "candidate",
+   "basis": "same birth year 1907; same death year 1994; shared child: alfonso prostamo"
+  },
+  {
+   "a": {
+    "archive": "falco",
+    "path": "/people/raffaele-falco-of-raffaele-falco-angela-rosa-morgill/"
+   },
+   "b": {
+    "archive": "darcy",
+    "path": "/people/raffaele-falco-1818/"
+   },
+   "status": "candidate",
+   "basis": "same birth year 1818; same death year 1880; shared parent: andrea andreana crisci; shared spouse: angela rosa morgillo; shared child: carmine antonio falco"
+  },
+  {
+   "a": {
+    "archive": "falco",
+    "path": "/people/raffaele-falco-of-vincenzo-falco-andreana-crisci/"
+   },
+   "b": {
+    "archive": "darcy",
+    "path": "/people/raffaele-falco-1818/"
+   },
+   "status": "candidate",
+   "basis": "same birth year 1818; shared parent: vincenzo falco"
+  },
+  {
+   "a": {
+    "archive": "falco",
+    "path": "/people/vincenza-pesce/"
+   },
+   "b": {
+    "archive": "darcy",
+    "path": "/people/vincenza-pesce/"
+   },
+   "status": "candidate",
+   "basis": "same birth year 1789; same death year 1859; shared parent: claudia di lucia; shared spouse: orazio morgillo; shared child: angela rosa morgillo"
+  },
+  {
+   "a": {
+    "archive": "falco",
+    "path": "/people/vincenzo-falco-of-vincenzo-falco-andreana-crisci/"
+   },
+   "b": {
+    "archive": "darcy",
+    "path": "/people/vincenzo-falco/"
+   },
+   "status": "candidate",
+   "basis": "same birth year 1793; same death year 1875; shared parent: chiara rivetti rivotti; shared spouse: andrea andreana crisci; shared child: raffaele falco"
+  }
+ ]
+}

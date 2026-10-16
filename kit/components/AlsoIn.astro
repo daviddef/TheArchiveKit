@@ -1,0 +1,37 @@
+---
+/* «Also documented in the Falco archive»: the pointer between two archives that hold the same person.
+ *
+ * One person documented in two archives is two pages by design, and the pages can disagree about what
+ * is known (D'Arcy's page for a woman says the family tree asserts her and no record was found; Falco's
+ * page cites the Antenati act that names her). Each statement is true of its own archive and a reader
+ * cannot tell. This draws one plain line on each page, pointing at the other, so the reader knows there
+ * is a second page and that it may hold different evidence.
+ *
+ * It draws ONLY a pair marked "confirmed" in kit/data/cross-archive.json. A candidate is the audit's
+ * guess and is never drawn. Never for a living person: pass nothing for one (a living page is a name,
+ * relationships and a place, and no pointer).
+ *
+ * PROPS  archive  this archive's key (kit/data/archives.json): defranceski falco blazevic booyzen lerena darcy mazza
+ *        path     this page's path, with the leading and trailing slash: "/people/angela-rosa-morgillo/"
+ */
+import PAIRS from "../data/cross-archive.json";
+import RING from "../data/archives.json";
+const { archive, path } = Astro.props;
+const mine = (e) => e.archive === archive && e.path === path;
+const others = [];
+for (const p of PAIRS.pairs) {
+  if (p.status !== "confirmed") continue;
+  const o = mine(p.a) ? p.b : mine(p.b) ? p.a : null;
+  if (!o) continue;
+  const site = RING.archives.find((x) => x.key === o.archive);
+  if (!site) continue;
+  others.push({ name: site.name, href: site.url.replace(/\/$/, "") + o.path, note: p.note || "" });
+}
+---
+{others.length > 0 && (
+  <p class="also-in" data-also-in={others.length}>
+    {others.map((o, i) => (
+      <>{i > 0 && " "}Also documented in <a href={o.href}>{o.name}</a>, which may hold different evidence for the same person.</>
+    ))}
+  </p>
+)}
