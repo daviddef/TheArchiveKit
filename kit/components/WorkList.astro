@@ -45,12 +45,19 @@ const ring = (RING.archives || [])
   .filter((r) => r.url && r.base !== BASE && r.key !== here)
   .sort((x, y) => x.name.localeCompare(y.name));
 
+/* The colour is a CUSTOM PROPERTY, not a hex. It used to be inline hex, which no
+   stylesheet could reach: #E9A020 on white is 2.1:1, and #7A7A7A is 4.3:1, both
+   below the 4.5:1 AA minimum for text, and none of them changed in a dark scheme
+   (the cloud audit found it on every work-list page, and five archives each
+   overrode it locally). An archive that defines its own --st-<state> wins; if it
+   does not, the kit's --wl-<state> below is AA on the usual paper and panel in
+   both schemes. */
 const STATE = {
-  running: ["Running", "#1E5F8C", "a machine or a person is at it now"],
-  next:    ["Next",    "#E9A020", "ready to start"],
-  blocked: ["Blocked", "#B04A16", "waiting on a person or an institution"],
-  done:    ["Done",    "#12703F", "finished and published"],
-  struck:  ["Struck",  "#7A7A7A", "founded on a mistake, kept rather than deleted"],
+  running: ["Running", "var(--st-running,var(--wl-running))", "a machine or a person is at it now"],
+  next:    ["Next",    "var(--st-next,var(--wl-next))",       "ready to start"],
+  blocked: ["Blocked", "var(--st-blocked,var(--wl-blocked))", "waiting on a person or an institution"],
+  done:    ["Done",    "var(--st-done,var(--wl-done))",       "finished and published"],
+  struck:  ["Struck",  "var(--st-struck,var(--wl-struck))",   "founded on a mistake, kept rather than deleted"],
 };
 const ORDER = ["running", "next", "blocked", "done", "struck"];
 const rows = work.rows || [];
@@ -160,6 +167,10 @@ const stale = (r) => {
 </script>
 
 <style is:global>
+  :root { --wl-running:#1E5F8C; --wl-next:#8A5A00; --wl-blocked:#B04A16; --wl-done:#12703F; --wl-struck:#636363 }
+  @media (prefers-color-scheme:dark) { :root:not([data-theme="light"]) {
+    --wl-running:#7FB3D9; --wl-next:#E9B04A; --wl-blocked:#E8895C; --wl-done:#5FBF8A; --wl-struck:#A8A8A8 } }
+  :root[data-theme="dark"] { --wl-running:#7FB3D9; --wl-next:#E9B04A; --wl-blocked:#E8895C; --wl-done:#5FBF8A; --wl-struck:#A8A8A8 }
   .wl-tally { display:flex; flex-wrap:wrap; gap:8px; margin-top:22px }
   .wl-pill { font:inherit; font-family:var(--mono); font-size:11px; padding:5px 12px;
              border-radius:999px; border:1px solid var(--rule); color:var(--ink-2);
@@ -178,10 +189,11 @@ const stale = (r) => {
   .wl-dim { color:var(--ink-3) }
   .wl-owner { margin-left:auto; color:var(--ink-2); border:1px solid var(--rule);
               border-radius:999px; padding:2px 9px; text-transform:none; letter-spacing:.02em }
-  .wl-stale { color:#B04A16 }
+  .wl-stale { color:var(--st-blocked,var(--wl-blocked)) }
   .wl-what { margin:8px 0 0; font-size:17px; font-weight:600; line-height:1.35 }
   .wl-note { margin-top:6px; font-size:14.5px; color:var(--ink-2); line-height:1.6; max-width:70ch }
   .wl-note a { color:inherit }
+  .wl-note, .wl-what { overflow-wrap:anywhere }
   /* mdNote returns block-level HTML through set:html, which Astro's scoping
      never touches — so these have to be :global, kept under .wl-note. */
   .wl-note :global(p) { margin:0 0 10px }
