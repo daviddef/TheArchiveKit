@@ -1,0 +1,127 @@
+---
+/* A people page, assembled in the one order the spec gives it: who, the family,
+ * what the record says, where it comes from, then whatever else the archive has.
+ *
+ * It draws the CONTENT of the page, not its frame. The archive's own layout
+ * (Base.astro) keeps the head, the menu, the footer and the <main>; this goes
+ * inside it, and hands back what the head needs through lib/person.js
+ * `personMeta()` — title, description, noindex, and the `about` object the
+ * seven Bases already forward to JsonLd.astro. Nothing in an archive's frame
+ * changes to adopt this.
+ *
+ *   ---
+ *   import { personMeta } from "@daviddef/archive-kit/lib/person.js";
+ *   const m = personMeta(person, { siteName: "The Falco Archive" });
+ *   ---
+ *   <Base title={m.title} dek={m.description} noindex={m.noindex} about={m.about}>
+ *     <PersonPage person={person} nameHref="/who/falco/" peopleHref="/people/">
+ *       <Fragment slot="record">…the archive's facts…</Fragment>
+ *       <Fragment slot="sources">…the archive's sources…</Fragment>
+ *     </PersonPage>
+ *   </Base>
+ *
+ * THE ORDER IS THE CONTRACT: Family, What the record says, Where this comes
+ * from, Others of the same name, Photographs and papers, Notes and corrections
+ * (PersonSection fixes the words and the ids). The first three always appear. If
+ * the archive has nothing for one, the page SAYS so rather than dropping the
+ * heading, because a missing section is a claim made in silence: Blazevic omits
+ * the whole «Family» section when a person has no edges; Defranceski's /person/
+ * draws no chart for 887 of 1,961 people and says so in a different place.
+ *
+ * LIVING PEOPLE (the estate's standard, version 2, 16 October 2026). When
+ * `isLiving(person)` is true (born 80 years ago or less by year, no death or burial
+ * recorded, no public record source) this component draws the NAME, the
+ * RELATIONSHIPS (the chart: relatives by name, no dates, no source words) and the
+ * FULL TOWN AND COUNTRY, and nothing else: no lede, no qualifier, no record, no
+ * sources, no namesakes, no photographs, no notes, no occupation, no "what the record
+ * says" or "where this comes from" at all. It does not trust the archive to have
+ * emptied the slots: it does not render them. It sets `data-living="1"` so
+ * kit/tools/checkperson.py can find the page from the built HTML, and the archive
+ * takes `noindex` (and no `Person` structured data) from lib/person.js personMeta().
+ * A child with a KNOWN birth year under 18 is a living person like any other: she gets
+ * this page. A person the rule HOLDS OUT (an undated person with a living parent, or
+ * promised privacy by id) must not reach this component at all, and it THROWS if one
+ * does, because a page for them is the leak.
+ * Every person the archive names has a page, living people included.
+ *
+ * STUBS. A page with a name and nothing else (stubReason) keeps its URL — a link
+ * to it exists — and says what it is, in a sentence, with `data-stub` set:
+ * «Known only from {stubNote}; nothing else is recorded yet.»
+ *
+ * PROPS  person     the canonical object (see lib/person.js and the spec, section 2)
+ *        nameHref   the name (/who/) page for this person, linked in the footer line
+ *                   and handed to the chart for the name-level empty reason
+ *        peopleHref where «all the people» is (default /people/)
+ *        registerHref  a «every record naming this person» link, if the archive has one
+ *        stubNote   what the person is known from, for the stub sentence
+ *        lede       one plain sentence under the name (also the meta description
+ *                   via personMeta); never drawn for a living person
+ *        nameStyle  "titleCase" (default, RULED) | "asRecorded"
+ *        heldIds    ids promised privacy; a person with one of them must not be rendered
+ *        now, sources   the living rule's clock and kit/data/public-sources.json
+ *        edgeLevel, emptyWhy, emptyText, palette, labels   passed to PersonChart
+ * SLOTS  record · sources · namesakes · media · notes · chart-notes · after
+ *        (and the unnamed slot, drawn after the six as kind="more" sections)
+ */
+import PersonChart from "./PersonChart.astro";
+import PersonSection from "./PersonSection.astro";
+import PS from "../data/public-sources.json";
+import { isLiving, isHeldOut, displayName, splitQualifier, lifespan, stubReason, livingPlace, LIVING_SENTENCE } from "../lib/person.js";
+
+const {
+  person = {}, nameHref = null, peopleHref = "/people/", registerHref = null, stubNote = "", lede = person.lede || "",
+  nameStyle = "titleCase", edgeLevel = true, emptyWhy = null, emptyText = null, palette = {}, labels = {},
+  now = new Date().getFullYear(), sources = PS, heldIds = [],
+} = Astro.props;
+const rule = { now, sources };
+if (isHeldOut(person, { ...rule, heldIds })) {
+  throw new Error("PersonPage: this person is held out by the living rule (an undated person with a living parent, or promised privacy by id). A held-out person has no page and no name anywhere: do not build one.");
+}
+const living = isLiving(person, rule);
+const nm = splitQualifier(displayName(person.name, { style: nameStyle }));
+const life = living ? "" : lifespan(person.born, person.died, { years: false });
+const place = living ? livingPlace(person) : { text: "", refused: false };
+const stub = living ? null : stubReason(person);
+const has = (k) => !living && Astro.slots.has(k);
+---
+<article class="ppage" data-person-page="1" data-living={living ? "1" : "0"} data-stub={stub || undefined} data-place-refused={place.refused ? "1" : undefined}>
+  <header class="phead">
+    <h1>{nm.name}</h1>
+    {nm.qualifier && !living ? <p class="pqual">{nm.qualifier}</p> : null}
+    {life ? <p class="plife">{life}</p> : null}
+    {living ? <p class="pliving">{LIVING_SENTENCE}</p> : (lede ? <p class="pdek">{lede}</p> : null)}
+    {living && place.text ? <p class="pplace">{place.text}</p> : null}
+  </header>
+
+  <PersonSection kind="family">
+    <PersonChart {person} {nameHref} {edgeLevel} {emptyWhy} {emptyText} {palette} {labels} {nameStyle} {now} {sources} {heldIds}>
+      <Fragment slot="notes"><slot name="chart-notes" /></Fragment>
+      <Fragment slot="after"><slot name="after" /></Fragment>
+    </PersonChart>
+  </PersonSection>
+
+  {living ? null : (
+    <PersonSection kind="record">
+      {has("record") ? <slot name="record" />
+        : stub ? <p class="pnone pstub">Known only from {stubNote || "the place that names them"}; nothing else is recorded yet.</p>
+        : <p class="pnone">No event is recorded for this person in this archive.</p>}
+    </PersonSection>
+  )}
+
+  {living ? null : (
+    <PersonSection kind="sources">
+      {has("sources") ? <slot name="sources" /> : <p class="pnone">No source is attached to this person in this archive.</p>}
+    </PersonSection>
+  )}
+
+  {has("namesakes") ? <PersonSection kind="namesakes"><slot name="namesakes" /></PersonSection> : null}
+  {has("media") ? <PersonSection kind="media"><slot name="media" /></PersonSection> : null}
+  {has("notes") ? <PersonSection kind="notes"><slot name="notes" /></PersonSection> : null}
+  {!living ? <slot /> : null}
+
+  <p class="pfoot small">
+    <a href={peopleHref}>← All the people</a>
+    {nameHref ? <> · <a href={nameHref}>Everyone of this name</a></> : null}
+    {registerHref && !living ? <> · <a href={registerHref}>Every record naming {nm.name}</a></> : null}
+  </p>
+</article>

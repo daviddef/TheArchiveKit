@@ -26,6 +26,9 @@ Falco's hand-set flags, Lerena's one-line register. David's ruling replaces them
      16 October 2026 that every child follows the same standard as any living
      person (name, relationships, town and country, a page, no dates).
 
+The cases that pin all of this down live in kit/data/living-rule-cases.json, read by this
+module's self-test AND by the JavaScript port in kit/lib/person.js, so the two cannot drift.
+
 An archive imports this instead of writing its own test:
 
     sys.path.insert(0, ".../node_modules/@daviddef/archive-kit/kit/tools")
@@ -36,6 +39,7 @@ An archive imports this instead of writing its own test:
 """
 import json
 import os
+import re
 import datetime
 
 LIVING_YEARS = 80
@@ -99,3 +103,23 @@ def is_held_out(person_id, birth_year, recorded_dead, citations=(), parent_livin
     if str(person_id) in {str(i) for i in held_ids}:
         return True
     return possible_minor(birth_year, recorded_dead, citations, parent_living, today_year)
+
+
+# ---- what a living person's PLACE may be (item 5 of the standard) -------------------------
+# "Full town and country, never a street, an address-like string or an institution (a
+# hospital, a care home)." A heuristic, and deliberately conservative: it refuses rather than
+# shows. Written once here and once in kit/lib/person.js (placeIsAddressLike); BOTH are held to
+# the `place_cases` in kit/data/living-rule-cases.json, so they cannot drift.
+_INSTITUTION = re.compile(
+    r"\b(hospital|clinic|infirmary|hospice|sanatorium|nursing|care home|rest home|retirement|"
+    r"aged care|maternity|medical cent(?:re|er))\b", re.I)
+# a street-type word that ENDS a comma-part and has a word before it: "Main St", "High Street";
+# not "St Louis", "Lane Cove" or "Road Town", where the word is part of a town's name
+_STREET = re.compile(
+    r"(?:^|[,;])\s*[^,;]*\S\s+(?:street|st|road|rd|avenue|ave|lane|ln|boulevard|blvd|highway|hwy)\.?\s*(?=[,;]|$)", re.I)
+
+
+def address_like(place):
+    """True if `place` looks like an address or an institution rather than a town."""
+    s = str(place or "")
+    return bool(re.search(r"\d", s) or _INSTITUTION.search(s) or _STREET.search(s))

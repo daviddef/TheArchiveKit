@@ -1,0 +1,43 @@
+---
+/* One section of a people page, wearing the one heading and the one anchor the
+ * spec gives it.
+ *
+ * Eight archives gave roughly the same content eight sets of names — «What the
+ * registers say», «What the record says», «What is recorded», «The record», «What
+ * is known», «What the archive knows», «Events, as the record has them». Measured on the built sites (13 October
+ * 2026) only three headings are used by more than two archives: «Family» (Blazevic,
+ * D'Arcy, Luwinski), «Where this comes from» (Falco, Lerena, Mazza) and «Others of
+ * the same name» (Falco, Blazevic, Mazza), and none by more than three. A reader
+ * who learns one archive's page has learned nothing about the next, and a link
+ * to «the sources of this person» cannot be written once.
+ *
+ * So `kind` picks the heading and the id from lib/person.js PERSON_SECTIONS, and
+ * a page cannot spell them differently by accident:
+ *
+ *   family     #family      Family                    required
+ *   record     #record      What the record says      required
+ *   sources    #sources     Where this comes from     required
+ *   namesakes  #namesakes   Others of the same name   optional
+ *   media      #media       Photographs and papers    optional
+ *   notes      #notes       Notes and corrections     optional
+ *
+ * An archive with something the spec has no section for (Booyzen's household
+ * panels, Mazza's «The crossing») passes `kind="more"` and a `title`: it is drawn,
+ * after the six, with a class that says it is local, and checkperson.py counts it.
+ * That is the honest place for it: not forbidden, not pretending to be shared.
+ *
+ * PROPS  kind   one of the six ids, or "more"
+ *        title  only for kind="more"
+ *        level  heading level, default 2 (the h1 is the page's)
+ */
+import { SECTION_BY_ID } from "../lib/person.js";
+const { kind = "more", title = "", level = 2 } = Astro.props;
+const known = SECTION_BY_ID[kind];
+const heading = known ? known.heading : title || "More";
+const id = known ? known.id : "more-" + String(title).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+const H = `h${Math.min(Math.max(Number(level) || 2, 2), 4)}`;
+---
+<section class={"psec" + (known ? "" : " psec-local")} id={id} aria-labelledby={id + "-h"} data-section={known ? kind : "more"}>
+  <H class="psec-h" id={id + "-h"}>{heading}</H>
+  <slot />
+</section>
