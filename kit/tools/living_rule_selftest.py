@@ -22,6 +22,8 @@ expect("born 1960 but cited by FamilySearch: not living", lr.is_living(1960, Fal
 expect("born 1960 cited only by a private family tree: living", lr.is_living(1960, False, ("MyHeritage family tree entry",), Y), True)
 expect("born 1960 cited by a Geni tree profile: living", lr.is_living(1960, False, ("https://www.geni.com/people/x",), Y), True)
 expect("born 1960 cited by FamilySearch Family Tree: not living (FamilySearch always counts)", lr.is_living(1960, False, ("FamilySearch Family Tree",), Y), False)
+expect("born 1960 cited as MyHeritage research: Geni World Family Tree: a tree, living", lr.is_living(1960, False, ("MyHeritage research: Geni World Family Tree",), Y), True)
+expect("born 1960 cited as MyHeritage research: WikiTree: a tree, living", lr.is_living(1960, False, ("myheritage.com/research WikiTree",), Y), True)
 expect("born 1960 cited by Findmypast: not living", lr.is_living(1960, False, ("Findmypast 1939 Register",), Y), False)
 
 print("who is held out")
