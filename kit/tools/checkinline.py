@@ -146,6 +146,11 @@ def main():
 
     root = a.root
     ex = exemptions(os.path.abspath(os.path.join(root, "..")))
+    # NOTHING SCANNED IS NOT A PASS: an empty or wrong root has no templates and used to print
+    # "ok, 0 exempt" and exit 0.
+    if not glob.glob(os.path.join(root, "src", "**", "*.astro"), recursive=True):
+        print("  FAIL  inline     no .astro template under %s/src, so nothing was examined" % root)
+        return 1
     found = [(s, r, rel, n) for s, r, rel, n in scan(root)
              if f"{rel}::{n}" not in ex]
     kept = [(rel, n) for s, r, rel, n in scan(root) if f"{rel}::{n}" in ex]

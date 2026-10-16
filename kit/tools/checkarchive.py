@@ -83,6 +83,9 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--dist", default="site/dist")
     ap.add_argument("--base", default=None)
+    ap.add_argument("--min-pages", type=int, default=15,
+                    help="refuse a build with fewer pages than this (it was a fixed 5, so a dist of\n                         "
+                         "7 stub pages passed)")
     ap.add_argument("--strict", action="store_true",
                     help="treat advisory checks as failures too")
     a = ap.parse_args()
@@ -104,7 +107,7 @@ def main():
     before = fingerprint(a.dist)
     pages = load(a.dist)
     # A test that passes on an empty directory is worse than no test.
-    if len(pages) < 5:
+    if len(pages) < a.min_pages:
         print(f"checkarchive: only {len(pages)} page(s) under {a.dist} — "
               f"the build is either unfinished or in progress. Refusing to pass.")
         return 1

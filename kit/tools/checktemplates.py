@@ -36,22 +36,32 @@ ANSI = re.compile(r"\x1b\[[0-9;]*m")
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--root", default=".")
+    ap.add_argument("--require", action="store_true",
+                    help="fail, not just note, when @astrojs/check is not installed")
     a = ap.parse_args()
 
     if not os.path.isdir(os.path.join(a.root, "node_modules", "@astrojs", "check")):
         print("  note  templates  @astrojs/check is not installed here, so the "
               "markup was not checked. A missing dev dependency is not a broken "
               "template; `npm i -D @astrojs/check typescript` turns this on.")
-        return 0
+        return 1 if a.require else 0
 
     try:
         p = subprocess.run(["npx", "astro", "check"], cwd=a.root,
                            capture_output=True, text=True, timeout=600)
     except Exception as e:
-        print("  note  templates  could not run astro check (%s)" % e)
-        return 0
+        print("  FAIL  templates  could not run astro check (%s), so the markup was not checked" % e)
+        return 1
 
     out = ANSI.sub("", (p.stdout or "") + (p.stderr or ""))
+    # astro check ends with a "Result (N files):" line. Without it the tool crashed (for example a
+    # missing @volar file) and checked nothing: it printed "ok every tag closes" and exited 0 over
+    # an unclosed <div><section> (Blazevic sweep, 16 October 2026).
+    if not re.search(r"Result\s*\(\d+", out):
+        tail = [l.strip() for l in out.splitlines() if l.strip()][-3:]
+        print("  FAIL  templates  astro check did not complete (no Result line), so no markup was "
+              "checked: %s" % " | ".join(t[:80] for t in tail))
+        return 1
     lines = out.splitlines()
     bad = [l.strip() for l in lines if STRUCTURAL.search(l)]
     total = 0

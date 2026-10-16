@@ -91,11 +91,13 @@ def main():
     ap.add_argument("--max", type=int, default=None,
                     help="ratchet: fail when the count rises above this")
     ap.add_argument("--quiet", action="store_true")
+    ap.add_argument("--require", action="store_true",
+                    help="a 'not run' result is a failure, not a pass")
     a = ap.parse_args()
 
     if not os.path.exists(a.data):
         print("  --    kin        not run: no %s" % a.data)
-        return 0
+        return 1 if a.require else 0
     try:
         rows = [r for r in rows_of(json.load(open(a.data, encoding="utf-8")))
                 if isinstance(r, dict)]
@@ -172,7 +174,7 @@ def main():
                   "%s, so every test here needs a date this register does not hold. "
                   "Nothing was examined, and that is not the same as nothing being "
                   "wrong." % (len(rows), a.data, missing))
-            return 0
+            return 1 if a.require else 0
         print("  FAIL  kin        %d row(s) carry %s and %d carry %s, and not one "
               "yielded a usable pair of years — the field names still match but "
               "nothing parses, so every test below examined nobody"

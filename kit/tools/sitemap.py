@@ -70,6 +70,13 @@ for dp, _, fns in os.walk(dist):
 
 urls.sort()
 
+# AN EMPTY SITEMAP IS NOT A SITEMAP. It used to write "0 urls" and exit 0, and this is a CI step,
+# so a broken build would have published an empty sitemap (Blazevic sweep, 16 October 2026).
+if not urls:
+    print(f"sitemap: REFUSED: no page under {dist} is indexable (0 urls; {skipped} withheld, "
+          f"{canonicalised} canonicalised elsewhere). The build is empty or unfinished.")
+    sys.exit(1)
+
 # ---- lastmod ---------------------------------------------------------------
 # It used to be today's date on every URL, every build — which tells a crawler
 # that all 10,000 pages changed this morning and, after a week of that, teaches
