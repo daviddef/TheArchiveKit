@@ -1,80 +1,674 @@
 {
-  "note": "The cases that define David's living-people standard (version 2, 16 October 2026), written ONCE and read by BOTH implementations: kit/tools/living_rule.py (through kit/tools/living_rule_selftest.py) and kit/lib/person.js (through kit/tools/checkperson_logic.mjs). Two implementations of one rule agree only when they can disagree and are made to answer the same questions: this file is the questions and the answers, so neither can drift without the other's test failing. Add a case here, never in one runner. Ages are by year: today's year minus the birth year. `today` is fixed so no case depends on the clock. Every case gives its inputs and the answers that matter (`want`); a key absent from `want` is not asserted. Citations are matched against kit/data/public-sources.json, which both runners read. Inputs: birth_year (int or null: null is undated), recorded_dead (any death or burial, dated or not), citations (strings), parent_living, id, held_ids. Answers: public_source, is_living, possible_minor, is_held_out. Years in this file are planted fixtures, not anybody's record.",
-  "today": 2026,
-  "required_tags": ["boundary-80", "boundary-81", "recorded-death", "public-source", "tree-not-public", "undated", "undated-living-parent", "known-child", "held-by-id"],
-  "cases": [
-    { "id": "age-80-is-living", "tags": ["boundary-80"], "why": "80 years old by year is the last year that is living",
-      "in": { "birth_year": 1946, "recorded_dead": false }, "want": { "is_living": true } },
-    { "id": "age-81-is-not-living", "tags": ["boundary-81"], "why": "81 is the first year that is not",
-      "in": { "birth_year": 1945, "recorded_dead": false }, "want": { "is_living": false } },
-    { "id": "age-79-is-living", "tags": [], "why": "one year inside the bound",
-      "in": { "birth_year": 1947, "recorded_dead": false }, "want": { "is_living": true } },
-    { "id": "age-36-is-living", "tags": [], "why": "an adult well inside the bound",
-      "in": { "birth_year": 1990, "recorded_dead": false }, "want": { "is_living": true } },
-    { "id": "old-hundred-bound-would-be-wrong", "tags": ["boundary-81"], "why": "the retired 100-year bound would call 1930 living; the 80-year rule does not",
-      "in": { "birth_year": 1930, "recorded_dead": false }, "want": { "is_living": false } },
-    { "id": "recorded-death-means-dead", "tags": ["recorded-death"], "why": "a recorded death or burial (dated or not) overrides the age",
-      "in": { "birth_year": 1990, "recorded_dead": true }, "want": { "is_living": false, "possible_minor": false } },
-    { "id": "no-birth-year-is-not-living", "tags": ["undated"], "why": "no birth year cannot be shown to be 80 or younger",
-      "in": { "birth_year": null, "recorded_dead": false }, "want": { "is_living": false } },
-    { "id": "familysearch-record-is-public", "tags": ["public-source"], "why": "a public record source means not living",
-      "in": { "birth_year": 1960, "recorded_dead": false, "citations": ["FamilySearch record 1950 census"] }, "want": { "public_source": true, "is_living": false } },
-    { "id": "familysearch-family-tree-always-counts", "tags": ["public-source"], "why": "FamilySearch always counts, including its Family Tree, because it hides its own living people",
-      "in": { "birth_year": 1960, "recorded_dead": false, "citations": ["FamilySearch Family Tree"] }, "want": { "public_source": true, "is_living": false } },
-    { "id": "findmypast-is-public", "tags": ["public-source"], "why": "another record collection",
-      "in": { "birth_year": 1960, "recorded_dead": false, "citations": ["Findmypast 1939 Register"] }, "want": { "public_source": true, "is_living": false } },
-    { "id": "naa-is-public", "tags": ["public-source"], "why": "National Archives of Australia was added to the list on 16 October 2026",
-      "in": { "birth_year": 1960, "recorded_dead": false, "citations": ["NAA RecordSearch passenger manifest"] }, "want": { "public_source": true, "is_living": false } },
-    { "id": "myheritage-research-collection-is-public", "tags": ["public-source"], "why": "a MyHeritage record collection counts",
-      "in": { "birth_year": 1960, "recorded_dead": false, "citations": ["https://www.myheritage.com/research/collection-10001/some-census"] }, "want": { "public_source": true, "is_living": false } },
-    { "id": "private-myheritage-tree-is-not-public", "tags": ["tree-not-public"], "why": "a user-built tree profile is a private tree entry",
-      "in": { "birth_year": 1960, "recorded_dead": false, "citations": ["MyHeritage family tree entry"] }, "want": { "public_source": false, "is_living": true } },
-    { "id": "geni-profile-is-not-public", "tags": ["tree-not-public"], "why": "a Geni tree profile",
-      "in": { "birth_year": 1960, "recorded_dead": false, "citations": ["https://www.geni.com/people/x"] }, "want": { "public_source": false, "is_living": true } },
-    { "id": "myheritage-research-geni-world-tree-is-a-tree", "tags": ["tree-not-public"], "why": "MyHeritage files Geni's World Family Tree under research: still a user-built tree",
-      "in": { "birth_year": 1960, "recorded_dead": false, "citations": ["MyHeritage research: Geni World Family Tree"] }, "want": { "public_source": false, "is_living": true } },
-    { "id": "myheritage-research-wikitree-is-a-tree", "tags": ["tree-not-public"], "why": "WikiTree is a user-built tree, even when filed under research",
-      "in": { "birth_year": 1960, "recorded_dead": false, "citations": ["myheritage.com/research WikiTree"] }, "want": { "public_source": false, "is_living": true } },
-    { "id": "gedcom-and-family-lore-are-not-public", "tags": ["tree-not-public"], "why": "a GEDCOM and family lore",
-      "in": { "birth_year": 1960, "recorded_dead": false, "citations": ["a GEDCOM from the family", "family lore"] }, "want": { "public_source": false, "is_living": true } },
-    { "id": "tree-plus-record-is-public", "tags": ["public-source"], "why": "one public citation among private ones is enough",
-      "in": { "birth_year": 1960, "recorded_dead": false, "citations": ["family lore", "Findmypast 1939 Register"] }, "want": { "public_source": true, "is_living": false } },
-    { "id": "no-citations", "tags": [], "why": "nothing cited is not a public source",
-      "in": { "birth_year": 1960, "recorded_dead": false, "citations": [] }, "want": { "public_source": false, "is_living": true } },
-    { "id": "undated-living-parent-held-out", "tags": ["undated-living-parent", "undated"], "why": "an undated person with a living parent might be a child: held out",
-      "in": { "birth_year": null, "recorded_dead": false, "parent_living": true }, "want": { "possible_minor": true, "is_held_out": true, "is_living": false } },
-    { "id": "undated-no-living-parent-not-held-out", "tags": ["undated"], "why": "undated but no living parent: not held out, and not living",
-      "in": { "birth_year": null, "recorded_dead": false, "parent_living": false }, "want": { "possible_minor": false, "is_held_out": false, "is_living": false } },
-    { "id": "undated-but-recorded-dead-not-held-out", "tags": ["undated", "recorded-death"], "why": "a recorded death is never held out",
-      "in": { "birth_year": null, "recorded_dead": true, "parent_living": true }, "want": { "possible_minor": false, "is_held_out": false } },
-    { "id": "undated-but-public-source-not-held-out", "tags": ["undated", "public-source"], "why": "a public source is never held out",
-      "in": { "birth_year": null, "recorded_dead": false, "citations": ["FamilySearch"], "parent_living": true }, "want": { "possible_minor": false, "is_held_out": false } },
-    { "id": "undated-with-private-tree-only-is-held-out", "tags": ["undated-living-parent", "tree-not-public"], "why": "a private tree entry does not lift the hold",
-      "in": { "birth_year": null, "recorded_dead": false, "citations": ["MyHeritage family tree entry"], "parent_living": true }, "want": { "possible_minor": true, "is_held_out": true } },
-    { "id": "known-child-is-living-and-not-held-out", "tags": ["known-child"], "why": "a child with a KNOWN birth year under 18 follows the standard like any living person (David, 16 October 2026)",
-      "in": { "birth_year": 2015, "recorded_dead": false, "parent_living": true }, "want": { "is_living": true, "possible_minor": false, "is_held_out": false } },
-    { "id": "known-infant-is-living-and-not-held-out", "tags": ["known-child"], "why": "the youngest possible year",
-      "in": { "birth_year": 2026, "recorded_dead": false, "parent_living": true }, "want": { "is_living": true, "possible_minor": false, "is_held_out": false } },
-    { "id": "held-by-id", "tags": ["held-by-id"], "why": "a person promised privacy, by id, is held out whatever else is true",
-      "in": { "id": "42", "birth_year": 1900, "recorded_dead": true, "held_ids": ["42"] }, "want": { "is_held_out": true } },
-    { "id": "held-by-id-number-matches-string", "tags": ["held-by-id"], "why": "ids compare as text",
-      "in": { "id": 42, "birth_year": 1900, "recorded_dead": true, "held_ids": ["42"] }, "want": { "is_held_out": true } },
-    { "id": "not-held-by-id", "tags": ["held-by-id"], "why": "another id is not held",
-      "in": { "id": "43", "birth_year": 1900, "recorded_dead": true, "held_ids": ["42"] }, "want": { "is_held_out": false } }
-  ],
-  "place_cases": [
-    { "place": "Cape Town, South Africa", "address_like": false },
-    { "place": "Sydney, Australia", "address_like": false },
-    { "place": "Zagreb, Croatia", "address_like": false },
-    { "place": "St Louis, Missouri, USA", "address_like": false },
-    { "place": "Lane Cove, Australia", "address_like": false },
-    { "place": "Road Town, British Virgin Islands", "address_like": false },
-    { "place": "12 High Street, Leeds, England", "address_like": true },
-    { "place": "High Street, Leeds, England", "address_like": true },
-    { "place": "Main St, Toronto, Canada", "address_like": true },
-    { "place": "Mercy Hospital, Chicago, USA", "address_like": true },
-    { "place": "Sunrise Care Home, Perth, Australia", "address_like": true },
-    { "place": "St Anne's Maternity Hospital, Dublin, Ireland", "address_like": true },
-    { "place": "PO Box 4, Testville, Nowhere", "address_like": true }
-  ]
+ "note": "The cases that define David's living-people standard (version 2, 16 October 2026), written ONCE and read by BOTH implementations: kit/tools/living_rule.py (through kit/tools/living_rule_selftest.py) and kit/lib/person.js (through kit/tools/checkperson_logic.mjs). Two implementations of one rule agree only when they can disagree and are made to answer the same questions: this file is the questions and the answers, so neither can drift without the other's test failing. Add a case here, never in one runner. Ages are by year: today's year minus the birth year. `today` is fixed so no case depends on the clock. Every case gives its inputs and the answers that matter (`want`); a key absent from `want` is not asserted. Citations are matched against kit/data/public-sources.json, which both runners read. Inputs: birth_year (int or null: null is undated), recorded_dead (any death or burial, dated or not), citations (strings), parent_living, id, held_ids. Answers: public_source, is_living, possible_minor, is_held_out. Years in this file are planted fixtures, not anybody's record.",
+ "today": 2026,
+ "required_tags": [
+  "boundary-80",
+  "boundary-81",
+  "recorded-death",
+  "public-source",
+  "tree-not-public",
+  "undated",
+  "undated-living-parent",
+  "known-child",
+  "held-by-id",
+  "recent-child"
+ ],
+ "cases": [
+  {
+   "id": "age-80-is-living",
+   "tags": [
+    "boundary-80"
+   ],
+   "why": "80 years old by year is the last year that is living",
+   "in": {
+    "birth_year": 1946,
+    "recorded_dead": false
+   },
+   "want": {
+    "is_living": true
+   }
+  },
+  {
+   "id": "age-81-is-not-living",
+   "tags": [
+    "boundary-81"
+   ],
+   "why": "81 is the first year that is not",
+   "in": {
+    "birth_year": 1945,
+    "recorded_dead": false
+   },
+   "want": {
+    "is_living": false
+   }
+  },
+  {
+   "id": "age-79-is-living",
+   "tags": [],
+   "why": "one year inside the bound",
+   "in": {
+    "birth_year": 1947,
+    "recorded_dead": false
+   },
+   "want": {
+    "is_living": true
+   }
+  },
+  {
+   "id": "age-36-is-living",
+   "tags": [],
+   "why": "an adult well inside the bound",
+   "in": {
+    "birth_year": 1990,
+    "recorded_dead": false
+   },
+   "want": {
+    "is_living": true
+   }
+  },
+  {
+   "id": "old-hundred-bound-would-be-wrong",
+   "tags": [
+    "boundary-81"
+   ],
+   "why": "the retired 100-year bound would call 1930 living; the 80-year rule does not",
+   "in": {
+    "birth_year": 1930,
+    "recorded_dead": false
+   },
+   "want": {
+    "is_living": false
+   }
+  },
+  {
+   "id": "recorded-death-means-dead",
+   "tags": [
+    "recorded-death"
+   ],
+   "why": "a recorded death or burial (dated or not) overrides the age",
+   "in": {
+    "birth_year": 1990,
+    "recorded_dead": true
+   },
+   "want": {
+    "is_living": false,
+    "possible_minor": false
+   }
+  },
+  {
+   "id": "no-birth-year-is-not-living",
+   "tags": [
+    "undated"
+   ],
+   "why": "no birth year cannot be shown to be 80 or younger",
+   "in": {
+    "birth_year": null,
+    "recorded_dead": false
+   },
+   "want": {
+    "is_living": false
+   }
+  },
+  {
+   "id": "familysearch-record-is-public",
+   "tags": [
+    "public-source"
+   ],
+   "why": "a public record source means not living",
+   "in": {
+    "birth_year": 1960,
+    "recorded_dead": false,
+    "citations": [
+     "FamilySearch record 1950 census"
+    ]
+   },
+   "want": {
+    "public_source": true,
+    "is_living": false
+   }
+  },
+  {
+   "id": "familysearch-family-tree-always-counts",
+   "tags": [
+    "public-source"
+   ],
+   "why": "FamilySearch always counts, including its Family Tree, because it hides its own living people",
+   "in": {
+    "birth_year": 1960,
+    "recorded_dead": false,
+    "citations": [
+     "FamilySearch Family Tree"
+    ]
+   },
+   "want": {
+    "public_source": true,
+    "is_living": false
+   }
+  },
+  {
+   "id": "findmypast-is-public",
+   "tags": [
+    "public-source"
+   ],
+   "why": "another record collection",
+   "in": {
+    "birth_year": 1960,
+    "recorded_dead": false,
+    "citations": [
+     "Findmypast 1939 Register"
+    ]
+   },
+   "want": {
+    "public_source": true,
+    "is_living": false
+   }
+  },
+  {
+   "id": "naa-is-public",
+   "tags": [
+    "public-source"
+   ],
+   "why": "National Archives of Australia was added to the list on 16 October 2026",
+   "in": {
+    "birth_year": 1960,
+    "recorded_dead": false,
+    "citations": [
+     "NAA RecordSearch passenger manifest"
+    ]
+   },
+   "want": {
+    "public_source": true,
+    "is_living": false
+   }
+  },
+  {
+   "id": "myheritage-research-collection-is-public",
+   "tags": [
+    "public-source"
+   ],
+   "why": "a MyHeritage record collection counts",
+   "in": {
+    "birth_year": 1960,
+    "recorded_dead": false,
+    "citations": [
+     "https://www.myheritage.com/research/collection-10001/some-census"
+    ]
+   },
+   "want": {
+    "public_source": true,
+    "is_living": false
+   }
+  },
+  {
+   "id": "private-myheritage-tree-is-not-public",
+   "tags": [
+    "tree-not-public"
+   ],
+   "why": "a user-built tree profile is a private tree entry",
+   "in": {
+    "birth_year": 1960,
+    "recorded_dead": false,
+    "citations": [
+     "MyHeritage family tree entry"
+    ]
+   },
+   "want": {
+    "public_source": false,
+    "is_living": true
+   }
+  },
+  {
+   "id": "geni-profile-is-not-public",
+   "tags": [
+    "tree-not-public"
+   ],
+   "why": "a Geni tree profile",
+   "in": {
+    "birth_year": 1960,
+    "recorded_dead": false,
+    "citations": [
+     "https://www.geni.com/people/x"
+    ]
+   },
+   "want": {
+    "public_source": false,
+    "is_living": true
+   }
+  },
+  {
+   "id": "myheritage-research-geni-world-tree-is-a-tree",
+   "tags": [
+    "tree-not-public"
+   ],
+   "why": "MyHeritage files Geni's World Family Tree under research: still a user-built tree",
+   "in": {
+    "birth_year": 1960,
+    "recorded_dead": false,
+    "citations": [
+     "MyHeritage research: Geni World Family Tree"
+    ]
+   },
+   "want": {
+    "public_source": false,
+    "is_living": true
+   }
+  },
+  {
+   "id": "myheritage-research-wikitree-is-a-tree",
+   "tags": [
+    "tree-not-public"
+   ],
+   "why": "WikiTree is a user-built tree, even when filed under research",
+   "in": {
+    "birth_year": 1960,
+    "recorded_dead": false,
+    "citations": [
+     "myheritage.com/research WikiTree"
+    ]
+   },
+   "want": {
+    "public_source": false,
+    "is_living": true
+   }
+  },
+  {
+   "id": "gedcom-and-family-lore-are-not-public",
+   "tags": [
+    "tree-not-public"
+   ],
+   "why": "a GEDCOM and family lore",
+   "in": {
+    "birth_year": 1960,
+    "recorded_dead": false,
+    "citations": [
+     "a GEDCOM from the family",
+     "family lore"
+    ]
+   },
+   "want": {
+    "public_source": false,
+    "is_living": true
+   }
+  },
+  {
+   "id": "tree-plus-record-is-public",
+   "tags": [
+    "public-source"
+   ],
+   "why": "one public citation among private ones is enough",
+   "in": {
+    "birth_year": 1960,
+    "recorded_dead": false,
+    "citations": [
+     "family lore",
+     "Findmypast 1939 Register"
+    ]
+   },
+   "want": {
+    "public_source": true,
+    "is_living": false
+   }
+  },
+  {
+   "id": "no-citations",
+   "tags": [],
+   "why": "nothing cited is not a public source",
+   "in": {
+    "birth_year": 1960,
+    "recorded_dead": false,
+    "citations": []
+   },
+   "want": {
+    "public_source": false,
+    "is_living": true
+   }
+  },
+  {
+   "id": "undated-living-parent-held-out",
+   "tags": [
+    "undated-living-parent",
+    "undated"
+   ],
+   "why": "an undated person with a living parent might be a child: held out",
+   "in": {
+    "birth_year": null,
+    "recorded_dead": false,
+    "parent_living": true
+   },
+   "want": {
+    "possible_minor": true,
+    "is_held_out": true,
+    "is_living": false
+   }
+  },
+  {
+   "id": "undated-no-living-parent-not-held-out",
+   "tags": [
+    "undated"
+   ],
+   "why": "undated but no living parent: not held out, and not living",
+   "in": {
+    "birth_year": null,
+    "recorded_dead": false,
+    "parent_living": false
+   },
+   "want": {
+    "possible_minor": false,
+    "is_held_out": false,
+    "is_living": false
+   }
+  },
+  {
+   "id": "undated-but-recorded-dead-not-held-out",
+   "tags": [
+    "undated",
+    "recorded-death"
+   ],
+   "why": "a recorded death is never held out",
+   "in": {
+    "birth_year": null,
+    "recorded_dead": true,
+    "parent_living": true
+   },
+   "want": {
+    "possible_minor": false,
+    "is_held_out": false
+   }
+  },
+  {
+   "id": "undated-but-public-source-not-held-out",
+   "tags": [
+    "undated",
+    "public-source"
+   ],
+   "why": "a public source is never held out",
+   "in": {
+    "birth_year": null,
+    "recorded_dead": false,
+    "citations": [
+     "FamilySearch"
+    ],
+    "parent_living": true
+   },
+   "want": {
+    "possible_minor": false,
+    "is_held_out": false
+   }
+  },
+  {
+   "id": "undated-with-private-tree-only-is-held-out",
+   "tags": [
+    "undated-living-parent",
+    "tree-not-public"
+   ],
+   "why": "a private tree entry does not lift the hold",
+   "in": {
+    "birth_year": null,
+    "recorded_dead": false,
+    "citations": [
+     "MyHeritage family tree entry"
+    ],
+    "parent_living": true
+   },
+   "want": {
+    "possible_minor": true,
+    "is_held_out": true
+   }
+  },
+  {
+   "id": "known-child-is-living-and-not-held-out",
+   "tags": [
+    "known-child"
+   ],
+   "why": "a child with a KNOWN birth year under 18 follows the standard like any living person (David, 16 October 2026)",
+   "in": {
+    "birth_year": 2015,
+    "recorded_dead": false,
+    "parent_living": true
+   },
+   "want": {
+    "is_living": true,
+    "possible_minor": false,
+    "is_held_out": false
+   }
+  },
+  {
+   "id": "known-infant-is-living-and-not-held-out",
+   "tags": [
+    "known-child"
+   ],
+   "why": "the youngest possible year",
+   "in": {
+    "birth_year": 2026,
+    "recorded_dead": false,
+    "parent_living": true
+   },
+   "want": {
+    "is_living": true,
+    "possible_minor": false,
+    "is_held_out": false
+   }
+  },
+  {
+   "id": "held-by-id",
+   "tags": [
+    "held-by-id"
+   ],
+   "why": "a person promised privacy, by id, is held out whatever else is true",
+   "in": {
+    "id": "42",
+    "birth_year": 1900,
+    "recorded_dead": true,
+    "held_ids": [
+     "42"
+    ]
+   },
+   "want": {
+    "is_held_out": true
+   }
+  },
+  {
+   "id": "held-by-id-number-matches-string",
+   "tags": [
+    "held-by-id"
+   ],
+   "why": "ids compare as text",
+   "in": {
+    "id": 42,
+    "birth_year": 1900,
+    "recorded_dead": true,
+    "held_ids": [
+     "42"
+    ]
+   },
+   "want": {
+    "is_held_out": true
+   }
+  },
+  {
+   "id": "not-held-by-id",
+   "tags": [
+    "held-by-id"
+   ],
+   "why": "another id is not held",
+   "in": {
+    "id": "43",
+    "birth_year": 1900,
+    "recorded_dead": true,
+    "held_ids": [
+     "42"
+    ]
+   },
+   "want": {
+    "is_held_out": false
+   }
+  },
+  {
+   "id": "undated-recent-child",
+   "tags": [
+    "recent-child"
+   ],
+   "why": "an undated parent whose youngest known child was born in 2000 is living",
+   "in": {
+    "youngest_child_year": 2000
+   },
+   "want": {
+    "is_living": true,
+    "is_held_out": false
+   }
+  },
+  {
+   "id": "undated-child-boundary-60",
+   "tags": [
+    "recent-child"
+   ],
+   "why": "child born exactly 60 years ago (1966): the parent is living",
+   "in": {
+    "youngest_child_year": 1966
+   },
+   "want": {
+    "is_living": true
+   }
+  },
+  {
+   "id": "undated-child-boundary-61",
+   "tags": [
+    "recent-child"
+   ],
+   "why": "child born 61 years ago (1965): the parent is not shown to be living",
+   "in": {
+    "youngest_child_year": 1965
+   },
+   "want": {
+    "is_living": false
+   }
+  },
+  {
+   "id": "undated-old-child",
+   "tags": [
+    "recent-child"
+   ],
+   "why": "an undated parent of a child born in 1940 is not living",
+   "in": {
+    "youngest_child_year": 1940
+   },
+   "want": {
+    "is_living": false
+   }
+  },
+  {
+   "id": "recent-child-recorded-death",
+   "tags": [
+    "recent-child"
+   ],
+   "why": "a recorded death settles it whatever the child's age",
+   "in": {
+    "youngest_child_year": 2000,
+    "recorded_dead": true
+   },
+   "want": {
+    "is_living": false
+   }
+  },
+  {
+   "id": "recent-child-public-source",
+   "tags": [
+    "recent-child"
+   ],
+   "why": "a public source settles it whatever the child's age",
+   "in": {
+    "youngest_child_year": 2000,
+    "citations": [
+     "FamilySearch"
+    ]
+   },
+   "want": {
+    "is_living": false
+   }
+  },
+  {
+   "id": "dated-parent-ignores-child",
+   "tags": [
+    "recent-child"
+   ],
+   "why": "a dated person is judged by their own year, not by a child",
+   "in": {
+    "birth_year": 1930,
+    "youngest_child_year": 2000
+   },
+   "want": {
+    "is_living": false
+   }
+  },
+  {
+   "id": "undated-living-parent-and-recent-child",
+   "tags": [
+    "recent-child"
+   ],
+   "why": "an undated person with a living parent but a recent child of their own is an adult: living, not a possible minor",
+   "in": {
+    "parent_living": true,
+    "youngest_child_year": 2005
+   },
+   "want": {
+    "is_living": true,
+    "possible_minor": false,
+    "is_held_out": false
+   }
+  }
+ ],
+ "place_cases": [
+  {
+   "place": "Cape Town, South Africa",
+   "address_like": false
+  },
+  {
+   "place": "Sydney, Australia",
+   "address_like": false
+  },
+  {
+   "place": "Zagreb, Croatia",
+   "address_like": false
+  },
+  {
+   "place": "St Louis, Missouri, USA",
+   "address_like": false
+  },
+  {
+   "place": "Lane Cove, Australia",
+   "address_like": false
+  },
+  {
+   "place": "Road Town, British Virgin Islands",
+   "address_like": false
+  },
+  {
+   "place": "12 High Street, Leeds, England",
+   "address_like": true
+  },
+  {
+   "place": "High Street, Leeds, England",
+   "address_like": true
+  },
+  {
+   "place": "Main St, Toronto, Canada",
+   "address_like": true
+  },
+  {
+   "place": "Mercy Hospital, Chicago, USA",
+   "address_like": true
+  },
+  {
+   "place": "Sunrise Care Home, Perth, Australia",
+   "address_like": true
+  },
+  {
+   "place": "St Anne's Maternity Hospital, Dublin, Ireland",
+   "address_like": true
+  },
+  {
+   "place": "PO Box 4, Testville, Nowhere",
+   "address_like": true
+  }
+ ]
 }

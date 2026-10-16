@@ -31,10 +31,10 @@ def answers(case):
     cit = i.get("citations", [])
     return {
         "public_source": lr.public_source(cit),
-        "is_living": lr.is_living(i.get("birth_year"), i.get("recorded_dead", False), cit, Y),
-        "possible_minor": lr.possible_minor(i.get("birth_year"), i.get("recorded_dead", False), cit, i.get("parent_living", False), Y),
+        "is_living": lr.is_living(i.get("birth_year"), i.get("recorded_dead", False), cit, Y, i.get("youngest_child_year")),
+        "possible_minor": lr.possible_minor(i.get("birth_year"), i.get("recorded_dead", False), cit, i.get("parent_living", False), Y, i.get("youngest_child_year")),
         "is_held_out": lr.is_held_out(i.get("id", "none"), i.get("birth_year"), i.get("recorded_dead", False), cit,
-                                      i.get("parent_living", False), i.get("held_ids", []), Y),
+                                      i.get("parent_living", False), i.get("held_ids", []), Y, i.get("youngest_child_year")),
     }
 
 
@@ -77,6 +77,19 @@ lr.LIVING_YEARS = 79
 hit = [c["id"] for c, miss in run_all() if miss]
 check(f"with a 79-year bound the 80/81 boundary catches it ({len(hit)} fail)", "age-80-is-living" in hit)
 lr.LIVING_YEARS = orig
+orig_c = lr.CHILD_LIVING_YEARS
+lr.CHILD_LIVING_YEARS = 100
+hit = [c["id"] for c, miss in run_all() if miss]
+check(f"with a 100-year recent-child bound the child cases catch it ({len(hit)} fail)", "undated-child-boundary-61" in hit)
+lr.CHILD_LIVING_YEARS = 59
+hit = [c["id"] for c, miss in run_all() if miss]
+check(f"with a 59-year recent-child bound the boundary catches it ({len(hit)} fail)", "undated-child-boundary-60" in hit)
+lr.CHILD_LIVING_YEARS = orig_c
+orig_rc = lr.recent_child
+lr.recent_child = lambda *a, **k: False
+hit = [c["id"] for c, miss in run_all() if miss]
+check(f"with the recent child ignored the child cases catch it ({len(hit)} fail)", "undated-recent-child" in hit)
+lr.recent_child = orig_rc
 saved = lr.EXCLUDED
 lr.EXCLUDED = []
 hit = [c["id"] for c, miss in run_all() if miss]

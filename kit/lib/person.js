@@ -203,6 +203,8 @@ export function lifespan(born, died, { years = true } = {}) {
    that disagrees with the dates is a mistake to be fixed in the data, and a page
    must never be more generous than the rule because an archive said so. */
 export const LIVING_YEARS = 80;
+/* An undated parent whose youngest known child was born this many years ago or less is living (17 Oct 2026). */
+export const CHILD_LIVING_YEARS = 60;
 
 /* `sources` is the parsed kit/data/public-sources.json. A pure function does not
    import data, so the caller passes it; with citations and no list this THROWS
@@ -227,20 +229,25 @@ export function publicSource(citations, sources) {
 /* The rule on its own inputs, positional like living_rule.py. */
 export const livingRule = {
   publicSource,
-  isLiving(birthYear, recordedDead, citations = [], todayYear = null, sources = null) {
+  recentChild(youngestChildYear, todayYear = null) {
+    if (youngestChildYear == null) return false;
+    return ((todayYear || new Date().getFullYear()) - Number(youngestChildYear)) <= CHILD_LIVING_YEARS;
+  },
+  isLiving(birthYear, recordedDead, citations = [], todayYear = null, sources = null, youngestChildYear = null) {
     if (recordedDead) return false;
     if (publicSource(citations, sources)) return false;
-    if (birthYear == null) return false;
+    if (birthYear == null) return livingRule.recentChild(youngestChildYear, todayYear);
     return ((todayYear || new Date().getFullYear()) - Number(birthYear)) <= LIVING_YEARS;
   },
-  possibleMinor(birthYear, recordedDead, citations = [], parentLiving = false, todayYear = null, sources = null) {
+  possibleMinor(birthYear, recordedDead, citations = [], parentLiving = false, todayYear = null, sources = null, youngestChildYear = null) {
     if (recordedDead || publicSource(citations, sources)) return false;
     if (birthYear != null) return false;
+    if (livingRule.recentChild(youngestChildYear, todayYear)) return false;
     return Boolean(parentLiving);
   },
-  isHeldOut(personId, birthYear, recordedDead, citations = [], parentLiving = false, heldIds = [], todayYear = null, sources = null) {
+  isHeldOut(personId, birthYear, recordedDead, citations = [], parentLiving = false, heldIds = [], todayYear = null, sources = null, youngestChildYear = null) {
     if (new Set((heldIds || []).map(String)).has(String(personId))) return true;
-    return livingRule.possibleMinor(birthYear, recordedDead, citations, parentLiving, todayYear, sources);
+    return livingRule.possibleMinor(birthYear, recordedDead, citations, parentLiving, todayYear, sources, youngestChildYear);
   },
 };
 
@@ -276,13 +283,13 @@ export function citationsOf(p) {
 /* The rule, applied to a person. `now` and `sources` are passed in. */
 export function isLiving(p, { now = null, sources = null } = {}) {
   if (!p) return false;
-  return livingRule.isLiving(birthYearOf(p), recordedDead(p), citationsOf(p), now, sources);
+  return livingRule.isLiving(birthYearOf(p), recordedDead(p), citationsOf(p), now, sources, p.youngestChildYear ?? null);
 }
 /* Held out of the archive entirely: promised by id, or undated with a living parent.
    `parentLiving` is the caller's knowledge, or the row's own `parentLiving`. */
 export function isHeldOut(p, { now = null, sources = null, heldIds = [], parentLiving = false } = {}) {
   if (!p) return false;
-  return livingRule.isHeldOut(p.id, birthYearOf(p), recordedDead(p), citationsOf(p), parentLiving || p.parentLiving === true, heldIds, now, sources);
+  return livingRule.isHeldOut(p.id, birthYearOf(p), recordedDead(p), citationsOf(p), parentLiving || p.parentLiving === true, heldIds, now, sources, p.youngestChildYear ?? null);
 }
 /* A relative's row that must not be drawn at all: held out by the rule, flagged by
    the adapter, or the old «withheld» placeholder (which would reveal that a held-out

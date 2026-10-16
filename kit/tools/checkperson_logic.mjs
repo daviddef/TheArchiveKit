@@ -112,9 +112,9 @@ const answers = (rule, c) => {
   const i = c.in, cit = i.citations || [], y = FIXTURE.today;
   return {
     public_source: rule.publicSource(cit, SOURCES_JSON),
-    is_living: rule.isLiving(i.birth_year ?? null, i.recorded_dead || false, cit, y, SOURCES_JSON),
-    possible_minor: rule.possibleMinor(i.birth_year ?? null, i.recorded_dead || false, cit, i.parent_living || false, y, SOURCES_JSON),
-    is_held_out: rule.isHeldOut(i.id ?? "none", i.birth_year ?? null, i.recorded_dead || false, cit, i.parent_living || false, i.held_ids || [], y, SOURCES_JSON),
+    is_living: rule.isLiving(i.birth_year ?? null, i.recorded_dead || false, cit, y, SOURCES_JSON, i.youngest_child_year ?? null),
+    possible_minor: rule.possibleMinor(i.birth_year ?? null, i.recorded_dead || false, cit, i.parent_living || false, y, SOURCES_JSON, i.youngest_child_year ?? null),
+    is_held_out: rule.isHeldOut(i.id ?? "none", i.birth_year ?? null, i.recorded_dead || false, cit, i.parent_living || false, i.held_ids || [], y, SOURCES_JSON, i.youngest_child_year ?? null),
   };
 };
 const sharedFailures = (rule, address) => {
@@ -148,7 +148,11 @@ for (const [label, from, to, must] of [
   ["a 79-year bound", "LIVING_YEARS = 80;", "LIVING_YEARS = 79;", "age-80-is-living"],
   ["a strict < instead of <=", "<= LIVING_YEARS", "< LIVING_YEARS", "age-80-is-living"],
   ["a recorded death ignored", "    if (recordedDead) return false;\n    if (publicSource(citations, sources)) return false;\n    if (birthYear == null)", "    if (publicSource(citations, sources)) return false;\n    if (birthYear == null)", "recorded-death-means-dead"],
-  ["a known child held out", "    if (birthYear != null) return false;\n    return Boolean(parentLiving);", "    return Boolean(parentLiving);", "known-child-is-living-and-not-held-out"],
+  ["a known child held out", "    if (birthYear != null) return false;\n    if (livingRule.recentChild(youngestChildYear, todayYear)) return false;\n    return Boolean(parentLiving);", "    return Boolean(parentLiving);", "known-child-is-living-and-not-held-out"],
+  ["a 100-year recent-child bound", "CHILD_LIVING_YEARS = 60;", "CHILD_LIVING_YEARS = 100;", "undated-child-boundary-61"],
+  ["a 59-year recent-child bound", "CHILD_LIVING_YEARS = 60;", "CHILD_LIVING_YEARS = 59;", "undated-child-boundary-60"],
+  ["the recent child ignored", "if (birthYear == null) return livingRule.recentChild(youngestChildYear, todayYear);", "if (birthYear == null) return false;", "undated-recent-child"],
+  ["a parent of a recent child still held out", "    if (livingRule.recentChild(youngestChildYear, todayYear)) return false;\n    return Boolean(parentLiving);", "    return Boolean(parentLiving);", "undated-living-parent-and-recent-child"],
 ]) {
   const r = await plant(from, to);
   eq(`planted fault (${label}) is caught by the shared cases`, !r.missing && r.fails.some((f) => f.startsWith(must)), true);

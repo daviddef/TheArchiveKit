@@ -15,7 +15,10 @@ Falco's hand-set flags, Lerena's one-line register. David's ruling replaces them
      what that source says may be shown. A private family-tree entry does not count.
   3. Age is by year: today's year minus the birth year. 80 or less is living, 81 or
      more is not. A person with NO birth year cannot be shown to be 80 or younger,
-     so is not living by this test.
+     so is not living by this test, EXCEPT an undated parent whose youngest known
+     child was born 60 years ago or less (17 October 2026): a parent is about twenty
+     years older than a child, so that parent is 80 or younger. They are living, not
+     held out.
   4. HELD OUT is separate from LIVING. Two exceptions (David, 16 October 2026): an
      UNDATED person with a living parent, who might be a child, and named people
      whose privacy is promised by id (the DNA tester). A held-out person is not
@@ -43,6 +46,10 @@ import re
 import datetime
 
 LIVING_YEARS = 80
+# An UNDATED person is living when their youngest child with a known birth year was born this many years ago
+# or less: a parent is about twenty years older than their child, so a child born 60 years ago or less puts
+# the parent at 80 or younger (David, 17 October 2026, after D'Arcy found 8 such parents published as dead).
+CHILD_LIVING_YEARS = 60
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 _SRC = os.path.join(os.path.dirname(_HERE), "data", "public-sources.json")
@@ -74,19 +81,30 @@ def this_year():
     return datetime.date.today().year
 
 
-def is_living(birth_year, recorded_dead, citations=(), today_year=None):
-    """David's rule. birth_year: int or None. recorded_dead: any death or burial event, dated or not."""
+def recent_child(youngest_child_year, today_year=None):
+    """True if a known child was born CHILD_LIVING_YEARS ago or less."""
+    if youngest_child_year is None:
+        return False
+    return ((today_year or this_year()) - int(youngest_child_year)) <= CHILD_LIVING_YEARS
+
+
+def is_living(birth_year, recorded_dead, citations=(), today_year=None, youngest_child_year=None):
+    """David's rule. birth_year: int or None. recorded_dead: any death or burial event, dated or not.
+    youngest_child_year: the birth year of this person's youngest child with a known birth year, or None.
+    An undated person with no recorded death and no public source is living if that child is 60 years old
+    or younger; a dated person is judged by their own birth year alone."""
     if recorded_dead:
         return False
     if public_source(citations):
         return False
     if birth_year is None:
-        return False
+        return recent_child(youngest_child_year, today_year)
     y = today_year or this_year()
     return (y - int(birth_year)) <= LIVING_YEARS
 
 
-def possible_minor(birth_year, recorded_dead, citations=(), parent_living=False, today_year=None):
+def possible_minor(birth_year, recorded_dead, citations=(), parent_living=False, today_year=None,
+                   youngest_child_year=None):
     """Held out: an UNDATED person with a living parent, who might be a child.
     Not for anyone recorded dead or evidenced by a public source, and not for a child
     whose birth year is known (David, 16 Oct 2026: known children follow the standard)."""
@@ -94,15 +112,17 @@ def possible_minor(birth_year, recorded_dead, citations=(), parent_living=False,
         return False
     if birth_year is not None:
         return False
+    if recent_child(youngest_child_year, today_year):
+        return False        # a parent of a recent child is an adult: living, not held out
     return bool(parent_living)
 
 
 def is_held_out(person_id, birth_year, recorded_dead, citations=(), parent_living=False,
-                held_ids=(), today_year=None):
+                held_ids=(), today_year=None, youngest_child_year=None):
     """Not published at all: the promised-by-id people, and possible minors."""
     if str(person_id) in {str(i) for i in held_ids}:
         return True
-    return possible_minor(birth_year, recorded_dead, citations, parent_living, today_year)
+    return possible_minor(birth_year, recorded_dead, citations, parent_living, today_year, youngest_child_year)
 
 
 # ---- what a living person's PLACE may be (item 5 of the standard) -------------------------
