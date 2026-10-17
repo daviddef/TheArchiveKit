@@ -177,6 +177,175 @@
    "status": "confirmed",
    "basis": "same birth year 1793; same death year 1875; shared parent: chiara rivetti rivotti; shared spouse: andrea andreana crisci; shared child: raffaele falco",
    "note": "1793-1875, same parents and wife. Falco's page holds the 1814 civil marriage act giving his age as 23 (birth about 1791, not the tree's 1793), which the D'Arcy page does not have."
+  },
+  {
+   "a": {
+    "archive": "blazevic",
+    "path": "/people/antonius-defranceschi/"
+   },
+   "b": {
+    "archive": "defranceski",
+    "path": "/person/antonius-defranceschi-1814/"
+   },
+   "status": "confirmed",
+   "basis": "given name folds equal; birth year equal; death year equal; 1 shared spouse name(s); 6 children correspond by name and birth year; one-to-one both ways (spouse matched on given name only, supported by the children)",
+   "note": "Matched by the parent session on 17 Oct 2026, never on a name alone: given name folds equal; birth year equal; death year equal; 1 shared spouse name(s); 6 children correspond by name and birth year; one-to-one both ways (spouse matched on given name only, supported by the children). Not yet read by a research owner."
+  },
+  {
+   "a": {
+    "archive": "blazevic",
+    "path": "/people/joannes-baptista-defranceschi/"
+   },
+   "b": {
+    "archive": "defranceski",
+    "path": "/person/joannes-baptista-defranceschi-1842/"
+   },
+   "status": "confirmed",
+   "basis": "given name folds equal; birth year equal; death year equal; 2 shared parent name(s); one-to-one both ways",
+   "note": "Matched by the parent session on 17 Oct 2026, never on a name alone: given name folds equal; birth year equal; death year equal; 2 shared parent name(s); one-to-one both ways. Not yet read by a research owner."
+  },
+  {
+   "a": {
+    "archive": "blazevic",
+    "path": "/people/teresia-defranceschi/"
+   },
+   "b": {
+    "archive": "defranceski",
+    "path": "/person/teresia-defranceschi-1843/"
+   },
+   "status": "confirmed",
+   "basis": "given name folds equal; birth year equal; death year equal; 2 shared parent name(s); one-to-one both ways",
+   "note": "Matched by the parent session on 17 Oct 2026, never on a name alone: given name folds equal; birth year equal; death year equal; 2 shared parent name(s); one-to-one both ways. Not yet read by a research owner."
+  },
+  {
+   "a": {
+    "archive": "blazevic",
+    "path": "/people/leonardus-defranceschi-2/"
+   },
+   "b": {
+    "archive": "defranceski",
+    "path": "/person/leonardus-defranceschi-1847/"
+   },
+   "status": "confirmed",
+   "basis": "given name folds equal; birth year equal; death year equal; 2 shared parent name(s); one-to-one both ways",
+   "note": "Matched by the parent session on 17 Oct 2026, never on a name alone: given name folds equal; birth year equal; death year equal; 2 shared parent name(s); one-to-one both ways. Not yet read by a research owner."
+  },
+  {
+   "a": {
+    "archive": "blazevic",
+    "path": "/people/rosa-defranceschi/"
+   },
+   "b": {
+    "archive": "defranceski",
+    "path": "/person/joanna-defranceschi-1848/"
+   },
+   "status": "confirmed",
+   "basis": "given name folds equal; birth year equal; death year equal; 2 shared parent name(s); one-to-one both ways",
+   "note": "Matched by the parent session on 17 Oct 2026, never on a name alone: given name folds equal; birth year equal; death year equal; 2 shared parent name(s); one-to-one both ways. Not yet read by a research owner."
+  },
+  {
+   "a": {
+    "archive": "blazevic",
+    "path": "/people/antonia-defranceschi/"
+   },
+   "b": {
+    "archive": "defranceski",
+    "path": "/person/antonia-defranceschi-1849/"
+   },
+   "status": "confirmed",
+   "basis": "given name folds equal; birth year equal; death year equal; 2 shared parent name(s); one-to-one both ways",
+   "note": "Matched by the parent session on 17 Oct 2026, never on a name alone: given name folds equal; birth year equal; death year equal; 2 shared parent name(s); one-to-one both ways. Not yet read by a research owner."
+  },
+  {
+   "a": {
+    "archive": "blazevic",
+    "path": "/people/franciscus-defranceschi/"
+   },
+   "b": {
+    "archive": "defranceski",
+    "path": "/person/franciscus-defranceschi-1850/"
+   },
+   "status": "confirmed",
+   "basis": "given name folds equal; birth year equal; death year equal; 2 shared parent name(s); one-to-one both ways",
+   "note": "Matched by the parent session on 17 Oct 2026, never on a name alone: given name folds equal; birth year equal; death year equal; 2 shared parent name(s); one-to-one both ways. Not yet read by a research owner."
+  },
+  {
+   "a": {
+    "archive": "blazevic",
+    "path": "/people/antonius-defranceschi-3/"
+   },
+   "b": {
+    "archive": "defranceski",
+    "path": "/person/antonius-defranceschi-1855/"
+   },
+   "status": "confirmed",
+   "basis": "given name folds equal; birth year equal; death year equal; 2 shared parent name(s); one-to-one both ways",
+   "note": "Matched by the parent session on 17 Oct 2026, never on a name alone: given name folds equal; birth year equal; death year equal; 2 shared parent name(s); one-to-one both ways. Not yet read by a research owner."
+  },
+  {
+   "a": {
+    "archive": "blazevic",
+    "path": "/people/josip-petar-defranceski/"
+   },
+   "b": {
+    "archive": "defranceski",
+    "path": "/person/josip-petar-pepo-defranceski-1911/"
+   },
+   "status": "confirmed",
+   "basis": "given name folds equal; birth year equal; death year equal; 2 shared parent name(s); one-to-one both ways",
+   "note": "Matched by the parent session on 17 Oct 2026, never on a name alone: given name folds equal; birth year equal; death year equal; 2 shared parent name(s); one-to-one both ways. Not yet read by a research owner."
+  },
+  {
+   "a": {
+    "archive": "blazevic",
+    "path": "/people/anka-nera-defranceski/"
+   },
+   "b": {
+    "archive": "defranceski",
+    "path": "/person/anka-nera-defranceski-orescanin-1915/"
+   },
+   "status": "confirmed",
+   "basis": "given name folds equal; birth year equal; death year equal; 2 shared parent name(s); one-to-one both ways",
+   "note": "Matched by the parent session on 17 Oct 2026, never on a name alone: given name folds equal; birth year equal; death year equal; 2 shared parent name(s); one-to-one both ways. Not yet read by a research owner."
+  },
+  {
+   "a": {
+    "archive": "blazevic",
+    "path": "/people/zdravko-franjo-defranceski/"
+   },
+   "b": {
+    "archive": "defranceski",
+    "path": "/person/zdravko-frank-defranceski-1921/"
+   },
+   "status": "confirmed",
+   "basis": "given name folds equal; birth year equal; death year equal; 2 shared parent name(s); one-to-one both ways",
+   "note": "Matched by the parent session on 17 Oct 2026, never on a name alone: given name folds equal; birth year equal; death year equal; 2 shared parent name(s); one-to-one both ways. Not yet read by a research owner."
+  },
+  {
+   "a": {
+    "archive": "blazevic",
+    "path": "/people/ivan-anton-defranceski/"
+   },
+   "b": {
+    "archive": "defranceski",
+    "path": "/person/ivan-defranceski-1925/"
+   },
+   "status": "confirmed",
+   "basis": "given name folds equal; birth year equal; death year equal; 2 shared parent name(s); 2 shared spouse name(s); 1 children correspond by name and birth year; one-to-one both ways",
+   "note": "Matched by the parent session on 17 Oct 2026, never on a name alone: given name folds equal; birth year equal; death year equal; 2 shared parent name(s); 2 shared spouse name(s); 1 children correspond by name and birth year; one-to-one both ways. Not yet read by a research owner."
+  },
+  {
+   "a": {
+    "archive": "blazevic",
+    "path": "/people/josephus-de-franceschi/"
+   },
+   "b": {
+    "archive": "defranceski",
+    "path": "/person/josip-defranceschi-1863/"
+   },
+   "status": "confirmed",
+   "basis": "given name folds equal; birth year equal; death year equal; 2 shared spouse name(s); 1 children correspond by name and birth year; one-to-one both ways",
+   "note": "Matched by the parent session on 17 Oct 2026, never on a name alone: given name folds equal; birth year equal; death year equal; 2 shared spouse name(s); 1 children correspond by name and birth year; one-to-one both ways. Not yet read by a research owner."
   }
  ]
 }
