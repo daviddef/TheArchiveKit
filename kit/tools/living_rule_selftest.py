@@ -32,9 +32,9 @@ def answers(case):
     return {
         "public_source": lr.public_source(cit),
         "is_living": lr.is_living(i.get("birth_year"), i.get("recorded_dead", False), cit, Y, i.get("youngest_child_year"), i.get("said_living", False)),
-        "possible_minor": lr.possible_minor(i.get("birth_year"), i.get("recorded_dead", False), cit, i.get("parent_living", False), Y, i.get("youngest_child_year")),
+        "possible_minor": lr.possible_minor(i.get("birth_year"), i.get("recorded_dead", False), cit, i.get("parent_living", False), Y, i.get("youngest_child_year"), i.get("said_living", False)),
         "is_held_out": lr.is_held_out(i.get("id", "none"), i.get("birth_year"), i.get("recorded_dead", False), cit,
-                                      i.get("parent_living", False), i.get("held_ids", []), Y, i.get("youngest_child_year")),
+                                      i.get("parent_living", False), i.get("held_ids", []), Y, i.get("youngest_child_year"), i.get("said_living", False)),
     }
 
 
@@ -95,6 +95,11 @@ lr.is_living = lambda b, d, c=(), t=None, y=None, said_living=False: _il(b, d, c
 hit = [c["id"] for c, miss in run_all() if miss]
 check(f"with a living statement ignored the said-living case catches it ({len(hit)} fail)", "said-living-undated" in hit)
 lr.is_living = _il
+_pm = lr.possible_minor
+lr.possible_minor = lambda b, d, c=(), p=False, t=None, y=None, said_living=False: _pm(b, d, c, p, t, y, False)
+hit = [c["id"] for c, miss in run_all() if miss]
+check(f"with a living statement ignored by possible_minor the held-out case catches it ({len(hit)} fail)", "said-living-child-of-living-parent-not-held-out" in hit)
+lr.possible_minor = _pm
 saved = lr.EXCLUDED
 lr.EXCLUDED = []
 hit = [c["id"] for c, miss in run_all() if miss]

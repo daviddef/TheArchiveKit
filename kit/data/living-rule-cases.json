@@ -687,6 +687,37 @@
    "want": {
     "is_living": false
    }
+  },
+  {
+   "id": "said-living-child-of-living-parent-not-held-out",
+   "tags": [
+    "said-living"
+   ],
+   "why": "an undated child of a living parent whom the archive's own data says is living is not held out (the archive knows the birth year the page does not carry): a known child follows the standard",
+   "in": {
+    "said_living": true,
+    "parent_living": true
+   },
+   "want": {
+    "is_living": true,
+    "possible_minor": false,
+    "is_held_out": false
+   }
+  },
+  {
+   "id": "undated-child-of-living-parent-without-statement-still-held-out",
+   "tags": [
+    "said-living"
+   ],
+   "why": "without the archive's statement the undated child of a living parent is still held out",
+   "in": {
+    "parent_living": true
+   },
+   "want": {
+    "is_living": false,
+    "possible_minor": true,
+    "is_held_out": true
+   }
   }
  ],
  "place_cases": [

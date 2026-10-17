@@ -239,15 +239,16 @@ export const livingRule = {
     if (birthYear == null) return Boolean(saidLiving) || livingRule.recentChild(youngestChildYear, todayYear);
     return ((todayYear || new Date().getFullYear()) - Number(birthYear)) <= LIVING_YEARS;
   },
-  possibleMinor(birthYear, recordedDead, citations = [], parentLiving = false, todayYear = null, sources = null, youngestChildYear = null) {
+  possibleMinor(birthYear, recordedDead, citations = [], parentLiving = false, todayYear = null, sources = null, youngestChildYear = null, saidLiving = false) {
     if (recordedDead || publicSource(citations, sources)) return false;
     if (birthYear != null) return false;
     if (livingRule.recentChild(youngestChildYear, todayYear)) return false;
+    if (saidLiving) return false;   /* the archive's own data says living: a known child follows the standard */
     return Boolean(parentLiving);
   },
-  isHeldOut(personId, birthYear, recordedDead, citations = [], parentLiving = false, heldIds = [], todayYear = null, sources = null, youngestChildYear = null) {
+  isHeldOut(personId, birthYear, recordedDead, citations = [], parentLiving = false, heldIds = [], todayYear = null, sources = null, youngestChildYear = null, saidLiving = false) {
     if (new Set((heldIds || []).map(String)).has(String(personId))) return true;
-    return livingRule.possibleMinor(birthYear, recordedDead, citations, parentLiving, todayYear, sources, youngestChildYear);
+    return livingRule.possibleMinor(birthYear, recordedDead, citations, parentLiving, todayYear, sources, youngestChildYear, saidLiving);
   },
 };
 
@@ -289,7 +290,7 @@ export function isLiving(p, { now = null, sources = null } = {}) {
    `parentLiving` is the caller's knowledge, or the row's own `parentLiving`. */
 export function isHeldOut(p, { now = null, sources = null, heldIds = [], parentLiving = false } = {}) {
   if (!p) return false;
-  return livingRule.isHeldOut(p.id, birthYearOf(p), recordedDead(p), citationsOf(p), parentLiving || p.parentLiving === true, heldIds, now, sources, p.youngestChildYear ?? null);
+  return livingRule.isHeldOut(p.id, birthYearOf(p), recordedDead(p), citationsOf(p), parentLiving || p.parentLiving === true, heldIds, now, sources, p.youngestChildYear ?? null, p.saidLiving === true);
 }
 /* A relative's row that must not be drawn at all: held out by the rule, flagged by
    the adapter, or the old «withheld» placeholder (which would reveal that a held-out

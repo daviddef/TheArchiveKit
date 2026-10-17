@@ -108,7 +108,7 @@ def is_living(birth_year, recorded_dead, citations=(), today_year=None, youngest
 
 
 def possible_minor(birth_year, recorded_dead, citations=(), parent_living=False, today_year=None,
-                   youngest_child_year=None):
+                   youngest_child_year=None, said_living=False):
     """Held out: an UNDATED person with a living parent, who might be a child.
     Not for anyone recorded dead or evidenced by a public source, and not for a child
     whose birth year is known (David, 16 Oct 2026: known children follow the standard)."""
@@ -118,15 +118,18 @@ def possible_minor(birth_year, recorded_dead, citations=(), parent_living=False,
         return False
     if recent_child(youngest_child_year, today_year):
         return False        # a parent of a recent child is an adult: living, not held out
+    if said_living:
+        return False        # the archive's own data says this person is living (it knows what the page may not
+                            # carry, e.g. a living child's birth year): a known child follows the standard
     return bool(parent_living)
 
 
 def is_held_out(person_id, birth_year, recorded_dead, citations=(), parent_living=False,
-                held_ids=(), today_year=None, youngest_child_year=None):
+                held_ids=(), today_year=None, youngest_child_year=None, said_living=False):
     """Not published at all: the promised-by-id people, and possible minors."""
     if str(person_id) in {str(i) for i in held_ids}:
         return True
-    return possible_minor(birth_year, recorded_dead, citations, parent_living, today_year, youngest_child_year)
+    return possible_minor(birth_year, recorded_dead, citations, parent_living, today_year, youngest_child_year, said_living)
 
 
 # ---- what a living person's PLACE may be (item 5 of the standard) -------------------------
