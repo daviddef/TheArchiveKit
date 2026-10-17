@@ -15,6 +15,6 @@
   },
   "license": "UNLICENSED",
   "scripts": {
-    "test": "node kit/tools/checklogic.mjs --root . && python3 kit/tools/manifest.py --check && python3 kit/tools/manifest_selftest.py"
+    "test": "node kit/tools/checklogic.mjs --root . && python3 kit/tools/manifest.py --check && python3 kit/tools/manifest_selftest.py && node kit/tools/book_logic.mjs && python3 kit/tools/checkbook_selftest.py"
   }
 }

@@ -1,0 +1,36 @@
+---
+/* Previous / Next at the foot of every page, following the book's order across the whole site.
+ * A page that belongs to a chapter by prefix (a person, a name) links back to that chapter and the Contents. */
+import { locate } from "../lib/book.js";
+const { book, u = (p) => p, contents = "/contents/" } = Astro.props;
+const base = (import.meta.env.BASE_URL || "/").replace(/\/$/, "");
+const raw = Astro.url.pathname;
+const here = base && raw.startsWith(base) ? raw.slice(base.length) || "/" : raw;
+const loc = locate(book, here);
+const show = loc && !loc.outside;
+const kindWord = (e) => (e.kind === "opener" ? "Part opening" : e.kind === "front" ? "Front matter" : "Chapter");
+---
+{show && (
+  <nav class="bk-foot" aria-label="The book" data-book-prev={loc.prev ? loc.prev.path : null} data-book-next={loc.next ? loc.next.path : null}
+       data-book-back={loc.inherited ? loc.entry.path : null}>
+    {loc.inherited ? (
+      <>
+        <a class="bk-a" href={u(loc.entry.path)}><small>Back to the chapter</small>{loc.entry.title}</a>
+        <a class="bk-a bk-r" href={u(contents)}><small>The book</small>Contents</a>
+      </>
+    ) : (
+      <>
+        {loc.prev ? <a class="bk-a" href={u(loc.prev.path)}><small>← Previous · {kindWord(loc.prev)}</small>{loc.prev.title}</a> : <a class="bk-a" href={u(contents)}><small>The book</small>Contents</a>}
+        {loc.next ? <a class="bk-a bk-r" href={u(loc.next.path)}><small>Next → · {kindWord(loc.next)}</small>{loc.next.title}</a> : <a class="bk-a bk-r" href={u(contents)}><small>The end of the book</small>Contents</a>}
+      </>
+    )}
+  </nav>
+)}
+<style>
+  .bk-foot { max-width: var(--bk-width, 1240px); margin: 40px auto 0; padding: 0 28px; display: grid; grid-template-columns: 1fr 1fr; border-top: 1px solid var(--rule, #ddd); }
+  .bk-a { padding: 18px 4px; color: var(--ink, #222); text-decoration: none; font: 500 16px/1.4 var(--serif, Georgia, serif); }
+  .bk-a small { display: block; font: 600 11px/1.3 var(--sans, system-ui, sans-serif); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3, #777); margin-bottom: 3px; }
+  .bk-a:hover { color: var(--accent, #9a4b2b); }
+  .bk-r { text-align: right; border-left: 1px solid var(--rule, #ddd); padding-right: 4px; padding-left: 16px; }
+  @media (max-width: 640px) { .bk-foot { grid-template-columns: 1fr; padding: 0 16px; } .bk-r { text-align: left; border-left: 0; border-top: 1px solid var(--rule, #ddd); padding-left: 4px; } }
+</style>

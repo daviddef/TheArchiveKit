@@ -1,0 +1,54 @@
+---
+/* The running head of the book: which part, which chapter, how far through, and the way to the Contents.
+ * Mount once in the archive's layout, below the site header:  <BookHead book={book} u={u} />
+ * It reads the page's own path, so no page passes anything. A page that is outside the book, or nowhere,
+ * draws nothing (and kit/tools/checkbook.py fails the build on "nowhere").
+ *
+ * The data-book-* attributes are what the build check reads back from the built page. */
+import { locate, PART_HUES, openerPath } from "../lib/book.js";
+const { book, u = (p) => p, contents = "/contents/" } = Astro.props;
+const base = (import.meta.env.BASE_URL || "/").replace(/\/$/, "");
+const raw = Astro.url.pathname;
+const here = base && raw.startsWith(base) ? raw.slice(base.length) || "/" : raw;
+const loc = locate(book, here);
+const show = loc && !loc.outside;
+const parts = book.parts || [];
+const cur = show ? (loc.part ? parts.indexOf(loc.part) + 1 : 0) : -1;
+const hue = (i) => (parts[i - 1] && parts[i - 1].hue) || PART_HUES[(i - 1 + PART_HUES.length) % PART_HUES.length];
+const label = show
+  ? loc.part
+    ? `Part ${loc.part.numeral} · ${loc.part.title}`
+    : (book.front && book.front.label) || "Front matter"
+  : "";
+---
+{show && (
+  <div class="bk-head" data-book-part={loc.part ? loc.part.id : "front"} data-book-n={loc.n} data-book-total={loc.total}
+       data-book-inherited={loc.inherited ? loc.entry.path : null}>
+    <div class="bk-row">
+      <span class="bk-where">
+        {loc.part ? <a href={u(openerPath(loc.part))}>{label}</a> : <span>{label}</span>}
+        {loc.entry.kind === "opener" ? <span class="bk-pos"> · opening</span>
+          : loc.inherited ? <span class="bk-pos"> · <a href={u(loc.entry.path)}>{loc.entry.title}</a></span>
+          : <span class="bk-pos"> · chapter {loc.n} of {loc.total}</span>}
+      </span>
+      <a class="bk-toc" href={u(contents)}>Contents</a>
+    </div>
+    <div class="bk-rail" aria-hidden="true">
+      {[0, ...parts.map((_, i) => i + 1)].map((i) => (
+        <i class={i < cur ? "done" : i === cur ? "now" : "todo"} style={i === 0 ? "--h:#9aa7b4" : `--h:${hue(i)}`}></i>
+      ))}
+    </div>
+  </div>
+)}
+<style>
+  .bk-head { font: 600 11px/1.3 var(--sans, system-ui, sans-serif); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3, #777); border-bottom: 1px solid var(--rule, #ddd); }
+  .bk-row { max-width: var(--bk-width, 1240px); margin: 0 auto; padding: 8px 28px; display: flex; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
+  .bk-where a, .bk-toc { color: var(--ink-2, #555); text-decoration: none; }
+  .bk-where a:hover, .bk-toc:hover { color: var(--accent, #9a4b2b); }
+  .bk-where > a:first-child { color: var(--ink, #222); }
+  .bk-rail { display: flex; height: 4px; }
+  .bk-rail i { flex: 1; background: var(--h); }
+  .bk-rail i.todo { opacity: .22; }
+  .bk-rail i.done { opacity: .6; }
+  @media (max-width: 640px) { .bk-row { padding: 8px 16px; } }
+</style>

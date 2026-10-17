@@ -1,0 +1,203 @@
+{
+ "note": "Shared cases for kit/lib/book.js and kit/tools/checkbook.py: both must agree. total entries in the fixture book: 8.",
+ "book": {
+  "title": "Fixture Archive",
+  "front": {
+   "label": "Front matter",
+   "chapters": [
+    {
+     "path": "/",
+     "title": "The cover"
+    },
+    {
+     "path": "/about/",
+     "title": "About"
+    }
+   ]
+  },
+  "parts": [
+   {
+    "id": "one",
+    "numeral": "I",
+    "title": "Part one",
+    "intro": "First.",
+    "chapters": [
+     {
+      "path": "/a/",
+      "title": "A"
+     },
+     {
+      "path": "/b",
+      "title": "B (no trailing slash in the data)"
+     }
+    ]
+   },
+   {
+    "id": "two",
+    "numeral": "II",
+    "title": "Part two",
+    "intro": "Second.",
+    "chapters": [
+     {
+      "path": "/c/",
+      "title": "C"
+     },
+     {
+      "path": "/people/",
+      "title": "The People"
+     }
+    ]
+   }
+  ],
+  "inherit": {
+   "/people/": "/people/",
+   "/who": "/c/"
+  },
+  "outside": [
+   "/search/"
+  ]
+ },
+ "total": 8,
+ "cases": [
+  {
+   "id": "cover-is-first",
+   "path": "/",
+   "want": {
+    "kind": "front",
+    "n": 1,
+    "prev": null,
+    "next": "/about/",
+    "part": null,
+    "inherited": false
+   }
+  },
+  {
+   "id": "about-follows-cover",
+   "path": "/about",
+   "want": {
+    "kind": "front",
+    "n": 2,
+    "prev": "/",
+    "next": "/part/one/",
+    "inherited": false
+   }
+  },
+  {
+   "id": "opener-follows-front",
+   "path": "/part/one/",
+   "want": {
+    "kind": "opener",
+    "n": 3,
+    "prev": "/about/",
+    "next": "/a/",
+    "part": "one"
+   }
+  },
+  {
+   "id": "a-chapter-links-both-ways",
+   "path": "/a/",
+   "want": {
+    "kind": "chapter",
+    "n": 4,
+    "prev": "/part/one/",
+    "next": "/b/",
+    "part": "one"
+   }
+  },
+  {
+   "id": "data-without-slash-is-normalised",
+   "path": "/b/",
+   "want": {
+    "kind": "chapter",
+    "n": 5,
+    "prev": "/a/",
+    "next": "/part/two/",
+    "part": "one"
+   }
+  },
+  {
+   "id": "second-part-opener",
+   "path": "/part/two/",
+   "want": {
+    "kind": "opener",
+    "n": 6,
+    "prev": "/b/",
+    "next": "/c/",
+    "part": "two"
+   }
+  },
+  {
+   "id": "last-chapter-has-no-next",
+   "path": "/people/",
+   "want": {
+    "kind": "chapter",
+    "n": 8,
+    "prev": "/c/",
+    "next": null,
+    "part": "two"
+   }
+  },
+  {
+   "id": "person-page-inherits-its-index",
+   "path": "/people/x/",
+   "want": {
+    "kind": "chapter",
+    "n": 8,
+    "prev": null,
+    "next": null,
+    "part": "two",
+    "inherited": true,
+    "via": "/people/"
+   }
+  },
+  {
+   "id": "who-page-inherits-another-chapter",
+   "path": "/who/y/",
+   "want": {
+    "kind": "chapter",
+    "n": 7,
+    "prev": null,
+    "next": null,
+    "part": "two",
+    "inherited": true,
+    "via": "/who/"
+   }
+  },
+  {
+   "id": "an-index-itself-is-not-inherited",
+   "path": "/who/",
+   "want": {
+    "nowhere": true
+   }
+  },
+  {
+   "id": "outside-page",
+   "path": "/search/",
+   "want": {
+    "outside": true
+   }
+  },
+  {
+   "id": "unplaced-page-is-nowhere",
+   "path": "/orphan/",
+   "want": {
+    "nowhere": true
+   }
+  },
+  {
+   "id": "anchor-and-query-are-ignored",
+   "path": "/a/#x?y=1",
+   "want": {
+    "kind": "chapter",
+    "n": 4
+   }
+  },
+  {
+   "id": "contents-page-is-outside-without-listing",
+   "path": "/contents/",
+   "want": {
+    "outside": true
+   }
+  }
+ ]
+}

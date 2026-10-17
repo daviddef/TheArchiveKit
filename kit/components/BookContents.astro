@@ -1,0 +1,60 @@
+---
+/* The Contents page: the whole book, front matter and every part, each chapter with its one line.
+ * Mount on a page at /contents/:  <BookContents book={book} u={u} />  */
+import { PART_HUES, openerPath, norm } from "../lib/book.js";
+const { book, u = (p) => p } = Astro.props;
+const parts = book.parts || [];
+const hue = (i) => (parts[i] && parts[i].hue) || PART_HUES[i % PART_HUES.length];
+const groups = (chapters) => {
+  const out = []; let cur = null;
+  for (const c of chapters || []) {
+    const g = c.group || "";
+    if (!cur || cur.g !== g) { cur = { g, items: [] }; out.push(cur); }
+    cur.items.push(c);
+  }
+  return out;
+};
+---
+<div class="bk-book">
+  {book.front && (book.front.chapters || []).length > 0 && (
+    <section class="bk-part" style="--h:#9aa7b4">
+      <div class="bk-band"><span class="bk-v">Front</span></div>
+      <div class="bk-body"><h2>{book.front.label || "Front matter"}</h2>
+        {book.front.intro && <p class="bk-intro">{book.front.intro}</p>}
+        <ol class="bk-ch">{(book.front.chapters || []).map((c) => <li><a href={u(norm(c.path))}>{c.title}</a>{c.blurb && <span>{c.blurb}</span>}</li>)}</ol></div>
+    </section>
+  )}
+  {parts.map((part, i) => (
+    <section class="bk-part" style={`--h:${hue(i)}`} id={part.id}>
+      <div class="bk-band"><span>{part.numeral}</span></div>
+      <div class="bk-body">
+        <h2><a href={u(openerPath(part))}>{part.numeral}. {part.title}</a>{part.flags && <span class="bk-flags"> {part.flags}</span>}</h2>
+        {part.intro && <p class="bk-intro">{part.intro}</p>}
+        {groups(part.chapters).map((g) => (
+          <>
+            {g.g && <h3>{g.g}</h3>}
+            <ol class="bk-ch">{g.items.map((c) => <li><a href={u(norm(c.path))}>{c.title}</a>{c.blurb && <span>{c.blurb}</span>}</li>)}</ol>
+          </>
+        ))}
+      </div>
+    </section>
+  ))}
+</div>
+<style>
+  .bk-book { display: grid; gap: 14px; margin: 24px 0 8px; }
+  .bk-part { display: grid; grid-template-columns: 52px 1fr; }
+  .bk-band { background: var(--h); border-radius: 8px 0 0 8px; display: flex; align-items: flex-start; justify-content: center; padding-top: 16px; color: #10151b; font: 700 20px/1 var(--serif, Georgia, serif); }
+  .bk-v { writing-mode: vertical-rl; transform: rotate(180deg); font: 700 10px/1 var(--sans, system-ui, sans-serif); letter-spacing: .14em; text-transform: uppercase; }
+  .bk-body { border: 1px solid var(--rule, #ddd); border-left: 0; border-radius: 0 10px 10px 0; padding: 16px 22px 14px; background: var(--panel, transparent); }
+  .bk-body h2 { margin: 0 0 .2rem; font: 500 24px/1.2 var(--serif, Georgia, serif); }
+  .bk-body h2 a { color: var(--ink, #222); text-decoration: none; }
+  .bk-body h3 { margin: .9rem 0 .2rem; font: 600 11px/1.3 var(--sans, system-ui, sans-serif); letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3, #777); }
+  .bk-flags { font-size: 18px; letter-spacing: .12em; }
+  .bk-intro { margin: .2rem 0 .8rem; max-width: 78ch; font: 15px/1.5 var(--sans, system-ui, sans-serif); color: var(--ink-2, #555); }
+  .bk-ch { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 2px 22px; }
+  .bk-ch li { padding: 4px 0; border-bottom: 1px dotted var(--rule, #ddd); font: 500 15px/1.4 var(--sans, system-ui, sans-serif); }
+  .bk-ch li a { color: var(--ink, #222); text-decoration: none; }
+  .bk-ch li a:hover { color: var(--accent, #9a4b2b); text-decoration: underline; }
+  .bk-ch li span { display: block; font-size: 12.5px; color: var(--ink-3, #777); font-weight: 400; }
+  @media (max-width: 640px) { .bk-part { grid-template-columns: 34px 1fr; } .bk-body { padding: 14px 14px 12px; } }
+</style>
