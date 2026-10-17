@@ -103,6 +103,16 @@ def note_change(root, pinned, quiet):
         pass                      # a record that cannot be written is not a failure
 
 
+def _manifest_check(kit_dir):
+    """(differences, file count, manifest present) for an installed kit directory."""
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    try:
+        import manifest as _m
+    except ImportError:
+        return [], 0, False
+    return _m.compare(kit_dir)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--root", default=".")
@@ -151,13 +161,28 @@ def main():
               "every local build is testing something nobody else will get"
               % (got[:12], pinned[:12]))
         return 1
+    # 3. The INSTALLED files are the committed files. Added 17 October 2026 after the Falco sweep edited
+    #    kit/styles/print.css under node_modules and this check still said ok: the lockfile and package.json
+    #    name a commit, they do not prove the files on disk are that commit's.
+    inst = os.path.join(a.root, "node_modules", DEP, "kit")
+    bad, nfiles, present = (lambda: _manifest_check(inst))()
+    if present and bad:
+        if not a.quiet:
+            for b in bad[:8]:
+                print("        installed kit: " + b)
+        print("  FAIL  pin        %d installed kit file(s) differ from the kit's own manifest: the kit in "
+              "node_modules is not the commit that is pinned. rm -rf node_modules/@daviddef/archive-kit && npm install"
+              % len(bad))
+        return 1
+    verified = ("; %d installed files match the kit's manifest" % nfiles) if present else \
+               "; the installed kit has no manifest (pinned before 17 October 2026), so its files are NOT verified"
     if why:
         print("  ok    pin        %d kit file(s) referenced, all present (%s)"
               % (len(scripts), why))
         return 0
     note_change(a.root, pinned, a.quiet)
-    print("  ok    pin        kit %s installed and pinned, every referenced file present"
-          % pinned[:12])
+    print("  ok    pin        kit %s installed and pinned, every referenced file present%s"
+          % (pinned[:12], verified))
     return 0
 
 
