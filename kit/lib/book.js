@@ -64,6 +64,8 @@ export function locate(book, path) {
     return { entry: e, index: i, n: i + 1, total, prev: entries[i - 1] || null, next: entries[i + 1] || null, part: partOf(e), inherited: false };
   }
   if (p === "/contents/") return { outside: true };   /* the Contents page is the book's own table: it needs no chapter */
+  /* `outside` is read BEFORE `inherit`: a page listed as outside stays outside even under an inherited prefix */
+  if ((book.outside || []).map(norm).includes(p)) return { outside: true };
   const inh = book.inherit || {};
   const prefixes = Object.keys(inh).map(norm).sort((a, b) => b.length - a.length);
   for (const pre of prefixes) {
@@ -76,7 +78,6 @@ export function locate(book, path) {
       }
     }
   }
-  if ((book.outside || []).map(norm).includes(p)) return { outside: true };
   return null;
 }
 

@@ -21,6 +21,8 @@ def page(url, loc, drop=None):
     f = ""
     if loc["prev"]: f += ' data-book-prev="%s"' % loc["prev"]["path"]
     if loc["next"]: f += ' data-book-next="%s"' % loc["next"]["path"]
+    if loc["prev"]: h += ' data-book-hprev="%s"' % loc["prev"]["path"]
+    if loc["next"]: h += ' data-book-hnext="%s"' % loc["next"]["path"]
     if loc["inherited"]: f += ' data-book-back="%s"' % loc["entry"]["path"]
     s = '<html><body><div class="bk-head" %s></div><nav class="bk-foot"%s></nav></body></html>' % (h, f)
     return drop(s) if drop else s
@@ -60,7 +62,25 @@ for c in FIX["cases"]:
 case("the Python placement agrees with the %d shared cases" % len(FIX["cases"]), not bad, bad)
 
 print("a clean build")
-f, s = run(); case("a book whose pages all carry the right head and foot passes", not f and s["checked"] == 10 and s["inherited"] == 2 and s["outside"] == 2, f)
+f, s = run(); case("a book whose pages all carry the right head and foot passes", not f and s["checked"] == 10 and s["inherited"] == 2 and s["outside"] == 2 and s["stubs"] == 0, f)
+STUB = '<html><head><meta http-equiv="refresh" content="0; url=%s"></head></html>'
+print("redirect stubs and the outside list")
+def with_stubs(stubs, urls=None):
+    t = tempfile.mkdtemp(prefix="cbook-")
+    try:
+        build(t, BOOK, urls if urls is not None else URLS)
+        for u, target in stubs.items():
+            d = os.path.join(t, u.strip("/")); os.makedirs(d, exist_ok=True)
+            open(os.path.join(d, "index.html"), "w").write(STUB % target)
+        return cb.check(BOOK, t)
+    finally:
+        shutil.rmtree(t, ignore_errors=True)
+f, s = with_stubs({"/old/": "/a/", "/people/gone/": "/people/"}); case("redirect stubs are set aside, not unplaced, even under an inherited prefix", not f and s["stubs"] == 2, f)
+f, s = with_stubs({"/old/": "/nowhere-built/"}); case("a stub that leads to nothing built fails", any("stub: /old/" in x for x in f), f)
+f, s = with_stubs({"/old/": "https://elsewhere.example/x/"}); case("a stub that leads to another site is set aside", not f, f)
+f, s = run(urls=URLS + ["/people/private/"]); case("a page listed as outside stays outside under an inherited prefix", not f and s["outside"] == 3, f)
+f, s = run(mutate={"/a/": lambda h: h.replace('data-book-hnext="/b/"', 'data-book-hnext="/c/"')}); case("a running head whose Next differs from the book fails", any("running head" in x and "/a/" in x for x in f), f)
+f, s = run(mutate={"/a/": lambda h: h.replace(' data-book-hprev="/part/one/"', "")}); case("a running head with no Previous fails", any("running head" in x and "Previous" in x for x in f), f)
 print("planted faults")
 f, s = run(urls=URLS + ["/orphan/"]); case("a built page nobody placed fails", any("unplaced" in x and "/orphan/" in x for x in f), f)
 f, s = run(urls=[u for u in URLS if u != "/b/"]); case("a chapter with no built page fails", any("dead: /b/" in x for x in f), f)

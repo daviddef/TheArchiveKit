@@ -7,8 +7,9 @@ WHAT IT REFUSES (kit/lib/book.js holds the rules; this file reads the BUILT page
   unplaced   a built page that is not a chapter, not covered by `inherit`, and not listed in `outside`
   dead       a chapter (or a part opener) in book.json that has no built page
   twice      the same path in book.json more than once, or two parts with one id, or a part with no chapters
-  head       a built page without the running head, or whose head names a different part or position than the book
+  head       a built page without the running head, or whose head names a different part, position, Previous or Next than the book
   foot       a built page whose Previous / Next differ from the book's order (an inherited page must link back instead)
+  stub       a redirect stub (a tiny page that only sends the reader on) whose target is not built; stubs are otherwise set aside
   empty      nothing built, or a book with fewer than two parts: a check that examined nothing has not passed
 
 A page that is outside the book on purpose is listed in book.json "outside", so a page nobody placed fails the build.
@@ -60,6 +61,8 @@ def locate(book, path):
                 "next": entries[idx + 1] if idx + 1 < total else None, "part": part_of(e), "inherited": False}
     if p == "/contents/":
         return {"outside": True}
+    if p in [norm(x) for x in (book.get("outside") or [])]:
+        return {"outside": True}
     inh = book.get("inherit") or {}
     for pre in sorted((norm(k) for k in inh), key=len, reverse=True):
         if p.startswith(pre) and p != pre:
@@ -69,8 +72,6 @@ def locate(book, path):
             if j >= 0:
                 e = entries[j]
                 return {"entry": e, "n": j + 1, "total": total, "prev": None, "next": None, "part": part_of(e), "inherited": True, "via": pre}
-    if p in [norm(x) for x in (book.get("outside") or [])]:
-        return {"outside": True}
     return None
 
 
@@ -85,6 +86,21 @@ def pages_of(dist):
     return out
 
 
+STUB_BYTES = 1500
+
+
+def stub_target(html):
+    """A redirect stub is a tiny page that does nothing but send the reader on: under STUB_BYTES with a meta refresh.
+    Returns its target (possibly empty) or None when the page is not a stub."""
+    if len(html) >= STUB_BYTES:
+        return None
+    m = re.search(r'<meta[^>]+http-equiv=["\']?refresh["\']?[^>]*>', html, re.I)
+    if not m:
+        return None
+    u = re.search(r'url=([^"\'>\s]+)', m.group(0), re.I)
+    return u.group(1) if u else ""
+
+
 def attr(html, name):
     m = re.search(r'data-book-%s="([^"]*)"' % name, html)
     return m.group(1) if m else None
@@ -97,6 +113,24 @@ def check(book, dist):
         return ["the book has %d part(s): refusing to pass on a book with nothing in it" % len(parts)], {}
     pages = pages_of(dist)
     pages.pop("/404/", None)
+    if not pages:
+        return ["no built page under %s: nothing was examined" % dist], {}
+    # Redirect stubs (a retired address that only sends the reader on) are not chapters: set them aside, but each must
+    # lead somewhere that is built, so a dead stub still fails.
+    stubs = {}
+    for url in list(pages):
+        if url == "/contents/":
+            continue
+        t = stub_target(open(pages[url], encoding="utf-8", errors="replace").read())
+        if t is not None:
+            stubs[url] = t
+            del pages[url]
+    for url, t in sorted(stubs.items()):
+        if re.match(r"^[a-z][a-z0-9+.-]*:|^//", t, re.I):
+            continue  # an absolute address (another site): out of this check's reach
+        tp = norm(t) if t.startswith("/") else norm(os.path.normpath(os.path.join(url, t)).replace(os.sep, "/"))
+        if tp not in pages and tp not in stubs and not os.path.exists(os.path.join(dist, tp.strip("/"))):
+            fails.append("stub: %s redirects to %s, which is not built" % (url, tp))
     if not pages:
         return ["no built page under %s: nothing was examined" % dist], {}
     entries = flatten(book)
@@ -139,6 +173,12 @@ def check(book, dist):
             fails.append("head: %s says part '%s', the book says '%s'" % (url, part, want_part))
         if attr(html, "n") != str(loc["n"]):
             fails.append("head: %s says position %s, the book says %d" % (url, attr(html, "n"), loc["n"]))
+        wp = loc["prev"]["path"] if loc["prev"] else None
+        wn = loc["next"]["path"] if loc["next"] else None
+        if attr(html, "hprev") != wp:
+            fails.append("head: %s links Previous to %s in the running head, the book says %s" % (url, attr(html, "hprev"), wp))
+        if attr(html, "hnext") != wn:
+            fails.append("head: %s links Next to %s in the running head, the book says %s" % (url, attr(html, "hnext"), wn))
         if loc["inherited"]:
             if attr(html, "inherited") != loc["entry"]["path"]:
                 fails.append("head: %s does not name its chapter %s" % (url, loc["entry"]["path"]))
@@ -156,7 +196,7 @@ def check(book, dist):
         fails.append("unplaced: %d built page(s) are not in the book (add them to a part, to `inherit`, or to `outside`): %s%s"
                      % (len(unplaced), ", ".join(unplaced[:12]), " ..." if len(unplaced) > 12 else ""))
     summary = {"pages": len(pages), "chapters": sum(1 for e in entries if e["kind"] != "opener"), "openers": sum(1 for e in entries if e["kind"] == "opener"),
-               "parts": len(parts), "inherited": inherited, "outside": outside, "checked": checked}
+               "parts": len(parts), "inherited": inherited, "outside": outside, "checked": checked, "stubs": len(stubs)}
     return fails, summary
 
 
@@ -181,7 +221,7 @@ def main():
         if s:
             print("  examined: %(pages)d built pages, %(parts)d parts, %(chapters)d chapters and %(openers)d openers in the book" % s)
         return 1
-    print("checkbook: ok. %(pages)d built pages: %(checked)d in the book (%(inherited)d by their chapter), %(outside)d outside on purpose; "
+    print("checkbook: ok. %(pages)d built pages: %(checked)d in the book (%(inherited)d by their chapter), %(outside)d outside on purpose, %(stubs)d redirect stubs set aside; "
           "%(parts)d parts, %(chapters)d chapters, %(openers)d openers; every head and every Previous/Next matches the book's order." % s)
     return 0
 

@@ -30,13 +30,16 @@ const faults = [
   ["a path is not normalised", "if (!s.endsWith(\"/\") && !/\\.[a-z0-9]+$/i.test(s)) s += \"/\";", "", "data-without-slash-is-normalised"],
   ["inheritance matches the index itself", "if (p.startsWith(pre) && p !== pre) {", "if (p.startsWith(pre)) {", "an-index-itself-is-not-inherited"],
   ["an outside page is not outside", "if ((book.outside || []).map(norm).includes(p)) return { outside: true };", "", "outside-page"],
+  ["outside is read after inherit", "  if ((book.outside || []).map(norm).includes(p)) return { outside: true };\n", "", "outside-beats-inherit",
+    ["  return null;\n}\n\n/* Every page", "  if ((book.outside || []).map(norm).includes(p)) return { outside: true };\n  return null;\n}\n\n/* Every page"]],
   ["an inherited page gets a next link", "prev: null, next: null, part: partOf(e), inherited: true", "prev: null, next: entries[j + 1] || null, part: partOf(e), inherited: true", "who-page-inherits-another-chapter"],
 ];
 const os = await import("os"), pu = await import("url");
-for (const [label, from, to, must] of faults) {
+for (const [label, from, to, must, extra] of faults) {
   if (!src.includes(from)) { n++; bad++; console.log("  FAIL  planted fault '" + label + "' could not be planted (the code changed)"); continue; }
   const d = fs.mkdtempSync(path.join(os.tmpdir(), "book-fault-")); const f = path.join(d, "book.mjs");
-  fs.writeFileSync(f, src.replace(from, to));
+  let broken = src.replace(from, to); if (extra) { if (!broken.includes(extra[0])) { n++; bad++; console.log("  FAIL  planted fault '" + label + "' could not be planted (the code changed)"); continue; } broken = broken.replace(extra[0], extra[1]); }
+  fs.writeFileSync(f, broken);
   const M = await import(pu.pathToFileURL(f).href);
   const failed = runAll(M).filter(([c, got]) => JSON.stringify(got) !== JSON.stringify(c.want)).map(([c]) => c.id);
   n++; if (failed.includes(must)) console.log("  ok    planted fault '" + label + "' is caught (" + must + ")"); else { bad++; console.log("  FAIL  planted fault '" + label + "' was NOT caught"); }

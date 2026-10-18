@@ -54,7 +54,8 @@
    "/who": "/c/"
   },
   "outside": [
-   "/search/"
+   "/search/",
+   "/people/private/"
   ]
  },
  "total": 8,
@@ -195,6 +196,13 @@
   {
    "id": "contents-page-is-outside-without-listing",
    "path": "/contents/",
+   "want": {
+    "outside": true
+   }
+  },
+  {
+   "id": "outside-beats-inherit",
+   "path": "/people/private/",
    "want": {
     "outside": true
    }

@@ -17,10 +17,10 @@ grandparents, the crossing, how the lines join, everyone, how we know). Nothing 
 ```
 The order is: front matter, then each part's **opener** (`/part/<id>/`, generated) and its chapters. Previous / Next follow it across the whole site.
 `inherit` says that a page under a prefix (a person, a name) belongs to the chapter of its index and links back to it instead of having a Previous/Next.
-`outside` lists pages that are deliberately not chapters (Search). `/contents/` is the book's own table and needs no entry.
+`outside` lists pages that are deliberately not chapters (Search); it is read before `inherit`, so a page listed there stays outside even under an inherited prefix. `/contents/` is the book's own table and needs no entry. A redirect stub (a tiny page, under 1,500 bytes, that only carries a meta refresh) needs no entry either: the check sets it aside and fails only if its target is not built.
 
 ## Components (kit/components)
-- `BookHead` (once in the layout, below the header): running head (part, chapter n of N, link to the part opener), progress rail in the part's colour, Contents link.
+- `BookHead` (once in the layout, below the header): running head (part, chapter n of N, link to the part opener), progress rail in the part's colour, Previous / Next (with the next chapter's title on wide screens) and the Contents link at the top, so a reader can turn the page without scrolling to the foot.
 - `BookFoot` (once in the layout, above the site footer): Previous / Next; an inherited page links back to its chapter.
 - `BookContents` (page `/contents/`): the whole spine with each chapter's one line.
 - `BookPart` (page `/part/[id]/`, `getStaticPaths` over `book.parts`): the opener: the part's paragraph, an optional picture in the default slot, the chapters, "Start reading".
@@ -28,7 +28,7 @@ Each takes `book` and the archive's `u` helper and reads the page's own path; no
 
 ## Gates
 - `node kit/tools/book_logic.mjs`: the order and placement rules, held to `kit/data/book-cases.json`, with planted faults.
-- `python3 kit/tools/checkbook.py --dist dist --book src/data/book.json`: reads the BUILT site. Fails on a page nobody placed, a chapter or opener with no built page, a path in the book twice, a missing or wrong running head, a Previous/Next that differs from the book's order, and an empty build. `checkbook_selftest.py` plants a fault for each.
+- `python3 kit/tools/checkbook.py --dist dist --book src/data/book.json`: reads the BUILT site. Fails on a page nobody placed, a chapter or opener with no built page, a path in the book twice, a missing or wrong running head, a Previous/Next (in the head or the foot) that differs from the book's order, a redirect stub whose target is not built, and an empty build. `checkbook_selftest.py` plants a fault for each.
 Wire `checkbook.py` into the archive's build chain after the build. A page that is not in the book fails the build.
 
 ## Rules for the writing

@@ -1,7 +1,8 @@
 ---
 /* The running head of the book: which part, which chapter, how far through, and the way to the Contents.
  * Mount once in the archive's layout, below the site header:  <BookHead book={book} u={u} />
- * It reads the page's own path, so no page passes anything. A page that is outside the book, or nowhere,
+ * It also carries Previous and Next (the same order as the foot) so a reader can turn the page from the top; a page that
+ * belongs to a chapter by prefix (a person, a name) has neither. It reads the page's own path, so no page passes anything. A page that is outside the book, or nowhere,
  * draws nothing (and kit/tools/checkbook.py fails the build on "nowhere").
  *
  * The data-book-* attributes are what the build check reads back from the built page. */
@@ -23,7 +24,8 @@ const label = show
 ---
 {show && (
   <div class="bk-head" data-book-part={loc.part ? loc.part.id : "front"} data-book-n={loc.n} data-book-total={loc.total}
-       data-book-inherited={loc.inherited ? loc.entry.path : null}>
+       data-book-inherited={loc.inherited ? loc.entry.path : null}
+       data-book-hprev={loc.prev ? loc.prev.path : null} data-book-hnext={loc.next ? loc.next.path : null}>
     <div class="bk-row">
       <span class="bk-where">
         {loc.part ? <a href={u(openerPath(loc.part))}>{label}</a> : <span>{label}</span>}
@@ -31,7 +33,11 @@ const label = show
           : loc.inherited ? <span class="bk-pos"> · <a href={u(loc.entry.path)}>{loc.entry.title}</a></span>
           : <span class="bk-pos"> · chapter {loc.n} of {loc.total}</span>}
       </span>
-      <a class="bk-toc" href={u(contents)}>Contents</a>
+      <span class="bk-nav">
+        {loc.prev && <a class="bk-pn bk-prev" rel="prev" href={u(loc.prev.path)} title={`Previous: ${loc.prev.title}`} aria-label={`Previous: ${loc.prev.title}`}>← <span class="bk-w">Previous</span></a>}
+        {loc.next && <a class="bk-pn bk-next" rel="next" href={u(loc.next.path)} title={`Next: ${loc.next.title}`} aria-label={`Next: ${loc.next.title}`}>Next<span class="bk-t">: {loc.next.title}</span> →</a>}
+        <a class="bk-toc" href={u(contents)}>Contents</a>
+      </span>
     </div>
     <div class="bk-rail" aria-hidden="true">
       {[0, ...parts.map((_, i) => i + 1)].map((i) => (
@@ -43,6 +49,12 @@ const label = show
 <style>
   .bk-head { font: 600 11px/1.3 var(--sans, system-ui, sans-serif); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3, #777); border-bottom: 1px solid var(--rule, #ddd); }
   .bk-row { max-width: var(--bk-width, 1240px); margin: 0 auto; padding: 8px 28px; display: flex; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
+  .bk-nav { display: flex; align-items: baseline; gap: 16px; min-width: 0; }
+  .bk-pn { color: var(--ink, #222); text-decoration: none; white-space: nowrap; }
+  .bk-pn:hover { color: var(--accent, #9a4b2b); }
+  .bk-t { display: none; }
+  .bk-w { display: none; }
+  @media (min-width: 900px) { .bk-t { display: inline-block; max-width: 28ch; overflow: hidden; text-overflow: ellipsis; vertical-align: bottom; } .bk-w { display: inline; } }
   .bk-where a, .bk-toc { color: var(--ink-2, #555); text-decoration: none; }
   .bk-where a:hover, .bk-toc:hover { color: var(--accent, #9a4b2b); }
   .bk-where > a:first-child { color: var(--ink, #222); }

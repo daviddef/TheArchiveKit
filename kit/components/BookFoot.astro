@@ -27,10 +27,10 @@ const kindWord = (e) => (e.kind === "opener" ? "Part opening" : e.kind === "fron
   </nav>
 )}
 <style>
-  .bk-foot { max-width: var(--bk-width, 1240px); margin: 40px auto 0; padding: 0 28px; display: grid; grid-template-columns: 1fr 1fr; border-top: 1px solid var(--rule, #ddd); }
+  .bk-foot { max-width: var(--bk-width, 1240px); margin: 40px auto 0; padding: 0 28px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); border-top: 1px solid var(--rule, #ddd); }
   .bk-a { padding: 18px 4px; color: var(--ink, #222); text-decoration: none; font: 500 16px/1.4 var(--serif, Georgia, serif); }
   .bk-a small { display: block; font: 600 11px/1.3 var(--sans, system-ui, sans-serif); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3, #777); margin-bottom: 3px; }
   .bk-a:hover { color: var(--accent, #9a4b2b); }
   .bk-r { text-align: right; border-left: 1px solid var(--rule, #ddd); padding-right: 4px; padding-left: 16px; }
-  @media (max-width: 640px) { .bk-foot { grid-template-columns: 1fr; padding: 0 16px; } .bk-r { text-align: left; border-left: 0; border-top: 1px solid var(--rule, #ddd); padding-left: 4px; } }
+  @media (max-width: 640px) { .bk-foot { grid-template-columns: minmax(0, 1fr); padding: 0 16px; } .bk-r { text-align: left; border-left: 0; border-top: 1px solid var(--rule, #ddd); padding-left: 4px; } }
 </style>
