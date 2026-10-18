@@ -1,0 +1,23 @@
+{
+  "people": [
+    {"name": "Hugo Vale", "url": "/people/hugo-vale/"},
+    {"name": "Ivo Coe", "url": "/people/ivo-coe/"},
+    {"name": "Sam Both", "url": "/people/sam-both/"},
+    {"name": "Nell Orrin Vale", "url": "/people/nell-orrin-vale/"},
+    {"name": "Marta Arena", "url": "/people/marta-arena/"},
+    {"name": "Tess Lane", "url": "/people/tess-lane/"}
+  ],
+  "ambiguous": [
+    {"name": "Nell Orrin", "url": "/people/?q=Nell%20Orrin",
+     "bearers": ["/people/nell-orrin-vale/", "/people/nell-orrin-coe/"],
+     "resolve": [
+       {"near": "/people/hugo-vale/", "url": "/people/nell-orrin-vale/"},
+       {"near": "/people/ivo-coe/", "url": "/people/nell-orrin-coe/"},
+       {"near": "/people/sam-both/", "url": "/people/nell-orrin-vale/"},
+       {"near": "/people/sam-both/", "url": "/people/nell-orrin-coe/"},
+       {"near": "/people/tess-lane/", "url": null}
+     ]},
+    {"name": "Ivo Marl", "url": "/people/?q=Ivo%20Marl", "resolve": [{"near": "/people/marta-arena/", "url": "/people/ivo-coe/"}]},
+    {"name": "Pavel Korda", "url": "/people/?q=Pavel%20Korda"}
+  ]
+}

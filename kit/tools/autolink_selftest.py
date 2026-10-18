@@ -76,12 +76,19 @@ def put(dist, rel, text):
     open(os.path.join(d, "index.html"), "w", encoding="utf-8", newline="").write(text)
 
 
+ANCHOR = r'<a href="([^"]*)" data-autolink="(?:person|near|search)"[^>]*>(.*?)</a>'
+
+
 def added(h):
-    return re.findall(r'<a href="([^"]*)" data-autolink>(.*?)</a>', h, re.S)
+    return [(a, b) for a, b in re.findall(ANCHOR, h, re.S)]
+
+
+def added_marks(h):
+    return re.findall(r'<a href="([^"]*)" data-autolink="([a-z]+)"[^>]*>(.*?)</a>', h, re.S)
 
 
 def stripped(h):
-    return re.sub(r'<a href="[^"]*" data-autolink>(.*?)</a>', r"\1", h, flags=re.S)
+    return re.sub(ANCHOR, r"\2", h, flags=re.S)
 
 
 class Nest(html.parser.HTMLParser):
@@ -375,6 +382,235 @@ case("the gate runs without a living list too", c == 0, out)
 open(fl, "w").write("{not json")
 c, out = gate(d)
 case("a corrupt floor file is a refusal", c == 2 and "floor" in out, out)
+shutil.rmtree(t, ignore_errors=True)
+
+# ------------------------------------------------------------------------------------------------ resolve: near
+print("resolve rules: a shared name decided by a relative named in the section")
+NIDX = os.path.join(FIX, "index-near.json")
+NLIV = os.path.join(FIX, "living-near.json")
+NSITE = os.path.join(FIX, "site-near")
+NIX = json.load(open(NIDX, encoding="utf-8"))
+for r in NIX["people"] + NIX["ambiguous"]:
+    NAMES.add(r["name"]); NAMES.update(r.get("aliases", [])); SLUGS.add(r["url"].strip("/").split("/")[-1])
+
+
+def fresh_near():
+    t_ = tempfile.mkdtemp(prefix="autolink-near-")
+    d_ = os.path.join(t_, "dist")
+    shutil.copytree(NSITE, d_)
+    return t_, d_
+
+
+def sec_links(h):
+    """{heading text: [(href, mark, text)]} for the added links of each <h2> section of the story page."""
+    out = {}
+    for chunk in h.split("<h2>")[1:]:
+        head, _, body = chunk.partition("</h2>")
+        out[head.split(":")[0]] = [(a, m, t_) for a, m, t_ in added_marks(body)]
+    return out
+
+
+t, d = fresh_near(); nbefore = snapshot(d)
+c, out = autolink(d, index=NIDX, living=NLIV)
+case("near: a run exits 0 and reports the three kinds", c == 0 and "added 29 links" in out and "14 to one person" in out
+     and "6 to one person decided by a relative" in out and "9 to a search address" in out and "6 resolve rules, 1 relatives shared by two bearers" in out, out)
+st = page(d, "story"); S = sec_links(st)
+VALE, COE, SEARCH = "/people/nell-orrin-vale/", "/people/nell-orrin-coe/", "/people/?q=Nell%20Orrin"
+nell = lambda sec: [(a, m) for a, m, t_ in S[sec] if t_ == "Nell Orrin"]
+case("near: the spouse named first decides it (exact link to her page, data-autolink=near), and only once in the section",
+     nell("One") == [(VALE, "near")], S["One"])
+case("near: the relative named AFTER the name decides it too (the section is read as a whole)", nell("Two") == [(COE, "near")], S["Two"])
+case("near: two rules that point at different people in one section fall back to the search link, never a guess",
+     nell("Three") == [(SEARCH, "search")], S["Three"])
+case("near: a relative of BOTH bearers decides nothing (two rules fire for different people) and the stats count the rule",
+     nell("Four") == [(SEARCH, "search")] and al.load_index(NIDX, prefixes=None).stats["rules_shared_near"] == 1, S["Four"])
+case("near: nobody beside her, so the search link; a name with no rules at all is a search link as before",
+     nell("Five") == [(SEARCH, "search")] and ("/people/?q=Pavel%20Korda", "search", "Pavel Korda") in S["Five"], S["Five"])
+case("near: a relative named only in ANOTHER section does not fire", nell("Seven") == [(SEARCH, "search")], S["Seven"])
+case("near: a hand-made link to the relative in the section counts as named", nell("Eight") == [(COE, "near")], S["Eight"])
+case("near: a relative inside a data-no-autolink block, or only in a heading, does not count",
+     nell("Nine") == [(SEARCH, "search")] and nell("Eleven") == [(SEARCH, "search")], (S["Nine"], S["Eleven"]))
+case("near: the bearer already linked in the section by hand covers the mention (no second link, no search link)",
+     nell("Ten") == [] and "N. O.</a>, " in st, S["Ten"])
+case("marks: person links say person, a person page is linked the same way",
+     all(m == "person" for a, m, t_ in added_marks(st) if t_ in ("Hugo Vale", "Ivo Coe", "Sam Both", "Marta Arena")), added_marks(st)[:4])
+srch = [x for x in re.findall(r'<a [^>]*data-autolink="search"[^>]*>', st)]
+case("search: every search link carries class lk-shared, the title, and an aria-label that starts with the visible name",
+     srch and all('class="lk-shared"' in x and 'title="Several people share this name: opens the list"' in x
+                  and re.search(r'aria-label="(Nell Orrin|Pavel Korda), several people share this name: opens the list"', x) for x in srch), srch[:1])
+case("search: no other link carries the class or the title (the cue is for unresolved links only)",
+     all("lk-shared" not in x and "title=" not in x for x in re.findall(r'<a [^>]*data-autolink="(?:person|near)"[^>]*>', st)))
+pp = page(d, "people/nell-orrin-vale")
+case("near: a link made from a rule is a result, never evidence: Ivo Marl is decided by Marta Arena, and that does not also decide Nell Orrin by Ivo Coe",
+     [(a, m) for a, m, t_ in S["Twelve"] if t_ in ("Ivo Marl", "Nell Orrin")] == [("/people/ivo-coe/", "near"), (VALE, "near")], S["Twelve"])
+case("near: a counter-rule (url null) for a relative of a bearer who cannot be linked turns an otherwise-decided name into a search link, and decides nothing alone",
+     nell("Thirteen") == [(SEARCH, "search")] and nell("Fourteen") == [(SEARCH, "search")], (S["Thirteen"], S["Fourteen"]))
+case("near: it works on a person page's own text as it does anywhere in scope", added_marks(pp) == [("/people/hugo-vale/", "person", "Hugo Vale"), (VALE, "near", "Nell Orrin")], added_marks(pp))
+case("near: not one other byte moves (wrappers removed give back every page exactly)",
+     all(stripped(open(os.path.join(d, k), encoding="utf-8", newline="").read()) == v.decode("utf-8") for k, v in nbefore.items()))
+case("near: never a link inside a link", all(nested_links(open(os.path.join(d, k), encoding="utf-8").read()) == 0 for k in nbefore))
+nafter = snapshot(d)
+c2, out2 = autolink(d, index=NIDX, living=NLIV)
+case("near: idempotent: a second run adds 0 and changes no byte", c2 == 0 and "added 0 links" in out2 and snapshot(d) == nafter, out2)
+c3, out3 = autolink(d, ["--check"], index=NIDX, living=NLIV)
+case("near: --check on a processed build exits 0", c3 == 0, out3)
+nfl = os.path.join(t, "floor.json")
+c, out = gate(d, index=NIDX, living=NLIV, floor=nfl)
+case("near gate: counts exact, near and search separately", c == 0 and "29 data-autolink links checked (14 exact, 6 near, 9 search)" in out, out)
+
+# the gate's planted faults on the processed build
+base_story = page(d, "story")
+NEARLINK = '<a href="%s" data-autolink="near">Nell Orrin</a>' % VALE
+for label, repl, want in [
+    ("a near link to an address that is not in the index", NEARLINK.replace(VALE, "/people/nobody-here/"), "not in the index"),
+    ("a near link whose section names none of its rule's relatives", '<h2>Fifteen: alone</h2><p>%s</p>' % NEARLINK, "near:"),
+    ("a near link to a bearer when the section's relative points at the other bearer", '<h2>Fifteen: x</h2><p>Ivo Coe and %s</p>' % NEARLINK, "near:"),
+    ("a near link on a name that has no rule at all", '<h2>Fifteen: x</h2><p>Hugo Vale and <a href="/people/hugo-vale/" data-autolink="near">Pavel Korda</a></p>', "near:"),
+    ("a person link marked near", '<h2>Fifteen: x</h2><p><a href="/people/hugo-vale/" data-autolink="near">Hugo Vale</a></p>', "near:"),
+    ("a mark the tool never writes", '<h2>Fifteen: x</h2><p><a href="/people/hugo-vale/" data-autolink="exact">Hugo Vale</a></p>', "stale:"),
+    ("a search link without the class that names it", '<h2>Fifteen: x</h2><p><a href="/people/?q=Nell%20Orrin" data-autolink="search" title="Several people share this name: opens the list">Nell Orrin</a></p>', "search:"),
+    ("a search link without the title", '<h2>Fifteen: x</h2><p><a href="/people/?q=Nell%20Orrin" data-autolink="search" class="lk-shared">Nell Orrin</a></p>', "search:"),
+    ("a person link that goes to a search address", '<h2>Fifteen: x</h2><p><a href="/people/?q=Nell%20Orrin" data-autolink="person">Nell Orrin</a></p>', "stale:"),
+    ("a near link to a person the living list holds", '<h2>Fifteen: x</h2><p>Hugo Vale and <a href="/people/wren-pell/" data-autolink="near">Nell Orrin</a></p>', "living:"),
+]:
+    put(d, "story", base_story.replace("</main>", "%s</main>" % (repl if repl.startswith("<h2>") else "<h2>Fifteen: x</h2><p>Hugo Vale and %s</p>" % repl)))
+    c, out = gate(d, index=NIDX, living=NLIV, floor=nfl)
+    case("near gate: %s fails" % label, c == 1 and want in out and "wren-pell" not in out and "nobody-here" not in out, out)
+put(d, "story", base_story.replace("</main>", '<h2>Fifteen: x</h2><p>Hugo Vale and %s</p></main>' % NEARLINK))
+c, out = gate(d, index=NIDX, living=NLIV, floor=nfl)
+case("near gate: control: a near link whose section does name its relative passes (so the faults above can fail)", c == 0, out)
+put(d, "story", base_story)
+# the same page, the rule's relative is not in the section any more: the link has gone stale
+gone = '<a href="/people/hugo-vale/" data-autolink="person">Hugo Vale</a> married '
+put(d, "story", base_story.replace(gone, "Someone married "))
+assert gone in base_story
+c, out = gate(d, index=NIDX, living=NLIV, floor=nfl)
+case("near gate: a relative taken out of the text afterwards makes the near link fail (rebuild and re-run)", c == 1 and "near:" in out, out)
+put(d, "story", base_story)
+
+# refusals for the rules themselves
+def near_refused(mut, label, want, living=NLIV):
+    obj = json.loads(json.dumps(NIX)); mut(obj)
+    t_, d_ = fresh_near()
+    ip = os.path.join(t_, "ix.json"); json.dump(obj, open(ip, "w", encoding="utf-8"))
+    b = snapshot(d_)
+    for tn in ("autolink.py", "checklinks.py"):
+        c_, o_ = (autolink if tn == "autolink.py" else gate)(d_, index=ip, living=living)
+        case("%s: %s is refused with exit 2 and nothing changes" % (tn.split(".")[0], label),
+             c_ == 2 and want in o_ and snapshot(d_) == b and "wren-pell" not in o_ and "Wren" not in o_, o_)
+    shutil.rmtree(t_, ignore_errors=True)
+
+near_refused(lambda o: o["ambiguous"][0]["resolve"].append({"near": "/people/hugo-vale/", "url": "/people/wren-pell/"}),
+             "a resolve rule to a living person (planted)", "LIVING: 1 index entry")
+near_refused(lambda o: o["ambiguous"][0]["resolve"].append({"near": "/people/wren-pell/", "url": VALE}),
+             "a resolve rule whose relative is a living person (planted)", "LIVING: 1 index entry")
+near_refused(lambda o: o["ambiguous"][0]["resolve"].append({"near": "/people/hugo-vale/", "url": "/people/not-indexed/"}),
+             "a rule that decides on a person the index does not list", "does not hold")
+near_refused(lambda o: o["ambiguous"][0]["resolve"].append({"near": "/people/not-indexed/", "url": VALE}),
+             "a rule whose relative the index does not list", "does not hold")
+near_refused(lambda o: o["ambiguous"][0]["resolve"].append({"near": "/people/hugo-vale/", "url": "/people/other-bearer/"}) or o["ambiguous"][1].update(
+             bearers=["/people/other-bearer/"]), "a rule whose person is listed as a bearer of a DIFFERENT name only", "does not hold")
+near_refused(lambda o: o["ambiguous"][0]["bearers"].append("/people/wren-pell/"), "a bearer who is living (planted)", "LIVING: 1 index entry")
+near_refused(lambda o: o["ambiguous"][0]["bearers"].append("/admin/x/"), "a bearer outside the public prefixes", "malformed")
+near_refused(lambda o: o["ambiguous"][0].update(bearers="nope"), "bearers that is not a list", "malformed")
+near_refused(lambda o: o["people"][0].update(bearers=[COE]), "bearers on a people row", "malformed")
+near_refused(lambda o: o["ambiguous"][0]["resolve"].append({"near": VALE, "url": VALE}), "a rule that points at itself", "malformed")
+near_refused(lambda o: o["ambiguous"][0]["resolve"].append({"near": "/people/hugo-vale/"}), "a rule with no url key (a counter-rule says url: null)", "malformed")
+near_refused(lambda o: o["ambiguous"][0]["resolve"].append({"near": "/people/hugo-vale/", "url": 5}), "a rule whose url is not an address or null", "malformed")
+near_refused(lambda o: o["ambiguous"][0]["resolve"].append({"near": "/people/wren-pell/", "url": None}), "a counter-rule whose relative is a living person (planted)", "LIVING: 1 index entry")
+near_refused(lambda o: o["ambiguous"][0]["resolve"].append({"near": "/people/not-indexed/", "url": None}), "a counter-rule whose relative the index does not list", "does not hold")
+near_refused(lambda o: o["ambiguous"][0].update(resolve={"a": 1}), "resolve that is not a list", "malformed")
+near_refused(lambda o: o["people"][0].update(resolve=[{"near": VALE, "url": COE}]), "resolve on a people row", "malformed")
+near_refused(lambda o: o["ambiguous"][0]["resolve"].append({"near": "/admin/x/", "url": VALE}), "a rule outside the public prefixes", "malformed")
+near_refused(lambda o: o.update(labels={"shared": 3}), "labels that are not strings", "labels")
+
+# the near window: "beside" is a distance in text, not the whole section (a long page is one section for many families)
+FILL = " ".join(["word"] * 100)                      # 499 characters of text between the two names
+def nearwin(window, body):
+    obj = json.loads(json.dumps(NIX))
+    if window is not None:
+        obj["nearWindow"] = window
+    ix_ = mk_index_obj(obj)
+    out_, sc_ = micro(body, idx=ix_)
+    return [(a, m) for a, m, t_ in added_marks(out_) if t_ == "Nell Orrin"]
+def mk_index_obj(obj):
+    t_ = tempfile.mkdtemp(prefix="autolink-ix-"); ip_ = os.path.join(t_, "i.json"); json.dump(obj, open(ip_, "w", encoding="utf-8"))
+    try:
+        return al.load_index(ip_)
+    finally:
+        shutil.rmtree(t_, ignore_errors=True)
+before_, after_ = "<p>Hugo Vale. %s Nell Orrin.</p>" % FILL, "<p>Nell Orrin. %s Hugo Vale.</p>" % FILL
+near_, far_ = "<p>Hugo Vale. %s Nell Orrin.</p>" % ("word " * 20), "<p>Nell Orrin said so. Hugo Vale.</p>"
+case("window: by default (120 characters) a relative 500 characters away, before or after, decides nothing: the search link",
+     nearwin(None, before_) == [(SEARCH, "search")] and nearwin(None, after_) == [(SEARCH, "search")], (nearwin(None, before_), nearwin(None, after_)))
+case("window: ...and one within it decides, before or after", nearwin(None, near_) == [(VALE, "near")] and nearwin(None, far_) == [(VALE, "near")], nearwin(None, near_))
+case("window: nearWindow 0 in the index means the whole section", nearwin(0, before_) == [(VALE, "near")] and nearwin(0, after_) == [(VALE, "near")])
+case("window: nearWindow 600 reaches it, 100 does not", nearwin(600, before_) == [(VALE, "near")] and nearwin(100, near_) == [(SEARCH, "search")])
+case("window: a link counts by where it stands, like a mention",
+     nearwin(None, '<p><a href="/people/hugo-vale/">his</a> %s Nell Orrin.</p>' % FILL) == [(SEARCH, "search")]
+     and nearwin(None, '<p><a href="/people/hugo-vale/">his</a> Nell Orrin.</p>') == [(VALE, "near")])
+case("window: the distance is in text, so markup between the names does not use it up",
+     nearwin(None, "<p>Hugo Vale<span class='x' data-a='%s'> and </span><b>Nell Orrin</b>.</p>" % FILL) == [(VALE, "near")])
+# the block: a relative counts only in the same paragraph, list item, table row, quotation... as the shared name
+case("block: a relative in the NEXT paragraph, list item or table row decides nothing (a section is not one place)",
+     nearwin(None, "<p>Hugo Vale.</p><p>Nell Orrin.</p>") == [(SEARCH, "search")]
+     and nearwin(None, "<ul><li>Hugo Vale</li><li>Nell Orrin</li></ul>") == [(SEARCH, "search")]
+     and nearwin(None, "<table><tr><td>Hugo Vale</td></tr><tr><td>Nell Orrin</td></tr></table>") == [(SEARCH, "search")]
+     and nearwin(0, "<p>Hugo Vale.</p><p>Nell Orrin.</p>") == [(SEARCH, "search")])
+case("block: ...but in the same one, however many cells or inline elements lie between, it decides",
+     nearwin(None, "<table><tr><td>Hugo Vale</td><td>1850</td><td>Nell Orrin</td></tr></table>") == [(VALE, "near")]
+     and nearwin(None, "<ul><li><b>Hugo Vale</b> and <i><a href='#'>x</a> Nell Orrin</i></li></ul>") == [(VALE, "near")]
+     and nearwin(None, "<blockquote>Nell Orrin, wife of Hugo Vale</blockquote>") == [(VALE, "near")])
+case("block: a list item inside a paragraph-less div is its own block; text with no block element around it is one block per section",
+     nearwin(None, "<div>Hugo Vale and Nell Orrin</div>") == [(VALE, "near")]
+     and nearwin(None, "<div>Hugo Vale</div><p>Nell Orrin.</p>") == [(SEARCH, "search")])
+case("block: a hand-made link counts in its own block only",
+     nearwin(None, '<p><a href="/people/hugo-vale/">x</a></p><p>Nell Orrin.</p>') == [(SEARCH, "search")])
+for bad_w in (-1, "300", True, 1.5):
+    near_refused(lambda o, w=bad_w: o.update(nearWindow=w), "nearWindow %r" % (bad_w,), "nearWindow")
+t2, d2 = fresh_near(); obj = json.loads(json.dumps(NIX)); obj["nearWindow"] = 0
+put(d2, "wide", "<html><body><main><h1>x</h1><p>Hugo Vale. %s Nell Orrin.</p></main></body></html>" % FILL)
+ip = os.path.join(t2, "ix.json"); json.dump(obj, open(ip, "w", encoding="utf-8"))
+c, out = autolink(d2, index=ip, living=NLIV)
+case("window: a build made with nearWindow 0 links the far relative", c == 0 and (VALE, "near") in [(a, m) for a, m, t_ in added_marks(page(d2, "wide"))], out)
+c, out = gate(d2, index=ip, living=NLIV, floor=os.path.join(t2, "f.json"))
+case("window: the gate, given the same window, passes", c == 0, out)
+c, out = gate(d2, ["--near-window", "300"], index=ip, living=NLIV, floor=os.path.join(t2, "f.json"))
+case("window: the gate, run with a narrower window than the pass, fails the near link (the two must agree)", c == 1 and "near:" in out, out)
+shutil.rmtree(t2, ignore_errors=True)
+
+# labels: configurable text, and off
+for label, labels, check in [
+    ("custom text", {"shared": "Mehrere Personen tragen diesen Namen"}, lambda x: 'title="Mehrere Personen tragen diesen Namen"' in x and re.search(r'aria-label="(Nell Orrin|Pavel Korda), mehrere Personen tragen diesen Namen"', x)),
+    ("an empty text turns the title and aria-label off but keeps the class", {"shared": ""}, lambda x: 'class="lk-shared"' in x and "title=" not in x and "aria-label" not in x),
+    ("markup in the text is escaped in the attribute", {"shared": 'A "few" <b>&'}, lambda x: 'title="A &quot;few&quot; &lt;b&gt;&amp;"' in x and "<b>" not in x),
+]:
+    obj = json.loads(json.dumps(NIX)); obj["labels"] = labels
+    t2, d2 = fresh_near(); ip = os.path.join(t2, "ix.json"); json.dump(obj, open(ip, "w", encoding="utf-8"))
+    c, out = autolink(d2, index=ip, living=NLIV)
+    x = [m for m in re.findall(r'<a [^>]*data-autolink="search"[^>]*>', page(d2, "story")) if "Nell" in m or "lk-shared" in m]
+    c2, out2 = gate(d2, index=ip, living=NLIV, floor=os.path.join(t2, "f.json"))
+    case("labels: %s; the gate agrees" % label, c == 0 and x and all(check(m) for m in x) and c2 == 0, (out, x[:1], out2))
+    shutil.rmtree(t2, ignore_errors=True)
+
+# a build made by the previous kit (a bare data-autolink) still passes the gate
+t2, d2 = fresh(); autolink(d2)
+legacy = re.sub(r' data-autolink="(?:person|near|search)"[^>]*>', " data-autolink>", page(d2, "story"))
+legacy = re.sub(r'<a href="([^"]*)" data-autolink>', r'<a href="\1" data-autolink>', legacy)
+put(d2, "story", legacy)
+c, out = gate(d2, ["--write-floor"])
+case("a page made by the previous kit (bare data-autolink) is still read: exact links by their address", c == 0 and "exact" in out, out)
+shutil.rmtree(t2, ignore_errors=True)
+
+# without any resolve rule the tool behaves exactly as before, apart from the marks
+t2, d2 = fresh_near(); obj = json.loads(json.dumps(NIX))
+for r_ in obj["ambiguous"]:
+    r_.pop("resolve", None)
+ip = os.path.join(t2, "ix.json"); json.dump(obj, open(ip, "w", encoding="utf-8"))
+c, out = autolink(d2, index=ip, living=NLIV)
+case("an index with no resolve rule links every Nell Orrin to the search address", c == 0 and "0 to one person decided" in out
+     and all(m == "search" for a, m, t_ in added_marks(page(d2, "story")) if t_ == "Nell Orrin"), out)
+shutil.rmtree(t2, ignore_errors=True)
 shutil.rmtree(t, ignore_errors=True)
 
 # ------------------------------------------------------------------------------------------------ counts only

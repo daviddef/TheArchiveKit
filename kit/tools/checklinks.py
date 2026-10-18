@@ -23,11 +23,17 @@ THE RATCHET (.linkfloor.json, committed): one number per page, and a page may on
 WHAT ELSE IT FAILS
   stale         a link carrying data-autolink whose address is not in the index (a person was merged, removed or hidden
                 after the pass ran), or whose text is no longer a name or alias of that address
+  near          a data-autolink="near" link (a name several people bear, decided by a relative named in the section) whose
+                address is not an indexed person, whose text is not an ambiguous name with a resolve rule to that address, or
+                whose rules do not, in its own section, decide on exactly that address (the relative is not named there, or
+                two rules point at different people)
+  search        a data-autolink="search" link that lacks the class lk-shared, or the title the index's labels["shared"] asks for
   living        a link carrying data-autolink to an address, or with the text, that the living list holds
   refusal       (exit 2) an empty build, no page with the scope element, an empty index, an index entry the living list
                 also holds, an address outside the public prefixes: "a check that examined nothing has not passed"
 
-Prints counts, never a person's name. A page under a public prefix (/people/, /who/) is reported in a group, not by
+Links are counted by kind: exact (data-autolink="person"), near, search. A link with a bare data-autolink (a build made by an
+older kit) is counted by what its address is. Prints counts, never a person's name. A page under a public prefix (/people/, /who/) is reported in a group, not by
 address, because its address is a name.
 
 EXIT CODES: 0 pass; 1 fail; 2 refused.
@@ -58,8 +64,18 @@ def count_build(dist, idx, scope):
         url = al.page_url(dist, p)
         pages[url] = (len(sc.inserts), sc.mentions)
         for l in sc.autolinks:
-            links.append((url, l["href"], l["text"]))
+            links.append((url, l["href"], l["text"], l, sc.named(l["section"], l["block"], l["tpos"])))
     return pages, links, n_html
+
+
+def link_kind(l, href, idx):
+    """exact | near | search | bad (a mark the tool never writes). A bare data-autolink is told by its address."""
+    m = l["mark"]
+    if m in ("person", "near", "search"):
+        return {"person": "exact"}.get(m, m)
+    if m == "":
+        return "search" if href in idx.ambiguous_urls and href not in idx.person_urls else "exact"
+    return "bad"
 
 
 def load_floor(path):
@@ -89,20 +105,50 @@ def evaluate(counts, links, idx, floor, new_page_max, living_names, living_urls)
             if n > new_page_max:
                 new_bad += 1
                 v.append(("new", url, "a page not in the floor has %d unlinked resolvable names (allowed %d)" % (n, new_page_max)))
-    stale = mismatch = living = 0
-    for (url, href, text) in links:
-        if href in living_urls or al.name_key(text) in living_names:
+    stale = mismatch = living = nearbad = cue = 0
+    kinds = {"exact": 0, "near": 0, "search": 0, "bad": 0}
+    for (url, href, text, l, named) in links:
+        kind = link_kind(l, href, idx)
+        kinds[kind] += 1
+        k = al.name_key(text)
+        if href in living_urls or k in living_names:
             living += 1
             v.append(("living", url, "a data-autolink link to a living or held-out person"))
+            continue
+        if kind == "bad":
+            stale += 1
+            v.append(("stale", url, "a data-autolink link whose mark is none of person, near or search"))
             continue
         if href not in idx.urls:
             stale += 1
             v.append(("stale", url, "a data-autolink link whose address is not in the index"))
             continue
-        if al.name_key(text) not in idx.names_by_url.get(href, set()):
+        if kind == "near":
+            rules = [r for r in idx.rules.get(k, ()) if r[1] == href]
+            if href not in idx.person_urls or not rules:
+                nearbad += 1
+                v.append(("near", url, "a near link whose address is not an indexed person, or whose text has no resolve rule to it"))
+            elif {r[1] for r in idx.rules[k] if r[0] in named} != {href}:
+                nearbad += 1
+                v.append(("near", url, "a near link whose section does not name exactly the relative its rule needs (or two rules disagree)"))
+            continue
+        if kind == "exact" and href not in idx.person_urls:
+            stale += 1
+            v.append(("stale", url, "an exact data-autolink link to an address that is a search address, not a person"))
+            continue
+        if kind == "search" and href in idx.person_urls:
+            stale += 1
+            v.append(("stale", url, "a search data-autolink link to a person's own address"))
+            continue
+        if k not in idx.names_by_url.get(href, set()):
             mismatch += 1
             v.append(("stale", url, "a data-autolink link whose text is no longer a name of its address"))
-    summary = {"rises": rises, "new_bad": new_bad, "below": below, "stale": stale, "mismatch": mismatch, "living": living}
+            continue
+        if kind == "search" and l["mark"] == "search" and idx.labels.get("shared") and (al.SHARED_CLASS not in l["class"] or l["title"] != idx.labels["shared"]):
+            cue += 1
+            v.append(("search", url, "a search link without the class %s or the title that says several people share the name" % al.SHARED_CLASS))
+    summary = {"rises": rises, "new_bad": new_bad, "below": below, "stale": stale, "mismatch": mismatch, "living": living,
+               "near_bad": nearbad, "cue": cue, "kinds": kinds}
     return v, summary
 
 
@@ -140,6 +186,7 @@ def main(argv=None):
     ap.add_argument("--new-page-max", type=int, default=3)
     ap.add_argument("--allow-prefix", action="append", default=[])
     ap.add_argument("--min-words", type=int, default=2)
+    ap.add_argument("--near-window", type=int, default=None, help="as in autolink.py; must be the value the pass ran with")
     a = ap.parse_args(argv)
     dist = _outdir.resolve(a.dist)
     try:
@@ -165,8 +212,9 @@ def main(argv=None):
     mentions = sum(m for _, m in counts.values())
     pages_missing = sum(1 for n, _ in counts.values() if n)
     base = ("%d pages, %d with <%s>; %d resolvable names unlinked in their section on %d pages (of %d resolvable mentions); "
-            "%d data-autolink links checked; floor %s"
+            "%d data-autolink links checked (%d exact, %d near, %d search); floor %s"
             % (n_html, len(counts), a.scope, total, pages_missing, mentions, len(links),
+               s["kinds"]["exact"], s["kinds"]["near"], s["kinds"]["search"],
                ("%d pages" % len(floor)) if floor is not None else "absent"))
     if a.write_floor:
         viol = [x for x in viol if x[0] != "new"]      # a page not yet in the floor enters it at its current count

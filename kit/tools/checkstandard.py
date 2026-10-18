@@ -1009,7 +1009,7 @@ def main(argv=None):
         info = {"citing": 0, "linked": 0, "held": 0, "exempt": 0}
         results[u] = page_counts(w, sc1, cfg, held, info, seen)
         for l in sc1.autolinks:
-            links.append((u, l["href"], l["text"]))
+            links.append((u, l["href"], l["text"], l, sc1.named(l["section"], l["block"], l["tpos"])))
         for k in info_all:
             info_all[k] += info[k]
     if _outdir.settled(dist, before, "checkstandard"):

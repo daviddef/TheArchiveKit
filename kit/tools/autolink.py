@@ -16,6 +16,16 @@ THE INDEX is supplied by each archive, generated from its own people data (see k
 
   people     names that resolve to exactly ONE deceased person who has a page
   ambiguous  names borne by several people, sent to the archive's search or disambiguation address
+  ambiguous entries may carry "resolve": [{"near": "<person url>", "url": "<person url>"}], archive-generated from relationship
+             data (spouses; see kit/docs/autolink.md): "when a relative (near) of exactly ONE bearer of this name is named BESIDE the
+             name, the name is that bearer (url)". Beside = the same section, the same block (<p>, <li>, <tr>...) and within
+             nearWindow characters of text (the index's "nearWindow", default 120; 0 = the whole block). "bearers": ["<person url>", ...]
+             lists the deceased, paged bearers who are not in `people` (a shared name is not there); a rule's url may be one.
+             "url": null is a counter-rule (a relative of a bearer who cannot be linked): named beside the name it forbids a decision.
+             A mention decided by exactly one rule is linked to that url (data-autolink="near"); when no rule fires, or two rules
+             with different urls fire, the link goes to the search address (data-autolink="search", class lk-shared, title and
+             aria-label saying so: the index's optional "labels": {"shared": "..."}). A name that resolves to one person is
+             data-autolink="person". A near link is a result, never evidence for another rule.
 The tool links ONLY what the index lists. A bare first name, an alias nobody listed, a name in a table the archive
 marked data-no-autolink: not linked, by design.
 
@@ -60,6 +70,10 @@ SKIP_TAGS = {"a", "h1", "h2", "h3", "h4", "h5", "h6", "nav", "script", "style", 
 RAW_TEXT = {"script", "style", "textarea", "title"}
 VOID = {"area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param", "source", "track", "wbr"}
 SECTION_TAGS = {"h2", "h3", "section"}
+BLOCK_TAGS = {"p", "li", "dd", "dt", "tr", "blockquote", "figcaption", "caption", "summary"}   # a near rule reads one of these at a time
+SHARED_CLASS = "lk-shared"
+DEFAULT_NEAR_WINDOW = 120          # text characters either side of a shared name in which its relative must stand (0: the whole section)
+DEFAULT_LABELS = {"shared": "Several people share this name: opens the list"}
 
 TOKEN = re.compile(r'<!--.*?-->|<!\[CDATA\[.*?\]\]>|<![^>]*>|<\?.*?\?>|</[A-Za-z][^>]*>|<[A-Za-z](?:"[^"]*"|\'[^\']*\'|[^>"\'])*>', re.S)
 TAGNAME = re.compile(r"</?([A-Za-z][^\s/>]*)")
@@ -167,15 +181,16 @@ def _caps_equal(seg, word):
 
 # ----------------------------------------------------------------------------------------------------- the index
 class Entry:
-    __slots__ = ("kind", "words", "text", "url", "alias", "key")
+    __slots__ = ("kind", "words", "text", "url", "alias", "key", "resolve")
 
-    def __init__(self, kind, name, url, alias):
+    def __init__(self, kind, name, url, alias, resolve=()):
         self.kind = kind                      # "person" | "ambiguous" | "living"
         self.text = norm_name(name)
         self.words = tuple(self.text.split(" "))
         self.url = url or ""                  # already normalized by the caller
         self.alias = alias
         self.key = self.text.casefold()
+        self.resolve = tuple(resolve)          # ((near address, person address), ...): only on an ambiguous entry
 
 
 class Index:
@@ -183,11 +198,17 @@ class Index:
         self.entries = []         # every Entry the matcher searches for (living ones included)
         self.by_first = {}        # first-word key -> [Entry] longest first
         self.urls = set()         # addresses the index may link to
+        self.person_urls = set()  # addresses of the `people` list: the only ones a near link may go to
+        self.ambiguous_urls = set()
+        self.rules = {}           # name key -> ((near, url), ...) of an ambiguous name the matcher holds
+        self.labels = dict(DEFAULT_LABELS)
+        self.near_window = DEFAULT_NEAR_WINDOW
         self.raw_url = {}         # normalized address -> address as the archive wrote it
         self.names_by_url = {}    # normalized address -> {name key}
         self.living_urls = set()
         self.living_names = set()
-        self.stats = {"people": 0, "ambiguous": 0, "aliases": 0, "conflicts_skipped": 0, "short_skipped": 0, "living_terms": 0}
+        self.stats = {"people": 0, "ambiguous": 0, "aliases": 0, "conflicts_skipped": 0, "short_skipped": 0, "living_terms": 0,
+                      "rules": 0, "rules_shared_near": 0}
 
     def _add(self, e):
         self.entries.append(e)
@@ -225,7 +246,7 @@ def load_living(path):
     return names, urls
 
 
-def load_index(path, living_names=frozenset(), living_urls=frozenset(), prefixes=None, min_words=2):
+def load_index(path, living_names=frozenset(), living_urls=frozenset(), prefixes=None, min_words=2, near_window=None):
     """Read the archive's index. Raises Refusal for anything that makes a run unsafe or meaningless."""
     prefixes = prefixes or DEFAULT_PREFIXES
     try:
@@ -236,8 +257,22 @@ def load_index(path, living_names=frozenset(), living_urls=frozenset(), prefixes
         raise Refusal("the index must be an object with \"people\" and \"ambiguous\" lists")
     idx = Index()
     idx.living_names, idx.living_urls = set(living_names), set(living_urls)
-    pending = []          # (kind, name, alias?, url)
-    bad_shape = bad_prefix = 0
+    near_window_cli = near_window
+    pending = []          # (kind, name, alias?, url, rules)
+    bad_shape = bad_prefix = bad_rules = 0
+    rule_raw = []         # (normalized address, as written) of every rule address; a people row's own spelling wins
+    rule_rows = []        # (rules, this row's bearers): each rule's addresses are checked once all the people are known
+    bearer_urls = set()
+    labels = data.get("labels")
+    if labels is not None:
+        if not isinstance(labels, dict) or any(not isinstance(v, str) for v in labels.values()):
+            raise Refusal("index.labels must be an object of strings")
+        idx.labels.update({k: " ".join(v.split()) for k, v in labels.items()})
+    nw = data.get("nearWindow")
+    if nw is not None:
+        if isinstance(nw, bool) or not isinstance(nw, int) or nw < 0:
+            raise Refusal("index.nearWindow must be a whole number of characters, 0 or more (0: the whole section)")
+        idx.near_window = nw
     for kind, field in (("person", "people"), ("ambiguous", "ambiguous")):
         rows = data.get(field) or []
         if not isinstance(rows, list):
@@ -251,31 +286,81 @@ def load_index(path, living_names=frozenset(), living_urls=frozenset(), prefixes
             if not any(nu.startswith(p) for p in prefixes):
                 bad_prefix += 1
                 continue
+            rules, row_bearers = [], set()
+            if r.get("bearers") is not None:
+                bb = r["bearers"]
+                if kind != "ambiguous" or not isinstance(bb, list) or not all(isinstance(b, str) and b.startswith("/") for b in bb):
+                    bad_shape += 1
+                    continue
+                row_bearers = {norm_url(b) for b in bb}
+                if not all(any(b.startswith(p) for p in prefixes) for b in row_bearers):
+                    bad_rules += 1
+                    continue
+                bearer_urls |= row_bearers
+                rule_raw.extend((norm_url(b), b) for b in bb)
+            if r.get("resolve") is not None:
+                rr = r["resolve"]
+                if kind != "ambiguous" or not isinstance(rr, list):
+                    bad_shape += 1
+                    continue
+                for x in rr:
+                    if not isinstance(x, dict) or not isinstance(x.get("near"), str) or not x["near"].startswith("/") \
+                            or "url" not in x or not (x["url"] is None or (isinstance(x["url"], str) and x["url"].startswith("/"))):
+                        bad_rules += 1
+                        continue
+                    # "url": null is a counter-rule: the relative belongs to a bearer who cannot be linked (living, held out, no page)
+                    rn, ru = norm_url(x["near"]), (norm_url(x["url"]) if x.get("url") is not None else None)
+                    if rn == ru or not all(any(u.startswith(p) for p in prefixes) for u in (rn, ru) if u is not None):
+                        bad_rules += 1
+                        continue
+                    rules.append((rn, ru))
+                    rule_raw.append((rn, x["near"]))
+                    if ru is not None:
+                        rule_raw.append((ru, x["url"]))
+            if rules:
+                rule_rows.append((tuple(rules), row_bearers))
             idx.stats["people" if kind == "person" else "ambiguous"] += 1
             idx.raw_url.setdefault(nu, r["url"])
-            pending.append((kind, r["name"], False, nu))
+            pending.append((kind, r["name"], False, nu, tuple(rules)))
             for al in (r.get("aliases") or []):
                 if isinstance(al, str) and al.strip():
                     idx.stats["aliases"] += 1
-                    pending.append((kind, al, True, nu))
+                    pending.append((kind, al, True, nu, tuple(rules)))
+    for (nu, raw_u) in rule_raw:
+        idx.raw_url.setdefault(nu, raw_u)
     if bad_shape:
         raise Refusal("%d index entr%s malformed (each needs a name and a root-relative url)" % (bad_shape, "y is" if bad_shape == 1 else "ies are"))
     if bad_prefix:
         raise Refusal("%d index entr%s an address outside the public prefixes %s" % (bad_prefix, "y has" if bad_prefix == 1 else "ies have", ", ".join(prefixes)))
+    if bad_rules:
+        raise Refusal("%d resolve rule%s or bearers list malformed (a rule needs a \"near\" and a \"url\", both root-relative, under a public "
+                      "prefix, and different; bearers is a list of such addresses)" % (bad_rules, " is" if bad_rules == 1 else "s are"))
+    if near_window_cli is not None:
+        idx.near_window = near_window_cli
     if not pending:
         raise Refusal("the index is empty: a run that examined nothing has not passed")
     # LIVING: an index entry the living list also holds is a faulty index. Count, never name.
-    hits = sum(1 for (_, name, _, nu) in pending if name_key(name) in idx.living_names or nu in idx.living_urls)
+    hits = sum(1 for (_, name, _, nu, _r) in pending if name_key(name) in idx.living_names or nu in idx.living_urls)
+    hits += sum(1 for (rl, _b) in rule_rows for (rn, ru) in rl if rn in idx.living_urls or (ru is not None and ru in idx.living_urls))
+    hits += sum(1 for b in bearer_urls if b in idx.living_urls)
     if hits:
         raise Refusal("LIVING: %d index entr%s the living list also holds. The index is faulty; nothing was linked. "
                       "Fix the archive's index generator." % (hits, "y is one that" if hits == 1 else "ies are ones that"))
     # one name must lead to one address; a name that leads to two (or is both unique and ambiguous) is skipped
+    people_urls = {nu for (kind, _n, _a, nu, _r) in pending if kind == "person"}
+    bad_ref = sum(1 for (rl, bset) in rule_rows for (rn, ru) in rl if rn not in people_urls or (ru is not None and ru not in people_urls and ru not in bset))
+    if bad_ref:
+        raise Refusal("%d resolve rule%s an address that the index does not hold (the relative must be in `people`; the person it decides "
+                      "must be in `people` or in the same entry's `bearers`: deceased people with a page). Fix the archive's index generator."
+                      % (bad_ref, " names" if bad_ref == 1 else "s name"))
+    idx.person_urls = people_urls | bearer_urls
+    idx.ambiguous_urls = {nu for (kind, _n, _a, nu, _r) in pending if kind == "ambiguous"}
     owners = {}
-    for (kind, name, alias, nu) in pending:
+    for (kind, name, alias, nu, _r) in pending:
         owners.setdefault(name_key(name), set()).add(nu)
     clash = {k for k, v in owners.items() if len(v) > 1}
     seen = set()
-    for (kind, name, alias, nu) in pending:
+    for (kind, name, alias, nu, rl) in pending:
         k = name_key(name)
         if len(k.split(" ")) < min_words:
             idx.stats["short_skipped"] += 1
@@ -286,11 +371,20 @@ def load_index(path, living_names=frozenset(), living_urls=frozenset(), prefixes
         if (k, nu) in seen:
             continue
         seen.add((k, nu))
-        idx._add(Entry(kind, name, nu, alias))
+        idx._add(Entry(kind, name, nu, alias, rl))
+        if rl:
+            idx.rules[k] = tuple(rl)
+            if not alias:
+                idx.stats["rules"] += len(rl)
+                by_near = {}
+                for (rn, ru) in rl:
+                    by_near.setdefault(rn, set()).add(ru)
+                idx.stats["rules_shared_near"] += sum(1 for v in by_near.values() if len(v) > 1)
         idx.urls.add(nu)
         idx.names_by_url.setdefault(nu, set()).add(k)
-    for u in {nu for (_, _, _, nu) in pending}:     # an address the index holds stays "known" even if all its names were skipped
+    for u in {nu for (_, _, _, nu, _r) in pending}:     # an address the index holds stays "known" even if all its names were skipped
         idx.urls.add(u)
+    idx.urls |= bearer_urls
     for k in sorted(idx.living_names):
         if k:
             idx._add(Entry("living", k, "", False))
@@ -367,9 +461,16 @@ class Scan:
         self.inserts = []          # [(raw_start, raw_end, url_raw, kind)]
         self.covered = 0           # mentions left alone because the section already links that person
         self.living_blocked = 0
-        self.autolinks = []        # existing data-autolink links in scope: {"href": normalized, "text": folded text}
+        self.autolinks = []        # existing data-autolink links in scope: {"href", "text" (folded), "mark", "section", "class", "title"}
+        self.evidence = {}         # (section, block) -> [(text position, address)] of the people named (a plain mention, or a link that is not a near link)
+        self.window = DEFAULT_NEAR_WINDOW
         self.mentions = 0          # resolvable mentions in eligible text
         self.sections = 0
+
+    def named(self, section, block, pos):
+        """The addresses named in the same section AND the same block (paragraph, list item, table row...) within the near window of text
+        position `pos` (the whole block when the window is 0)."""
+        return {u for (p, u) in self.evidence.get((section, block), ()) if self.window <= 0 or abs(p - pos) <= self.window}
 
 
 def _attrs(tag_src):
@@ -383,20 +484,26 @@ def _attrs(tag_src):
     return out
 
 
-def scan_html(html, idx, scope="main"):
-    """Find what an autolink run would add to one page. Pure: the page is not changed."""
+def scan_html(html, idx, scope="main", window=None):
+    """Find what an autolink run would add to one page. Pure: the page is not changed. `window` overrides the index's near window."""
     sc = Scan()
+    sc.window = idx.near_window if window is None else window
+    tpos = 0                   # characters of text seen so far in scope (tags excluded): the measure of "beside" for a near rule
     scope = scope.lower()
     stack = []                 # [name, is_skip, is_scope]
     n_scope = n_skip = 0
     section = 0
-    texts = []                 # (raw_start, raw_end, section) of text in eligible places
+    texts = []                 # (raw_start, raw_end, section, text position) of text in eligible places
     linked = set()             # (section, normalized href) of every <a href> in scope
     cur_auto = None
     pos, L = 0, len(html)
+    bstack = []                # (depth in `stack`, block id) of the open block elements; the innermost is the block of the text
+    nblock = 0
 
     def pop_to(k):
         nonlocal n_scope, n_skip
+        while bstack and bstack[-1][0] >= k:
+            bstack.pop()
         while len(stack) > k:
             nm, sk, sp = stack.pop()
             n_skip -= 1 if sk else 0
@@ -408,7 +515,8 @@ def scan_html(html, idx, scope="main"):
         if end_text > pos:
             if n_scope:
                 if n_skip == 0:
-                    texts.append((pos, end_text, section))
+                    texts.append((pos, end_text, section, tpos, bstack[-1][1] if bstack else 0))
+                tpos += end_text - pos
                 if cur_auto is not None:
                     cur_auto["raw"].append(html[pos:end_text])
         if not m:
@@ -444,8 +552,11 @@ def scan_html(html, idx, scope="main"):
             sc.scope_seen = True
         if n_scope and nm == "a" and "href" in attrs:
             linked.add((section, norm_url(attrs["href"])))
+            if attrs.get("data-autolink", "").strip().lower() != "near":
+                sc.evidence.setdefault((section, bstack[-1][1] if bstack else 0), []).append((tpos, norm_url(attrs["href"])))
             if "data-autolink" in attrs:
-                cur_auto = {"href": norm_url(attrs["href"]), "raw": [], "text": ""}
+                cur_auto = {"href": norm_url(attrs["href"]), "raw": [], "text": "", "mark": attrs["data-autolink"].strip().lower(),
+                            "section": section, "tpos": tpos, "block": bstack[-1][1] if bstack else 0, "class": attrs.get("class", "").split(), "title": attrs.get("title", "")}
         if nm in RAW_TEXT and not selfclose:
             c = re.compile(r"</%s\s*>" % nm, re.I).search(html, pos)
             pos = c.end() if c else L
@@ -454,30 +565,67 @@ def scan_html(html, idx, scope="main"):
             continue
         is_skip = nm in SKIP_TAGS or "data-no-autolink" in attrs
         stack.append([nm, is_skip, nm == scope])
+        if nm in BLOCK_TAGS and n_scope:
+            nblock += 1
+            bstack.append((len(stack) - 1, nblock))
         n_skip += 1 if is_skip else 0
         n_scope += 1 if nm == scope else 0
     sc.sections = section
-    # second pass: the first plain mention of each person in each section
-    for (a, b, sec) in texts:
+    # second pass: who is named in each section (a plain mention of a single-bearer person, or any link that is not a near link), so
+    # that a name several people bear can be decided by a relative named beside it, before or after it
+    found = []
+    for (a, b, sec, tp, blk) in texts:
         ms, blocked = find_matches(html[a:b], idx)
         sc.living_blocked += blocked
+        found.append((a, sec, tp, blk, ms))
+        for (ms_, _me, e) in ms:
+            if e.kind == "person":
+                sc.evidence.setdefault((sec, blk), []).append((tp + ms_, e.url))
+    # third pass: the first plain mention of each person in each section
+    for (a, sec, tp, blk, ms) in found:
         for (ms_, me_, e) in ms:
             sc.mentions += 1
-            key = (sec, e.url)
+            kind, url = e.kind, e.url
+            if kind == "ambiguous":
+                kind, url = decide(e, sc.named(sec, blk, tp + ms_))
+            key = (sec, url)
             if key in linked:
                 sc.covered += 1
                 continue
             linked.add(key)
-            sc.inserts.append((a + ms_, a + me_, idx.raw_url.get(e.url, e.url), e.kind))
+            sc.inserts.append((a + ms_, a + me_, idx.raw_url.get(url, url), kind))
     sc.inserts.sort()
     return sc
 
 
-def apply_inserts(html, inserts):
+def decide(e, named):
+    """An ambiguous name in a section that names `named`: ("near", the one bearer the archive's rules point to) when exactly one
+    person is decided by the people named there, else ("search", the archive's search address). Never a guess: two rules that
+    fire for different people leave the name a search link."""
+    fired = {url for (near, url) in e.resolve if near in named}
+    if len(fired) == 1 and None not in fired:
+        return "near", next(iter(fired))
+    return "search", e.url
+
+
+def attr_escape(v):
+    return v.replace("&", "&amp;").replace('"', "&quot;").replace("<", "&lt;").replace(">", "&gt;")
+
+
+def apply_inserts(html, inserts, labels=None):
+    """data-autolink="person" (one bearer), "near" (decided by a relative named in the section), "search" (a shared name the
+    data could not decide: class lk-shared, and a title and an aria-label that say so unless labels["shared"] is empty)."""
+    labels = DEFAULT_LABELS if labels is None else labels
     out, last = [], 0
-    for (a, b, url, _kind) in inserts:
+    for (a, b, url, kind) in inserts:
         out.append(html[last:a])
-        out.append('<a href="%s" data-autolink>' % url.replace("&", "&amp;").replace('"', "&quot;"))
+        extra = ""
+        if kind == "search":
+            extra = ' class="%s"' % SHARED_CLASS
+            if labels.get("shared"):
+                extra += ' title="%s" aria-label="%s"' % (attr_escape(labels["shared"]),
+                                                          attr_escape("%s, %s%s" % (fold(html[a:b])[0], labels["shared"][:1].lower(), labels["shared"][1:])))
+        out.append('<a href="%s" data-autolink="%s"%s>' % (attr_escape(url), kind, extra))
         out.append(html[a:b])
         out.append("</a>")
         last = b
@@ -487,7 +635,7 @@ def apply_inserts(html, inserts):
 
 def autolink_html(html, idx, scope="main"):
     sc = scan_html(html, idx, scope)
-    return apply_inserts(html, sc.inserts), sc
+    return apply_inserts(html, sc.inserts, idx.labels), sc
 
 
 # ----------------------------------------------------------------------------------------------------- the build
@@ -524,7 +672,7 @@ def prepare(a):
     prefixes = a.allow_prefix or list(DEFAULT_PREFIXES)
     prefixes = [p if p.endswith("/") else p + "/" for p in prefixes]
     ln, lu = load_living(a.living)
-    idx = load_index(a.index, ln, lu, prefixes, a.min_words)
+    idx = load_index(a.index, ln, lu, prefixes, a.min_words, getattr(a, "near_window", None))
     return idx, prefixes
 
 
@@ -536,6 +684,8 @@ def main(argv=None):
     ap.add_argument("--scope", default="main")
     ap.add_argument("--allow-prefix", action="append", default=[])
     ap.add_argument("--min-words", type=int, default=2)
+    ap.add_argument("--near-window", type=int, default=None, help="text characters either side of a shared name in which its relative must "
+                    "stand (default: the index's nearWindow, else %d; 0 = anywhere in the section)" % DEFAULT_NEAR_WINDOW)
     ap.add_argument("--check", action="store_true", help="change nothing; exit 1 if a run would")
     a = ap.parse_args(argv)
     dist = _outdir.resolve(a.dist)
@@ -550,7 +700,7 @@ def main(argv=None):
     n = _outdir.note(dist)
     if n:
         print(n)
-    scanned = changed = people = ambig = covered = blocked = 0
+    scanned = changed = people = near = ambig = covered = blocked = 0
     for p in pages:
         html = read_page(p)
         sc = scan_html(html, idx, a.scope)
@@ -563,19 +713,20 @@ def main(argv=None):
             continue
         changed += 1
         people += sum(1 for t in sc.inserts if t[3] == "person")
-        ambig += sum(1 for t in sc.inserts if t[3] == "ambiguous")
+        near += sum(1 for t in sc.inserts if t[3] == "near")
+        ambig += sum(1 for t in sc.inserts if t[3] == "search")
         if not a.check:
-            write_page(p, apply_inserts(html, sc.inserts))
+            write_page(p, apply_inserts(html, sc.inserts, idx.labels))
     if scanned == 0:
         print("autolink: REFUSED. none of the %d pages has a <%s>: wrong --scope, or nothing was built" % (len(pages), a.scope))
         return 2
     verb = "would add" if a.check else "added"
     st = idx.stats
-    print("autolink: %d pages, %d with <%s>; %s %d links on %d pages (%d to one person, %d to a search address); "
+    print("autolink: %d pages, %d with <%s>; %s %d links on %d pages (%d to one person, %d to one person decided by a relative named beside the name, %d to a search address); "
           "%d mentions already covered by a link in their section; %d left alone beside a living name; "
-          "index: %d people, %d ambiguous, %d aliases, %d skipped as short, %d skipped as ambiguous or in conflict, %d living terms"
-          % (len(pages), scanned, a.scope, verb, people + ambig, changed, people, ambig, covered, blocked,
-             st["people"], st["ambiguous"], st["aliases"], st["short_skipped"], st["conflicts_skipped"], st["living_terms"]))
+          "index: %d people, %d ambiguous (%d resolve rules, %d relatives shared by two bearers), %d aliases, %d skipped as short, %d skipped as ambiguous or in conflict, %d living terms"
+          % (len(pages), scanned, a.scope, verb, people + near + ambig, changed, people, near, ambig, covered, blocked,
+             st["people"], st["ambiguous"], st["rules"], st["rules_shared_near"], st["aliases"], st["short_skipped"], st["conflicts_skipped"], st["living_terms"]))
     if a.check and changed:
         return 1
     return 0
