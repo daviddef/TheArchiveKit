@@ -19,6 +19,12 @@ template: a template that is right can still be fed a wrong year) and the era sn
   boundary   a note that is, or is not, marked data-era-boundary="1" and worded "From that year" when its year is, or is not, the
              first year of an era that follows another (and a boundary year when the snapshot's policy is not "newer")
   label      a note whose words differ from the snapshot's label for the era, or that has no label, or two
+  assessed   a note whose data-era-assessed is missing or is not "1" exactly where the snapshot says the era is assessed (neither
+             contested nor approx null) and "0" where it is not
+  edge       a note marked data-era-edge-agree where the snapshot has no place that could carry it: the policy is strict, or no place
+             of the era's region has edge neighbours (the mark says "I stand at an edge and my neighbours agree")
+  css        the era style (<style data-era-css>, drawn once by the first note of a page) is missing from a page that has a note,
+             drawn twice, or drawn on a page that has no note (the weight the component's old bundled style put on every page)
   source     a note that does not say where it came from ("per the Record Atlas", or "per this archive's own research" for an era
              the snapshot marks seeded_from_archive: rule f), or whose link is not the era's own url on the Atlas (rule e)
 
@@ -53,6 +59,8 @@ class Page(HTMLParser):
         self.robots = ""
         self.living = False
         self.notes = []
+        self.css = []            # the text of each <style data-era-css>
+        self.in_css = False
         self.stack = []          # (tag, note-or-None, part-or-None)
         self.cur = None          # the note being read
 
@@ -66,10 +74,14 @@ class Page(HTMLParser):
         if a.get("data-living", "").lower() in ("1", "true", "yes"):
             self.living = True
         cls = a.get("class", "").split()
+        if tag == "style" and "data-era-css" in a:
+            self.in_css = True
+            self.css.append("")
         note = None
         part = None
         if "data-era" in a:
-            note = {"id": a["data-era"], "year": a.get("data-era-year"), "boundary": a.get("data-era-boundary"), "pres": [], "labs": [],
+            note = {"id": a["data-era"], "year": a.get("data-era-year"), "boundary": a.get("data-era-boundary"),
+                    "assessed": a.get("data-era-assessed"), "edge_agree": a.get("data-era-edge-agree"), "pres": [], "labs": [],
                     "srcs": [], "hrefs": []}
             self.notes.append(note)
             self.cur = note
@@ -88,6 +100,8 @@ class Page(HTMLParser):
             self.stack.append((tag, note, part))
 
     def handle_endtag(self, tag):
+        if tag == "style":
+            self.in_css = False
         while self.stack:
             t, note, part = self.stack.pop()
             if note is not None and self.cur is note:
@@ -96,6 +110,9 @@ class Page(HTMLParser):
                 break
 
     def handle_data(self, data):
+        if self.in_css:
+            self.css[-1] += data
+            return
         if self.cur is None:
             return
         for t, note, part in reversed(self.stack):
@@ -129,9 +146,16 @@ def check_snapshot(snap):
         bad.append("no contract version, stamp and hash")
     if eralib.region_href(snap, "x") is None:
         bad.append("no usable atlas base")
+    at = snap.get("atlas") if isinstance(snap.get("atlas"), dict) else {}
+    src = at.get("rings_source")
+    sha = at.get("rings_sha256")
+    if not (src in ("contract", "file", "none") and ((src == "file" and isinstance(sha, str) and re.fullmatch(r"[0-9a-f]{64}", sha))
+                                                      or (src != "file" and sha is None))):
+        bad.append("the source of the rings is not recorded (atlas.rings_source and rings_sha256)")
     pol = snap.get("policy")
     if not (isinstance(pol, dict) and pol.get("unassessed") in ("refuse", "allow") and pol.get("boundary") in ("newer", "silent")
-            and eralib.is_year(pol.get("recent_from")) and isinstance(pol.get("edge_km"), (int, float))):
+            and eralib.is_year(pol.get("recent_from")) and isinstance(pol.get("edge_km"), (int, float))
+            and pol.get("edge") in ("agree", "strict")):
         bad.append("policy missing or not understood")
     if not isinstance(snap.get("regions"), dict) or not isinstance(snap.get("places"), dict):
         return bad + ["regions or places missing"]
@@ -153,6 +177,22 @@ def check_snapshot(snap):
     for k in unchecked:
         if k not in snap["places"]:
             bad.append("an unchecked place is not a mapped place")
+    en = snap.get("edge_neighbours")
+    if not isinstance(en, dict):
+        bad.append("edge_neighbours missing")
+        en = {}
+    elif isinstance(pol, dict) and pol.get("edge") == "strict" and en:
+        bad.append("edge neighbours under a strict edge policy")
+    for k, v in en.items():
+        if k not in snap["places"]:
+            bad.append("an edge place is not a mapped place")
+        elif not (isinstance(v, dict) and v.get("kind") in eralib.EDGE_KINDS and isinstance(v.get("regions"), list) and v["regions"]
+                  and all(isinstance(r, str) and r in snap["regions"] and r != snap["places"][k] for r in v["regions"])):
+            bad.append("an edge place whose neighbours are missing, unknown or its own region")
+        elif k in unchecked:
+            bad.append("an edge place that is also unchecked")
+        elif src == "none":
+            bad.append("an edge place although no rings were used")
     q = snap.get("quality")
     if not (isinstance(q, dict) and isinstance(q.get("counts"), dict) and isinstance(q.get("gaps"), list) and isinstance(q.get("overlaps"), list)):
         bad.append("the contract's quality block is missing")
@@ -172,6 +212,9 @@ def check_snapshot(snap):
                 bad.append("an era without a label")
             if not isinstance(e.get("basis"), str) or e.get("seeded_from_archive") is not e["basis"].startswith("seeded:"):
                 bad.append("an era whose seeded flag does not follow its basis")
+            if e.get("assessed") is not (e.get("approx") is not None and e.get("contested") is not None) or not (
+                    e.get("why") is None or (isinstance(e["why"], str) and e["why"].strip())):
+                bad.append("an era whose assessed flag does not follow its contested and approx, or whose why is not text or null")
     return bad
 
 
@@ -252,6 +295,11 @@ def judge(note, snap):
     labs = [norm(x) for x in note["labs"]]
     if len(labs) != 1 or not labs[0] or labs[0] != lab:
         out.append("label")
+    if note.get("assessed") != ("1" if era.get("assessed") is True else "0"):
+        out.append("assessed")
+    if note.get("edge_agree") not in (None, "1") or (note.get("edge_agree") == "1" and not any(
+            snap["places"].get(k) == region for k in (snap.get("edge_neighbours") or {}))):
+        out.append("edge")
     seeded = era.get("seeded_from_archive") is True
     want_words = eralib.SRC_OWN if seeded else eralib.SRC_ATLAS
     want_href = eralib.era_href(snap, region, era)
@@ -308,6 +356,9 @@ def main(argv=None):
     seeded_notes = 0
     unassessed_notes = 0
     boundary_notes = 0
+    assessed_notes = 0
+    edge_notes = 0
+    css_pages = 0
     for p in pages:
         n_pages += 1
         try:
@@ -319,6 +370,9 @@ def main(argv=None):
         pg = Page()
         pg.feed(html)
         pg.close()
+        css_pages += 1 if pg.css else 0
+        if len(pg.css) != (1 if pg.notes else 0) or any(".era-note" not in c for c in pg.css):
+            fail("css")
         if not pg.notes:
             continue
         n_with += 1
@@ -338,17 +392,24 @@ def main(argv=None):
                             seeded_notes += 1
                         if eralib.flag(e.get("approx")) == "unassessed" or eralib.flag(e.get("contested")) == "unassessed":
                             unassessed_notes += 1
+                        if e.get("assessed") is True:
+                            assessed_notes += 1
                         if note.get("boundary") == "1":
                             boundary_notes += 1
+                        if note.get("edge_agree") == "1":
+                            edge_notes += 1
     if outdir.fingerprint(dist) != before:
         print("  --    era       THE BUILD CHANGED WHILE THIS RAN (another build in flight). Results would be noise, so nothing is reported.")
         return 2
-    print("  ..    era       %d page(s) read, %d with a note, %d note(s) (%d on a seeded region, %d on an era the Atlas has not assessed, "
-          "%d on a boundary year); snapshot: contract %s of %s, %d region(s), %d place(s) (%d not edge-checked), built %s; policy: "
-          "unassessed %s, boundary %s, recent from %s" % (n_pages, n_with, n_notes, seeded_notes, unassessed_notes, boundary_notes,
-                                                        snap["contract"]["version"], snap["contract"]["generated"], len(snap["regions"]),
-                                                        len(snap["places"]), len(snap["unchecked_edge"]), snap.get("built", "?"),
-                                                        snap["policy"]["unassessed"], snap["policy"]["boundary"], snap["policy"]["recent_from"]))
+    print("  ..    era       %d page(s) read, %d with a note, %d note(s) (%d on an era the Atlas has assessed, %d on one it has not; %d on a "
+          "seeded region, %d on a boundary year, %d at an edge where every neighbour agrees); %d page(s) carry the era style, one each; "
+          "snapshot: contract %s of %s, rings from the %s, %d region(s), %d place(s) (%d not edge-checked, %d at an edge), built %s; policy: "
+          "unassessed %s, boundary %s, recent from %s, edge %s" % (n_pages, n_with, n_notes, assessed_notes, unassessed_notes, seeded_notes,
+                                                                 boundary_notes, edge_notes, css_pages, snap["contract"]["version"],
+                                                                 snap["contract"]["generated"], snap["atlas"]["rings_source"], len(snap["regions"]),
+                                                                 len(snap["places"]), len(snap["unchecked_edge"]), len(snap["edge_neighbours"]),
+                                                                 snap.get("built", "?"), snap["policy"]["unassessed"], snap["policy"]["boundary"],
+                                                                 snap["policy"]["recent_from"], snap["policy"]["edge"]))
     if a.strict_unassessed and snap["policy"]["unassessed"] == "allow":
         fail("unassessed-policy")
     if n_notes < a.min_notes:

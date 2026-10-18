@@ -5,6 +5,7 @@
 import fs from "fs"; import os from "os"; import path from "path"; import { fileURLToPath, pathToFileURL } from "url";
 import { spawnSync } from "child_process";
 import * as E from "../lib/era.js";
+import * as R from "../lib/rec.js";
 const here = path.dirname(fileURLToPath(import.meta.url));
 const kit = path.join(here, "..");
 const FIX = JSON.parse(fs.readFileSync(path.join(kit, "data", "era-cases.json"), "utf8"));
@@ -33,11 +34,15 @@ function failing(lib) {
   // the words a reader gets
   const era = lib.eraAt(JSON.parse(JSON.stringify(FIX.snapshot)), "Hentzau", 1750);
   const html = lib.renderEra(era);
-  if (!(html.startsWith('<span class="era-note" data-era="ruritania--era-1700" data-era-year="1750"><span class="era-pre">· At the time: </span>') && html.includes('<span class="era-lab">Kingdom of Ruritania</span>')
+  if (!(html.startsWith('<span class="era-note" data-era="ruritania--era-1700" data-era-year="1750" data-era-assessed="1"><span class="era-pre">· At the time: </span>') && html.includes('<span class="era-lab">Kingdom of Ruritania</span>')
         && html.includes('<a class="era-src" href="https://atlas.example.test/region/ruritania/#era-1700" rel="noopener">per the Record Atlas</a>') && !html.includes("data-era-boundary"))) out.push("render:note");
   const bnd = lib.renderEra(lib.eraAt(JSON.parse(JSON.stringify(FIX.snapshot)), "Hentzau", 1850));
   if (!(bnd.includes(' data-era-boundary="1"') && bnd.includes('<span class="era-pre">· From that year: </span>') && bnd.includes('data-era="ruritania--era-1850"'))) out.push("render:boundary");
   if (lib.renderEra(null) !== "") out.push("render:null-is-empty");
+  const edgeHtml = lib.renderEra(lib.eraAt(JSON.parse(JSON.stringify(FIX.snapshot)), "Edge Agree Town", 1750));
+  if (!edgeHtml.includes(' data-era-assessed="1" data-era-edge-agree="1">') || html.includes("data-era-edge-agree")) out.push("render:edge-agree");
+  const unas = lib.renderEra(lib.eraAt(JSON.parse(JSON.stringify(FIX.other_snapshots.allow)), "Null Town", 1750));
+  if (!unas.includes(' data-era-assessed="0"')) out.push("render:unassessed");
   const seeded = lib.eraAt(JSON.parse(JSON.stringify(FIX.snapshot)), "Zenda", 1975);
   if (!lib.renderEra(seeded).includes("per this archive's own research</a>")) out.push("render:seeded-words");
   const e = lib.renderEra({ id: 'x--1"', label: "<script>alert(1)</script> & \"q\"", year: 1750, source: "<b>", href: 'https://a.example.test/"x' });
@@ -93,6 +98,32 @@ const faults = [
   ["a place on the edge is not silent", "if (own(snap.places_silent, key) && VALID_SILENT.includes(snap.places_silent[key])) return no(snap.places_silent[key]);", "", "a-place-on-the-edge-is-silent"],
   ["any silence reason is believed", " && VALID_SILENT.includes(snap.places_silent[key])", "", "an-unknown-silence-reason-is-no-region"],
   ["an unchecked place is not flagged", "Array.isArray(snap.unchecked_edge) && snap.unchecked_edge.includes(d.key)", "false", "a-place-that-could-not-be-edge-checked-is-flagged"],
+  ["a near-edge place is noted whatever its neighbours say", "if (kind === null || list.length === 0 || list.some((nb) => nb === region || !neighbourAgrees(snap, nb, year, e, boundary, pol))) return no(kind || \"edge\");", "", "a-place-near-an-edge-is-silent-where-its-neighbour-has-another-regime"],
+  ["a near-edge place needs only ONE agreeing neighbour", "list.some((nb) => nb === region || !neighbourAgrees(", "list.every((nb) => nb === region || !neighbourAgrees(", "a-place-near-an-edge-is-silent-where-any-one-neighbour-differs"],
+  ["a near-edge place with no neighbours is noted", "kind === null || list.length === 0 ||", "kind === null ||", "an-edge-place-with-no-neighbours-is-silent"],
+  ["an unknown kind of edge is believed", "kind === null || list.length === 0", "list.length === 0", "an-edge-place-with-a-kind-the-library-does-not-know-is-silent"],
+  ["a region is its own neighbour", "nb === region || !neighbourAgrees(", "!neighbourAgrees(", "an-edge-place-that-names-its-own-region-as-neighbour-is-silent"],
+  ["a ring conflict is reported as an edge", "return no(kind || \"edge\");", "return no(\"edge\");", "a-place-in-a-neighbours-ring-is-silent-as-a-ring-conflict-where-they-differ"],
+  ["the edge agreement is not recorded on the era", "assessed: !d.unassessed, edgeAgree: d.edgeAgree,", "assessed: !d.unassessed, edgeAgree: false,", "a-place-near-an-edge-keeps-its-note-where-its-neighbour-has-the-same-regime"],
+  ["the assessed flag is not recorded on the era", "assessed: !d.unassessed,", "assessed: true,", "an-era-with-null-flags-is-allowed-when-the-snapshot-says-so"],
+  ["a neighbour the snapshot does not hold is trusted", "if (typeof nb !== \"string\" || !own(snap.regions, nb) || !Array.isArray(snap.regions[nb])) return false;", "if (!own(snap.regions, nb)) return true;", "a-neighbour-the-snapshot-does-not-hold-is-unknown"],
+  ["a neighbour with a refused era over the year is trusted", "if (dropped.some((d) => covers(d, year))) return false;", "", "a-neighbour-with-a-refused-era-over-the-year-is-silent"],
+  ["a neighbour with no era for the year is trusted", "if (covering.length !== 1) return false;\n  const x = covering[0];", "if (covering.length > 1) return false;\n  const x = covering[0] || mine;", "a-place-near-an-edge-is-silent-where-its-neighbour-has-no-era-for-the-year"],
+  ["a neighbour era that overlaps another elsewhere is trusted", "if (eras.some((o) => o !== x && numeric(o) && meets(x, o))) return false;\n  if (flag(x.approx)", "if (flag(x.approx)", "a-neighbour-era-that-overlaps-another-anywhere-is-silent"],
+  ["a neighbour era marked approximate is trusted", "if (flag(x.approx) === \"yes\" || flag(x.contested) === \"yes\") return false;\n  if ((flag(x.approx) === \"unassessed\"", "if ((flag(x.approx) === \"unassessed\"", "a-place-near-an-edge-is-silent-where-its-neighbour-era-is-approximate"],
+  ["a neighbour era marked contested is trusted", "if (flag(x.approx) === \"yes\" || flag(x.contested) === \"yes\") return false;\n  if ((flag(x.approx) === \"unassessed\"", "if (flag(x.approx) === \"yes\") return false;\n  if ((flag(x.approx) === \"unassessed\"", "a-neighbour-marked-contested-is-silent"],
+  ["a neighbour the Atlas has not assessed is trusted whatever the policy says", "&& pol.unassessed !== \"allow\") return false;\n  if (label(x)", "&& false) return false;\n  if (label(x)", "a-neighbour-the-atlas-has-not-assessed-is-unknown-under-the-refuse-policy"],
+  ["a neighbour the Atlas has not assessed is never allowed", "&& pol.unassessed !== \"allow\") return false;\n  if (label(x)", "&& true) return false;\n  if (label(x)", "a-neighbour-the-atlas-has-not-assessed-is-allowed-when-the-snapshot-says-so"],
+  ["a neighbour's label need not be the same words", "if (label(x) !== label(mine)) return false;", "if (label(x).toLowerCase() !== label(mine).toLowerCase()) return false;", "a-neighbour-label-must-be-the-same-words"],
+  ["any neighbour regime is agreement", "if (label(x) !== label(mine)) return false;", "", "a-place-near-an-edge-is-silent-where-its-neighbour-has-another-regime"],
+  ["a neighbour's change in the year is not looked at", "if (!boundary && year === x.from) {", "if (false) {", "a-neighbour-whose-era-begins-this-year-after-another-regime-is-silent"],
+  ["a neighbour's change is looked at even for a boundary note", "if (!boundary && year === x.from) {", "if (year === x.from) {", "a-boundary-note-needs-only-the-neighbours-newer-era"],
+  ["a neighbour with no era before its first is trusted", "before.length === 0 || before.some(", "before.some(", "a-neighbour-whose-first-era-begins-this-year-is-unknown-before-it"],
+  ["a neighbour's refused predecessor is ignored", "if (dropped.some((d) => d.to === year)) return false;", "", "a-neighbour-whose-predecessor-was-refused-is-unknown"],
+  ["a neighbour's predecessor may have another label", "before.some((o) => label(o) !== label(mine) ||", "before.some((o) => false ||", "a-neighbour-whose-era-begins-this-year-after-another-regime-is-silent"],
+  ["the assessed mark is not drawn", " data-era-assessed=\"${era.assessed === true ? \"1\" : \"0\"}\"", "", "render:note"],
+  ["the edge mark is not drawn", "${era.edgeAgree === true ? ' data-era-edge-agree=\"1\"' : \"\"}", "", "render:edge-agree"],
+  ["an unassessed note is drawn as assessed", "era.assessed === true ? \"1\" : \"0\"", "\"1\"", "render:unassessed"],
   ["the label is not escaped", "const esc = (s) => String(s).replace(/&/g, \"&amp;\").replace(/</g, \"&lt;\").replace(/>/g, \"&gt;\").replace(/\"/g, \"&quot;\");", "const esc = (s) => String(s);", "render:escapes"],
   ["the year is not carried", " data-era-year=\"${esc(era.year)}\"", "", "render:note"],
   ["the source is not a link", "era.href\n    ? `<a class=\"era-src\"", "false\n    ? `<a class=\"era-src\"", "render:note"],
@@ -115,18 +146,26 @@ for (const [label, from, to, must, extra] of faults) {
 
 // the component draws what the library describes: its template carries the attributes the gate relies on
 const astro = fs.readFileSync(path.join(kit, "components", "EraNote.astro"), "utf8");
-for (const needle of ['class="era-note"', "data-era={note.id}", "data-era-year={note.year}", 'data-era-boundary={note.boundary === true ? "1" : undefined}', "PRE_BOUNDARY : PRE_NORMAL", 'class="era-pre"', 'class="era-lab"', 'class="era-src"', 'rel="noopener"', "note.href", "era && era.id && era.label ? era : null"]) {
+for (const needle of ['class="era-note"', "data-era={note.id}", "data-era-year={note.year}", 'data-era-boundary={note.boundary === true ? "1" : undefined}', 'data-era-assessed={note.assessed === true ? "1" : "0"}', 'data-era-edge-agree={note.edgeAgree === true ? "1" : undefined}', "PRE_BOUNDARY : PRE_NORMAL", 'class="era-pre"', 'class="era-lab"', 'class="era-src"', 'rel="noopener"', "note.href", "era && era.id && era.label ? era : null",
+  "note ? claim(Astro.request, ERA_CSS_KEY) : false", "<style is:inline data-era-css set:html={ERA_CSS} />"]) {
   ok("EraNote.astro carries " + needle, astro.includes(needle));
 }
 const astroCode = astro.replace(/\/\*[\s\S]*?\*\//g, "");
-ok("EraNote.astro imports nothing of an archive's", !/from\s+["'](?!\.\.\/lib\/era\.js)/.test(astroCode));
+ok("EraNote.astro imports nothing of an archive's", !/from\s+["'](?!\.\.\/lib\/(era|rec)\.js)/.test(astroCode));
+ok("EraNote.astro has no component <style> of its own (a bundled style lands on every page that imports the component)", !/<style(?![^>]*is:inline)/.test(astroCode) && !/is:global/.test(astroCode));
+ok("the one style is drawn only for a note that exists, once per page render (claim on the request, as Rec.astro does)", astroCode.split("<style").length === 2 && /const drawCss = note \? claim\(/.test(astroCode));
+const claimOk = (() => { const sc = {}, sc2 = {}; return E.ERA_CSS_KEY && R.claim(sc, E.ERA_CSS_KEY) === true && R.claim(sc, E.ERA_CSS_KEY) === false && R.claim(sc2, E.ERA_CSS_KEY) === true; })();
+ok("the claim lets the first note of a page draw the style and no second one; another page (request) starts clean", claimOk);
+ok("the style is the muted, token-driven look it was (the same rules, nothing added)", /^\.era-note\{display:block;/.test(E.ERA_CSS) && E.ERA_CSS.includes("var(--ink-2,#444)") && E.ERA_CSS.includes("var(--sans,system-ui,sans-serif)") && !/(?:url\(|@import|!important|position:|background)/.test(E.ERA_CSS) && E.ERA_CSS.length < 800, String(E.ERA_CSS.length));
 ok("EraNote.astro draws no image", !/<img|<svg|background-image|flag/i.test(astroCode));
 
 // the gate reads what the library draws, and fails when the page is changed
 const t = fs.mkdtempSync(path.join(os.tmpdir(), "era-gate-"));
 const snapPath = path.join(t, "era-snapshot.json");
 fs.writeFileSync(snapPath, JSON.stringify(FIX.gate_snapshot));
-const page = (body, head = "") => `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>A page</title>${head}</head><body><main><h1>A person</h1><div class="rec"><div class="v">Hentzau${body}</div></div></main></body></html>`;
+const CSS = `<style is:inline data-era-css>${E.ERA_CSS}</style>`;
+/* a page as the component draws it: the style once, ahead of the first note, and none where there is no note */
+const page = (body, head = "") => `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>A page</title>${head}</head><body><main><h1>A person</h1><div class="rec"><div class="v">Hentzau${body ? CSS + body : ""}</div></div></main></body></html>`;
 const note = (p, y) => E.renderEra(E.eraAt(FIX.gate_snapshot, p, y));
 const gate = (html, extra = []) => {
   const dist = path.join(t, "dist"); fs.rmSync(dist, { recursive: true, force: true });
@@ -159,6 +198,35 @@ const eraLink = gate(page(note("Hentzau", 1750).replace("#era-1700", "")));
 ok("gate: a link to the region, not the era, fails (source)", eraLink.code === 1 && /source 1/.test(eraLink.out), eraLink.out);
 const none = gate(page(""));
 ok("gate: a site with no note at all is not a pass (exit 2)", none.code === 2, none.out);
+// the era style belongs to a page with a note, once
+const twoNotes = page(note("Hentzau", 1750) + " " + note("Hentzau", 1860));
+ok("gate: a page with several notes and ONE era style is accepted, and the page is counted as carrying it", gate(twoNotes).code === 0 && /1 page\(s\) carry the era style, one each/.test(gate(twoNotes).out), gate(twoNotes).out);
+const noCss = gate(page(note("Hentzau", 1750)).replace(CSS, ""));
+ok("gate: a page with a note and NO era style fails (css)", noCss.code === 1 && /css 1/.test(noCss.out), noCss.out);
+const twiceCss = gate(page(note("Hentzau", 1750) + CSS + note("Hentzau", 1860)));
+ok("gate: a page that draws the era style twice fails (css)", twiceCss.code === 1 && /css 1/.test(twiceCss.out), twiceCss.out);
+const strayCss = gate(page("") .replace("</main>", CSS + "</main>"), []);
+ok("gate: a page with the era style and no note fails (css): it is the weight the old bundled style put on every page", strayCss.code === 2 || /css 1/.test(strayCss.out) || strayCss.code === 1, strayCss.out);
+{
+  const dist = path.join(t, "dist2"); fs.rmSync(dist, { recursive: true, force: true });
+  fs.mkdirSync(path.join(dist, "a"), { recursive: true }); fs.mkdirSync(path.join(dist, "b"), { recursive: true });
+  fs.writeFileSync(path.join(dist, "a", "index.html"), page(note("Hentzau", 1750)));
+  fs.writeFileSync(path.join(dist, "b", "index.html"), page("").replace("</main>", CSS + "</main>"));
+  const env = Object.fromEntries(Object.entries(process.env).filter(([k]) => k !== "ARCHIVE_OUT"));
+  const r = spawnSync("python3", [path.join(here, "checkera.py"), "--dist", dist, "--snapshot", snapPath], { encoding: "utf8", env });
+  ok("gate: one page with a note and one with a stray era style: the stray one fails (css 1)", r.status === 1 && /css 1/.test(r.stdout), r.stdout);
+  fs.writeFileSync(path.join(dist, "b", "index.html"), page(""));
+  const r2 = spawnSync("python3", [path.join(here, "checkera.py"), "--dist", dist, "--snapshot", snapPath], { encoding: "utf8", env });
+  ok("gate: a page with no note carries no era style, and that passes", r2.status === 0, r2.stdout);
+  const nm = fs.readFileSync(path.join(dist, "b", "index.html"), "utf8");
+  ok("the page without a note has no era CSS marker at all", !nm.includes("data-era-css") && !nm.includes(".era-note"));
+}
+const assessedWrong = gate(page(note("Hentzau", 1750).replace('data-era-assessed="1"', 'data-era-assessed="0"')));
+ok("gate: a note that says it rests on an unassessed era when the snapshot says assessed fails (assessed)", assessedWrong.code === 1 && /assessed 1/.test(assessedWrong.out), assessedWrong.out);
+const assessedMissing = gate(page(note("Hentzau", 1750).replace(' data-era-assessed="1"', "")));
+ok("gate: a note with no assessed mark fails (assessed)", assessedMissing.code === 1 && /assessed 1/.test(assessedMissing.out), assessedMissing.out);
+const edgeNoPlace = gate(page(note("Hentzau", 1750).replace('data-era-assessed="1"', 'data-era-assessed="1" data-era-edge-agree="1"')));
+ok("gate: an edge-agree mark where the snapshot holds no place that could carry it fails (edge)", edgeNoPlace.code === 1 && /edge 1/.test(edgeNoPlace.out), edgeNoPlace.out);
 fs.rmSync(t, { recursive: true, force: true });
 
 console.log(bad ? "\n" + bad + " of " + n + " FAILED" : "\n  ok    " + n + " checks: the era note, its markup, and the gate that reads it");

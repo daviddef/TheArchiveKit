@@ -8,7 +8,7 @@ import math
 import re
 import unicodedata
 
-VERSION = 2
+VERSION = 3
 SRC_ATLAS = "per the Record Atlas"
 SRC_OWN = "per this archive's own research"
 PRE_NORMAL = "· At the time: "
@@ -16,6 +16,8 @@ PRE_BOUNDARY = "· From that year: "
 RECENT_FROM = 1990
 EDGE_KM = 15
 VALID_SILENT = ("edge", "marked-edge", "ring-conflict")
+EDGE_KINDS = ("edge", "ring-conflict")
+ERA_CSS_KEY = "kit:era-css"
 
 
 def fold(s):
@@ -122,6 +124,37 @@ def _has_predecessor(snap, region, eras, e):
     return any(drop_ok(d) and d.get("region") == region and d.get("to") == e["from"] for d in (snap.get("dropped") or []))
 
 
+def _neighbour_agrees(snap, nb, year, mine, boundary, pol):
+    """Rule j (kit/lib/era.js neighbourAgrees): the neighbouring region has, for this year, exactly one kept era that is not contested,
+    approximate or overlapped, no refused era over the year, and the SAME label as the place's own era. Every doubt is a no."""
+    regions = snap.get("regions")
+    if not isinstance(nb, str) or not isinstance(regions, dict) or not isinstance(regions.get(nb), list):
+        return False
+    eras = regions[nb]
+    dropped = [d for d in (snap.get("dropped") or []) if drop_ok(d) and d.get("region") == nb]
+    if any(covers(d, year) for d in dropped):
+        return False
+    covering = [x for x in eras if numeric(x) and covers(x, year)]
+    if len(covering) != 1:
+        return False
+    x = covering[0]
+    if any(o is not x and numeric(o) and meets(x, o) for o in eras):
+        return False
+    if flag(x.get("approx")) == "yes" or flag(x.get("contested")) == "yes":
+        return False
+    if (flag(x.get("approx")) == "unassessed" or flag(x.get("contested")) == "unassessed") and pol.get("unassessed") != "allow":
+        return False
+    if _label(x) != _label(mine):
+        return False
+    if not boundary and year == x["from"]:
+        if any(d.get("to") == year for d in dropped):
+            return False
+        before = [o for o in eras if o is not x and numeric(o) and o.get("to") == year]
+        if not before or any(_label(o) != _label(mine) or flag(o.get("approx")) == "yes" or flag(o.get("contested")) == "yes" for o in before):
+            return False
+    return True
+
+
 def _decide(snap, place, year, recent_from=None):
     def no(why):
         return {"why": why}
@@ -173,7 +206,16 @@ def _decide(snap, place, year, recent_from=None):
         return no("no-label")
     if e.get("id") != era_id(region, e["from"]):
         return no("bad-id")
-    return {"why": "ok", "region": region, "e": e, "boundary": boundary, "key": key, "unassessed": unassessed}
+    edge_agree = False
+    en_all = snap.get("edge_neighbours")
+    if isinstance(en_all, dict) and key in en_all:
+        en = en_all[key]
+        kind = en.get("kind") if isinstance(en, dict) and en.get("kind") in EDGE_KINDS else None
+        lst = en.get("regions") if isinstance(en, dict) and isinstance(en.get("regions"), list) else []
+        if kind is None or not lst or any(nb == region or not _neighbour_agrees(snap, nb, year, e, boundary, pol) for nb in lst):
+            return no(kind or "edge")
+        edge_agree = True
+    return {"why": "ok", "region": region, "e": e, "boundary": boundary, "key": key, "unassessed": unassessed, "edge_agree": edge_agree}
 
 
 def why_not(snap, place, year, recent_from=None):
@@ -191,7 +233,7 @@ def era_at(snap, place, year, recent_from=None):
     return {"region": region, "id": e["id"], "label": _label(e), "from": e["from"], "to": e.get("to"), "year": year,
             "source": SRC_OWN if seeded else SRC_ATLAS, "seeded": seeded, "href": era_href(snap, region, e),
             "boundary": d["boundary"], "unchecked": d["key"] in (snap.get("unchecked_edge") or []),
-            "unassessed": d["unassessed"], "basis": e.get("basis") if isinstance(e.get("basis"), str) else None}
+            "unassessed": d["unassessed"], "assessed": not d["unassessed"], "edgeAgree": d["edge_agree"], "basis": e.get("basis") if isinstance(e.get("basis"), str) else None}
 
 
 # ---- geometry, shared by erasnap.py (the builder) ------------------------------------------------------------------------

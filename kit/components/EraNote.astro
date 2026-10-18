@@ -17,21 +17,21 @@
  * THE PAGE'S RULE, not this component's: never call eraAt for a living, held-out or noindex person. This component cannot know
  * who is living; checkera.py fails the build if a note is found on such a page. The text is the label (no flag image, nothing
  * colour-only), so a screen reader reads it as it reads any line. kit/lib/era.js has the rules and kit/docs/era-notes.md the why.
+ *
+ * THE STYLE belongs to a page that has a note, and only to that page. It is not a component <style> (Astro bundles those into every
+ * page that imports the component, with or without a note: +470 KB raw on one 4,000-page archive); the first note a page renders
+ * draws one small <style is:inline data-era-css> ahead of itself, once per page (claim(Astro.request, ...), the mechanism Rec.astro
+ * uses for its figure ids), and a page with no note carries no era CSS. The rules are the same, muted and token-driven (ERA_CSS).
  */
-import { SRC_ATLAS, PRE_NORMAL, PRE_BOUNDARY } from "../lib/era.js";
+import { SRC_ATLAS, PRE_NORMAL, PRE_BOUNDARY, ERA_CSS, ERA_CSS_KEY } from "../lib/era.js";
+import { claim } from "../lib/rec.js";
 const { era = null } = Astro.props;
 const note = era && era.id && era.label ? era : null;
+const drawCss = note ? claim(Astro.request, ERA_CSS_KEY) : false;
 ---
+{drawCss ? <style is:inline data-era-css set:html={ERA_CSS} /> : null}
 {note ? (
-  <span class="era-note" data-era={note.id} data-era-year={note.year} data-era-boundary={note.boundary === true ? "1" : undefined}><span class="era-pre">{note.boundary === true ? PRE_BOUNDARY : PRE_NORMAL}</span><span class="era-lab">{note.label}</span>{" "}{note.href
+  <span class="era-note" data-era={note.id} data-era-year={note.year} data-era-boundary={note.boundary === true ? "1" : undefined} data-era-assessed={note.assessed === true ? "1" : "0"} data-era-edge-agree={note.edgeAgree === true ? "1" : undefined}><span class="era-pre">{note.boundary === true ? PRE_BOUNDARY : PRE_NORMAL}</span><span class="era-lab">{note.label}</span>{" "}{note.href
     ? <a class="era-src" href={note.href} rel="noopener">{note.source || SRC_ATLAS}</a>
     : <span class="era-src">{note.source || SRC_ATLAS}</span>}</span>
 ) : null}
-<style is:global>
-  .era-note { display: block; margin: .1rem 0 0; font-family: var(--sans, system-ui, sans-serif); font-size: .82rem; line-height: 1.35;
-    font-weight: 400; font-style: normal; letter-spacing: normal; text-transform: none; color: var(--ink-2, #444); }
-  .era-note .era-src { white-space: nowrap; }
-  .era-note a.era-src { color: inherit; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: .15em; }
-  .era-note a.era-src:hover, .era-note a.era-src:focus-visible { color: var(--accent, var(--ink, #000)); }
-  @media print { .era-note a.era-src { text-decoration: none; } }
-</style>

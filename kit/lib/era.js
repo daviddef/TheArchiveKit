@@ -28,32 +28,54 @@
         snapshot says policy.unassessed = "allow" (a deliberate, recorded choice an archive makes with erasnap.py --unassessed).
      h  THE QUIET RULE: an event in the era that is still running (`to` null) from policy.recent_from (default 1990) is silent: a
         modern event teaches nothing. Override: opts.recentFrom (a number; Infinity switches it off) or erasnap.py --recent-from.
-     i  Edge: a place within policy.edge_km (15) of its region's ring edge, or one the archive's table marks `edge`, was removed
-        from the snapshot's places by erasnap.py and is recorded in places_silent; whyNot says "edge" / "marked-edge".
-   Rule c is the PAGE's. Rule i is done by the snapshot builder, which has the place's coordinates; this file only reads the result.
+     i  Edge: a place within policy.edge_km (15) of its region's ring edge, or inside another region's ring and not its own, can
+        belong to a NEIGHBOURING region. erasnap.py (which has the place's coordinates) records which regions could claim it
+        (snapshot edge_neighbours) and this file keeps the note only in a year when EVERY such neighbour has the SAME regime label
+        (rule j); a place the archive's table marks `edge`, or with no neighbour to compare, is in places_silent and never noted.
+     j  EDGE AGREEMENT. For a place in edge_neighbours the note needs, for the year, in EACH neighbouring region: exactly one kept era
+        that covers the year, does not overlap another, is not approximate or contested (nor unassessed unless the policy allows it),
+        has no refused era over the year, and carries the SAME label as the place's own era. Anything unknown (no era, a refused
+        era, a different label, a missing region) is silence: whyNot says "edge" (or "ring-conflict" where the place lies in a
+        neighbour's ring and not its own). Where every neighbour agrees the note is drawn and says so (edgeAgree, data-era-edge-agree).
+        If the year is not a boundary of the own era, a neighbour whose era begins that year must have had the same label just
+        before it too (the event could be on either side of that neighbour's change).
+   Rule c is the PAGE's. Rule i is prepared by the snapshot builder, which has the place's coordinates; this file reads the result.
 
-   THE SNAPSHOT (JSON; version 2)
-     version        2
+   THE SNAPSHOT (JSON; version 3)
+     version        3
      built          the day it was built, YYYY-MM-DD
      contract       { name, version, generated, sha256 }   the contract the snapshot was cut from (sha256 of the file's bytes)
-     atlas          { base: "https://recordatlas.org", rings_sha256 }
-     policy         { unassessed: "refuse"|"allow", boundary: "newer"|"silent", recent_from: 1990, edge_km: 15 }
+     atlas          { base: "https://recordatlas.org", rings_source: "contract"|"file"|"none", rings_sha256: <sha of the file>|null }
+     policy         { unassessed: "refuse"|"allow", boundary: "newer"|"silent", recent_from: 1990, edge_km: 15, edge: "agree"|"strict" }
      regions        { <region id>: [ { id, from, to|null, present, regime, label, polity, basis, seeded_from_archive, approx,
-                                       contested, url } ] }
+                                       contested, assessed, why, url } ] }
      places         { <folded place key>: <region id> }   fold() of the place as the archive prints it
      places_silent  { <folded place key>: "edge"|"marked-edge"|"ring-conflict" }   places the builder refused, so they can be counted
+     edge_neighbours { <folded place key>: { kind: "edge"|"ring-conflict", regions: [ <region id> ] } }   mapped places that lie near
+                    their region's ring edge (or inside another's ring): the regions that could claim them, whose eras the note is
+                    held to (rule j)
      unchecked_edge [ <folded place key> ]    mapped places that had no coordinates, so the ring-edge rule could not be applied
      dropped        [ { region, id, from, to, reason } ]   eras the builder refused (so a count of what was left silent can say why)
      quality        { counts: { gaps, overlaps }, gaps: [...], overlaps: [...] }   the contract's own lists, the entries that name
                     a region of this snapshot (the lookup is silent there)
    No import: this runs in node as it does in a build, so the kit can test it without Astro. */
 
-export const VERSION = 2;
+export const VERSION = 3;
 export const SRC_ATLAS = "per the Record Atlas";
 export const SRC_OWN = "per this archive's own research";
 export const PRE_NORMAL = "· At the time: ";
 export const PRE_BOUNDARY = "· From that year: ";
 export const RECENT_FROM = 1990;
+
+/* The note's style, drawn ONCE on a page that has at least one note (EraNote.astro: claim(Astro.request, ERA_CSS_KEY)) and nowhere
+   else: it was a bundled component style, which every page that merely imported the component carried. Muted and token-driven. */
+export const ERA_CSS_KEY = "kit:era-css";
+export const ERA_CSS = ".era-note{display:block;margin:.1rem 0 0;font-family:var(--sans,system-ui,sans-serif);font-size:.82rem;line-height:1.35;"
+  + "font-weight:400;font-style:normal;letter-spacing:normal;text-transform:none;color:var(--ink-2,#444)}"
+  + ".era-note .era-src{white-space:nowrap}"
+  + ".era-note a.era-src{color:inherit;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:.15em}"
+  + ".era-note a.era-src:hover,.era-note a.era-src:focus-visible{color:var(--accent,var(--ink,#000))}"
+  + "@media print{.era-note a.era-src{text-decoration:none}}";
 
 const own = (o, k) => o != null && typeof o === "object" && Object.prototype.hasOwnProperty.call(o, k);
 
@@ -117,11 +139,35 @@ const meets = (a, b) => a.from < (b.to === null ? Infinity : b.to) && b.from < (
 const flag = (v) => (v === true ? "yes" : v === false ? "no" : v === null || v === undefined ? "unassessed" : "yes");
 
 export const VALID_SILENT = ["edge", "marked-edge", "ring-conflict"];
+export const EDGE_KINDS = ["edge", "ring-conflict"];
 
 /* Is there an era (kept or refused) of this region that ends in the year `e` begins? Then e.from is a boundary. */
 function hasPredecessor(snap, region, eras, e) {
   if (eras.some((o) => o !== e && numeric(o) && o.to === e.from)) return true;
   return (snap.dropped || []).some((d) => dropOk(d) && d.region === region && d.to === e.from);
+}
+
+/* Rule j: does the neighbouring region `nb` have, for this year, the same label as the place's own era, and nothing unknown? Pure and
+   conservative: every doubt is a no. `mine` is the place's own era, `boundary` whether the note is a boundary-year note. */
+function neighbourAgrees(snap, nb, year, mine, boundary, pol) {
+  if (typeof nb !== "string" || !own(snap.regions, nb) || !Array.isArray(snap.regions[nb])) return false;
+  const eras = snap.regions[nb];
+  const dropped = (snap.dropped || []).filter((d) => dropOk(d) && d.region === nb);
+  if (dropped.some((d) => covers(d, year))) return false;
+  const covering = eras.filter((x) => numeric(x) && covers(x, year));
+  if (covering.length !== 1) return false;
+  const x = covering[0];
+  if (eras.some((o) => o !== x && numeric(o) && meets(x, o))) return false;
+  if (flag(x.approx) === "yes" || flag(x.contested) === "yes") return false;
+  if ((flag(x.approx) === "unassessed" || flag(x.contested) === "unassessed") && pol.unassessed !== "allow") return false;
+  if (label(x) !== label(mine)) return false;
+  if (!boundary && year === x.from) {
+    /* the neighbour's era begins this year: the event may be before its change, so what came just before must agree too */
+    if (dropped.some((d) => d.to === year)) return false;
+    const before = eras.filter((o) => o !== x && numeric(o) && o.to === year);
+    if (before.length === 0 || before.some((o) => label(o) !== label(mine) || flag(o.approx) === "yes" || flag(o.contested) === "yes")) return false;
+  }
+  return true;
 }
 
 /* Why a place and a year give no note, or "ok" when they give one. The first reason that applies wins; the order is the order
@@ -162,11 +208,19 @@ function decide(snap, place, year, opts) {
   if (unassessed && pol.unassessed !== "allow") return no("unassessed");
   if (!label(e)) return no("no-label");
   if (e.id !== eraId(region, e.from)) return no("bad-id");
-  return { why: "ok", region, e, boundary, key, unassessed };
+  let edgeAgree = false;
+  if (own(snap.edge_neighbours, key)) {
+    const en = snap.edge_neighbours[key];
+    const kind = en != null && typeof en === "object" && EDGE_KINDS.includes(en.kind) ? en.kind : null;
+    const list = en != null && Array.isArray(en.regions) ? en.regions : [];
+    if (kind === null || list.length === 0 || list.some((nb) => nb === region || !neighbourAgrees(snap, nb, year, e, boundary, pol))) return no(kind || "edge");
+    edgeAgree = true;
+  }
+  return { why: "ok", region, e, boundary, key, unassessed, edgeAgree };
 }
 
 /* The era a note may name for this place in this year, or null. The year must already be a plain one (plainYear).
-   -> { region, id, label, from, to, year, source, seeded, href, boundary, unchecked, unassessed, basis } */
+   -> { region, id, label, from, to, year, source, seeded, href, boundary, unchecked, unassessed, assessed, edgeAgree, basis } */
 export function eraAt(snap, place, year, opts) {
   const d = decide(snap, place, year, opts);
   if (d.why !== "ok") return null;
@@ -176,7 +230,7 @@ export function eraAt(snap, place, year, opts) {
     region, id: e.id, label: label(e), from: e.from, to: e.to, year,
     source: seeded ? SRC_OWN : SRC_ATLAS, seeded, href: eraHref(snap, region, e),
     boundary: d.boundary, unchecked: Array.isArray(snap.unchecked_edge) && snap.unchecked_edge.includes(d.key),
-    unassessed: d.unassessed, basis: typeof e.basis === "string" ? e.basis : null,
+    unassessed: d.unassessed, assessed: !d.unassessed, edgeAgree: d.edgeAgree, basis: typeof e.basis === "string" ? e.basis : null,
   };
 }
 
@@ -189,6 +243,7 @@ export function renderEra(era) {
     ? `<a class="era-src" href="${esc(era.href)}" rel="noopener">${esc(era.source)}</a>`
     : `<span class="era-src">${esc(era.source)}</span>`;
   const b = era.boundary === true;
-  return `<span class="era-note" data-era="${esc(era.id)}" data-era-year="${esc(era.year)}"${b ? ' data-era-boundary="1"' : ""}>`
+  return `<span class="era-note" data-era="${esc(era.id)}" data-era-year="${esc(era.year)}"${b ? ' data-era-boundary="1"' : ""}`
+    + ` data-era-assessed="${era.assessed === true ? "1" : "0"}"${era.edgeAgree === true ? ' data-era-edge-agree="1"' : ""}>`
     + `<span class="era-pre">${b ? PRE_BOUNDARY : PRE_NORMAL}</span><span class="era-lab">${esc(era.label)}</span> ${src}</span>`;
 }

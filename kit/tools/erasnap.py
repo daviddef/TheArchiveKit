@@ -6,21 +6,24 @@ make the same page say different things on different days, and a note an archive
 behind. So the archive commits `era-snapshot.json`, refreshes it by running THIS, deliberately, and reviews the diff. Nothing
 in a build ever reads the Atlas. kit/lib/era.js reads the snapshot; kit/tools/checkera.py holds the built pages to it.
 
-    python3 erasnap.py --contract <Record Atlas>/site/public/context.json --rings <Record Atlas>/data/regions.json \\
-                       --places era-places.json --out era-snapshot.json
+    python3 erasnap.py --contract <Record Atlas>/site/public/context.json --places era-places.json --out era-snapshot.json
     python3 erasnap.py ... --check          # rebuild in memory and compare with --out (ignores `built`); exit 1 if it differs
     python3 erasnap.py ... --report drops.json      # also write, per region, the eras refused and why (counts, for the Atlas)
 
 THE CONTRACT is https://recordatlas.org/context.json (documented at /data/#context): region eras with a permanent id
 (`<region>--era-<from>`), a half-open interval (from <= year < to; `to` null = still running), a display label (`regimeLabel`),
-a `basis` (where the region's bands came from), `contested` and `approx` (null = nobody has assessed it), and a `quality` block
-listing gaps and overlaps. It is read as the SOURCE: the snapshot records its version, its `generated` stamp and the sha256 of
-the file's bytes. Major version 1 only; any other is refused (a renamed field is what a major version is for).
+a `basis` (where the region's bands came from), `contested` and `approx` (null = nobody has assessed it; false = looked at and
+clean; true carries a `why`), and a `quality` block listing gaps and overlaps. It is read as the SOURCE: the snapshot records its
+version, its `generated` stamp and the sha256 of the file's bytes. Major version 1 only; any other is refused (a renamed field is
+what a major version is for).
 
-THE RINGS are NOT in the contract. They are in the Atlas's regions.json (the source the contract is built from: use
-`data/regions.json` in the Atlas repository; `site/public/regions.json` is what the Atlas served last and can be older than the
-contract). They are needed only for the edge rule below, and the ring file must describe the same regions and eras as the
-contract or the build stops. `--no-rings` says so explicitly: no place is then edge-checked, and all are counted unchecked.
+THE RINGS are in the contract from 1.8.0: each region carries `ring` ([lat, lon] vertices, approximate by design) and `bbox`
+([south, west, north, east]). They are read from there by default (atlas.rings_source = "contract"), the bbox is held to the ring
+(a bbox that is not the ring's extent stops the build), and a contract older than 1.8.0 is refused unless the rings are given.
+`--rings <file>` is an optional OVERRIDE (the Atlas's regions.json: its ring and its `regimes.existed` dates, which the contract
+does not carry, so the "era outside the dates the Atlas holds for its regime" refusal runs only with it); the file must describe the
+same regions and eras as the contract, and the snapshot records atlas.rings_source = "file" and the file's sha256. `--no-rings`
+says so explicitly: no place is edge-checked, and all are counted unchecked.
 
 THE PLACE TABLE is the ARCHIVE's, never the Atlas's: a JSON object (or {"places": {...}}) from a place exactly as the archive
 prints it to a region id, either `"Briatico, Vibo Valentia, Calabria": "calabria"` or an entry with coordinates the archive holds
@@ -28,11 +31,16 @@ prints it to a region id, either `"Briatico, Vibo Valentia, Calabria": "calabria
 edge of its region: it gets no note). A null region (or "-") says "looked at, and no region covers it". A place is folded
 (kit/lib/era.js fold) to a key, so spellings that differ only in case, accents or punctuation are one place.
 
-THE EDGE RULE. The rings are 4-11 vertex shapes, "approximate by design". With coordinates:
-  - a point inside ANOTHER region's ring and not inside its own is refused ("ring-conflict");
-  - a point within --edge-km (default 15) of its own region's ring edge, inside or outside, is refused ("edge");
-  - a point outside its own ring and further than that is kept (the archive's table is its own statement) unless --outside-ring
-    refuse, and is counted;
+THE EDGE RULE. The rings are 4-11 vertex shapes, "approximate by design". With coordinates, a place is NEAR AN EDGE if it is
+within --edge-km (default 15) of its own region's ring edge (inside or outside), and is IN CONFLICT if it is inside another
+region's ring and not its own. Such a place may belong to a NEIGHBOUR: the regions (other than its own) whose ring contains it or
+lies within --edge-km of it. With `--edge agree` (the default) the place is kept, with those neighbours recorded
+(edge_neighbours: {kind: "edge"|"ring-conflict", regions: [...]}), and the library keeps the note only in a year when every
+neighbour has the SAME regime label as the place's own era (kit/lib/era.js, rule j); anything unknown is silence. A near-edge place
+with NO neighbour to compare, or when some region of the contract has no usable ring (so the neighbours cannot be known), is refused
+as before ("edge" / "ring-conflict" in places_silent). `--edge strict` is the old rule for every near-edge place.
+  - a point outside its own ring, more than --edge-km from it and not inside another's ring, is kept (the archive's table is its
+    own statement) unless --outside-ring refuse, and is counted;
   - a place with no coordinates cannot be checked: it is kept, listed in `unchecked_edge`, and counted.
   - a place the table marks edge is refused ("marked-edge").
 Refused places are listed in `places_silent` so an archive can count them; they get no note.
@@ -45,8 +53,10 @@ WHAT IT REFUSES, and counts (rule b, g; kit/docs/era-notes.md); an era refused i
     era that has no polity to qualify it; an era outside the dates the ring file holds for its regime (`existed`)
   an era the contract's quality block lists in a gap or an overlap
   an era the contract marks approximate or contested (true), and, unless --unassessed allow, one it has not assessed (null).
-    As of contract 1.7.0 EVERY region era is null on both, so the default keeps NO era; --unassessed allow is a deliberate choice an
-    archive makes, recorded in the snapshot's policy, printed by the gate, and refused by the gate's --strict-unassessed.
+    An era is ASSESSED when neither flag is null; the snapshot carries `assessed` and the contract's `why` on every kept era, the
+    note says whether it rests on an assessed era (data-era-assessed) and the gate counts both. In contract 1.7.0 every region era was
+    null; from 1.8.0 some regions are assessed. --unassessed allow is a deliberate choice an archive makes, recorded in the
+    snapshot's policy, printed by the gate, and refused by the gate's --strict-unassessed.
 It KEEPS, but flags contested, BOTH eras of any pair of eras of one region that overlap: era.js then stays silent about every year
 they touch. The display label is the contract's regimeLabel; for a --qualify-regimes regime (default napo) it is the era's polity
 (when that already begins with the label) or "<label> - <polity>", never invented.
@@ -116,8 +126,41 @@ def check_contract(doc):
     return c["version"], boundary
 
 
+def _valid_ring(ring):
+    return (isinstance(ring, list) and len(ring) >= 3
+            and all(isinstance(p, list) and len(p) == 2 and all(isinstance(x, (int, float)) and not isinstance(x, bool) for x in p) for p in ring))
+
+
+def _extent(ring):
+    return [min(p[0] for p in ring), min(p[1] for p in ring), max(p[0] for p in ring), max(p[1] for p in ring)]
+
+
+def contract_rings(doc, version):
+    """The rings the contract carries (1.8.0 and later): each region's `ring` and `bbox`. The bbox must be the ring's own extent
+    ([south, west, north, east]) or the contract contradicts itself and the build stops. -> {region: ring}."""
+    m = re.fullmatch(r"(\d+)\.(\d+)\.(\d+)", str(version))
+    if (int(m.group(1)), int(m.group(2))) < (1, 8):
+        print("erasnap: contract %s carries no rings (1.8.0 added them): give --rings <the Atlas's regions.json> or --no-rings" % version, file=sys.stderr)
+        raise SystemExit(2)
+    rings, off = {}, 0
+    for r in doc["regions"]:
+        ring, bbox = r.get("ring"), r.get("bbox")
+        if not _valid_ring(ring):
+            continue
+        if not (isinstance(bbox, list) and len(bbox) == 4 and all(isinstance(x, (int, float)) for x in bbox)
+                and all(abs(x - y) < 1e-6 for x, y in zip(bbox, _extent(ring)))):
+            off += 1
+            continue
+        rings[r["id"]] = ring
+    if off:
+        print("erasnap: %d region(s) of the contract carry a bbox that is not their ring's extent: the contract contradicts itself, "
+              "so no ring is trusted (tell the Atlas)" % off, file=sys.stderr)
+        raise SystemExit(2)
+    return rings
+
+
 def check_rings(contract, rings_doc):
-    """The ring file must describe the contract's regions and eras. -> ({region: ring}, regimes)."""
+    """The OVERRIDE ring file must describe the contract's regions and eras. -> ({region: ring}, regimes)."""
     rings = {}
     rr = {r["id"]: r for r in rings_doc.get("regions") or []}
     cr = {r["id"]: r for r in contract["regions"]}
@@ -133,9 +176,8 @@ def check_rings(contract, rings_doc):
                   % sum(1 for k in rr if sorted(e.get("from") for e in rr[k].get("eras") or []) != sorted(e.get("from") for e in cr[k].get("eras") or [])),
                   file=sys.stderr)
             raise SystemExit(2)
-        ring = r.get("ring")
-        if isinstance(ring, list) and len(ring) >= 3 and all(isinstance(p, list) and len(p) == 2 and all(isinstance(x, (int, float)) for x in p) for p in ring):
-            rings[rid] = ring
+        if _valid_ring(r.get("ring")):
+            rings[rid] = r["ring"]
     return rings, rings_doc.get("regimes") or {}
 
 
@@ -187,14 +229,19 @@ def build(contract_path, rings_path, table_path, a, built):
         raise SystemExit("erasnap: --boundary newer, but the contract's own rule does not say a boundary year belongs to the newer era")
     split = lambda s: {x.strip() for x in s.split(",") if x.strip()}
     refuse, qualify = split(a.refuse_regimes), split(a.qualify_regimes)
-    rings, rregimes, rings_sha = {}, {}, None
+    rings, rregimes, rings_sha, rings_source = {}, {}, None, "none"
+    differ = 0
     if rings_path:
         rraw, rdoc = load_json_bytes(rings_path)
         rings, rregimes = check_rings(doc, rdoc)
-        rings_sha = hashlib.sha256(rraw).hexdigest()
+        rings_sha, rings_source = hashlib.sha256(rraw).hexdigest(), "file"
+        differ = sum(1 for r in doc["regions"] if _valid_ring(r.get("ring")) and r.get("ring") != rings.get(r["id"]))
+    elif not a.no_rings:
+        rings, rings_source = contract_rings(doc, version), "contract"
+    all_rings = bool(rings) and all(r["id"] in rings for r in doc["regions"])
     gap_ids, overlap_ids = quality_ids(doc["quality"])
 
-    stats = {"eras_in": 0, "eras_kept": 0, "eras_flagged_contested_overlap": 0}
+    stats = {"eras_in": 0, "eras_kept": 0, "eras_kept_assessed": 0, "eras_kept_unassessed": 0, "eras_flagged_contested_overlap": 0}
     drop_by_reason = {}
     drop_by_region = {}
     dropped = []
@@ -261,21 +308,25 @@ def build(contract_path, rings_path, table_path, a, built):
                 drop(rid, e, R_UNASSESSED)
                 continue
             basis = e.get("basis") if isinstance(e.get("basis"), str) else "not-recorded"
+            why_text = e.get("why") if isinstance(e.get("why"), str) and e["why"].strip() else None
             kept.append({"id": e["id"], "from": frm, "to": to, "present": to is None, "regime": reg, "label": lab,
                          "polity": e.get("polity") if isinstance(e.get("polity"), str) else None, "basis": basis,
-                         "seeded_from_archive": basis.startswith("seeded:"), "approx": ap, "contested": co, "url": e["url"]})
+                         "seeded_from_archive": basis.startswith("seeded:"), "approx": ap, "contested": co,
+                         "assessed": ap is not None and co is not None, "why": why_text, "url": e["url"]})
         for x in kept:
             if any(y is not x and eralib.meets(x, y) for y in kept):
                 x["contested"] = True
         stats["eras_kept"] += len(kept)
         stats["eras_flagged_contested_overlap"] += sum(1 for x in kept if x["contested"] is True)
+        stats["eras_kept_assessed"] += sum(1 for x in kept if x["assessed"])
+        stats["eras_kept_unassessed"] += sum(1 for x in kept if not x["assessed"])
         regions[rid] = kept
 
     table = load_table(table_path)
-    results = {}          # key -> ("ok", region, unchecked) | ("silent", why)
+    results = {}          # key -> ("ok", region, unchecked, kind|None, [neighbours]) | ("silent", why)
     pstat = {"places_in": len(table), "places_kept": 0, "places_unmapped": 0, "places_refused_ring_conflict": 0,
              "places_refused_edge": 0, "places_refused_marked_edge": 0, "places_outside_own_ring_kept": 0,
-             "places_outside_own_ring_refused": 0, "places_unchecked_no_coordinates": 0}
+             "places_outside_own_ring_refused": 0, "places_unchecked_no_coordinates": 0, "places_edge_kept_with_neighbours": 0}
     for name, (rid, lat, lon, marked) in sorted(table.items()):
         key = eralib.fold(name)
         if not key:
@@ -290,28 +341,37 @@ def build(contract_path, rings_path, table_path, a, built):
             res = ("silent", "marked-edge")
         elif isinstance(lat, (int, float)) and isinstance(lon, (int, float)) and not isinstance(lat, bool) and rid in rings:
             mine = eralib.pip(lat, lon, rings[rid])
-            others = [o for o, ring in rings.items() if o != rid and eralib.pip(lat, lon, ring)]
+            inside = sorted(o for o, ring in rings.items() if o != rid and eralib.pip(lat, lon, ring))
             dist = eralib.edge_km(lat, lon, rings[rid])
-            if not mine and others:
-                res = ("silent", "ring-conflict")
-            elif dist <= a.edge_km:
-                res = ("silent", "edge")
+            conflict = not mine and bool(inside)
+            if conflict or dist <= a.edge_km:
+                kind = "ring-conflict" if conflict else "edge"
+                near = sorted(o for o, ring in rings.items() if o != rid and (o in inside or eralib.edge_km(lat, lon, ring) <= a.edge_km))
+                if a.edge == "agree" and all_rings and near:
+                    res = ("ok", rid, False, kind, near)
+                else:
+                    res = ("silent", kind)
             elif not mine and a.outside_ring == "refuse":
                 res = ("silent", "ring-conflict")
                 pstat["places_outside_own_ring_refused"] += 1
             else:
-                res = ("ok", rid, False)
+                res = ("ok", rid, False, None, [])
                 if not mine:
                     pstat["places_outside_own_ring_kept"] += 1
         else:
-            res = ("ok", rid, True)
+            res = ("ok", rid, True, None, [])
         prev = results.get(key)
         if prev is not None and prev != res:
             if prev[0] == "ok" and res[0] == "ok" and prev[1] != res[1]:
                 raise SystemExit("erasnap: two places that fold to one key are sent to different regions")
-            res = prev if prev[0] == "silent" else res        # a refusal wins over a keep
+            if prev[0] == "ok" and res[0] == "ok":
+                # the same place twice (coordinates on one spelling, or two sets of them): it is checked if either was, and every neighbour either has is kept
+                kind = "ring-conflict" if "ring-conflict" in (prev[3], res[3]) else (prev[3] or res[3])
+                res = ("ok", prev[1], prev[2] and res[2], kind, sorted(set(prev[4]) | set(res[4])))
+            else:
+                res = prev if prev[0] == "silent" else res        # a refusal wins over a keep
         results[key] = res
-    places, silent, unchecked = {}, {}, []
+    places, silent, unchecked, edge_nb = {}, {}, [], {}
     for key, res in sorted(results.items()):
         if res[0] == "silent":
             silent[key] = res[1]
@@ -319,30 +379,39 @@ def build(contract_path, rings_path, table_path, a, built):
             places[key] = res[1]
             if res[2]:
                 unchecked.append(key)
+            if res[3]:
+                edge_nb[key] = {"kind": res[3], "regions": res[4]}
     pstat["places_kept"] = len(places)
     pstat["places_unchecked_no_coordinates"] = len(unchecked)
+    pstat["places_edge_kept_with_neighbours"] = len(edge_nb)
     pstat["places_refused_ring_conflict"] = sum(1 for v in silent.values() if v == "ring-conflict")
     pstat["places_refused_edge"] = sum(1 for v in silent.values() if v == "edge")
     pstat["places_refused_marked_edge"] = sum(1 for v in silent.values() if v == "marked-edge")
 
-    used = {v for v in places.values()}
+    used = set(places.values()) | {r for v in edge_nb.values() for r in v["regions"]}
     q = doc["quality"]
     keep_row = lambda row: row.get("slug") in used or any(isinstance(row.get(k), str) and row[k].split("--era-")[0] in used for k in ("from", "to"))
     snap = {
         "version": eralib.VERSION,
         "built": built,
         "contract": {"name": CONTRACT_NAME, "version": version, "generated": doc["generated"], "sha256": hashlib.sha256(raw).hexdigest()},
-        "atlas": {"base": a.atlas_base, "rings_sha256": rings_sha},
-        "policy": {"unassessed": a.unassessed, "boundary": boundary, "recent_from": a.recent_from, "edge_km": a.edge_km},
+        "atlas": {"base": a.atlas_base, "rings_source": rings_source, "rings_sha256": rings_sha},
+        "policy": {"unassessed": a.unassessed, "boundary": boundary, "recent_from": a.recent_from, "edge_km": a.edge_km, "edge": a.edge},
         "regions": {k: regions[k] for k in sorted(regions) if k in used},
         "places": places,
         "places_silent": silent,
+        "edge_neighbours": edge_nb,
         "unchecked_edge": unchecked,
         "dropped": sorted((d for d in dropped if d["region"] in used), key=lambda d: (d["region"], d["from"] if d["from"] is not None else 0, str(d["to"]), d["reason"])),
         "quality": {"counts": {"gaps": len(q.get("gaps") or []), "overlaps": len(q.get("overlaps") or [])},
                     "gaps": [r for r in q.get("gaps") or [] if keep_row(r)], "overlaps": [r for r in q.get("overlaps") or [] if keep_row(r)]},
     }
     stats.update(pstat)
+    stats["rings_source"] = rings_source
+    if rings_source == "file":
+        stats["rings_override_differing_from_contract"] = differ
+    if rings and not all_rings:
+        stats["regions_without_a_usable_ring"] = sum(1 for r in doc["regions"] if r["id"] not in rings)
     stats["eras_dropped"] = dict(sorted(drop_by_reason.items()))
     stats["regions_in_snapshot"] = len(snap["regions"])
     stats["contract"] = "%s generated %s" % (version, doc["generated"])
@@ -357,7 +426,8 @@ def build(contract_path, rings_path, table_path, a, built):
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--contract", required=True, help="a local copy of the Record Atlas's context.json (the versioned contract)")
-    ap.add_argument("--rings", default=None, help="the Atlas's regions.json (data/regions.json), for the ring-edge rule: the contract has no rings")
+    ap.add_argument("--rings", default=None, help="OPTIONAL override: the Atlas's regions.json (data/regions.json). By default the rings and "
+                    "bboxes are read from the contract (1.8.0 and later)")
     ap.add_argument("--no-rings", action="store_true", help="say so explicitly: no place is edge-checked, every place is counted unchecked")
     ap.add_argument("--places", required=True, help="the archive's place -> region table (JSON)")
     ap.add_argument("--out", required=True)
@@ -370,14 +440,17 @@ def main(argv=None):
     ap.add_argument("--recent-from", type=int, default=eralib.RECENT_FROM,
                     help="the quiet rule: an event in the era still running from this year is silent (default %d)" % eralib.RECENT_FROM)
     ap.add_argument("--edge-km", type=float, default=eralib.EDGE_KM)
+    ap.add_argument("--edge", choices=("agree", "strict"), default="agree",
+                    help="a place near its region's ring edge (or inside another's ring): agree keeps it with the neighbours that could claim it, "
+                         "and the note only in a year when they all have its regime; strict refuses it, as before")
     ap.add_argument("--outside-ring", choices=("keep", "refuse"), default="keep",
                     help="a place whose coordinates are outside its own region's ring (and not near another's)")
     ap.add_argument("--boundary", choices=("auto", "silent", "newer"), default="auto", help="auto: what the contract's rule says; silent is stricter")
     ap.add_argument("--report", default=None, help="write per-region counts of eras refused, and why, to this JSON file")
     ap.add_argument("--check", action="store_true", help="rebuild and compare with --out (ignoring `built`); write nothing")
     a = ap.parse_args(argv)
-    if bool(a.rings) == bool(a.no_rings):
-        print("erasnap: give --rings <the Atlas's regions.json> (the contract carries no rings), or --no-rings to say no place is edge-checked", file=sys.stderr)
+    if a.rings and a.no_rings:
+        print("erasnap: --rings and --no-rings contradict each other", file=sys.stderr)
         return 2
     if not (isinstance(a.recent_from, int) and 1 <= a.recent_from <= 9999):
         print("erasnap: --recent-from must be a year", file=sys.stderr)
