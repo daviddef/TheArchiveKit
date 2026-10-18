@@ -4,12 +4,18 @@ THE TWO HALVES MUST AGREE and nothing but the shared cases holds them together: 
 kit/lib/era.js by kit/tools/era_logic.mjs and through THIS file by kit/tools/era_selftest.py. Change a rule in one and the
 other's run of the cases fails. See kit/docs/era-notes.md for what each rule is and why.
 """
+import math
 import re
 import unicodedata
 
-VERSION = 1
+VERSION = 2
 SRC_ATLAS = "per the Record Atlas"
 SRC_OWN = "per this archive's own research"
+PRE_NORMAL = "· At the time: "
+PRE_BOUNDARY = "· From that year: "
+RECENT_FROM = 1990
+EDGE_KM = 15
+VALID_SILENT = ("edge", "marked-edge", "ring-conflict")
 
 
 def fold(s):
@@ -45,78 +51,176 @@ def plain_year(date, year):
 
 
 def era_id(region, frm):
-    return "%s--%s" % (region, frm)
+    return "%s--era-%s" % (region, frm)
 
 
-def region_href(snap, region):
+def _base(snap):
     base = ((snap or {}).get("atlas") or {}).get("base")
     if not isinstance(base, str):
         return None
     base = base.rstrip("/")
-    if re.match(r"^https://[^/?#\s]+$", base, re.I) and re.match(r"^[a-z0-9][a-z0-9-]*$", str(region)):
-        return "%s/region/%s/" % (base, region)
+    return base if re.match(r"^https://[^/?#\s]+$", base, re.I) else None
+
+
+def region_href(snap, region):
+    b = _base(snap)
+    if b and re.match(r"^[a-z0-9][a-z0-9-]*$", str(region)):
+        return "%s/region/%s/" % (b, region)
     return None
 
 
-def _label(snap, e):
-    regimes = snap.get("regimes")
-    r = e.get("regime")
-    if not isinstance(regimes, dict) or not isinstance(r, str) or r not in regimes:
-        return ""
-    v = regimes[r]
+def era_href(snap, region, e):
+    """The link to the ERA: the contract's own `url`, accepted only if it is the path the id implies."""
+    b = _base(snap)
+    if not b or not isinstance(e, dict) or not isinstance(e.get("url"), str) or not re.match(r"^[a-z0-9][a-z0-9-]*$", str(region)):
+        return None
+    return b + e["url"] if e["url"] == "/region/%s/#era-%s" % (region, e.get("from")) else None
+
+
+def _label(e):
+    v = e.get("label")
     return v.strip() if isinstance(v, str) else ""
 
 
+def is_open(e):
+    """`to` is present and null: the era is still running. A MISSING `to` is not that (it is an era with no end year)."""
+    return isinstance(e, dict) and "to" in e and e["to"] is None
+
+
 def numeric(e):
-    return isinstance(e, dict) and is_year(e.get("from")) and is_year(e.get("to")) and e["from"] < e["to"]
+    """A whole-number start, and either a later whole-number end or null (still running)."""
+    if not isinstance(e, dict) or not is_year(e.get("from")):
+        return False
+    return is_open(e) or (is_year(e.get("to")) and e["from"] < e["to"])
 
 
-def why_not(snap, place, year):
-    """Why a place and a year give no note, or "ok". Same reasons, same order as whyNot in era.js."""
+def drop_ok(d):
+    return isinstance(d, dict) and is_year(d.get("from")) and (is_open(d) or (is_year(d.get("to")) and d["from"] < d["to"]))
+
+
+def covers(e, year):
+    """from <= year < to; to null runs on."""
+    return e["from"] <= year and (is_open(e) or year < e["to"])
+
+
+def meets(a, b):
+    inf = math.inf
+    return a["from"] < (inf if is_open(b) else b["to"]) and b["from"] < (inf if is_open(a) else a["to"])
+
+
+def flag(v):
+    if v is True:
+        return "yes"
+    if v is False:
+        return "no"
+    return "unassessed" if v is None else "yes"
+
+
+def _has_predecessor(snap, region, eras, e):
+    if any(o is not e and numeric(o) and o.get("to") == e["from"] for o in eras):
+        return True
+    return any(drop_ok(d) and d.get("region") == region and d.get("to") == e["from"] for d in (snap.get("dropped") or []))
+
+
+def _decide(snap, place, year, recent_from=None):
+    def no(why):
+        return {"why": why}
+
     if not isinstance(snap, dict) or snap.get("version") != VERSION:
-        return "snapshot"
+        return no("snapshot")
     if not is_year(year):
-        return "year"
+        return no("year")
     if not isinstance(place, str) or not fold(place):
-        return "place"
+        return no("place")
     key = fold(place)
+    silent = snap.get("places_silent")
+    if isinstance(silent, dict) and silent.get(key) in VALID_SILENT:
+        return no(silent[key])
     places = snap.get("places")
     if not isinstance(places, dict) or key not in places:
-        return "no-region"
+        return no("no-region")
     region = places[key]
     regions = snap.get("regions")
     if not isinstance(region, str) or not isinstance(regions, dict) or not isinstance(regions.get(region), list):
-        return "no-region"
+        return no("no-region")
     eras = regions[region]
-    touching = [e for e in eras if numeric(e) and e["from"] <= year <= e["to"]]
-    if not touching:
-        refused = any(isinstance(d, dict) and d.get("region") == region and is_year(d.get("from")) and is_year(d.get("to"))
-                      and d["from"] <= year <= d["to"] for d in (snap.get("dropped") or []))
-        return "era-refused" if refused else "no-era"
+    pol = snap.get("policy") if isinstance(snap.get("policy"), dict) else {}
+    refused = [d for d in (snap.get("dropped") or []) if drop_ok(d) and d.get("region") == region and covers(d, year)]
+    covering = [e for e in eras if numeric(e) and covers(e, year)]
+    if not covering:
+        return no("era-refused" if refused else "no-era")
+    if len(covering) > 1 or refused or any(e.get("contested") is True or any(o is not e and numeric(o) and meets(e, o) for o in eras)
+                                           for e in covering):
+        return no("contested")
+    e = covering[0]
+    if recent_from is None:
+        recent_from = pol["recent_from"] if is_year(pol.get("recent_from")) else RECENT_FROM
+    if is_open(e) and year >= recent_from:
+        return no("recent")
+    boundary = False
+    if year == e["from"] and _has_predecessor(snap, region, eras, e):
+        if pol.get("boundary") != "newer":
+            return no("boundary")
+        boundary = True
+    if flag(e.get("approx")) == "yes":
+        return no("approx")
+    if flag(e.get("contested")) == "yes":
+        return no("contested")
+    unassessed = flag(e.get("approx")) == "unassessed" or flag(e.get("contested")) == "unassessed"
+    if unassessed and pol.get("unassessed") != "allow":
+        return no("unassessed")
+    if not _label(e):
+        return no("no-label")
+    if e.get("id") != era_id(region, e["from"]):
+        return no("bad-id")
+    return {"why": "ok", "region": region, "e": e, "boundary": boundary, "key": key, "unassessed": unassessed}
 
-    def overlapped(e):
-        return any(o is not e and numeric(o) and o["from"] < e["to"] and e["from"] < o["to"] for o in eras)
 
-    inside = [e for e in touching if e["from"] < year < e["to"]]
-    if len(inside) > 1 or any(e.get("contested") is True or overlapped(e) for e in touching):
-        return "contested"
-    if not inside:
-        return "boundary"
-    e = inside[0]
-    if "approx" in e and e["approx"] is not False:
-        return "approx"
-    if "contested" in e and e["contested"] is not False:
-        return "contested"
-    if not _label(snap, e):
-        return "no-label"
-    return "ok"
+def why_not(snap, place, year, recent_from=None):
+    """Why a place and a year give no note, or "ok". Same reasons, same order as whyNot in era.js. recent_from overrides the
+    snapshot's quiet-rule year (math.inf: off)."""
+    return _decide(snap, place, year, recent_from)["why"]
 
 
-def era_at(snap, place, year):
-    if why_not(snap, place, year) != "ok":
+def era_at(snap, place, year, recent_from=None):
+    d = _decide(snap, place, year, recent_from)
+    if d["why"] != "ok":
         return None
-    region = snap["places"][fold(place)]
-    e = next(x for x in snap["regions"][region] if numeric(x) and x["from"] < year < x["to"])
+    region, e = d["region"], d["e"]
     seeded = e.get("seeded_from_archive") is True
-    return {"region": region, "id": era_id(region, e["from"]), "label": _label(snap, e), "from": e["from"], "to": e["to"],
-            "year": year, "source": SRC_OWN if seeded else SRC_ATLAS, "seeded": seeded, "href": region_href(snap, region)}
+    return {"region": region, "id": e["id"], "label": _label(e), "from": e["from"], "to": e.get("to"), "year": year,
+            "source": SRC_OWN if seeded else SRC_ATLAS, "seeded": seeded, "href": era_href(snap, region, e),
+            "boundary": d["boundary"], "unchecked": d["key"] in (snap.get("unchecked_edge") or []),
+            "unassessed": d["unassessed"], "basis": e.get("basis") if isinstance(e.get("basis"), str) else None}
+
+
+# ---- geometry, shared by erasnap.py (the builder) ------------------------------------------------------------------------
+
+def pip(lat, lon, ring):
+    """Is the point inside the ring ([lat, lon] vertices)? Ray casting."""
+    inside = False
+    n = len(ring)
+    for i in range(n):
+        a, b = ring[i], ring[(i + 1) % n]
+        if (a[1] > lon) != (b[1] > lon):
+            x = a[0] + (lon - a[1]) * (b[0] - a[0]) / (b[1] - a[1])
+            if lat < x:
+                inside = not inside
+    return inside
+
+
+def edge_km(lat, lon, ring):
+    """Distance in km from the point to the nearest EDGE of the ring (inside or outside; the ring is a closed polygon whose edges are
+    straight lines between [lat, lon] vertices). Flat local projection around the point (1 deg lat = 111.195 km, 1 deg lon =
+    111.195 km x cos(lat)): a ring edge is hundreds of km at most and the question is whether the point is within ~15 km."""
+    k = 111.195
+    cl = math.cos(math.radians(lat))
+    pts = [((p[1] - lon) * cl * k, (p[0] - lat) * k) for p in ring]
+    best = math.inf
+    for i in range(len(pts)):
+        (ax, ay), (bx, by) = pts[i], pts[(i + 1) % len(pts)]
+        dx, dy = bx - ax, by - ay
+        L2 = dx * dx + dy * dy
+        t = 0.0 if L2 == 0 else max(0.0, min(1.0, -(ax * dx + ay * dy) / L2))
+        best = min(best, math.hypot(ax + t * dx, ay + t * dy))
+    return best

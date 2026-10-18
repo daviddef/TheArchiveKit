@@ -1,703 +1,3663 @@
 {
-  "about": "Invented snapshot and cases for kit/lib/era.js (run by kit/tools/era_logic.mjs) AND kit/tools/eralib.py (run by kit/tools/era_selftest.py): the two halves must give the same answers. Ruritania is a country in a novel; nothing here is a real region, person or record. `want` is the era eraAt returns (checked field by field) or null; `why` is what whyNot says. `gate_snapshot` is a clean snapshot for the gate's tests (checkera.py refuses a malformed one); `snapshot` is deliberately full of faults for the library's.",
-  "snapshot": {
-    "version": 1,
-    "built": "2026-01-01",
-    "atlas": {
-      "base": "https://atlas.example.test",
-      "commit": "0000000",
-      "file_sha256": "0"
-    },
-    "regimes": {
-      "kingdom": "Kingdom of Ruritania",
-      "republic": "Republic of Ruritania",
-      "occupied": "Occupied Ruritania",
-      "blank": "  "
-    },
-    "regions": {
-      "ruritania": [
-        {
-          "from": 1700,
-          "to": 1800,
-          "regime": "kingdom",
-          "approx": false,
-          "contested": false,
-          "seeded_from_archive": false,
-          "sources": [
-            "regions.json"
-          ]
-        },
-        {
-          "from": 1800,
-          "to": 1850,
-          "regime": "occupied",
-          "approx": true,
-          "contested": false,
-          "seeded_from_archive": false,
-          "sources": [
-            "regions.json"
-          ]
-        },
-        {
-          "from": 1850,
-          "to": 1900,
-          "regime": "republic",
-          "approx": false,
-          "contested": false,
-          "seeded_from_archive": false,
-          "sources": [
-            "regions.json"
-          ]
-        },
-        {
-          "from": 1900,
-          "to": 1950,
-          "regime": "blank",
-          "approx": false,
-          "contested": false,
-          "seeded_from_archive": false,
-          "sources": [
-            "regions.json"
-          ]
-        },
-        {
-          "from": 1950,
-          "to": 2000,
-          "regime": "ghost",
-          "approx": false,
-          "contested": false,
-          "seeded_from_archive": false,
-          "sources": [
-            "regions.json"
-          ]
-        }
-      ],
-      "zenda": [
-        {
-          "from": 1700,
-          "to": 1800,
-          "regime": "kingdom",
-          "approx": false,
-          "contested": false,
-          "seeded_from_archive": false,
-          "sources": []
-        },
-        {
-          "from": 1790,
-          "to": 1850,
-          "regime": "republic",
-          "approx": false,
-          "contested": false,
-          "seeded_from_archive": false,
-          "sources": []
-        },
-        {
-          "from": 1850,
-          "to": "1900",
-          "regime": "kingdom",
-          "approx": false,
-          "contested": false,
-          "seeded_from_archive": false,
-          "sources": []
-        },
-        {
-          "from": 1900,
-          "to": 1950,
-          "regime": "kingdom",
-          "approx": false,
-          "contested": true,
-          "seeded_from_archive": false,
-          "sources": []
-        },
-        {
-          "from": 1950,
-          "to": 2000,
-          "regime": "kingdom",
-          "approx": false,
-          "contested": false,
-          "seeded_from_archive": true,
-          "sources": []
-        }
-      ],
-      "strelsau": [
-        {
-          "from": 1700,
-          "to": 1800,
-          "regime": "kingdom",
-          "approx": false,
-          "contested": false,
-          "seeded_from_archive": false,
-          "sources": []
-        },
-        {
-          "from": 1800,
-          "to": 1900,
-          "regime": "kingdom",
-          "approx": false,
-          "contested": false,
-          "seeded_from_archive": false,
-          "sources": []
-        }
-      ],
-      "bareera": [
-        {
-          "from": 1700,
-          "to": 1800,
-          "regime": "kingdom"
-        }
-      ]
-    },
-    "places": {
-      "hentzau": "ruritania",
-      "zenda": "zenda",
-      "strelsau": "strelsau",
-      "lonely castle": "atlantis",
-      "bare town": "bareera"
-    },
-    "dropped": [
-      {
-        "region": "strelsau",
-        "from": 1900,
-        "to": 1950,
-        "reason": "regime shorthand"
-      }
-    ]
+ "about": "Invented snapshots and cases for kit/lib/era.js (run by kit/tools/era_logic.mjs) AND kit/tools/eralib.py (run by kit/tools/era_selftest.py): the two halves must give the same answers. Ruritania is a country in a novel; nothing here is a real region, person or record. `want` is the era eraAt returns (checked field by field) or null; `why` is what whyNot says; `opts.recent_from` is the caller's override of the quiet rule. `gate_snapshot` is a clean snapshot for the gate's tests (checkera.py refuses a malformed one); `snapshot` is deliberately full of faults for the library's. The expected answers were written by hand, not computed.",
+ "snapshot": {
+  "version": 2,
+  "built": "2026-01-01",
+  "contract": {
+   "name": "recordatlas-context",
+   "version": "1.7.0",
+   "generated": "2026-01-01",
+   "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
   },
-  "other_snapshots": {
-    "v2": {
-      "version": 2,
-      "regimes": {},
-      "regions": {},
-      "places": {}
-    },
-    "empty": {}
+  "atlas": {
+   "base": "https://atlas.example.test",
+   "rings_sha256": null
   },
-  "fold": [
-    [
-      "Zénda, Ruritania",
-      "zenda ruritania"
-    ],
-    [
-      "St. John's",
-      "st johns"
-    ],
-    [
-      "St. John’s",
-      "st johns"
-    ],
-    [
-      "Potenzoni (Briatico), Vibo Valentia",
-      "potenzoni briatico vibo valentia"
-    ],
-    [
-      "  A--B  ",
-      "a b"
-    ],
-    [
-      "ZENDA",
-      "zenda"
-    ],
-    [
-      "Łódź",
-      "łodz"
-    ],
-    [
-      "",
-      ""
-    ],
-    [
-      null,
-      ""
-    ]
-  ],
-  "years": [
-    [
-      "1860",
-      1860,
-      1860
-    ],
-    [
-      "March 1860",
-      1860,
-      1860
-    ],
-    [
-      "12 March 1860",
-      1860,
-      1860
-    ],
-    [
-      "12 Mar 1860",
-      1860,
-      1860
-    ],
-    [
-      "Jan 1860",
-      1860,
-      1860
-    ],
-    [
-      "12  March 1860",
-      1860,
-      1860
-    ],
-    [
-      "1860-03-12",
-      1860,
-      1860
-    ],
-    [
-      "1860-03",
-      1860,
-      1860
-    ],
-    [
-      "c. 1860",
-      1860,
-      null
-    ],
-    [
-      "about 1860",
-      1860,
-      null
-    ],
-    [
-      "circa 1860",
-      1860,
-      null
-    ],
-    [
-      "before 1860",
-      1860,
-      null
-    ],
-    [
-      "after 12 March 1860",
-      1860,
-      null
-    ],
-    [
-      "between 1860 and 1862",
-      1860,
-      null
-    ],
-    [
-      "1860 or 1861",
-      1860,
-      null
-    ],
-    [
-      "1860?",
-      1860,
-      null
-    ],
-    [
-      "alive at Zenda, July 1844",
-      1844,
-      null
-    ],
-    [
-      "1860",
-      1861,
-      null
-    ],
-    [
-      "",
-      1860,
-      null
-    ],
-    [
-      null,
-      1860,
-      null
-    ],
-    [
-      "1860",
-      null,
-      null
-    ],
-    [
-      "1860",
-      "1860",
-      null
-    ],
-    [
-      "1860",
-      1860.5,
-      null
-    ],
-    [
-      "1860",
-      0,
-      null
-    ]
-  ],
-  "cases": [
+  "policy": {
+   "unassessed": "refuse",
+   "boundary": "newer",
+   "recent_from": 1990,
+   "edge_km": 15
+  },
+  "regions": {
+   "ruritania": [
     {
-      "id": "inside-the-first-era",
-      "place": "Hentzau",
-      "year": 1750,
-      "why": "ok",
-      "want": {
-        "region": "ruritania",
-        "id": "ruritania--1700",
-        "label": "Kingdom of Ruritania",
-        "from": 1700,
-        "to": 1800,
-        "year": 1750,
-        "source": "per the Record Atlas",
-        "seeded": false,
-        "href": "https://atlas.example.test/region/ruritania/"
-      }
+     "id": "ruritania--era-1700",
+     "from": 1700,
+     "to": 1800,
+     "present": false,
+     "regime": "kingdom",
+     "label": "Kingdom of Ruritania",
+     "polity": null,
+     "basis": "not-recorded",
+     "seeded_from_archive": false,
+     "approx": false,
+     "contested": false,
+     "url": "/region/ruritania/#era-1700"
     },
     {
-      "id": "inside-a-later-era",
-      "place": "Hentzau",
-      "year": 1860,
-      "why": "ok",
-      "want": {
-        "id": "ruritania--1850",
-        "label": "Republic of Ruritania",
-        "source": "per the Record Atlas"
-      }
+     "id": "ruritania--era-1800",
+     "from": 1800,
+     "to": 1850,
+     "present": false,
+     "regime": "occupied",
+     "label": "Occupied Ruritania",
+     "polity": null,
+     "basis": "not-recorded",
+     "seeded_from_archive": false,
+     "approx": true,
+     "contested": false,
+     "url": "/region/ruritania/#era-1800"
     },
     {
-      "id": "the-place-is-folded",
-      "place": "HENTZAU!",
-      "year": 1860,
-      "why": "ok",
-      "want": {
-        "id": "ruritania--1850"
-      }
+     "id": "ruritania--era-1850",
+     "from": 1850,
+     "to": 1900,
+     "present": false,
+     "regime": "republic",
+     "label": "Republic of Ruritania",
+     "polity": null,
+     "basis": "not-recorded",
+     "seeded_from_archive": false,
+     "approx": false,
+     "contested": false,
+     "url": "/region/ruritania/#era-1850"
     },
     {
-      "id": "accents-and-case-are-folded",
-      "place": "ZÉNDA",
-      "year": 1975,
-      "why": "ok",
-      "want": {
-        "id": "zenda--1950"
-      }
+     "id": "ruritania--era-1900",
+     "from": 1900,
+     "to": 1950,
+     "present": false,
+     "regime": "blank",
+     "label": "  ",
+     "polity": null,
+     "basis": "not-recorded",
+     "seeded_from_archive": false,
+     "approx": false,
+     "contested": false,
+     "url": "/region/ruritania/#era-1900"
     },
     {
-      "id": "boundary-year-between-two-eras",
-      "place": "Hentzau",
-      "year": 1800,
-      "why": "boundary",
-      "want": null
+     "id": "ruritania--era-1950",
+     "from": 1950,
+     "to": 1991,
+     "present": false,
+     "regime": "ghost",
+     "polity": null,
+     "basis": "not-recorded",
+     "seeded_from_archive": false,
+     "approx": false,
+     "contested": false,
+     "url": "/region/ruritania/#era-1950"
     },
     {
-      "id": "boundary-year-between-eras-of-one-regime",
-      "place": "Strelsau",
-      "year": 1800,
-      "why": "boundary",
-      "want": null
-    },
-    {
-      "id": "first-year-of-an-era-is-a-boundary",
-      "place": "Hentzau",
-      "year": 1850,
-      "why": "boundary",
-      "want": null
-    },
-    {
-      "id": "last-year-of-a-region-is-a-boundary",
-      "place": "Hentzau",
-      "year": 2000,
-      "why": "boundary",
-      "want": null
-    },
-    {
-      "id": "first-year-of-a-region-is-a-boundary",
-      "place": "Hentzau",
-      "year": 1700,
-      "why": "boundary",
-      "want": null
-    },
-    {
-      "id": "before-any-era",
-      "place": "Hentzau",
-      "year": 1699,
-      "why": "no-era",
-      "want": null
-    },
-    {
-      "id": "after-every-era",
-      "place": "Hentzau",
-      "year": 2001,
-      "why": "no-era",
-      "want": null
-    },
-    {
-      "id": "an-approximate-era-is-silent",
-      "place": "Hentzau",
-      "year": 1820,
-      "why": "approx",
-      "want": null
-    },
-    {
-      "id": "an-empty-regime-label-is-silent",
-      "place": "Hentzau",
-      "year": 1920,
-      "why": "no-label",
-      "want": null
-    },
-    {
-      "id": "a-regime-the-snapshot-does-not-define-is-silent",
-      "place": "Hentzau",
-      "year": 1970,
-      "why": "no-label",
-      "want": null
-    },
-    {
-      "id": "a-year-inside-two-overlapping-eras-is-silent",
-      "place": "Zenda",
-      "year": 1795,
-      "why": "contested",
-      "want": null
-    },
-    {
-      "id": "an-era-that-overlaps-another-is-silent-even-where-it-stands-alone",
-      "place": "Zenda",
-      "year": 1710,
-      "why": "contested",
-      "want": null
-    },
-    {
-      "id": "an-era-marked-contested-is-silent",
-      "place": "Zenda",
-      "year": 1920,
-      "why": "contested",
-      "want": null
-    },
-    {
-      "id": "an-era-with-a-words-only-end-is-not-an-era",
-      "place": "Zenda",
-      "year": 1860,
-      "why": "no-era",
-      "want": null
-    },
-    {
-      "id": "a-seeded-region-says-so",
-      "place": "Zenda",
-      "year": 1975,
-      "why": "ok",
-      "want": {
-        "seeded": true,
-        "source": "per this archive's own research",
-        "label": "Kingdom of Ruritania"
-      }
-    },
-    {
-      "id": "a-refused-era-is-silent-and-counted-as-refused",
-      "place": "Strelsau",
-      "year": 1920,
-      "why": "era-refused",
-      "want": null
-    },
-    {
-      "id": "a-year-inside-a-merged-pair-of-eras",
-      "place": "Strelsau",
-      "year": 1850,
-      "why": "ok",
-      "want": {
-        "id": "strelsau--1800"
-      }
-    },
-    {
-      "id": "an-era-with-no-flags-at-all-is-allowed",
-      "place": "Bare Town",
-      "year": 1750,
-      "why": "ok",
-      "want": {
-        "id": "bareera--1700",
-        "seeded": false
-      }
-    },
-    {
-      "id": "a-place-with-no-region",
-      "place": "Elphberg",
-      "year": 1750,
-      "why": "no-region",
-      "want": null
-    },
-    {
-      "id": "a-place-mapped-to-a-region-the-snapshot-lacks",
-      "place": "Lonely Castle",
-      "year": 1750,
-      "why": "no-region",
-      "want": null
-    },
-    {
-      "id": "an-inherited-object-key-is-not-a-place",
-      "place": "constructor",
-      "year": 1750,
-      "why": "no-region",
-      "want": null
-    },
-    {
-      "id": "the-prototype-key-is-not-a-place",
-      "place": "__proto__",
-      "year": 1750,
-      "why": "no-region",
-      "want": null
-    },
-    {
-      "id": "a-string-year-is-refused",
-      "place": "Hentzau",
-      "year": "1750",
-      "why": "year",
-      "want": null
-    },
-    {
-      "id": "a-fractional-year-is-refused",
-      "place": "Hentzau",
-      "year": 1750.5,
-      "why": "year",
-      "want": null
-    },
-    {
-      "id": "no-year-is-refused",
-      "place": "Hentzau",
-      "year": null,
-      "why": "year",
-      "want": null
-    },
-    {
-      "id": "year-zero-is-refused",
-      "place": "Hentzau",
-      "year": 0,
-      "why": "year",
-      "want": null
-    },
-    {
-      "id": "no-place-is-refused",
-      "place": "",
-      "year": 1750,
-      "why": "place",
-      "want": null
-    },
-    {
-      "id": "a-number-is-not-a-place",
-      "place": 12,
-      "year": 1750,
-      "why": "place",
-      "want": null
-    },
-    {
-      "id": "a-snapshot-of-another-version-is-refused",
-      "snap": "v2",
-      "place": "Hentzau",
-      "year": 1750,
-      "why": "snapshot",
-      "want": null
-    },
-    {
-      "id": "an-empty-snapshot-is-refused",
-      "snap": "empty",
-      "place": "Hentzau",
-      "year": 1750,
-      "why": "snapshot",
-      "want": null
-    },
-    {
-      "id": "no-snapshot-is-refused",
-      "snap": "none",
-      "place": "Hentzau",
-      "year": 1750,
-      "why": "snapshot",
-      "want": null
+     "id": "ruritania--era-1991",
+     "from": 1991,
+     "to": null,
+     "present": true,
+     "regime": "third",
+     "label": "Third Republic of Ruritania",
+     "polity": null,
+     "basis": "not-recorded",
+     "seeded_from_archive": false,
+     "approx": false,
+     "contested": false,
+     "url": "/region/ruritania/#era-1991"
     }
-  ],
-  "href_cases": [
+   ],
+   "elphberg": [
     {
-      "id": "href-needs-https",
-      "base": "http://atlas.example.test",
-      "href": null
-    },
-    {
-      "id": "href-with-a-path-is-refused",
-      "base": "https://atlas.example.test/x",
-      "href": null
-    },
-    {
-      "id": "href-trailing-slash-is-fine",
-      "base": "https://atlas.example.test/",
-      "href": "https://atlas.example.test/region/ruritania/"
-    },
-    {
-      "id": "href-without-a-base-is-null",
-      "base": null,
-      "href": null
+     "id": "elphberg--era-1900",
+     "from": 1900,
+     "to": null,
+     "present": true,
+     "regime": "kingdom",
+     "label": "Kingdom of Ruritania",
+     "polity": null,
+     "basis": "seeded:test-archive",
+     "seeded_from_archive": true,
+     "approx": false,
+     "contested": false,
+     "url": "/region/elphberg/#era-1900"
     }
+   ],
+   "zenda": [
+    {
+     "id": "zenda--era-1700",
+     "from": 1700,
+     "to": 1800,
+     "present": false,
+     "regime": "kingdom",
+     "label": "Kingdom of Ruritania",
+     "polity": null,
+     "basis": "not-recorded",
+     "seeded_from_archive": false,
+     "approx": false,
+     "contested": false,
+     "url": "/region/zenda/#era-1700"
+    },
+    {
+     "id": "zenda--era-1790",
+     "from": 1790,
+     "to": 1850,
+     "present": false,
+     "regime": "republic",
+     "label": "Republic of Ruritania",
+     "polity": null,
+     "basis": "not-recorded",
+     "seeded_from_archive": false,
+     "approx": false,
+     "contested": false,
+     "url": "/region/zenda/#era-1790"
+    },
+    {
+     "id": "zenda--era-1850",
+     "from": 1850,
+     "to": 1900,
+     "present": false,
+     "regime": "kingdom",
+     "label": "Kingdom of Ruritania",
+     "polity": null,
+     "basis": "not-recorded",
+     "seeded_from_archive": false,
+     "approx": false,
+     "contested": false,
+     "url": "/region/zenda/#era-1850"
+    },
+    {
+     "id": "zenda--era-1900",
+     "from": 1900,
+     "to": 1950,
+     "present": false,
+     "regime": "kingdom",
+     "label": "Kingdom of Ruritania",
+     "polity": null,
+     "basis": "not-recorded",
+     "seeded_from_archive": false,
+     "approx": false,
+     "contested": true,
+     "url": "/region/zenda/#era-1900"
+    },
+    {
+     "id": "zenda--era-1950",
+     "from": 1950,
+     "to": 2000,
+     "present": false,
+     "regime": "kingdom",
+     "label": "Kingdom of Ruritania",
+     "polity": null,
+     "basis": "not-recorded",
+     "seeded_from_archive": false,
+     "approx": false,
+     "contested": false,
+     "url": "/region/zenda/#era-1950"
+    }
+   ],
+   "strelsau": [
+    {
+     "id": "strelsau--era-1700",
+     "from": 1700,
+     "to": 1800,
+     "present": false,
+     "regime": "kingdom",
+     "label": "Kingdom of Ruritania",
+     "polity": null,
+     "basis": "not-recorded",
+     "seeded_from_archive": false,
+     "approx": false,
+     "contested": false,
+     "url": "/region/strelsau/#era-1700"
+    },
+    {
+     "id": "strelsau--era-1800",
+     "from": 1800,
+     "to": 1900,
+     "present": false,
+     "regime": "kingdom",
+     "label": "Kingdom of Ruritania",
+     "polity": null,
+     "basis": "not-recorded",
+     "seeded_from_archive": false,
+     "approx": false,
+     "contested": false,
+     "url": "/region/strelsau/#era-1800"
+    }
+   ],
+   "bareera": [
+    {
+     "id": "bareera--era-1700",
+     "from": 1700,
+     "to": 1800,
+     "present": false,
+     "regime": "kingdom",
+     "label": "Kingdom of Ruritania",
+     "polity": null,
+     "basis": "not-recorded",
+     "seeded_from_archive": false,
+     "url": "/region/bareera/#era-1700"
+    }
+   ],
+   "nullflags": [
+    {
+     "id": "nullflags--era-1700",
+     "from": 1700,
+     "to": 1800,
+     "present": false,
+     "regime": "kingdom",
+     "label": "Kingdom of Ruritania",
+     "polity": null,
+     "basis": "not-recorded",
+     "seeded_from_archive": false,
+     "approx": null,
+     "contested": null,
+     "url": "/region/nullflags/#era-1700"
+    }
+   ],
+   "gappy": [
+    {
+     "id": "gappy--era-1700",
+     "from": 1700,
+     "to": 1750,
+     "present": false,
+     "regime": "kingdom",
+     "label": "Kingdom of Ruritania",
+     "polity": null,
+     "basis": "not-recorded",
+     "seeded_from_archive": false,
+     "approx": false,
+     "contested": false,
+     "url": "/region/gappy/#era-1700"
+    },
+    {
+     "id": "gappy--era-1760",
+     "from": 1760,
+     "to": 1800,
+     "present": false,
+     "regime": "kingdom",
+     "label": "Kingdom of Ruritania",
+     "polity": null,
+     "basis": "not-recorded",
+     "seeded_from_archive": false,
+     "approx": false,
+     "contested": false,
+     "url": "/region/gappy/#era-1760"
+    }
+   ],
+   "dropbound": [
+    {
+     "id": "dropbound--era-1800",
+     "from": 1800,
+     "to": 1900,
+     "present": false,
+     "regime": "kingdom",
+     "label": "Kingdom of Ruritania",
+     "polity": null,
+     "basis": "not-recorded",
+     "seeded_from_archive": false,
+     "approx": false,
+     "contested": false,
+     "url": "/region/dropbound/#era-1800"
+    }
+   ],
+   "badid": [
+    {
+     "id": "badid--era-1701",
+     "from": 1700,
+     "to": 1800,
+     "present": false,
+     "regime": "kingdom",
+     "label": "Kingdom of Ruritania",
+     "polity": null,
+     "basis": "not-recorded",
+     "seeded_from_archive": false,
+     "approx": false,
+     "contested": false,
+     "url": "/region/badid/#era-1700"
+    }
+   ],
+   "badurl": [
+    {
+     "id": "badurl--era-1700",
+     "from": 1700,
+     "to": 1800,
+     "present": false,
+     "regime": "kingdom",
+     "label": "Kingdom of Ruritania",
+     "polity": null,
+     "basis": "not-recorded",
+     "seeded_from_archive": false,
+     "approx": false,
+     "contested": false,
+     "url": "/region/other/#era-1700"
+    }
+   ],
+   "openword": [
+    {
+     "id": "openword--era-1700",
+     "from": 1700,
+     "to": "present",
+     "present": true,
+     "regime": "kingdom",
+     "label": "Kingdom of Ruritania",
+     "polity": null,
+     "basis": "not-recorded",
+     "seeded_from_archive": false,
+     "approx": false,
+     "contested": false,
+     "url": "/region/openword/#era-1700"
+    }
+   ],
+   "noend": [
+    {
+     "id": "noend--era-1700",
+     "from": 1700,
+     "present": true,
+     "regime": "kingdom",
+     "label": "Kingdom of Ruritania",
+     "polity": null,
+     "basis": "not-recorded",
+     "seeded_from_archive": false,
+     "approx": false,
+     "contested": false,
+     "url": "/region/noend/#era-1700"
+    }
+   ],
+   "garbage": [
+    {
+     "id": "garbage--era-1700",
+     "from": 1700,
+     "to": 1800,
+     "present": false,
+     "regime": "kingdom",
+     "label": "Kingdom of Ruritania",
+     "polity": null,
+     "basis": "not-recorded",
+     "seeded_from_archive": false,
+     "approx": "maybe",
+     "contested": false,
+     "url": "/region/garbage/#era-1700"
+    }
+   ],
+   "noeras": [],
+   "refover": [
+    {
+     "id": "refover--era-1700",
+     "from": 1700,
+     "to": 1800,
+     "present": false,
+     "regime": "kingdom",
+     "label": "Kingdom of Ruritania",
+     "polity": null,
+     "basis": "not-recorded",
+     "seeded_from_archive": false,
+     "approx": false,
+     "contested": false,
+     "url": "/region/refover/#era-1700"
+    }
+   ]
+  },
+  "places": {
+   "hentzau": "ruritania",
+   "zenda": "elphberg",
+   "overlap town": "zenda",
+   "strelsau": "strelsau",
+   "bare town": "bareera",
+   "null town": "nullflags",
+   "gappy town": "gappy",
+   "dropbound town": "dropbound",
+   "bad id town": "badid",
+   "bad url town": "badurl",
+   "open word town": "openword",
+   "no end town": "noend",
+   "garbage town": "garbage",
+   "unchecked town": "ruritania",
+   "lonely castle": "atlantis",
+   "no eras town": "noeras",
+   "refover town": "refover"
+  },
+  "places_silent": {
+   "edge town": "edge",
+   "marked town": "marked-edge",
+   "conflict town": "ring-conflict",
+   "weird town": "banana"
+  },
+  "unchecked_edge": [
+   "unchecked town"
   ],
-  "gate_snapshot": {
-    "version": 1,
-    "built": "2026-01-01",
-    "atlas_commit_or_etag": "abc1234",
-    "atlas": {
-      "base": "https://atlas.example.test",
-      "file_sha256": "0"
-    },
-    "regimes": {
-      "kingdom": "Kingdom of Ruritania",
-      "republic": "Republic of Ruritania",
-      "occupied": "Occupied Ruritania"
-    },
-    "regions": {
-      "ruritania": [
-        {
-          "from": 1700,
-          "to": 1800,
-          "regime": "kingdom",
-          "approx": false,
-          "contested": false,
-          "seeded_from_archive": false,
-          "sources": [
-            "regions.json"
-          ]
-        },
-        {
-          "from": 1800,
-          "to": 1850,
-          "regime": "occupied",
-          "approx": true,
-          "contested": false,
-          "seeded_from_archive": false,
-          "sources": [
-            "regions.json"
-          ]
-        },
-        {
-          "from": 1850,
-          "to": 1900,
-          "regime": "republic",
-          "approx": false,
-          "contested": false,
-          "seeded_from_archive": false,
-          "sources": [
-            "regions.json"
-          ]
-        }
-      ],
-      "elphberg": [
-        {
-          "from": 1900,
-          "to": 2000,
-          "regime": "kingdom",
-          "approx": false,
-          "contested": false,
-          "seeded_from_archive": true,
-          "sources": [
-            "regions.json"
-          ]
-        }
-      ]
-    },
-    "places": {
-      "hentzau": "ruritania",
-      "zenda": "elphberg"
-    },
-    "dropped": []
+  "dropped": [
+   {
+    "region": "strelsau",
+    "id": "strelsau--era-1900",
+    "from": 1900,
+    "to": 1950,
+    "reason": "regime shorthand"
+   },
+   {
+    "region": "dropbound",
+    "id": "dropbound--era-1700",
+    "from": 1700,
+    "to": 1800,
+    "reason": "not assessed"
+   },
+   {
+    "region": "zenda",
+    "id": "zenda--era-2100",
+    "from": 2100,
+    "to": null,
+    "reason": "x"
+   },
+   {
+    "region": "refover",
+    "id": "refover--era-1750",
+    "from": 1750,
+    "to": 1850,
+    "reason": "x"
+   }
+  ],
+  "quality": {
+   "counts": {
+    "gaps": 0,
+    "overlaps": 0
+   },
+   "gaps": [],
+   "overlaps": []
   }
+ },
+ "other_snapshots": {
+  "allow": {
+   "version": 2,
+   "built": "2026-01-01",
+   "contract": {
+    "name": "recordatlas-context",
+    "version": "1.7.0",
+    "generated": "2026-01-01",
+    "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+   },
+   "atlas": {
+    "base": "https://atlas.example.test",
+    "rings_sha256": null
+   },
+   "policy": {
+    "unassessed": "allow",
+    "boundary": "newer",
+    "recent_from": 1990,
+    "edge_km": 15
+   },
+   "regions": {
+    "ruritania": [
+     {
+      "id": "ruritania--era-1700",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/ruritania/#era-1700"
+     },
+     {
+      "id": "ruritania--era-1800",
+      "from": 1800,
+      "to": 1850,
+      "present": false,
+      "regime": "occupied",
+      "label": "Occupied Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": true,
+      "contested": false,
+      "url": "/region/ruritania/#era-1800"
+     },
+     {
+      "id": "ruritania--era-1850",
+      "from": 1850,
+      "to": 1900,
+      "present": false,
+      "regime": "republic",
+      "label": "Republic of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/ruritania/#era-1850"
+     },
+     {
+      "id": "ruritania--era-1900",
+      "from": 1900,
+      "to": 1950,
+      "present": false,
+      "regime": "blank",
+      "label": "  ",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/ruritania/#era-1900"
+     },
+     {
+      "id": "ruritania--era-1950",
+      "from": 1950,
+      "to": 1991,
+      "present": false,
+      "regime": "ghost",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/ruritania/#era-1950"
+     },
+     {
+      "id": "ruritania--era-1991",
+      "from": 1991,
+      "to": null,
+      "present": true,
+      "regime": "third",
+      "label": "Third Republic of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/ruritania/#era-1991"
+     }
+    ],
+    "elphberg": [
+     {
+      "id": "elphberg--era-1900",
+      "from": 1900,
+      "to": null,
+      "present": true,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "seeded:test-archive",
+      "seeded_from_archive": true,
+      "approx": false,
+      "contested": false,
+      "url": "/region/elphberg/#era-1900"
+     }
+    ],
+    "zenda": [
+     {
+      "id": "zenda--era-1700",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/zenda/#era-1700"
+     },
+     {
+      "id": "zenda--era-1790",
+      "from": 1790,
+      "to": 1850,
+      "present": false,
+      "regime": "republic",
+      "label": "Republic of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/zenda/#era-1790"
+     },
+     {
+      "id": "zenda--era-1850",
+      "from": 1850,
+      "to": 1900,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/zenda/#era-1850"
+     },
+     {
+      "id": "zenda--era-1900",
+      "from": 1900,
+      "to": 1950,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": true,
+      "url": "/region/zenda/#era-1900"
+     },
+     {
+      "id": "zenda--era-1950",
+      "from": 1950,
+      "to": 2000,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/zenda/#era-1950"
+     }
+    ],
+    "strelsau": [
+     {
+      "id": "strelsau--era-1700",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/strelsau/#era-1700"
+     },
+     {
+      "id": "strelsau--era-1800",
+      "from": 1800,
+      "to": 1900,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/strelsau/#era-1800"
+     }
+    ],
+    "bareera": [
+     {
+      "id": "bareera--era-1700",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "url": "/region/bareera/#era-1700"
+     }
+    ],
+    "nullflags": [
+     {
+      "id": "nullflags--era-1700",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": null,
+      "contested": null,
+      "url": "/region/nullflags/#era-1700"
+     }
+    ],
+    "gappy": [
+     {
+      "id": "gappy--era-1700",
+      "from": 1700,
+      "to": 1750,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/gappy/#era-1700"
+     },
+     {
+      "id": "gappy--era-1760",
+      "from": 1760,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/gappy/#era-1760"
+     }
+    ],
+    "dropbound": [
+     {
+      "id": "dropbound--era-1800",
+      "from": 1800,
+      "to": 1900,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/dropbound/#era-1800"
+     }
+    ],
+    "badid": [
+     {
+      "id": "badid--era-1701",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/badid/#era-1700"
+     }
+    ],
+    "badurl": [
+     {
+      "id": "badurl--era-1700",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/other/#era-1700"
+     }
+    ],
+    "openword": [
+     {
+      "id": "openword--era-1700",
+      "from": 1700,
+      "to": "present",
+      "present": true,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/openword/#era-1700"
+     }
+    ],
+    "noend": [
+     {
+      "id": "noend--era-1700",
+      "from": 1700,
+      "present": true,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/noend/#era-1700"
+     }
+    ],
+    "garbage": [
+     {
+      "id": "garbage--era-1700",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": "maybe",
+      "contested": false,
+      "url": "/region/garbage/#era-1700"
+     }
+    ],
+    "noeras": [],
+    "refover": [
+     {
+      "id": "refover--era-1700",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/refover/#era-1700"
+     }
+    ]
+   },
+   "places": {
+    "hentzau": "ruritania",
+    "zenda": "elphberg",
+    "overlap town": "zenda",
+    "strelsau": "strelsau",
+    "bare town": "bareera",
+    "null town": "nullflags",
+    "gappy town": "gappy",
+    "dropbound town": "dropbound",
+    "bad id town": "badid",
+    "bad url town": "badurl",
+    "open word town": "openword",
+    "no end town": "noend",
+    "garbage town": "garbage",
+    "unchecked town": "ruritania",
+    "lonely castle": "atlantis",
+    "no eras town": "noeras",
+    "refover town": "refover"
+   },
+   "places_silent": {
+    "edge town": "edge",
+    "marked town": "marked-edge",
+    "conflict town": "ring-conflict",
+    "weird town": "banana"
+   },
+   "unchecked_edge": [
+    "unchecked town"
+   ],
+   "dropped": [
+    {
+     "region": "strelsau",
+     "id": "strelsau--era-1900",
+     "from": 1900,
+     "to": 1950,
+     "reason": "regime shorthand"
+    },
+    {
+     "region": "dropbound",
+     "id": "dropbound--era-1700",
+     "from": 1700,
+     "to": 1800,
+     "reason": "not assessed"
+    },
+    {
+     "region": "zenda",
+     "id": "zenda--era-2100",
+     "from": 2100,
+     "to": null,
+     "reason": "x"
+    },
+    {
+     "region": "refover",
+     "id": "refover--era-1750",
+     "from": 1750,
+     "to": 1850,
+     "reason": "x"
+    }
+   ],
+   "quality": {
+    "counts": {
+     "gaps": 0,
+     "overlaps": 0
+    },
+    "gaps": [],
+    "overlaps": []
+   }
+  },
+  "silent_boundary": {
+   "version": 2,
+   "built": "2026-01-01",
+   "contract": {
+    "name": "recordatlas-context",
+    "version": "1.7.0",
+    "generated": "2026-01-01",
+    "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+   },
+   "atlas": {
+    "base": "https://atlas.example.test",
+    "rings_sha256": null
+   },
+   "policy": {
+    "unassessed": "refuse",
+    "boundary": "silent",
+    "recent_from": 1990,
+    "edge_km": 15
+   },
+   "regions": {
+    "ruritania": [
+     {
+      "id": "ruritania--era-1700",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/ruritania/#era-1700"
+     },
+     {
+      "id": "ruritania--era-1800",
+      "from": 1800,
+      "to": 1850,
+      "present": false,
+      "regime": "occupied",
+      "label": "Occupied Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": true,
+      "contested": false,
+      "url": "/region/ruritania/#era-1800"
+     },
+     {
+      "id": "ruritania--era-1850",
+      "from": 1850,
+      "to": 1900,
+      "present": false,
+      "regime": "republic",
+      "label": "Republic of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/ruritania/#era-1850"
+     },
+     {
+      "id": "ruritania--era-1900",
+      "from": 1900,
+      "to": 1950,
+      "present": false,
+      "regime": "blank",
+      "label": "  ",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/ruritania/#era-1900"
+     },
+     {
+      "id": "ruritania--era-1950",
+      "from": 1950,
+      "to": 1991,
+      "present": false,
+      "regime": "ghost",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/ruritania/#era-1950"
+     },
+     {
+      "id": "ruritania--era-1991",
+      "from": 1991,
+      "to": null,
+      "present": true,
+      "regime": "third",
+      "label": "Third Republic of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/ruritania/#era-1991"
+     }
+    ],
+    "elphberg": [
+     {
+      "id": "elphberg--era-1900",
+      "from": 1900,
+      "to": null,
+      "present": true,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "seeded:test-archive",
+      "seeded_from_archive": true,
+      "approx": false,
+      "contested": false,
+      "url": "/region/elphberg/#era-1900"
+     }
+    ],
+    "zenda": [
+     {
+      "id": "zenda--era-1700",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/zenda/#era-1700"
+     },
+     {
+      "id": "zenda--era-1790",
+      "from": 1790,
+      "to": 1850,
+      "present": false,
+      "regime": "republic",
+      "label": "Republic of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/zenda/#era-1790"
+     },
+     {
+      "id": "zenda--era-1850",
+      "from": 1850,
+      "to": 1900,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/zenda/#era-1850"
+     },
+     {
+      "id": "zenda--era-1900",
+      "from": 1900,
+      "to": 1950,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": true,
+      "url": "/region/zenda/#era-1900"
+     },
+     {
+      "id": "zenda--era-1950",
+      "from": 1950,
+      "to": 2000,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/zenda/#era-1950"
+     }
+    ],
+    "strelsau": [
+     {
+      "id": "strelsau--era-1700",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/strelsau/#era-1700"
+     },
+     {
+      "id": "strelsau--era-1800",
+      "from": 1800,
+      "to": 1900,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/strelsau/#era-1800"
+     }
+    ],
+    "bareera": [
+     {
+      "id": "bareera--era-1700",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "url": "/region/bareera/#era-1700"
+     }
+    ],
+    "nullflags": [
+     {
+      "id": "nullflags--era-1700",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": null,
+      "contested": null,
+      "url": "/region/nullflags/#era-1700"
+     }
+    ],
+    "gappy": [
+     {
+      "id": "gappy--era-1700",
+      "from": 1700,
+      "to": 1750,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/gappy/#era-1700"
+     },
+     {
+      "id": "gappy--era-1760",
+      "from": 1760,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/gappy/#era-1760"
+     }
+    ],
+    "dropbound": [
+     {
+      "id": "dropbound--era-1800",
+      "from": 1800,
+      "to": 1900,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/dropbound/#era-1800"
+     }
+    ],
+    "badid": [
+     {
+      "id": "badid--era-1701",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/badid/#era-1700"
+     }
+    ],
+    "badurl": [
+     {
+      "id": "badurl--era-1700",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/other/#era-1700"
+     }
+    ],
+    "openword": [
+     {
+      "id": "openword--era-1700",
+      "from": 1700,
+      "to": "present",
+      "present": true,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/openword/#era-1700"
+     }
+    ],
+    "noend": [
+     {
+      "id": "noend--era-1700",
+      "from": 1700,
+      "present": true,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/noend/#era-1700"
+     }
+    ],
+    "garbage": [
+     {
+      "id": "garbage--era-1700",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": "maybe",
+      "contested": false,
+      "url": "/region/garbage/#era-1700"
+     }
+    ],
+    "noeras": [],
+    "refover": [
+     {
+      "id": "refover--era-1700",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/refover/#era-1700"
+     }
+    ]
+   },
+   "places": {
+    "hentzau": "ruritania",
+    "zenda": "elphberg",
+    "overlap town": "zenda",
+    "strelsau": "strelsau",
+    "bare town": "bareera",
+    "null town": "nullflags",
+    "gappy town": "gappy",
+    "dropbound town": "dropbound",
+    "bad id town": "badid",
+    "bad url town": "badurl",
+    "open word town": "openword",
+    "no end town": "noend",
+    "garbage town": "garbage",
+    "unchecked town": "ruritania",
+    "lonely castle": "atlantis",
+    "no eras town": "noeras",
+    "refover town": "refover"
+   },
+   "places_silent": {
+    "edge town": "edge",
+    "marked town": "marked-edge",
+    "conflict town": "ring-conflict",
+    "weird town": "banana"
+   },
+   "unchecked_edge": [
+    "unchecked town"
+   ],
+   "dropped": [
+    {
+     "region": "strelsau",
+     "id": "strelsau--era-1900",
+     "from": 1900,
+     "to": 1950,
+     "reason": "regime shorthand"
+    },
+    {
+     "region": "dropbound",
+     "id": "dropbound--era-1700",
+     "from": 1700,
+     "to": 1800,
+     "reason": "not assessed"
+    },
+    {
+     "region": "zenda",
+     "id": "zenda--era-2100",
+     "from": 2100,
+     "to": null,
+     "reason": "x"
+    },
+    {
+     "region": "refover",
+     "id": "refover--era-1750",
+     "from": 1750,
+     "to": 1850,
+     "reason": "x"
+    }
+   ],
+   "quality": {
+    "counts": {
+     "gaps": 0,
+     "overlaps": 0
+    },
+    "gaps": [],
+    "overlaps": []
+   }
+  },
+  "nopolicy": {
+   "version": 2,
+   "built": "2026-01-01",
+   "contract": {
+    "name": "recordatlas-context",
+    "version": "1.7.0",
+    "generated": "2026-01-01",
+    "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+   },
+   "atlas": {
+    "base": "https://atlas.example.test",
+    "rings_sha256": null
+   },
+   "regions": {
+    "ruritania": [
+     {
+      "id": "ruritania--era-1700",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/ruritania/#era-1700"
+     },
+     {
+      "id": "ruritania--era-1800",
+      "from": 1800,
+      "to": 1850,
+      "present": false,
+      "regime": "occupied",
+      "label": "Occupied Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": true,
+      "contested": false,
+      "url": "/region/ruritania/#era-1800"
+     },
+     {
+      "id": "ruritania--era-1850",
+      "from": 1850,
+      "to": 1900,
+      "present": false,
+      "regime": "republic",
+      "label": "Republic of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/ruritania/#era-1850"
+     },
+     {
+      "id": "ruritania--era-1900",
+      "from": 1900,
+      "to": 1950,
+      "present": false,
+      "regime": "blank",
+      "label": "  ",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/ruritania/#era-1900"
+     },
+     {
+      "id": "ruritania--era-1950",
+      "from": 1950,
+      "to": 1991,
+      "present": false,
+      "regime": "ghost",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/ruritania/#era-1950"
+     },
+     {
+      "id": "ruritania--era-1991",
+      "from": 1991,
+      "to": null,
+      "present": true,
+      "regime": "third",
+      "label": "Third Republic of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/ruritania/#era-1991"
+     }
+    ],
+    "elphberg": [
+     {
+      "id": "elphberg--era-1900",
+      "from": 1900,
+      "to": null,
+      "present": true,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "seeded:test-archive",
+      "seeded_from_archive": true,
+      "approx": false,
+      "contested": false,
+      "url": "/region/elphberg/#era-1900"
+     }
+    ],
+    "zenda": [
+     {
+      "id": "zenda--era-1700",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/zenda/#era-1700"
+     },
+     {
+      "id": "zenda--era-1790",
+      "from": 1790,
+      "to": 1850,
+      "present": false,
+      "regime": "republic",
+      "label": "Republic of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/zenda/#era-1790"
+     },
+     {
+      "id": "zenda--era-1850",
+      "from": 1850,
+      "to": 1900,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/zenda/#era-1850"
+     },
+     {
+      "id": "zenda--era-1900",
+      "from": 1900,
+      "to": 1950,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": true,
+      "url": "/region/zenda/#era-1900"
+     },
+     {
+      "id": "zenda--era-1950",
+      "from": 1950,
+      "to": 2000,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/zenda/#era-1950"
+     }
+    ],
+    "strelsau": [
+     {
+      "id": "strelsau--era-1700",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/strelsau/#era-1700"
+     },
+     {
+      "id": "strelsau--era-1800",
+      "from": 1800,
+      "to": 1900,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/strelsau/#era-1800"
+     }
+    ],
+    "bareera": [
+     {
+      "id": "bareera--era-1700",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "url": "/region/bareera/#era-1700"
+     }
+    ],
+    "nullflags": [
+     {
+      "id": "nullflags--era-1700",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": null,
+      "contested": null,
+      "url": "/region/nullflags/#era-1700"
+     }
+    ],
+    "gappy": [
+     {
+      "id": "gappy--era-1700",
+      "from": 1700,
+      "to": 1750,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/gappy/#era-1700"
+     },
+     {
+      "id": "gappy--era-1760",
+      "from": 1760,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/gappy/#era-1760"
+     }
+    ],
+    "dropbound": [
+     {
+      "id": "dropbound--era-1800",
+      "from": 1800,
+      "to": 1900,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/dropbound/#era-1800"
+     }
+    ],
+    "badid": [
+     {
+      "id": "badid--era-1701",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/badid/#era-1700"
+     }
+    ],
+    "badurl": [
+     {
+      "id": "badurl--era-1700",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/other/#era-1700"
+     }
+    ],
+    "openword": [
+     {
+      "id": "openword--era-1700",
+      "from": 1700,
+      "to": "present",
+      "present": true,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/openword/#era-1700"
+     }
+    ],
+    "noend": [
+     {
+      "id": "noend--era-1700",
+      "from": 1700,
+      "present": true,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/noend/#era-1700"
+     }
+    ],
+    "garbage": [
+     {
+      "id": "garbage--era-1700",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": "maybe",
+      "contested": false,
+      "url": "/region/garbage/#era-1700"
+     }
+    ],
+    "noeras": [],
+    "refover": [
+     {
+      "id": "refover--era-1700",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/refover/#era-1700"
+     }
+    ]
+   },
+   "places": {
+    "hentzau": "ruritania",
+    "zenda": "elphberg",
+    "overlap town": "zenda",
+    "strelsau": "strelsau",
+    "bare town": "bareera",
+    "null town": "nullflags",
+    "gappy town": "gappy",
+    "dropbound town": "dropbound",
+    "bad id town": "badid",
+    "bad url town": "badurl",
+    "open word town": "openword",
+    "no end town": "noend",
+    "garbage town": "garbage",
+    "unchecked town": "ruritania",
+    "lonely castle": "atlantis",
+    "no eras town": "noeras",
+    "refover town": "refover"
+   },
+   "places_silent": {
+    "edge town": "edge",
+    "marked town": "marked-edge",
+    "conflict town": "ring-conflict",
+    "weird town": "banana"
+   },
+   "unchecked_edge": [
+    "unchecked town"
+   ],
+   "dropped": [
+    {
+     "region": "strelsau",
+     "id": "strelsau--era-1900",
+     "from": 1900,
+     "to": 1950,
+     "reason": "regime shorthand"
+    },
+    {
+     "region": "dropbound",
+     "id": "dropbound--era-1700",
+     "from": 1700,
+     "to": 1800,
+     "reason": "not assessed"
+    },
+    {
+     "region": "zenda",
+     "id": "zenda--era-2100",
+     "from": 2100,
+     "to": null,
+     "reason": "x"
+    },
+    {
+     "region": "refover",
+     "id": "refover--era-1750",
+     "from": 1750,
+     "to": 1850,
+     "reason": "x"
+    }
+   ],
+   "quality": {
+    "counts": {
+     "gaps": 0,
+     "overlaps": 0
+    },
+    "gaps": [],
+    "overlaps": []
+   }
+  },
+  "recent2000": {
+   "version": 2,
+   "built": "2026-01-01",
+   "contract": {
+    "name": "recordatlas-context",
+    "version": "1.7.0",
+    "generated": "2026-01-01",
+    "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+   },
+   "atlas": {
+    "base": "https://atlas.example.test",
+    "rings_sha256": null
+   },
+   "policy": {
+    "unassessed": "refuse",
+    "boundary": "newer",
+    "recent_from": 2000,
+    "edge_km": 15
+   },
+   "regions": {
+    "ruritania": [
+     {
+      "id": "ruritania--era-1700",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/ruritania/#era-1700"
+     },
+     {
+      "id": "ruritania--era-1800",
+      "from": 1800,
+      "to": 1850,
+      "present": false,
+      "regime": "occupied",
+      "label": "Occupied Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": true,
+      "contested": false,
+      "url": "/region/ruritania/#era-1800"
+     },
+     {
+      "id": "ruritania--era-1850",
+      "from": 1850,
+      "to": 1900,
+      "present": false,
+      "regime": "republic",
+      "label": "Republic of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/ruritania/#era-1850"
+     },
+     {
+      "id": "ruritania--era-1900",
+      "from": 1900,
+      "to": 1950,
+      "present": false,
+      "regime": "blank",
+      "label": "  ",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/ruritania/#era-1900"
+     },
+     {
+      "id": "ruritania--era-1950",
+      "from": 1950,
+      "to": 1991,
+      "present": false,
+      "regime": "ghost",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/ruritania/#era-1950"
+     },
+     {
+      "id": "ruritania--era-1991",
+      "from": 1991,
+      "to": null,
+      "present": true,
+      "regime": "third",
+      "label": "Third Republic of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/ruritania/#era-1991"
+     }
+    ],
+    "elphberg": [
+     {
+      "id": "elphberg--era-1900",
+      "from": 1900,
+      "to": null,
+      "present": true,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "seeded:test-archive",
+      "seeded_from_archive": true,
+      "approx": false,
+      "contested": false,
+      "url": "/region/elphberg/#era-1900"
+     }
+    ],
+    "zenda": [
+     {
+      "id": "zenda--era-1700",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/zenda/#era-1700"
+     },
+     {
+      "id": "zenda--era-1790",
+      "from": 1790,
+      "to": 1850,
+      "present": false,
+      "regime": "republic",
+      "label": "Republic of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/zenda/#era-1790"
+     },
+     {
+      "id": "zenda--era-1850",
+      "from": 1850,
+      "to": 1900,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/zenda/#era-1850"
+     },
+     {
+      "id": "zenda--era-1900",
+      "from": 1900,
+      "to": 1950,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": true,
+      "url": "/region/zenda/#era-1900"
+     },
+     {
+      "id": "zenda--era-1950",
+      "from": 1950,
+      "to": 2000,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/zenda/#era-1950"
+     }
+    ],
+    "strelsau": [
+     {
+      "id": "strelsau--era-1700",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/strelsau/#era-1700"
+     },
+     {
+      "id": "strelsau--era-1800",
+      "from": 1800,
+      "to": 1900,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/strelsau/#era-1800"
+     }
+    ],
+    "bareera": [
+     {
+      "id": "bareera--era-1700",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "url": "/region/bareera/#era-1700"
+     }
+    ],
+    "nullflags": [
+     {
+      "id": "nullflags--era-1700",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": null,
+      "contested": null,
+      "url": "/region/nullflags/#era-1700"
+     }
+    ],
+    "gappy": [
+     {
+      "id": "gappy--era-1700",
+      "from": 1700,
+      "to": 1750,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/gappy/#era-1700"
+     },
+     {
+      "id": "gappy--era-1760",
+      "from": 1760,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/gappy/#era-1760"
+     }
+    ],
+    "dropbound": [
+     {
+      "id": "dropbound--era-1800",
+      "from": 1800,
+      "to": 1900,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/dropbound/#era-1800"
+     }
+    ],
+    "badid": [
+     {
+      "id": "badid--era-1701",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/badid/#era-1700"
+     }
+    ],
+    "badurl": [
+     {
+      "id": "badurl--era-1700",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/other/#era-1700"
+     }
+    ],
+    "openword": [
+     {
+      "id": "openword--era-1700",
+      "from": 1700,
+      "to": "present",
+      "present": true,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/openword/#era-1700"
+     }
+    ],
+    "noend": [
+     {
+      "id": "noend--era-1700",
+      "from": 1700,
+      "present": true,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/noend/#era-1700"
+     }
+    ],
+    "garbage": [
+     {
+      "id": "garbage--era-1700",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": "maybe",
+      "contested": false,
+      "url": "/region/garbage/#era-1700"
+     }
+    ],
+    "noeras": [],
+    "refover": [
+     {
+      "id": "refover--era-1700",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/refover/#era-1700"
+     }
+    ]
+   },
+   "places": {
+    "hentzau": "ruritania",
+    "zenda": "elphberg",
+    "overlap town": "zenda",
+    "strelsau": "strelsau",
+    "bare town": "bareera",
+    "null town": "nullflags",
+    "gappy town": "gappy",
+    "dropbound town": "dropbound",
+    "bad id town": "badid",
+    "bad url town": "badurl",
+    "open word town": "openword",
+    "no end town": "noend",
+    "garbage town": "garbage",
+    "unchecked town": "ruritania",
+    "lonely castle": "atlantis",
+    "no eras town": "noeras",
+    "refover town": "refover"
+   },
+   "places_silent": {
+    "edge town": "edge",
+    "marked town": "marked-edge",
+    "conflict town": "ring-conflict",
+    "weird town": "banana"
+   },
+   "unchecked_edge": [
+    "unchecked town"
+   ],
+   "dropped": [
+    {
+     "region": "strelsau",
+     "id": "strelsau--era-1900",
+     "from": 1900,
+     "to": 1950,
+     "reason": "regime shorthand"
+    },
+    {
+     "region": "dropbound",
+     "id": "dropbound--era-1700",
+     "from": 1700,
+     "to": 1800,
+     "reason": "not assessed"
+    },
+    {
+     "region": "zenda",
+     "id": "zenda--era-2100",
+     "from": 2100,
+     "to": null,
+     "reason": "x"
+    },
+    {
+     "region": "refover",
+     "id": "refover--era-1750",
+     "from": 1750,
+     "to": 1850,
+     "reason": "x"
+    }
+   ],
+   "quality": {
+    "counts": {
+     "gaps": 0,
+     "overlaps": 0
+    },
+    "gaps": [],
+    "overlaps": []
+   }
+  },
+  "v1": {
+   "version": 1,
+   "regimes": {},
+   "regions": {},
+   "places": {}
+  },
+  "v3": {
+   "version": 3,
+   "built": "2026-01-01",
+   "contract": {
+    "name": "recordatlas-context",
+    "version": "1.7.0",
+    "generated": "2026-01-01",
+    "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+   },
+   "atlas": {
+    "base": "https://atlas.example.test",
+    "rings_sha256": null
+   },
+   "policy": {
+    "unassessed": "refuse",
+    "boundary": "newer",
+    "recent_from": 1990,
+    "edge_km": 15
+   },
+   "regions": {
+    "ruritania": [
+     {
+      "id": "ruritania--era-1700",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/ruritania/#era-1700"
+     },
+     {
+      "id": "ruritania--era-1800",
+      "from": 1800,
+      "to": 1850,
+      "present": false,
+      "regime": "occupied",
+      "label": "Occupied Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": true,
+      "contested": false,
+      "url": "/region/ruritania/#era-1800"
+     },
+     {
+      "id": "ruritania--era-1850",
+      "from": 1850,
+      "to": 1900,
+      "present": false,
+      "regime": "republic",
+      "label": "Republic of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/ruritania/#era-1850"
+     },
+     {
+      "id": "ruritania--era-1900",
+      "from": 1900,
+      "to": 1950,
+      "present": false,
+      "regime": "blank",
+      "label": "  ",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/ruritania/#era-1900"
+     },
+     {
+      "id": "ruritania--era-1950",
+      "from": 1950,
+      "to": 1991,
+      "present": false,
+      "regime": "ghost",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/ruritania/#era-1950"
+     },
+     {
+      "id": "ruritania--era-1991",
+      "from": 1991,
+      "to": null,
+      "present": true,
+      "regime": "third",
+      "label": "Third Republic of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/ruritania/#era-1991"
+     }
+    ],
+    "elphberg": [
+     {
+      "id": "elphberg--era-1900",
+      "from": 1900,
+      "to": null,
+      "present": true,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "seeded:test-archive",
+      "seeded_from_archive": true,
+      "approx": false,
+      "contested": false,
+      "url": "/region/elphberg/#era-1900"
+     }
+    ],
+    "zenda": [
+     {
+      "id": "zenda--era-1700",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/zenda/#era-1700"
+     },
+     {
+      "id": "zenda--era-1790",
+      "from": 1790,
+      "to": 1850,
+      "present": false,
+      "regime": "republic",
+      "label": "Republic of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/zenda/#era-1790"
+     },
+     {
+      "id": "zenda--era-1850",
+      "from": 1850,
+      "to": 1900,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/zenda/#era-1850"
+     },
+     {
+      "id": "zenda--era-1900",
+      "from": 1900,
+      "to": 1950,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": true,
+      "url": "/region/zenda/#era-1900"
+     },
+     {
+      "id": "zenda--era-1950",
+      "from": 1950,
+      "to": 2000,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/zenda/#era-1950"
+     }
+    ],
+    "strelsau": [
+     {
+      "id": "strelsau--era-1700",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/strelsau/#era-1700"
+     },
+     {
+      "id": "strelsau--era-1800",
+      "from": 1800,
+      "to": 1900,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/strelsau/#era-1800"
+     }
+    ],
+    "bareera": [
+     {
+      "id": "bareera--era-1700",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "url": "/region/bareera/#era-1700"
+     }
+    ],
+    "nullflags": [
+     {
+      "id": "nullflags--era-1700",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": null,
+      "contested": null,
+      "url": "/region/nullflags/#era-1700"
+     }
+    ],
+    "gappy": [
+     {
+      "id": "gappy--era-1700",
+      "from": 1700,
+      "to": 1750,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/gappy/#era-1700"
+     },
+     {
+      "id": "gappy--era-1760",
+      "from": 1760,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/gappy/#era-1760"
+     }
+    ],
+    "dropbound": [
+     {
+      "id": "dropbound--era-1800",
+      "from": 1800,
+      "to": 1900,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/dropbound/#era-1800"
+     }
+    ],
+    "badid": [
+     {
+      "id": "badid--era-1701",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/badid/#era-1700"
+     }
+    ],
+    "badurl": [
+     {
+      "id": "badurl--era-1700",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/other/#era-1700"
+     }
+    ],
+    "openword": [
+     {
+      "id": "openword--era-1700",
+      "from": 1700,
+      "to": "present",
+      "present": true,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/openword/#era-1700"
+     }
+    ],
+    "noend": [
+     {
+      "id": "noend--era-1700",
+      "from": 1700,
+      "present": true,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/noend/#era-1700"
+     }
+    ],
+    "garbage": [
+     {
+      "id": "garbage--era-1700",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": "maybe",
+      "contested": false,
+      "url": "/region/garbage/#era-1700"
+     }
+    ],
+    "noeras": [],
+    "refover": [
+     {
+      "id": "refover--era-1700",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/refover/#era-1700"
+     }
+    ]
+   },
+   "places": {
+    "hentzau": "ruritania",
+    "zenda": "elphberg",
+    "overlap town": "zenda",
+    "strelsau": "strelsau",
+    "bare town": "bareera",
+    "null town": "nullflags",
+    "gappy town": "gappy",
+    "dropbound town": "dropbound",
+    "bad id town": "badid",
+    "bad url town": "badurl",
+    "open word town": "openword",
+    "no end town": "noend",
+    "garbage town": "garbage",
+    "unchecked town": "ruritania",
+    "lonely castle": "atlantis",
+    "no eras town": "noeras",
+    "refover town": "refover"
+   },
+   "places_silent": {
+    "edge town": "edge",
+    "marked town": "marked-edge",
+    "conflict town": "ring-conflict",
+    "weird town": "banana"
+   },
+   "unchecked_edge": [
+    "unchecked town"
+   ],
+   "dropped": [
+    {
+     "region": "strelsau",
+     "id": "strelsau--era-1900",
+     "from": 1900,
+     "to": 1950,
+     "reason": "regime shorthand"
+    },
+    {
+     "region": "dropbound",
+     "id": "dropbound--era-1700",
+     "from": 1700,
+     "to": 1800,
+     "reason": "not assessed"
+    },
+    {
+     "region": "zenda",
+     "id": "zenda--era-2100",
+     "from": 2100,
+     "to": null,
+     "reason": "x"
+    },
+    {
+     "region": "refover",
+     "id": "refover--era-1750",
+     "from": 1750,
+     "to": 1850,
+     "reason": "x"
+    }
+   ],
+   "quality": {
+    "counts": {
+     "gaps": 0,
+     "overlaps": 0
+    },
+    "gaps": [],
+    "overlaps": []
+   }
+  },
+  "empty": {}
+ },
+ "fold": [
+  [
+   "Zénda, Ruritania",
+   "zenda ruritania"
+  ],
+  [
+   "St. John's",
+   "st johns"
+  ],
+  [
+   "St. John’s",
+   "st johns"
+  ],
+  [
+   "Potenzoni (Briatico), Vibo Valentia",
+   "potenzoni briatico vibo valentia"
+  ],
+  [
+   "  A--B  ",
+   "a b"
+  ],
+  [
+   "ZENDA",
+   "zenda"
+  ],
+  [
+   "Łódź",
+   "łodz"
+  ],
+  [
+   "",
+   ""
+  ],
+  [
+   null,
+   ""
+  ]
+ ],
+ "years": [
+  [
+   "1860",
+   1860,
+   1860
+  ],
+  [
+   "March 1860",
+   1860,
+   1860
+  ],
+  [
+   "12 March 1860",
+   1860,
+   1860
+  ],
+  [
+   "12 Mar 1860",
+   1860,
+   1860
+  ],
+  [
+   "Jan 1860",
+   1860,
+   1860
+  ],
+  [
+   "12  March 1860",
+   1860,
+   1860
+  ],
+  [
+   "1860-03-12",
+   1860,
+   1860
+  ],
+  [
+   "1860-03",
+   1860,
+   1860
+  ],
+  [
+   "c. 1860",
+   1860,
+   null
+  ],
+  [
+   "about 1860",
+   1860,
+   null
+  ],
+  [
+   "circa 1860",
+   1860,
+   null
+  ],
+  [
+   "before 1860",
+   1860,
+   null
+  ],
+  [
+   "after 12 March 1860",
+   1860,
+   null
+  ],
+  [
+   "between 1860 and 1862",
+   1860,
+   null
+  ],
+  [
+   "1860 or 1861",
+   1860,
+   null
+  ],
+  [
+   "1860?",
+   1860,
+   null
+  ],
+  [
+   "alive at Zenda, July 1844",
+   1844,
+   null
+  ],
+  [
+   "1860",
+   1861,
+   null
+  ],
+  [
+   "",
+   1860,
+   null
+  ],
+  [
+   null,
+   1860,
+   null
+  ],
+  [
+   "1860",
+   null,
+   null
+  ],
+  [
+   "1860",
+   "1860",
+   null
+  ],
+  [
+   "1860",
+   1860.5,
+   null
+  ],
+  [
+   "1860",
+   0,
+   null
+  ]
+ ],
+ "cases": [
+  {
+   "id": "inside-the-first-era",
+   "place": "Hentzau",
+   "year": 1750,
+   "why": "ok",
+   "want": {
+    "region": "ruritania",
+    "id": "ruritania--era-1700",
+    "label": "Kingdom of Ruritania",
+    "from": 1700,
+    "to": 1800,
+    "year": 1750,
+    "source": "per the Record Atlas",
+    "seeded": false,
+    "href": "https://atlas.example.test/region/ruritania/#era-1700",
+    "boundary": false,
+    "unchecked": false,
+    "unassessed": false,
+    "basis": "not-recorded"
+   }
+  },
+  {
+   "id": "inside-a-later-era",
+   "place": "Hentzau",
+   "year": 1860,
+   "why": "ok",
+   "want": {
+    "id": "ruritania--era-1850",
+    "label": "Republic of Ruritania",
+    "source": "per the Record Atlas",
+    "boundary": false
+   }
+  },
+  {
+   "id": "the-place-is-folded",
+   "place": "HENTZAU!",
+   "year": 1860,
+   "why": "ok",
+   "want": {
+    "id": "ruritania--era-1850"
+   }
+  },
+  {
+   "id": "accents-and-case-are-folded",
+   "place": "ZÉNDA",
+   "year": 1975,
+   "why": "ok",
+   "want": {
+    "id": "elphberg--era-1900",
+    "seeded": true,
+    "source": "per this archive's own research",
+    "to": null,
+    "basis": "seeded:test-archive"
+   }
+  },
+  {
+   "id": "the-year-an-era-ends-belongs-to-the-next-era",
+   "place": "Hentzau",
+   "year": 1800,
+   "why": "approx",
+   "want": null
+  },
+  {
+   "id": "the-last-year-before-a-boundary-is-the-older-era",
+   "place": "Hentzau",
+   "year": 1849,
+   "why": "approx",
+   "want": null
+  },
+  {
+   "id": "a-boundary-year-takes-the-newer-era-and-says-so",
+   "place": "Hentzau",
+   "year": 1850,
+   "why": "ok",
+   "want": {
+    "id": "ruritania--era-1850",
+    "label": "Republic of Ruritania",
+    "from": 1850,
+    "boundary": true,
+    "href": "https://atlas.example.test/region/ruritania/#era-1850"
+   }
+  },
+  {
+   "id": "the-first-year-of-the-first-era-is-not-a-boundary",
+   "place": "Hentzau",
+   "year": 1700,
+   "why": "ok",
+   "want": {
+    "id": "ruritania--era-1700",
+    "boundary": false
+   }
+  },
+  {
+   "id": "the-end-year-of-the-last-closed-era-is-no-era",
+   "place": "Overlap Town",
+   "year": 2000,
+   "why": "no-era",
+   "want": null
+  },
+  {
+   "id": "the-last-year-inside-the-last-closed-era",
+   "place": "Overlap Town",
+   "year": 1999,
+   "why": "ok",
+   "want": {
+    "id": "zenda--era-1950"
+   }
+  },
+  {
+   "id": "before-any-era",
+   "place": "Hentzau",
+   "year": 1699,
+   "why": "no-era",
+   "want": null
+  },
+  {
+   "id": "a-gap-between-two-eras-is-silent",
+   "place": "Gappy Town",
+   "year": 1755,
+   "why": "no-era",
+   "want": null
+  },
+  {
+   "id": "the-first-year-after-a-gap-is-not-a-boundary",
+   "place": "Gappy Town",
+   "year": 1760,
+   "why": "ok",
+   "want": {
+    "id": "gappy--era-1760",
+    "boundary": false
+   }
+  },
+  {
+   "id": "the-end-of-an-era-before-a-gap-is-no-era",
+   "place": "Gappy Town",
+   "year": 1750,
+   "why": "no-era",
+   "want": null
+  },
+  {
+   "id": "a-boundary-after-a-refused-era-still-says-so",
+   "place": "Dropbound Town",
+   "year": 1800,
+   "why": "ok",
+   "want": {
+    "id": "dropbound--era-1800",
+    "boundary": true
+   }
+  },
+  {
+   "id": "a-refused-era-overlapping-a-kept-one-is-silent",
+   "place": "Refover Town",
+   "year": 1760,
+   "why": "contested",
+   "want": null
+  },
+  {
+   "id": "a-year-before-the-refused-overlap-is-fine",
+   "place": "Refover Town",
+   "year": 1720,
+   "why": "ok",
+   "want": {
+    "id": "refover--era-1700"
+   }
+  },
+  {
+   "id": "a-year-inside-a-refused-era-is-refused",
+   "place": "Dropbound Town",
+   "year": 1750,
+   "why": "era-refused",
+   "want": null
+  },
+  {
+   "id": "an-approximate-era-is-silent",
+   "place": "Hentzau",
+   "year": 1820,
+   "why": "approx",
+   "want": null
+  },
+  {
+   "id": "an-empty-regime-label-is-silent",
+   "place": "Hentzau",
+   "year": 1920,
+   "why": "no-label",
+   "want": null
+  },
+  {
+   "id": "an-era-with-no-label-at-all-is-silent",
+   "place": "Hentzau",
+   "year": 1970,
+   "why": "no-label",
+   "want": null
+  },
+  {
+   "id": "a-year-inside-two-overlapping-eras-is-silent",
+   "place": "Overlap Town",
+   "year": 1795,
+   "why": "contested",
+   "want": null
+  },
+  {
+   "id": "an-era-that-overlaps-another-is-silent-even-where-it-stands-alone",
+   "place": "Overlap Town",
+   "year": 1710,
+   "why": "contested",
+   "want": null
+  },
+  {
+   "id": "an-era-marked-contested-is-silent",
+   "place": "Overlap Town",
+   "year": 1920,
+   "why": "contested",
+   "want": null
+  },
+  {
+   "id": "an-era-with-a-words-only-end-is-not-an-era",
+   "place": "Open Word Town",
+   "year": 1750,
+   "why": "no-era",
+   "want": null
+  },
+  {
+   "id": "an-era-with-no-end-at-all-is-not-still-running",
+   "place": "No End Town",
+   "year": 1750,
+   "why": "no-era",
+   "want": null
+  },
+  {
+   "id": "a-year-inside-a-merged-pair-of-eras",
+   "place": "Strelsau",
+   "year": 1850,
+   "why": "ok",
+   "want": {
+    "id": "strelsau--era-1800",
+    "boundary": false
+   }
+  },
+  {
+   "id": "a-refused-era-is-silent-and-counted-as-refused",
+   "place": "Strelsau",
+   "year": 1920,
+   "why": "era-refused",
+   "want": null
+  },
+  {
+   "id": "an-open-ended-refused-era-covers-its-years",
+   "place": "Overlap Town",
+   "year": 2100,
+   "why": "era-refused",
+   "want": null
+  },
+  {
+   "id": "an-era-with-no-flags-at-all-is-unassessed",
+   "place": "Bare Town",
+   "year": 1750,
+   "why": "unassessed",
+   "want": null
+  },
+  {
+   "id": "an-era-with-null-flags-is-unassessed",
+   "place": "Null Town",
+   "year": 1750,
+   "why": "unassessed",
+   "want": null
+  },
+  {
+   "id": "an-era-with-null-flags-is-allowed-when-the-snapshot-says-so",
+   "place": "Null Town",
+   "year": 1750,
+   "why": "ok",
+   "want": {
+    "id": "nullflags--era-1700",
+    "unassessed": true
+   },
+   "snap": "allow"
+  },
+  {
+   "id": "an-era-with-no-flags-is-allowed-when-the-snapshot-says-so",
+   "place": "Bare Town",
+   "year": 1750,
+   "why": "ok",
+   "want": {
+    "unassessed": true
+   },
+   "snap": "allow"
+  },
+  {
+   "id": "a-flag-that-is-neither-true-false-nor-null-is-silent-even-when-allowing",
+   "place": "Garbage Town",
+   "year": 1750,
+   "why": "approx",
+   "want": null,
+   "snap": "allow"
+  },
+  {
+   "id": "an-approximate-era-stays-silent-when-allowing",
+   "place": "Hentzau",
+   "year": 1820,
+   "why": "approx",
+   "want": null,
+   "snap": "allow"
+  },
+  {
+   "id": "a-snapshot-with-no-policy-refuses-the-unassessed",
+   "place": "Null Town",
+   "year": 1750,
+   "why": "unassessed",
+   "want": null,
+   "snap": "nopolicy"
+  },
+  {
+   "id": "an-era-whose-id-is-not-the-contracts-is-silent",
+   "place": "Bad Id Town",
+   "year": 1750,
+   "why": "bad-id",
+   "want": null
+  },
+  {
+   "id": "an-era-keeps-the-link-the-contract-gives-only-if-it-is-its-own",
+   "place": "Bad Url Town",
+   "year": 1750,
+   "why": "ok",
+   "want": {
+    "id": "badurl--era-1700",
+    "href": null
+   }
+  },
+  {
+   "id": "the-quiet-rule-1990",
+   "place": "Zenda",
+   "year": 1990,
+   "why": "recent",
+   "want": null
+  },
+  {
+   "id": "the-quiet-rule-after-1990",
+   "place": "Zenda",
+   "year": 2010,
+   "why": "recent",
+   "want": null
+  },
+  {
+   "id": "the-year-before-the-quiet-rule-is-noted",
+   "place": "Zenda",
+   "year": 1989,
+   "why": "ok",
+   "want": {
+    "id": "elphberg--era-1900",
+    "to": null
+   }
+  },
+  {
+   "id": "the-quiet-rule-applies-in-the-running-era-of-another-region",
+   "place": "Hentzau",
+   "year": 1995,
+   "why": "recent",
+   "want": null
+  },
+  {
+   "id": "the-quiet-rule-beats-a-boundary",
+   "place": "Hentzau",
+   "year": 1991,
+   "why": "recent",
+   "want": null
+  },
+  {
+   "id": "the-quiet-rule-can-be-moved-by-the-snapshot",
+   "place": "Zenda",
+   "year": 1995,
+   "why": "ok",
+   "want": {
+    "id": "elphberg--era-1900"
+   },
+   "snap": "recent2000"
+  },
+  {
+   "id": "the-quiet-rule-moved-still-holds-after-it",
+   "place": "Zenda",
+   "year": 2000,
+   "why": "recent",
+   "want": null,
+   "snap": "recent2000"
+  },
+  {
+   "id": "the-quiet-rule-can-be-moved-by-the-caller",
+   "place": "Zenda",
+   "year": 2010,
+   "why": "ok",
+   "want": {
+    "id": "elphberg--era-1900"
+   },
+   "opts": {
+    "recent_from": 2100
+   }
+  },
+  {
+   "id": "the-quiet-rule-can-be-moved-earlier-by-the-caller",
+   "place": "Zenda",
+   "year": 1975,
+   "why": "recent",
+   "want": null,
+   "opts": {
+    "recent_from": 1970
+   }
+  },
+  {
+   "id": "the-quiet-rule-never-touches-a-closed-era",
+   "place": "Overlap Town",
+   "year": 1999,
+   "why": "ok",
+   "want": {
+    "id": "zenda--era-1950"
+   },
+   "opts": {
+    "recent_from": 1900
+   }
+  },
+  {
+   "id": "a-boundary-year-is-silent-when-the-snapshot-does-not-say-newer",
+   "place": "Hentzau",
+   "year": 1850,
+   "why": "boundary",
+   "want": null,
+   "snap": "silent_boundary"
+  },
+  {
+   "id": "a-boundary-year-is-silent-with-no-policy",
+   "place": "Hentzau",
+   "year": 1850,
+   "why": "boundary",
+   "want": null,
+   "snap": "nopolicy"
+  },
+  {
+   "id": "a-boundary-after-a-refused-era-is-silent-when-the-snapshot-does-not-say-newer",
+   "place": "Dropbound Town",
+   "year": 1800,
+   "why": "boundary",
+   "want": null,
+   "snap": "silent_boundary"
+  },
+  {
+   "id": "an-ordinary-year-is-unaffected-by-the-boundary-policy",
+   "place": "Hentzau",
+   "year": 1750,
+   "why": "ok",
+   "want": {
+    "boundary": false
+   },
+   "snap": "silent_boundary"
+  },
+  {
+   "id": "a-place-on-the-edge-is-silent",
+   "place": "Edge Town",
+   "year": 1750,
+   "why": "edge",
+   "want": null
+  },
+  {
+   "id": "a-place-the-archive-marks-edge-is-silent",
+   "place": "Marked Town",
+   "year": 1750,
+   "why": "marked-edge",
+   "want": null
+  },
+  {
+   "id": "a-place-in-another-regions-ring-is-silent",
+   "place": "Conflict Town",
+   "year": 1750,
+   "why": "ring-conflict",
+   "want": null
+  },
+  {
+   "id": "an-unknown-silence-reason-is-no-region",
+   "place": "Weird Town",
+   "year": 1750,
+   "why": "no-region",
+   "want": null
+  },
+  {
+   "id": "a-place-that-could-not-be-edge-checked-is-flagged",
+   "place": "Unchecked Town",
+   "year": 1750,
+   "why": "ok",
+   "want": {
+    "unchecked": true
+   }
+  },
+  {
+   "id": "a-place-with-no-region",
+   "place": "Elphberg",
+   "year": 1750,
+   "why": "no-region",
+   "want": null
+  },
+  {
+   "id": "a-place-mapped-to-a-region-the-snapshot-lacks",
+   "place": "Lonely Castle",
+   "year": 1750,
+   "why": "no-region",
+   "want": null
+  },
+  {
+   "id": "a-region-with-no-eras-has-no-era",
+   "place": "No Eras Town",
+   "year": 1750,
+   "why": "no-era",
+   "want": null
+  },
+  {
+   "id": "an-inherited-object-key-is-not-a-place",
+   "place": "constructor",
+   "year": 1750,
+   "why": "no-region",
+   "want": null
+  },
+  {
+   "id": "the-prototype-key-is-not-a-place",
+   "place": "__proto__",
+   "year": 1750,
+   "why": "no-region",
+   "want": null
+  },
+  {
+   "id": "a-string-year-is-refused",
+   "place": "Hentzau",
+   "year": "1750",
+   "why": "year",
+   "want": null
+  },
+  {
+   "id": "a-fractional-year-is-refused",
+   "place": "Hentzau",
+   "year": 1750.5,
+   "why": "year",
+   "want": null
+  },
+  {
+   "id": "no-year-is-refused",
+   "place": "Hentzau",
+   "year": null,
+   "why": "year",
+   "want": null
+  },
+  {
+   "id": "year-zero-is-refused",
+   "place": "Hentzau",
+   "year": 0,
+   "why": "year",
+   "want": null
+  },
+  {
+   "id": "no-place-is-refused",
+   "place": "",
+   "year": 1750,
+   "why": "place",
+   "want": null
+  },
+  {
+   "id": "a-number-is-not-a-place",
+   "place": 12,
+   "year": 1750,
+   "why": "place",
+   "want": null
+  },
+  {
+   "id": "a-snapshot-of-the-first-version-is-refused",
+   "place": "Hentzau",
+   "year": 1750,
+   "why": "snapshot",
+   "want": null,
+   "snap": "v1"
+  },
+  {
+   "id": "a-snapshot-of-a-later-version-is-refused",
+   "place": "Hentzau",
+   "year": 1750,
+   "why": "snapshot",
+   "want": null,
+   "snap": "v3"
+  },
+  {
+   "id": "an-empty-snapshot-is-refused",
+   "place": "Hentzau",
+   "year": 1750,
+   "why": "snapshot",
+   "want": null,
+   "snap": "empty"
+  },
+  {
+   "id": "no-snapshot-is-refused",
+   "place": "Hentzau",
+   "year": 1750,
+   "why": "snapshot",
+   "want": null,
+   "snap": "none"
+  }
+ ],
+ "href_cases": [
+  {
+   "id": "href-needs-https",
+   "base": "http://atlas.example.test",
+   "href": null
+  },
+  {
+   "id": "href-with-a-path-is-refused",
+   "base": "https://atlas.example.test/x",
+   "href": null
+  },
+  {
+   "id": "href-trailing-slash-is-fine",
+   "base": "https://atlas.example.test/",
+   "href": "https://atlas.example.test/region/ruritania/"
+  },
+  {
+   "id": "href-without-a-base-is-null",
+   "base": null,
+   "href": null
+  }
+ ],
+ "gate_snapshot": {
+  "version": 2,
+  "built": "2026-01-01",
+  "contract": {
+   "name": "recordatlas-context",
+   "version": "1.7.0",
+   "generated": "2026-01-01",
+   "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "atlas": {
+   "base": "https://atlas.example.test",
+   "rings_sha256": null
+  },
+  "policy": {
+   "unassessed": "refuse",
+   "boundary": "newer",
+   "recent_from": 1990,
+   "edge_km": 15
+  },
+  "regions": {
+   "ruritania": [
+    {
+     "id": "ruritania--era-1700",
+     "from": 1700,
+     "to": 1800,
+     "present": false,
+     "regime": "kingdom",
+     "label": "Kingdom of Ruritania",
+     "polity": null,
+     "basis": "not-recorded",
+     "seeded_from_archive": false,
+     "approx": false,
+     "contested": false,
+     "url": "/region/ruritania/#era-1700"
+    },
+    {
+     "id": "ruritania--era-1800",
+     "from": 1800,
+     "to": 1850,
+     "present": false,
+     "regime": "occupied",
+     "label": "Occupied Ruritania",
+     "polity": null,
+     "basis": "not-recorded",
+     "seeded_from_archive": false,
+     "approx": true,
+     "contested": false,
+     "url": "/region/ruritania/#era-1800"
+    },
+    {
+     "id": "ruritania--era-1850",
+     "from": 1850,
+     "to": 1900,
+     "present": false,
+     "regime": "republic",
+     "label": "Republic of Ruritania",
+     "polity": null,
+     "basis": "not-recorded",
+     "seeded_from_archive": false,
+     "approx": false,
+     "contested": false,
+     "url": "/region/ruritania/#era-1850"
+    }
+   ],
+   "elphberg": [
+    {
+     "id": "elphberg--era-1900",
+     "from": 1900,
+     "to": null,
+     "present": true,
+     "regime": "kingdom",
+     "label": "Kingdom of Ruritania",
+     "polity": null,
+     "basis": "seeded:test-archive",
+     "seeded_from_archive": true,
+     "approx": false,
+     "contested": false,
+     "url": "/region/elphberg/#era-1900"
+    }
+   ]
+  },
+  "places": {
+   "hentzau": "ruritania",
+   "zenda": "elphberg"
+  },
+  "places_silent": {},
+  "unchecked_edge": [],
+  "dropped": [],
+  "quality": {
+   "counts": {
+    "gaps": 0,
+    "overlaps": 0
+   },
+   "gaps": [],
+   "overlaps": []
+  }
+ }
 }

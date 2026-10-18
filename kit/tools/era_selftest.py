@@ -7,7 +7,9 @@ Every rule of kit/docs/era-notes.md has a planted fault below, and a fault the g
     python3 kit/tools/era_selftest.py
 """
 import copy
+import hashlib
 import json
+import math
 import os
 import subprocess
 import sys
@@ -33,22 +35,36 @@ def run(script, args):
     return p.returncode, p.stdout + p.stderr
 
 
+def snap_of(c):
+    k = c.get("snap")
+    return None if k == "none" else CASES["other_snapshots"][k] if k else CASES["snapshot"]
+
+
+def failing(lib):
+    """The ids of the shared cases a library (the real one, or a copy with one rule broken) gets wrong."""
+    out = []
+    for c in CASES["cases"]:
+        s = copy.deepcopy(snap_of(c))
+        rf = (c.get("opts") or {}).get("recent_from")
+        try:
+            got = lib.era_at(s, c["place"], c["year"], rf)
+            why = lib.why_not(s, c["place"], c["year"], rf)
+        except Exception as e:  # noqa: BLE001
+            out.append(c["id"] + " (threw %s)" % type(e).__name__)
+            continue
+        if why != c["why"]:
+            out.append(c["id"] + " (why)")
+        elif c["want"] is None:
+            if c["why"] == "ok" or got is not None:
+                out.append(c["id"])
+        elif got is None or any(got.get(k) != v for k, v in c["want"].items()):
+            out.append(c["id"])
+    return out
+
+
 # ---------------------------------------------------------------- 1. the Python half agrees with the shared cases
 print("eralib.py against the shared cases (the same file era_logic.mjs runs against era.js)")
-bad = []
-for c in CASES["cases"]:
-    s = {"none": None}.get(c.get("snap"), CASES["other_snapshots"].get(c.get("snap")) if c.get("snap") else CASES["snapshot"])
-    if c.get("snap") == "none":
-        s = None
-    got = eralib.era_at(s, c["place"], c["year"])
-    why = eralib.why_not(s, c["place"], c["year"])
-    if why != c["why"]:
-        bad.append(c["id"] + " (why)")
-    elif c["want"] is None:
-        if got is not None:
-            bad.append(c["id"])
-    elif got is None or any(got.get(k) != v for k, v in c["want"].items()):
-        bad.append(c["id"])
+bad = failing(eralib)
 case("all %d era cases give the answers era.js gives" % len(CASES["cases"]), not bad, bad)
 bad = [s for s, want in CASES["fold"] if eralib.fold(s) != want]
 case("fold agrees on %d spellings" % len(CASES["fold"]), not bad, bad)
@@ -57,96 +73,311 @@ case("plain_year agrees on %d dates" % len(CASES["years"]), not bad, bad)
 bad = [h["id"] for h in CASES["href_cases"] if eralib.region_href({"atlas": {"base": h["base"]}}, "ruritania") != h["href"]]
 case("region_href agrees on %d cases" % len(CASES["href_cases"]), not bad, bad)
 
+print("eralib.py: a planted fault for each rule is caught by the shared cases")
+src = open(os.path.join(HERE, "eralib.py"), encoding="utf-8").read()
+FAULTS = [
+    ("the end year of an era is inside it (closed interval)", 'return e["from"] <= year and (is_open(e) or year < e["to"])',
+     'return e["from"] <= year and (is_open(e) or year <= e["to"])', "the-year-an-era-ends-belongs-to-the-next-era"),
+    ("a still-running era covers nothing", 'return e["from"] <= year and (is_open(e) or year < e["to"])',
+     'return e["from"] <= year and year < e["to"]', "accents-and-case-are-folded"),
+    ("a missing end is taken for a still-running era", 'return isinstance(e, dict) and "to" in e and e["to"] is None',
+     'return isinstance(e, dict) and e.get("to") is None', "an-era-with-no-end-at-all-is-not-still-running"),
+    ("a boundary year takes the newer era whatever the snapshot says", 'if pol.get("boundary") != "newer":\n            return no("boundary")',
+     'if False:\n            return no("boundary")', "a-boundary-year-is-silent-when-the-snapshot-does-not-say-newer"),
+    ("a boundary year is not noticed", 'if year == e["from"] and _has_predecessor(snap, region, eras, e):',
+     'if False and _has_predecessor(snap, region, eras, e):', "a-boundary-year-takes-the-newer-era-and-says-so"),
+    ("a refused predecessor does not make a boundary", 'return any(drop_ok(d) and d.get("region") == region and d.get("to") == e["from"] for d in (snap.get("dropped") or []))',
+     "return False", "a-boundary-after-a-refused-era-still-says-so"),
+    ("the quiet rule is off", 'if is_open(e) and year >= recent_from:\n        return no("recent")', "if False:\n        return no(\"recent\")", "the-quiet-rule-1990"),
+    ("the quiet rule starts a year late", "year >= recent_from", "year > recent_from", "the-quiet-rule-1990"),
+    ("the quiet rule touches closed eras", "if is_open(e) and year >= recent_from:", "if year >= recent_from:", "the-quiet-rule-never-touches-a-closed-era"),
+    ("the caller's quiet-rule year is ignored", "if recent_from is None:\n        recent_from =", "if True:\n        recent_from =", "the-quiet-rule-can-be-moved-by-the-caller"),
+    ("the snapshot's quiet-rule year is ignored", 'recent_from = pol["recent_from"] if is_year(pol.get("recent_from")) else RECENT_FROM',
+     "recent_from = RECENT_FROM", "the-quiet-rule-can-be-moved-by-the-snapshot"),
+    ("null is taken for false", 'return "unassessed" if v is None else "yes"', 'return "no" if v is None else "yes"', "an-era-with-null-flags-is-unassessed"),
+    ("an unassessed era is noted whatever the policy says", 'if unassessed and pol.get("unassessed") != "allow":\n        return no("unassessed")',
+     "if False:\n        return no(\"unassessed\")", "an-era-with-null-flags-is-unassessed"),
+    ("an unassessed era is never allowed", 'if unassessed and pol.get("unassessed") != "allow":', "if unassessed:",
+     "an-era-with-null-flags-is-allowed-when-the-snapshot-says-so"),
+    ("a flag that is neither true, false nor null counts as false", 'return "unassessed" if v is None else "yes"', 'return "unassessed" if v is None else "no"',
+     "a-flag-that-is-neither-true-false-nor-null-is-silent-even-when-allowing"),
+    ("an approximate era gets a note", 'if flag(e.get("approx")) == "yes":\n        return no("approx")', 'if False:\n        return no("approx")', "an-approximate-era-is-silent"),
+    ("an era that overlaps another is not contested", "or any(e.get(\"contested\") is True or any(o is not e and numeric(o) and meets(e, o) for o in eras)\n                                           for e in covering)",
+     "or any(e.get(\"contested\") is True for e in covering)", "an-era-that-overlaps-another-is-silent-even-where-it-stands-alone"),
+    ("a refused era overlapping a kept one is ignored", "if len(covering) > 1 or refused or any(", "if len(covering) > 1 or any(", "a-refused-era-overlapping-a-kept-one-is-silent"),
+    ("an empty label is allowed", 'if not _label(e):\n        return no("no-label")', 'if False:\n        return no("no-label")', "an-empty-regime-label-is-silent"),
+    ("an era whose id is not the contract's is allowed", 'if e.get("id") != era_id(region, e["from"]):\n        return no("bad-id")', 'if False:\n        return no("bad-id")',
+     "an-era-whose-id-is-not-the-contracts-is-silent"),
+    ("any url is a link", 'return b + e["url"] if e["url"] == "/region/%s/#era-%s" % (region, e.get("from")) else None', 'return b + e["url"]',
+     "an-era-keeps-the-link-the-contract-gives-only-if-it-is-its-own"),
+    ("a refused era is reported as no era", 'return no("era-refused" if refused else "no-era")', 'return no("no-era")', "a-refused-era-is-silent-and-counted-as-refused"),
+    ("a place on the edge is not silent", "if isinstance(silent, dict) and silent.get(key) in VALID_SILENT:\n        return no(silent[key])",
+     "if False:\n        return no(silent[key])", "a-place-on-the-edge-is-silent"),
+    ("any silence reason is believed", "isinstance(silent, dict) and silent.get(key) in VALID_SILENT", "isinstance(silent, dict) and key in silent", "an-unknown-silence-reason-is-no-region"),
+    ("an unchecked place is not flagged", '"unchecked": d["key"] in (snap.get("unchecked_edge") or [])', '"unchecked": False', "a-place-that-could-not-be-edge-checked-is-flagged"),
+    ("a snapshot of another version is read", 'snap.get("version") != VERSION', "False", "a-snapshot-of-the-first-version-is-refused"),
+    ("a seeded era is not marked", 'seeded = e.get("seeded_from_archive") is True', "seeded = False", "accents-and-case-are-folded"),
+]
+for label, a, b, must in FAULTS:
+    if a not in src:
+        case("planted fault '%s' could be planted (the code changed)" % label, False)
+        continue
+    ns = {}
+    code = compile(src.replace(a, b, 1), "eralib_broken", "exec")
+    exec(code, ns)  # noqa: S102 - our own source, one rule broken
+
+    class Lib:
+        era_at = staticmethod(ns["era_at"])
+        why_not = staticmethod(ns["why_not"])
+    f = failing(Lib)
+    case("planted fault '%s' is caught (%s)" % (label, must), any(x.startswith(must) for x in f), f[:3])
+
+# geometry
+print("eralib.py: the ring-edge distance")
+RING = [[0, 10], [0, 20], [10, 20], [10, 10]]
+d = eralib.edge_km(5, 15, RING)
+case("a point in the middle of a 10 degree square is about 554 km from the nearest edge", abs(d - 553.8) < 6, d)
+d = eralib.edge_km(0.1, 15, RING)
+case("a point 0.1 degree inside the south edge is about 11 km from it", abs(d - 11.12) < 0.3, d)
+d = eralib.edge_km(-0.1, 15, RING)
+case("a point 0.1 degree OUTSIDE the south edge is also about 11 km from it", abs(d - 11.12) < 0.3 and not eralib.pip(-0.1, 15, RING), d)
+d = eralib.edge_km(5, 10.05, RING)
+case("a point near the west edge measures in km of longitude (cos latitude), not degrees", abs(d - 0.05 * 111.195 * math.cos(math.radians(5))) < 0.2, d)
+case("a point near a vertex is measured to the vertex, not to the edge's line beyond it", abs(eralib.edge_km(-0.1, 9.9, RING) - math.hypot(0.1 * 111.195, 0.1 * 111.195 * math.cos(math.radians(-0.1)))) < 0.5)
+case("pip: inside and outside", eralib.pip(5, 15, RING) and not eralib.pip(11, 15, RING) and not eralib.pip(5, 21, RING))
+
 tmp = tempfile.mkdtemp(prefix="era-")
 
 # ---------------------------------------------------------------- 2. erasnap.py
-print("erasnap.py: what it keeps, what it refuses, what it counts")
-ATLAS = {
-    "regimes": {
-        "kingdom": {"label": "Kingdom of Ruritania"},
-        "republic": {"label": "Republic of Ruritania"},
-        "feudal": {"label": "Dukes and Counts"},
-        "nameless": {},
-        "brief": {"label": "The Short Republic", "existed": [1900, 1920]},
-    },
+print("erasnap.py: reads the contract, and what it keeps, refuses and counts")
+RULE = ("An era covers from <= year < to; a year equal to a boundary belongs to the newer era. Look in `regions` first, fall back to "
+        "`countries` by slug, and stay silent where `quality` lists a gap or an overlap. null in `contested` or `approx` means nobody has assessed it.")
+
+
+def ce(region, frm, to, regime="kingdom", label="Kingdom of Ruritania", approx=False, contested=False, basis="not-recorded", polity=None, **kw):
+    e = {"id": "%s--era-%s" % (region, frm), "from": frm, "to": to, "present": to is None, "regime": regime, "regimeLabel": label, "polity": polity,
+         "filedUnder": [], "basis": basis, "contested": contested, "approx": approx, "url": "/region/%s/#era-%s" % (region, frm)}
+    e.update(kw)
+    return e
+
+
+CONTRACT = {
+    "contract": {"name": "recordatlas-context", "version": "1.7.0", "documented": "/data/#context", "changes": []},
+    "licence": "x", "generatedBy": "test", "generated": "2026-01-01", "rule": RULE, "counts": {},
     "regions": [
-        {"id": "ruritania", "ring": [[0, 10], [0, 20], [10, 20], [10, 10]], "eras": [
-            {"from": 1000, "to": 1700, "regime": "feudal"},
-            {"from": 1700, "to": 1800, "regime": "kingdom"},
-            {"from": 1800, "to": 1850, "regime": "kingdom", "approx": True},
-            {"from": 1850, "to": "c. 1900", "regime": "republic"},
-            {"from": 1900, "to": 1910, "regime": "nameless"},
-            {"from": 1910, "to": 1900, "regime": "kingdom"},
-            {"from": 1900, "to": 1950, "regime": "brief"},
-            {"from": 1950, "to": 1990, "regime": "kingdom"},
-            {"from": 1980, "to": 2000, "regime": "republic"},
+        {"id": "ruritania", "label": "Ruritania", "alt": [], "countries": ["RU"], "url": "/region/ruritania/", "eras": [
+            ce("ruritania", 1000, 1700, regime="feudal", label="Dukes and Counts"),                       # shorthand regime: refused
+            ce("ruritania", 1700, 1800),                                                                  # kept
+            ce("ruritania", 1800, 1850, approx=True),                                                     # marked approximate: refused
+            ce("ruritania", 1850, "c. 1900", regime="republic", label="Republic of Ruritania"),           # words-only end: refused
+            ce("ruritania", 1900, 1910, regime="nameless", label=""),                                     # no label: refused
+            ce("ruritania", 1910, 1905),                                                                  # start not before end: refused
+            ce("ruritania", 1910, 1920, regime="brief", label="The Short Republic"),                      # kept
+            ce("ruritania", 1920, 1950, regime="brief", label="The Short Republic"),                      # outside `existed`: refused
+            ce("ruritania", 1950, 1990, regime="napo", label="Napoleonic", polity="Napoleonic — Fake Provinces"),   # qualified: kept
+            ce("ruritania", 1980, 2000, regime="republic", label="Republic of Ruritania"),                # overlaps the one before: both contested
+            ce("ruritania", 2000, None, regime="republic", label="Republic of Ruritania"),                # running: kept
         ]},
-        {"id": "elphberg", "ring": [[20, 10], [20, 20], [30, 20], [30, 10]], "eras": [
-            {"from": 1700, "to": 1800, "regime": "kingdom"}]},
-        {"id": "unused", "ring": [[40, 10], [40, 20], [50, 20], [50, 10]], "eras": [
-            {"from": 1700, "to": 1800, "regime": "kingdom"}]},
+        {"id": "elphberg", "label": "Elphberg", "alt": [], "countries": [], "url": "/region/elphberg/", "eras": [
+            ce("elphberg", 1700, 1800, basis="seeded:test-archive"),
+            ce("elphberg", 1800, 1900, regime="napo", label="Napoleonic", polity=None, basis="seeded:test-archive"),           # shorthand, no polity: refused
+            ce("elphberg", 1900, 1950, regime="napo", label="Napoleonic", polity="French Illyria", basis="seeded:test-archive"),  # "Napoleonic - French Illyria"
+        ]},
+        {"id": "unknownbasis", "label": "U", "alt": [], "countries": [], "url": "/region/unknownbasis/", "eras": [ce("unknownbasis", 1700, 1800, basis="unknown")]},
+        {"id": "nullr", "label": "N", "alt": [], "countries": [], "url": "/region/nullr/", "eras": [
+            ce("nullr", 1700, 1800, approx=None, contested=None), ce("nullr", 1800, 1900, approx=False, contested=None),
+            ce("nullr", 1900, 2000, approx=None, contested=False)]},
+        {"id": "gapped", "label": "G", "alt": [], "countries": [], "url": "/region/gapped/", "eras": [
+            ce("gapped", 1700, 1800), ce("gapped", 1800, 1900), ce("gapped", 1900, 2000), ce("gapped", 2000, 2100), ce("gapped", 2100, 2200)]},
+        {"id": "badids", "label": "B", "alt": [], "countries": [], "url": "/region/badids/", "eras": [
+            ce("badids", 1700, 1800, id="badids--era-1701"), ce("badids", 1800, 1900, url="/region/other/#era-1800"), ce("badids", 1900, None, present=False)]},
+        {"id": "unused", "label": "U", "alt": [], "countries": [], "url": "/region/unused/", "eras": [ce("unused", 1700, 1800)]},
     ],
+    "countries": [],
+    "quality": {"gaps": [{"slug": "x-flags", "from": "x-flags--era-1", "to": "x-flags--era-2", "years": 3, "verdict": "unreviewed"},
+                         {"slug": "gapped", "from": "gapped--era-1800", "to": "gapped--era-1900", "years": 1, "verdict": "unreviewed"}],
+                "overlaps": [{"slug": "gapped", "from": "gapped--era-2000", "to": "gapped--era-2100", "years": 9, "verdict": "concurrent"},
+                             {"slug": "y-flags", "from": "y-flags--era-1", "to": "y-flags--era-2", "years": 3, "verdict": "concurrent"}]},
 }
-ap = os.path.join(tmp, "regions.json")
-json.dump(ATLAS, open(ap, "w"))
-table = {"places": {"Hentzau": {"region": "ruritania", "lat": 5, "lon": 15}, "HENTZAU!": "ruritania", "Edge Town": {"region": "ruritania", "lat": 25, "lon": 15},
-                    "Far Hill": {"region": "ruritania", "lat": 60, "lon": 60}, "Zenda": "elphberg", "Nowhere": None, "Dash": "-"}}
+RINGS = {"regimes": {"brief": {"label": "The Short Republic", "existed": [1910, 1920]}, "kingdom": {"label": "Kingdom of Ruritania"}},
+         "regions": [
+             {"id": "ruritania", "ring": RING, "eras": CONTRACT["regions"][0]["eras"]},
+             {"id": "elphberg", "ring": [[20, 10], [20, 20], [30, 20], [30, 10]], "eras": CONTRACT["regions"][1]["eras"]},
+             {"id": "unknownbasis", "ring": [[40, 10], [40, 20], [50, 20], [50, 10]], "eras": CONTRACT["regions"][2]["eras"]},
+             {"id": "nullr", "ring": [[60, 10], [60, 20], [70, 20], [70, 10]], "eras": CONTRACT["regions"][3]["eras"]},
+             {"id": "gapped", "ring": [[-20, 10], [-20, 20], [-10, 20], [-10, 10]], "eras": CONTRACT["regions"][4]["eras"]},
+             {"id": "badids", "ring": [[-40, 10], [-40, 20], [-30, 20], [-30, 10]], "eras": CONTRACT["regions"][5]["eras"]},
+             {"id": "unused", "ring": [[-60, 10], [-60, 20], [-50, 20], [-50, 10]], "eras": CONTRACT["regions"][6]["eras"]},
+         ]}
+cp = os.path.join(tmp, "context.json")
+open(cp, "w").write(json.dumps(CONTRACT))
+rp = os.path.join(tmp, "rings.json")
+json.dump(RINGS, open(rp, "w"))
+TABLE = {"places": {
+    "Centre": {"region": "ruritania", "lat": 5, "lon": 15}, "CENTRE!": "ruritania",
+    "Near South": {"region": "ruritania", "lat": 0.1, "lon": 15}, "Near South Outside": {"region": "ruritania", "lat": -0.1, "lon": 15},
+    "Far Outside": {"region": "ruritania", "lat": 80, "lon": 80}, "Wrong Ring": {"region": "ruritania", "lat": 25, "lon": 15},
+    "Marked": {"region": "ruritania", "lat": 5, "lon": 15, "edge": True}, "No Coords": "elphberg", "Unk": {"region": "unknownbasis", "lat": 45, "lon": 15},
+    "Nul": {"region": "nullr", "lat": 65, "lon": 15}, "Gap": {"region": "gapped", "lat": -15, "lon": 15}, "Bad": {"region": "badids", "lat": -35, "lon": 15},
+    "Nowhere": None, "Dash": "-"}}
 tp = os.path.join(tmp, "places.json")
-json.dump(table, open(tp, "w"))
+json.dump(TABLE, open(tp, "w"))
 out = os.path.join(tmp, "snap.json")
-base = ["--atlas", ap, "--places", tp, "--out", out, "--atlas-ref", "abc1234", "--built", "2026-01-01"]
-c, o = run("erasnap.py", base + ["--seeded", "elphberg"])
+base = ["--contract", cp, "--rings", rp, "--places", tp, "--out", out, "--built", "2026-01-02"]
+rep = os.path.join(tmp, "report.json")
+c, o = run("erasnap.py", base + ["--unassessed", "allow", "--report", rep])
 snap = json.load(open(out)) if c == 0 else {}
-case("it builds a snapshot from an Atlas file and an archive's place table", c == 0 and snap.get("version") == 1, o)
-case("it says which Atlas it came from (reference and the file's hash)", snap.get("atlas_commit_or_etag") == "abc1234" and len(snap.get("atlas", {}).get("file_sha256", "")) == 64, snap.get("atlas"))
-case("only the regions the archive's table uses are kept", sorted(snap.get("regions", {})) == ["elphberg", "ruritania"], list(snap.get("regions", {})))
-eras = snap.get("regions", {}).get("ruritania", [])
-case("a words-only end, an inverted span, an empty label, a shorthand regime and an era outside its regime's dates are refused (5)",
-     sorted((d["from"], d["reason"].split()[0]) for d in snap.get("dropped", []) if d["region"] == "ruritania") ==
-     sorted([(1000, "regime"), (1850, "words-only"), (1900, "regime"), (1910, "start"), (1900, "era")]), snap.get("dropped"))
-case("the kept eras are the four with real years and a label", [(e["from"], e["to"]) for e in eras] == [(1700, 1800), (1800, 1850), (1950, 1990), (1980, 2000)], eras)
-case("an approximate era is kept and flagged", [e["approx"] for e in eras] == [False, True, False, False])
-case("two overlapping eras are both kept and both flagged contested", [e["contested"] for e in eras] == [False, False, True, True], eras)
-case("a region the Atlas seeded from the archive's own research is flagged on every era", all(e["seeded_from_archive"] for e in snap["regions"]["elphberg"]) and not any(e["seeded_from_archive"] for e in eras))
-case("only the regimes the kept eras use, with their labels", snap.get("regimes") == {"kingdom": "Kingdom of Ruritania", "republic": "Republic of Ruritania"}, snap.get("regimes"))
-pk = snap.get("places", {})
-case("two spellings of one place are one key; a null or dash region is not a place", sorted(pk) == ["far hill", "hentzau", "zenda"], sorted(pk))
-case("a place whose coordinates fall in ANOTHER region's ring, and not its own, is refused; one in no ring is kept", "edge town" not in pk and "far hill" in pk, sorted(pk))
-case("what it built answers as the library does", (eralib.era_at(snap, "Hentzau", 1750) or {}).get("label") == "Kingdom of Ruritania"
-     and eralib.era_at(snap, "Hentzau", 1825) is None and eralib.era_at(snap, "Hentzau", 1985) is None and eralib.era_at(snap, "Zenda", 1750)["seeded"] is True)
-case("the output tells the counts and names no place", "places_refused_ring" in o and "Hentzau" not in o and "Edge" not in o, o)
-c2, o2 = run("erasnap.py", base + ["--seeded", "elphberg", "--check"])
+case("it builds a version 2 snapshot from the contract, a ring file and an archive's place table", c == 0 and snap.get("version") == 2, o)
+want_sha = hashlib.sha256(open(cp, "rb").read()).hexdigest()
+case("it records the contract's version, its generated stamp and the sha256 of the file's bytes",
+     snap.get("contract") == {"name": "recordatlas-context", "version": "1.7.0", "generated": "2026-01-01", "sha256": want_sha}, snap.get("contract"))
+case("it records the ring file's hash too", snap.get("atlas", {}).get("rings_sha256") == hashlib.sha256(open(rp, "rb").read()).hexdigest())
+case("it records its policy: unassessed, boundary (from the contract's rule), quiet-rule year, edge km",
+     snap.get("policy") == {"unassessed": "allow", "boundary": "newer", "recent_from": 1990, "edge_km": 15.0}, snap.get("policy"))
+case("only the regions the archive's table uses are kept", sorted(snap.get("regions", {})) == ["badids", "elphberg", "gapped", "nullr", "ruritania", "unknownbasis"], list(snap.get("regions", {})))
+R = snap.get("regions", {}).get("ruritania", [])
+case("the kept eras of a region carry the contract's id, its url, its label and its basis",
+     [(e["id"], e["from"], e["to"], e["present"]) for e in R] == [("ruritania--era-1700", 1700, 1800, False), ("ruritania--era-1910", 1910, 1920, False),
+                                                                  ("ruritania--era-1950", 1950, 1990, False), ("ruritania--era-1980", 1980, 2000, False),
+                                                                  ("ruritania--era-2000", 2000, None, True)], R)
+case("an open end is kept only for an era marked present, and carries to null", R and R[-1]["to"] is None and R[-1]["present"] is True)
+dr = [(d["region"], d["from"], d["reason"].split()[0]) for d in snap.get("dropped", []) if d["region"] == "ruritania"]
+case("a shorthand regime, a marked-approximate era, a words-only end, an empty label, an inverted span and an era outside its regime's dates are all refused (6)",
+     sorted(dr) == sorted([("ruritania", 1000, "regime"), ("ruritania", 1800, "marked"), ("ruritania", 1850, "end"), ("ruritania", 1900, "regime"),
+                           ("ruritania", 1910, "start"), ("ruritania", 1920, "era")]), dr)
+case("a bare shorthand regime is shown with its polity (never invented); one with no polity is refused",
+     [e["label"] for e in R if e["from"] == 1950] == ["Napoleonic — Fake Provinces"]
+     and [e["label"] for e in snap["regions"]["elphberg"]] == ["Kingdom of Ruritania", "Napoleonic — French Illyria"]
+     and any(d["region"] == "elphberg" and d["from"] == 1800 and d["reason"].startswith("bare shorthand") for d in snap["dropped"]), snap["regions"]["elphberg"])
+case("two overlapping eras are both kept and both flagged contested", [e["contested"] for e in R if e["from"] in (1950, 1980)] == [True, True], R)
+case("an era's contested/approx null is carried as null when the policy allows it", [(e["approx"], e["contested"]) for e in snap["regions"]["nullr"]] == [(None, None), (False, None), (None, False)])
+case("basis is carried, and seeded_from_archive follows it (only a basis that starts 'seeded:')",
+     all(e["seeded_from_archive"] for e in snap["regions"]["elphberg"]) and not any(e["seeded_from_archive"] for e in R)
+     and snap["regions"]["unknownbasis"][0]["basis"] == "unknown" and snap["regions"]["unknownbasis"][0]["seeded_from_archive"] is False)
+gp = snap["dropped"]
+case("an era the contract's quality block lists in a gap or an overlap is refused, with its own reason",
+     sorted((d["from"], d["reason"].split()[-1]) for d in gp if d["region"] == "gapped") == [(1800, "gaps"), (1900, "gaps"), (2000, "overlaps"), (2100, "overlaps")]
+     and [e["from"] for e in snap["regions"]["gapped"]] == [1700], [(d["from"], d["reason"]) for d in gp if d["region"] == "gapped"])
+case("an id or a url that is not the one the region and start imply, and an open end not marked present, are refused",
+     sorted(d["from"] for d in gp if d["region"] == "badids") == [1700, 1800, 1900] and snap["regions"]["badids"] == [])
+case("the contract's quality entries that name a region of the snapshot are carried, with the contract's own counts",
+     snap["quality"]["counts"] == {"gaps": 2, "overlaps": 2} and [r["slug"] for r in snap["quality"]["gaps"]] == ["gapped"] and [r["slug"] for r in snap["quality"]["overlaps"]] == ["gapped"], snap["quality"])
+pk, ps = snap.get("places", {}), snap.get("places_silent", {})
+case("two spellings of one place are one key; a null or dash region is not a place", "centre" in pk and "nowhere" not in pk and "dash" not in pk and "nowhere" not in ps)
+case("a place within 15 km of its region's ring edge (inside or outside it) is refused as 'edge'", ps.get("near south") == "edge" and ps.get("near south outside") == "edge", ps)
+case("a place inside another region's ring and not its own is refused as 'ring-conflict'", ps.get("wrong ring") == "ring-conflict", ps)
+case("a place the archive's table marks edge is refused as 'marked-edge'", ps.get("marked") == "marked-edge", ps)
+case("a place far outside its own ring and near no other is kept and counted", "far outside" in pk and any(
+     l.split()[:2] == ["places_outside_own_ring_kept", "1"] for l in o.splitlines()), o)
+case("a place with no coordinates is kept, and listed unchecked (not edge-checked)", "no coords" in pk and snap.get("unchecked_edge") == ["no coords"], snap.get("unchecked_edge"))
+case("what it built answers as the library does: boundary, running era, edge, unchecked, unassessed",
+     (eralib.era_at(snap, "Centre", 1750) or {}).get("id") == "ruritania--era-1700"
+     and (eralib.era_at(snap, "Centre", 1910) or {}).get("boundary") is True                      # 1910 follows ... the refused 1900 era ends 1910
+     and eralib.why_not(snap, "Centre", 2010) == "recent" and eralib.why_not(snap, "Near South", 1750) == "edge"
+     and (eralib.era_at(snap, "No Coords", 1750) or {}).get("unchecked") is True and (eralib.era_at(snap, "Nul", 1750) or {}).get("unassessed") is True
+     and eralib.why_not(snap, "Centre", 1985) == "contested" and eralib.why_not(snap, "Centre", 1995) == "contested")
+case("the output tells the counts and names no place", "places_refused_edge" in o and "Centre" not in o and "Near South" not in o, o)
+r = json.load(open(rep))
+case("--report gives, per region, the eras refused and why (all regions, counts only)",
+     r["eras_dropped_by_region"]["ruritania"] and "unused" in r["eras_in_by_region"] and r["eras_in"] == sum(len(x["eras"]) for x in CONTRACT["regions"]) and "Centre" not in json.dumps(r), r.get("eras_in"))
+
+# the default policy: unassessed eras are refused
+c1, o1 = run("erasnap.py", base[:-2] + ["--out", os.path.join(tmp, "snap_refuse.json"), "--built", "2026-01-02"])
+sr = json.load(open(os.path.join(tmp, "snap_refuse.json"))) if c1 == 0 else {}
+case("by default an era whose contested or approx is null is REFUSED (nobody assessed it), with a counted reason",
+     c1 == 0 and sr["policy"]["unassessed"] == "refuse" and sr["regions"]["nullr"] == []
+     and sorted(d["reason"] for d in sr["dropped"] if d["region"] == "nullr") == ["contested or approx not assessed (null)"] * 3
+     and "contested or approx not assessed (null)" in o1, o1)
+case("...and an assessed era (false, false) is kept under that default", [e["from"] for e in sr["regions"]["ruritania"]] == [1700, 1910, 1950, 1980, 2000], sr.get("regions", {}).get("ruritania"))
+case("...so the library gives no note for a null-flag era under the default", eralib.why_not(sr, "Nul", 1750) in ("era-refused", "no-era"))
+
+c2, o2 = run("erasnap.py", base + ["--unassessed", "allow", "--check"])
 case("--check passes on a snapshot rebuilt from the same inputs", c2 == 0, o2)
 s2 = json.load(open(out))
-s2["regions"]["ruritania"][0]["regime"] = "republic"
+s2["regions"]["ruritania"][0]["label"] = "Edited by hand"
 json.dump(s2, open(out, "w"))
-c2, o2 = run("erasnap.py", base + ["--seeded", "elphberg", "--check"])
+c2, o2 = run("erasnap.py", base + ["--unassessed", "allow", "--check"])
 case("--check fails on a snapshot edited by hand", c2 == 1, o2)
 json.dump(snap, open(out, "w"))
+
+c3, o3 = run("erasnap.py", base[:-2] + ["--out", os.path.join(tmp, "x.json"), "--unassessed", "allow", "--recent-from", "1950", "--edge-km", "30"])
+s3 = json.load(open(os.path.join(tmp, "x.json"))) if c3 == 0 else {}
+case("--recent-from and --edge-km are recorded in the policy, and --edge-km moves the rule",
+     s3.get("policy", {}).get("recent_from") == 1950 and s3["policy"]["edge_km"] == 30.0, s3.get("policy"))
+c3, o3 = run("erasnap.py", base[:-2] + ["--out", os.path.join(tmp, "x.json"), "--unassessed", "allow", "--outside-ring", "refuse"])
+s3 = json.load(open(os.path.join(tmp, "x.json"))) if c3 == 0 else {}
+case("--outside-ring refuse silences a place whose coordinates are outside its own ring", "far outside" not in s3.get("places", {}) and "far outside" in s3.get("places_silent", {}))
+
+# the contract's own words are read, not assumed
+def mutate_contract(fn, name):
+    d = copy.deepcopy(CONTRACT)
+    fn(d)
+    p = os.path.join(tmp, name)
+    json.dump(d, open(p, "w"))
+    return p
+
+p = mutate_contract(lambda d: d["contract"].update(version="2.0.0"), "c2.json")
+c4, o4 = run("erasnap.py", ["--contract", p, "--rings", rp, "--places", tp, "--out", os.path.join(tmp, "y.json")])
+case("a contract of another MAJOR version is refused (exit 2): a renamed field is what a major version is for", c4 == 2 and "major version 1" in o4, o4)
+p = mutate_contract(lambda d: d["contract"].update(version="1.9.3"), "c19.json")
+c4, o4 = run("erasnap.py", ["--contract", p, "--rings", rp, "--places", tp, "--out", os.path.join(tmp, "y.json"), "--unassessed", "allow"])
+case("a later minor version of major 1 is read, and recorded", c4 == 0 and json.load(open(os.path.join(tmp, "y.json")))["contract"]["version"] == "1.9.3", o4)
+p = mutate_contract(lambda d: d["contract"].update(name="something-else"), "cn.json")
+c4, o4 = run("erasnap.py", ["--contract", p, "--rings", rp, "--places", tp, "--out", os.path.join(tmp, "y.json")])
+case("a file that is not the Atlas's contract is refused", c4 != 0, o4)
+p = mutate_contract(lambda d: d.update(rule="An era covers its years."), "cr.json")
+c4, o4 = run("erasnap.py", ["--contract", p, "--rings", rp, "--places", tp, "--out", os.path.join(tmp, "y.json")])
+case("a contract whose rule does not state the half-open interval is refused (exit 2)", c4 == 2, o4)
+p = mutate_contract(lambda d: d.update(rule="An era covers from <= year < to. Stay silent at a boundary."), "cs.json")
+c4, o4 = run("erasnap.py", ["--contract", p, "--rings", rp, "--places", tp, "--out", os.path.join(tmp, "y.json"), "--unassessed", "allow"])
+case("a rule that does not say a boundary year belongs to the newer era gives boundary 'silent' (so boundary years stay silent)",
+     c4 == 0 and json.load(open(os.path.join(tmp, "y.json")))["policy"]["boundary"] == "silent", o4)
+c4, o4 = run("erasnap.py", ["--contract", p, "--rings", rp, "--places", tp, "--out", os.path.join(tmp, "y.json"), "--boundary", "newer"])
+case("--boundary newer is refused where the contract does not say so (stricter is allowed, looser is not)", c4 != 0, o4)
+c4, o4 = run("erasnap.py", base[:-2] + ["--out", os.path.join(tmp, "y.json"), "--boundary", "silent", "--unassessed", "allow"])
+case("--boundary silent makes a contract that says 'newer' stricter", c4 == 0 and json.load(open(os.path.join(tmp, "y.json")))["policy"]["boundary"] == "silent", o4)
+RR = copy.deepcopy(RINGS)
+RR["regions"] = RR["regions"][:-1]
+rp2 = os.path.join(tmp, "rings2.json")
+json.dump(RR, open(rp2, "w"))
+c4, o4 = run("erasnap.py", ["--contract", cp, "--rings", rp2, "--places", tp, "--out", os.path.join(tmp, "y.json")])
+case("a ring file that describes other regions than the contract is refused (exit 2)", c4 == 2, o4)
+RR = copy.deepcopy(RINGS)
+RR["regions"][0] = dict(RR["regions"][0], eras=RR["regions"][0]["eras"][:-1])
+json.dump(RR, open(rp2, "w"))
+c4, o4 = run("erasnap.py", ["--contract", cp, "--rings", rp2, "--places", tp, "--out", os.path.join(tmp, "y.json")])
+case("a ring file whose eras differ from the contract's is refused (exit 2)", c4 == 2, o4)
+c4, o4 = run("erasnap.py", ["--contract", cp, "--places", tp, "--out", os.path.join(tmp, "y.json")])
+case("neither --rings nor --no-rings is refused: the contract has no rings, and not checking must be said", c4 == 2, o4)
+c4, o4 = run("erasnap.py", ["--contract", cp, "--no-rings", "--places", tp, "--out", os.path.join(tmp, "y.json"), "--unassessed", "allow"])
+sn = json.load(open(os.path.join(tmp, "y.json"))) if c4 == 0 else {}
+case("--no-rings keeps every mapped place and lists every one as not edge-checked", c4 == 0 and sn["places_silent"] == {"marked": "marked-edge"} and len(sn["unchecked_edge"]) == len(sn["places"]), o4)
 json.dump({"places": {"Hentzau": "narnia"}}, open(tp, "w"))
 c2, o2 = run("erasnap.py", base)
-case("a place sent to a region the Atlas does not hold stops the build", c2 != 0 and "narnia" in o2, o2)
+case("a place sent to a region the contract does not hold stops the build", c2 != 0 and "narnia" in o2, o2)
 json.dump({"places": {"Hentzau": "ruritania", "hentzau": "elphberg"}}, open(tp, "w"))
 c2, o2 = run("erasnap.py", base)
 case("two spellings of one place sent to two regions stop the build", c2 != 0, o2)
-json.dump(table, open(tp, "w"))
-c2, o2 = run("erasnap.py", ["--atlas", ap, "--places", tp, "--out", out])
-case("no reference to the Atlas, and no git history to take one from, is refused", c2 == 2, o2)
+json.dump({"places": {"Centre": {"region": "ruritania", "lat": 5, "lon": 15}, "centre": {"region": "ruritania", "lat": 0.1, "lon": 15}}}, open(tp, "w"))
+c2, o2 = run("erasnap.py", base + ["--unassessed", "allow"])
+s5 = json.load(open(out))
+case("two spellings of one place, one of them on the edge: the refusal wins", c2 == 0 and s5["places"] == {} and s5["places_silent"] == {"centre": "edge"}, s5.get("places_silent"))
+json.dump(TABLE, open(tp, "w"))
+json.dump(snap, open(out, "w"))
 
 # ---------------------------------------------------------------- 3. checkera.py
 print("checkera.py: a planted fault for each rule")
 CLEAN = CASES["gate_snapshot"]
+ERA_URL = "https://atlas.example.test/region/%s/#era-%s"
 
 
-def lab_of(snap, region, frm):
-    e = next(x for x in snap["regions"][region] if x["from"] == frm)
-    return snap["regimes"][e["regime"]]
-
-
-def note(id_="ruritania--1700", year="1750", label="Kingdom of Ruritania", src="per the Record Atlas", href="https://atlas.example.test/region/ruritania/"):
+def note(id_="ruritania--era-1700", year="1750", label="Kingdom of Ruritania", src="per the Record Atlas", href=ERA_URL % ("ruritania", 1700), boundary=False,
+         pre=None):
     a = '<a class="era-src" href="%s" rel="noopener">%s</a>' % (href, src) if href else '<span class="era-src">%s</span>' % src
-    return ('<span class="era-note" data-era="%s" data-era-year="%s"><span class="era-pre">· At the time: </span>'
-            '<span class="era-lab">%s</span> %s</span>' % (id_, year, label, a))
+    b = ' data-era-boundary="1"' if boundary else ""
+    pre = pre if pre is not None else ("· From that year: " if boundary else "· At the time: ")
+    return ('<span class="era-note" data-era="%s" data-era-year="%s"%s><span class="era-pre">%s</span>'
+            '<span class="era-lab">%s</span> %s</span>' % (id_, year, b, pre, label, a))
 
 
 def page(body, head="", attrs=""):
@@ -175,9 +406,12 @@ def gate(pages, snap=CLEAN, extra=None, snap_text=None, name="g"):
 P = "people/a/index.html"
 c, o = gate({P: page(note())})
 case("control: a note the snapshot supports passes (exit 0)", c == 0 and "1 note(s)" in o, o)
-c, o = gate({P: page(note()), "people/b/index.html": page(note("elphberg--1900", "1975", "Kingdom of Ruritania", "per this archive's own research",
-                                                                "https://atlas.example.test/region/elphberg/"))})
-case("control: a note on a seeded region that says so passes, and is counted as seeded", c == 0 and "(1 on a seeded region)" in o, o)
+case("...and the summary says which contract, and what policy, the snapshot rests on", "contract 1.7.0 of 2026-01-01" in o and "unassessed refuse" in o and "recent from 1990" in o, o)
+c, o = gate({P: page(note()), "people/b/index.html": page(note("elphberg--era-1900", "1975", "Kingdom of Ruritania", "per this archive's own research",
+                                                                ERA_URL % ("elphberg", 1900)))})
+case("control: a note on a seeded era that says so passes, and is counted as seeded", c == 0 and "(1 on a seeded region" in o, o)
+c, o = gate({P: page(note("ruritania--era-1850", "1850", "Republic of Ruritania", href=ERA_URL % ("ruritania", 1850), boundary=True))})
+case("control: a boundary-year note, marked and worded as one, passes and is counted", c == 0 and "1 on a boundary year" in o, o)
 
 
 def fails(label, pages, cat, snap=CLEAN, extra=None, code=1, snap_text=None):
@@ -185,32 +419,61 @@ def fails(label, pages, cat, snap=CLEAN, extra=None, code=1, snap_text=None):
     case(label, c == code and (cat is None or cat in o), "exit %s: %s" % (c, o))
 
 
-print("  rule a/b: a note must name an era the snapshot holds")
-fails("a (region, from) pair that is not an era", {P: page(note("ruritania--1701"))}, "unknown 1")
-fails("a region the snapshot lacks", {P: page(note("narnia--1700"))}, "unknown 1")
-fails("a data-era that is not of the shape region--year", {P: page(note("ruritania"))}, "unknown 1")
-s = copy.deepcopy(CLEAN)
-fails("an era the snapshot flags approximate", {P: page(note("ruritania--1800", "1820", "Occupied Ruritania"))}, "ineligible 1", s)
+print("  rule a/b: a note must name an era of the contract the snapshot holds")
+fails("an id that is not an era the snapshot holds", {P: page(note("ruritania--era-1701"))}, "unknown 1")
+fails("a region the snapshot lacks", {P: page(note("narnia--era-1700"))}, "unknown 1")
+fails("the old id shape region--year is not the contract's id", {P: page(note("ruritania--1700"))}, "unknown 1")
+fails("a data-era with no shape at all", {P: page(note("ruritania"))}, "unknown 1")
+fails("an era the snapshot flags approximate", {P: page(note("ruritania--era-1800", "1820", "Occupied Ruritania", href=ERA_URL % ("ruritania", 1800)))}, "ineligible 1")
 s = copy.deepcopy(CLEAN); s["regions"]["ruritania"][0]["contested"] = True
 fails("an era the snapshot flags contested", {P: page(note())}, "ineligible 1", s)
-s = copy.deepcopy(CLEAN); s["regions"]["ruritania"].append({"from": 1790, "to": 1810, "regime": "republic", "approx": False, "contested": False, "seeded_from_archive": False, "sources": []})
+s = copy.deepcopy(CLEAN); s["regions"]["ruritania"][0]["contested"] = None
+fails("an era the Atlas has not assessed (null) under the refuse policy", {P: page(note())}, "ineligible 1", s)
+s = copy.deepcopy(s); s["policy"]["unassessed"] = "allow"
+fails("...but not under the allow policy: it passes, and the summary counts it", {P: page(note())}, "1 on an era the Atlas has not assessed", s, code=0)
+fails("...and --strict-unassessed refuses that policy", {P: page(note())}, "unassessed-policy 1", s, extra=["--strict-unassessed"])
+s = copy.deepcopy(CLEAN); s["regions"]["ruritania"].append(dict(s["regions"]["ruritania"][0], id="ruritania--era-1790", **{"from": 1790, "to": 1810, "url": "/region/ruritania/#era-1790"}))
 fails("an era that overlaps another of its region", {P: page(note())}, "ineligible 1", s)
-s = copy.deepcopy(CLEAN); s["regimes"]["kingdom"] = "  "
-fails("an era whose regime has no label (the snapshot is refused as malformed first)", {P: page(note(label=""))}, None, s)
+s = copy.deepcopy(CLEAN); s["regions"]["ruritania"][0]["label"] = "  "
+fails("an era whose label is empty (the snapshot is refused as malformed first)", {P: page(note(label=""))}, "malformed", s)
 s = copy.deepcopy(CLEAN); s["regions"]["ruritania"][0]["to"] = "c. 1800"
 fails("an era with a words-only end (malformed snapshot)", {P: page(note())}, "malformed", s)
-print("  rule d: the year must lie strictly inside the era")
-fails("a year after the era", {P: page(note(year="1800"))}, "year 1")
-fails("a year on the era's first year", {P: page(note(year="1700"))}, "year 1")
+s = copy.deepcopy(CLEAN); s["regions"]["elphberg"][0]["present"] = False
+fails("an open end on an era not marked present (malformed snapshot)", {P: page(note())}, "malformed", s)
+s = copy.deepcopy(CLEAN); s["regions"]["ruritania"][0]["id"] = "ruritania--era-1701"
+fails("an era whose id is not its region and start (malformed snapshot)", {P: page(note())}, "malformed", s)
+s = copy.deepcopy(CLEAN); s["regions"]["ruritania"][0]["url"] = "/region/elsewhere/#era-1700"
+fails("an era whose url is not its own (malformed snapshot)", {P: page(note())}, "malformed", s)
+s = copy.deepcopy(CLEAN); s["regions"]["elphberg"][0]["seeded_from_archive"] = False
+fails("a seeded basis whose flag says otherwise (malformed snapshot)", {P: page(note())}, "malformed", s)
+print("  the year: from <= year < to")
+fails("a year after the era", {P: page(note(year="1850"))}, "year 1")
+fails("the year an era ENDS in (it belongs to the next)", {P: page(note(year="1800"))}, "year 1")
 fails("a year before the era", {P: page(note(year="1650"))}, "year 1")
 fails("no year on the note", {P: page(note().replace(' data-era-year="1750"', ""))}, "year 1")
 fails("a year that is not a number", {P: page(note(year="about 1750"))}, "year 1")
+c, o = gate({P: page(note(year="1700"))})
+case("the first year of the first era is inside it (no boundary: nothing precedes it)", c == 0, o)
+print("  the quiet rule")
+fails("a note in the running era from the quiet-rule year", {P: page(note("elphberg--era-1900", "1990", "Kingdom of Ruritania", "per this archive's own research", ERA_URL % ("elphberg", 1900)))}, "recent 1")
+c, o = gate({P: page(note("elphberg--era-1900", "1989", "Kingdom of Ruritania", "per this archive's own research", ERA_URL % ("elphberg", 1900)))})
+case("the year before it is fine", c == 0, o)
+s = copy.deepcopy(CLEAN); s["policy"]["recent_from"] = 2000
+c, o = gate({P: page(note("elphberg--era-1900", "1995", "Kingdom of Ruritania", "per this archive's own research", ERA_URL % ("elphberg", 1900)))}, s)
+case("the snapshot's own quiet-rule year is the one the gate holds the page to", c == 0, o)
+print("  boundary years")
+fails("a boundary-year note that is not marked as one", {P: page(note("ruritania--era-1850", "1850", "Republic of Ruritania", href=ERA_URL % ("ruritania", 1850)))}, "boundary 1")
+fails("a boundary-year note marked, but worded 'at the time'", {P: page(note("ruritania--era-1850", "1850", "Republic of Ruritania", href=ERA_URL % ("ruritania", 1850), boundary=True, pre="· At the time: "))}, "boundary 1")
+fails("an ordinary year marked as a boundary", {P: page(note(boundary=True))}, "boundary")
+s = copy.deepcopy(CLEAN); s["policy"]["boundary"] = "silent"
+fails("any boundary-year note when the snapshot's policy is not 'newer'", {P: page(note("ruritania--era-1850", "1850", "Republic of Ruritania", href=ERA_URL % ("ruritania", 1850), boundary=True))}, "boundary 1", s)
 print("  words: the label and the source")
-fails("a label that differs from the snapshot's regime label", {P: page(note(label="Empire of Ruritania"))}, "label 1")
+fails("a label that differs from the snapshot's label", {P: page(note(label="Empire of Ruritania"))}, "label 1")
 fails("a note with no label", {P: page(note().replace('<span class="era-lab">Kingdom of Ruritania</span>', ""))}, "label 1")
 fails("a note that does not say where it came from", {P: page(note(src="at the time"))}, "source 1")
-fails("a seeded region's note that says 'per the Record Atlas' (rule f)", {P: page(note("elphberg--1900", "1975", "Kingdom of Ruritania", "per the Record Atlas", "https://atlas.example.test/region/elphberg/"))}, "source 1")
-fails("a link that is not the Atlas's page for the region (rule e)", {P: page(note(href="https://elsewhere.example.test/"))}, "source 1")
+fails("a seeded era's note that says 'per the Record Atlas' (rule f)", {P: page(note("elphberg--era-1900", "1975", "Kingdom of Ruritania", "per the Record Atlas", ERA_URL % ("elphberg", 1900)))}, "source 1")
+fails("a link to the REGION, not the era (rule e)", {P: page(note(href="https://atlas.example.test/region/ruritania/"))}, "source 1")
+fails("a link that is not the Atlas's", {P: page(note(href="https://elsewhere.example.test/"))}, "source 1")
 fails("a source with no link at all", {P: page(note(href=None))}, "source 1")
 print("  rule c: no note on a living, held-out or noindex page")
 fails("a note on a page that says noindex", {P: page(note(), '<meta name="robots" content="noindex, nofollow">')}, "noindex 1")
@@ -219,11 +482,21 @@ print("  the gate must see something")
 fails("no built site at all is not a pass (exit 2)", {}, "COULD NOT SEE A BUILT SITE", code=2)
 fails("a site with pages and no note is not a pass (exit 2)", {P: page("")}, "FOUND 0 NOTE", code=2)
 fails("an unreadable snapshot is not a pass (exit 2)", {P: page(note())}, "COULD NOT READ THE SNAPSHOT", code=2, snap_text="{ not json")
-fails("a snapshot of another version is malformed", {P: page(note())}, "malformed", dict(CLEAN, version=2))
-s = copy.deepcopy(CLEAN); s["atlas_commit_or_etag"] = ""
-fails("a snapshot that does not say which Atlas it came from is malformed", {P: page(note())}, "malformed", s)
+fails("a snapshot of another version is malformed", {P: page(note())}, "malformed", dict(CLEAN, version=1))
+s = copy.deepcopy(CLEAN); s["contract"]["sha256"] = "abc"
+fails("a snapshot that does not carry the contract's hash is malformed", {P: page(note())}, "malformed", s)
+s = copy.deepcopy(CLEAN); del s["contract"]["version"]
+fails("a snapshot that does not carry the contract's version is malformed", {P: page(note())}, "malformed", s)
+s = copy.deepcopy(CLEAN); s["policy"]["unassessed"] = "maybe"
+fails("a policy the gate does not understand is malformed", {P: page(note())}, "malformed", s)
 s = copy.deepcopy(CLEAN); s["places"]["x"] = "narnia"
 fails("a place sent to a region the snapshot lacks is malformed", {P: page(note())}, "malformed", s)
+s = copy.deepcopy(CLEAN); s["places_silent"]["hentzau"] = "edge"
+fails("a place both mapped and silent is malformed", {P: page(note())}, "malformed", s)
+s = copy.deepcopy(CLEAN); s["places_silent"]["x"] = "banana"
+fails("a silence reason the library does not know is malformed", {P: page(note())}, "malformed", s)
+s = copy.deepcopy(CLEAN); s["unchecked_edge"] = ["nowhere"]
+fails("an unchecked place that is not a mapped place is malformed", {P: page(note())}, "malformed", s)
 fails("a snapshot outside git, with --require-tracked", {P: page(note())}, "failure(s): untracked 1", extra=["--require-tracked"])
 
 # the living list needs the real path of the page: rewrite the placeholder

@@ -1,28 +1,32 @@
 #!/usr/bin/env python3
 """The gate behind the "at the time" notes: does every note a BUILT site prints say only what the snapshot supports?
 
-kit/components/EraNote.astro draws `<span class="era-note" data-era="<region>--<from>" data-era-year="<year>">`. This reads the
-built HTML (not the template: a template that is right can still be fed a wrong year) and the era snapshot the archive commits,
-and fails on:
+kit/components/EraNote.astro draws `<span class="era-note" data-era="<region>--era-<from>" data-era-year="<year>">` (the id is the
+Record Atlas contract's own era id) and, for a year that is a boundary, `data-era-boundary="1"`. This reads the built HTML (not the
+template: a template that is right can still be fed a wrong year) and the era snapshot the archive commits, and fails on:
 
-  snapshot   the snapshot itself is malformed: wrong version, no atlas reference, a place sent to a region it does not hold, an
-             era without whole-number years, a regime without a label
+  snapshot   the snapshot itself is malformed: wrong version, no contract version/stamp/hash, a place sent to a region it does not
+             hold, an era without whole-number years (or an open end not marked present), an era whose id or url is not the one
+             its region and start imply, an era without a label, a policy it does not understand
   untracked  (--require-tracked) the snapshot is not committed: a build from a checkout would not have it
   noindex    a note on a page that says noindex (a living, held-out or withheld person's page: rule c)
   living     a note on a page marked data-living, or listed in --living-urls (the archive's own living list)
-  unknown    a note whose (region, from) pair is not an era in the snapshot, or whose data-era is not of that shape
-  ineligible a note on an era the snapshot itself flags approximate or contested, that overlaps another era of its region, or whose
-             regime has no label: the library would never have drawn it (rule b)
-  year       a note whose data-era-year is missing, not a whole number, or not strictly inside the era (a year ON a boundary is
-             outside: rule d)
-  label      a note whose words differ from the snapshot's label for the era's regime, or that has no label, or two
-  source     a note that does not say where it came from ("per the Record Atlas", or "per this archive's own research" for a
-             region the snapshot marks seeded_from_archive: rule f), or whose link is not the Atlas's page for that region (rule e)
+  unknown    a note whose data-era is not an era id the snapshot holds (the contract's id: <region>--era-<from>)
+  ineligible a note on an era the snapshot flags approximate or contested (true), that overlaps another era of its region, whose
+             label is empty, or (unless the snapshot's policy says unassessed = allow) that the Atlas has not assessed (null)
+  year       a note whose data-era-year is missing, not a whole number, or outside the era: from <= year < to (to null: no end)
+  recent     a note on the still-running era for a year at or after the snapshot's recent_from (the quiet rule)
+  boundary   a note that is, or is not, marked data-era-boundary="1" and worded "From that year" when its year is, or is not, the
+             first year of an era that follows another (and a boundary year when the snapshot's policy is not "newer")
+  label      a note whose words differ from the snapshot's label for the era, or that has no label, or two
+  source     a note that does not say where it came from ("per the Record Atlas", or "per this archive's own research" for an era
+             the snapshot marks seeded_from_archive: rule f), or whose link is not the era's own url on the Atlas (rule e)
 
 It prints COUNTS ONLY: never a place, a person, a date or a path. ZERO PAGES EXAMINED IS NOT A PASS, and neither are zero notes
 (--min-notes, default 1): a gate that found nothing because it looked in the wrong place has not found that nothing is wrong. It
 reads the tree twice and throws its results away if the tree changed while it ran (another build in flight). ARCHIVE_OUT beats
---dist, as everywhere in this kit (outdir.py).
+--dist, as everywhere in this kit (outdir.py). With --strict-unassessed it also fails a snapshot whose policy allows eras the Atlas has
+not assessed (every region era was null on contested/approx in contract 1.7.0).
 
     python3 checkera.py --dist dist --snapshot src/data/era-snapshot.json [--living-urls living.json] [--require-tracked]
 Exit: 0 clean; 1 any failure; 2 could not see what it needed (no pages, no snapshot, too few notes, tree changed).
@@ -39,7 +43,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import eralib  # noqa: E402
 import outdir  # noqa: E402
 
-ID = re.compile(r"^([a-z0-9][a-z0-9-]*)--(\d{1,4})$")
+ID = re.compile(r"^([a-z0-9][a-z0-9-]*)--era-(\d{1,4})$")
 VOID = {"area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param", "source", "track", "wbr"}
 
 
@@ -65,10 +69,14 @@ class Page(HTMLParser):
         note = None
         part = None
         if "data-era" in a:
-            note = {"id": a["data-era"], "year": a.get("data-era-year"), "labs": [], "srcs": [], "hrefs": []}
+            note = {"id": a["data-era"], "year": a.get("data-era-year"), "boundary": a.get("data-era-boundary"), "pres": [], "labs": [],
+                    "srcs": [], "hrefs": []}
             self.notes.append(note)
             self.cur = note
         elif self.cur is not None:
+            if "era-pre" in cls:
+                part = "pre"
+                self.cur["pres"].append("")
             if "era-lab" in cls:
                 part = "lab"
                 self.cur["labs"].append("")
@@ -91,6 +99,9 @@ class Page(HTMLParser):
         if self.cur is None:
             return
         for t, note, part in reversed(self.stack):
+            if part == "pre":
+                self.cur["pres"][-1] += data
+                break
             if part == "lab":
                 self.cur["labs"][-1] += data
                 break
@@ -110,17 +121,41 @@ def check_snapshot(snap):
     bad = []
     if not isinstance(snap, dict) or snap.get("version") != eralib.VERSION:
         return ["version"]
-    if not isinstance(snap.get("atlas_commit_or_etag"), str) or not snap["atlas_commit_or_etag"].strip():
-        bad.append("no atlas reference")
+    c = snap.get("contract")
+    if not (isinstance(c, dict) and c.get("name") == "recordatlas-context" and isinstance(c.get("version"), str)
+            and re.fullmatch(r"\d+\.\d+\.\d+", c["version"]) and isinstance(c.get("generated"), str)
+            and re.fullmatch(r"\d{4}-\d{2}-\d{2}", c["generated"]) and isinstance(c.get("sha256"), str)
+            and re.fullmatch(r"[0-9a-f]{64}", c["sha256"])):
+        bad.append("no contract version, stamp and hash")
     if eralib.region_href(snap, "x") is None:
         bad.append("no usable atlas base")
-    if not isinstance(snap.get("regions"), dict) or not isinstance(snap.get("places"), dict) or not isinstance(snap.get("regimes"), dict):
-        return bad + ["regions, places or regimes missing"]
+    pol = snap.get("policy")
+    if not (isinstance(pol, dict) and pol.get("unassessed") in ("refuse", "allow") and pol.get("boundary") in ("newer", "silent")
+            and eralib.is_year(pol.get("recent_from")) and isinstance(pol.get("edge_km"), (int, float))):
+        bad.append("policy missing or not understood")
+    if not isinstance(snap.get("regions"), dict) or not isinstance(snap.get("places"), dict):
+        return bad + ["regions or places missing"]
+    silent = snap.get("places_silent")
+    if not isinstance(silent, dict) or any(v not in eralib.VALID_SILENT for v in silent.values()):
+        bad.append("places_silent missing or has a reason it does not know")
+        silent = {}
+    unchecked = snap.get("unchecked_edge")
+    if not isinstance(unchecked, list):
+        bad.append("unchecked_edge missing")
+        unchecked = []
     for k, r in snap["places"].items():
         if k != eralib.fold(k) or not k:
             bad.append("a place key is not folded")
         if r not in snap["regions"]:
             bad.append("a place goes to a region the snapshot lacks")
+        if k in silent:
+            bad.append("a place is both mapped and silent")
+    for k in unchecked:
+        if k not in snap["places"]:
+            bad.append("an unchecked place is not a mapped place")
+    q = snap.get("quality")
+    if not (isinstance(q, dict) and isinstance(q.get("counts"), dict) and isinstance(q.get("gaps"), list) and isinstance(q.get("overlaps"), list)):
+        bad.append("the contract's quality block is missing")
     for rid, eras in snap["regions"].items():
         if not isinstance(eras, list):
             bad.append("a region's eras are not a list")
@@ -128,8 +163,15 @@ def check_snapshot(snap):
         for e in eras:
             if not eralib.numeric(e):
                 bad.append("an era without whole-number years")
-            elif not isinstance(snap["regimes"].get(e.get("regime")), str) or not snap["regimes"][e["regime"]].strip():
-                bad.append("an era whose regime has no label")
+                continue
+            if e["to"] is None and e.get("present") is not True:
+                bad.append("an open end on an era not marked present")
+            if e.get("id") != eralib.era_id(rid, e["from"]) or eralib.era_href(snap, rid, e) is None:
+                bad.append("an era whose id or url is not the one its region and start imply")
+            if not isinstance(e.get("label"), str) or not e["label"].strip():
+                bad.append("an era without a label")
+            if not isinstance(e.get("basis"), str) or e.get("seeded_from_archive") is not e["basis"].startswith("seeded:"):
+                bad.append("an era whose seeded flag does not follow its basis")
     return bad
 
 
@@ -180,29 +222,41 @@ def judge(note, snap):
     if m:
         region, frm = m.group(1), int(m.group(2))
         for e in (snap["regions"].get(region) or []):
-            if eralib.numeric(e) and e["from"] == frm:
+            if eralib.numeric(e) and e["from"] == frm and e.get("id") == note["id"]:
                 era = e
                 break
     if era is None:
         return ["unknown"]
     eras = snap["regions"][region]
-    lab = (snap["regimes"].get(era.get("regime")) or "")
-    lab = lab.strip() if isinstance(lab, str) else ""
-    flagged = lambda k: k in era and era[k] is not False
-    overlapped = any(o is not era and eralib.numeric(o) and o["from"] < era["to"] and era["from"] < o["to"] for o in eras)
-    if flagged("approx") or flagged("contested") or overlapped or not lab:
+    pol = snap["policy"]
+    lab = era.get("label") if isinstance(era.get("label"), str) else ""
+    lab = lab.strip()
+    overlapped = any(o is not era and eralib.numeric(o) and eralib.meets(era, o) for o in eras)
+    unassessed = eralib.flag(era.get("approx")) == "unassessed" or eralib.flag(era.get("contested")) == "unassessed"
+    if (eralib.flag(era.get("approx")) == "yes" or eralib.flag(era.get("contested")) == "yes" or overlapped or not lab
+            or (unassessed and pol["unassessed"] != "allow")):
         out.append("ineligible")
     y = note["year"]
-    if not (isinstance(y, str) and re.fullmatch(r"\d{1,4}", y)) or not (era["from"] < int(y) < era["to"]):
+    yi = int(y) if isinstance(y, str) and re.fullmatch(r"\d{1,4}", y) else None
+    if yi is None or not eralib.covers(era, yi):
         out.append("year")
+    elif era["to"] is None and yi >= pol["recent_from"]:
+        out.append("recent")
+    is_boundary = yi == era["from"] and eralib._has_predecessor(snap, region, eras, era)
+    if yi is not None:
+        pres = [norm(x) for x in note["pres"]]
+        if (is_boundary != (note.get("boundary") == "1") or note.get("boundary") not in (None, "1")
+                or (is_boundary and pol["boundary"] != "newer")
+                or pres != [norm(eralib.PRE_BOUNDARY if is_boundary else eralib.PRE_NORMAL)]):
+            out.append("boundary")
     labs = [norm(x) for x in note["labs"]]
     if len(labs) != 1 or not labs[0] or labs[0] != lab:
         out.append("label")
     seeded = era.get("seeded_from_archive") is True
     want_words = eralib.SRC_OWN if seeded else eralib.SRC_ATLAS
-    want_href = eralib.region_href(snap, region)
+    want_href = eralib.era_href(snap, region, era)
     srcs = [norm(x) for x in note["srcs"]]
-    if len(srcs) != 1 or srcs[0] != want_words or note["hrefs"] != [want_href]:
+    if len(srcs) != 1 or srcs[0] != want_words or want_href is None or note["hrefs"] != [want_href]:
         out.append("source")
     return out
 
@@ -215,6 +269,8 @@ def main(argv=None):
     ap.add_argument("--require-tracked", action="store_true", help="fail if the snapshot is not committed to git")
     ap.add_argument("--min-pages", type=int, default=1)
     ap.add_argument("--min-notes", type=int, default=1)
+    ap.add_argument("--strict-unassessed", action="store_true",
+                    help="fail a snapshot whose policy keeps eras the Atlas has not assessed (contested/approx null)")
     a = ap.parse_args(argv)
     dist = outdir.resolve(a.dist)
     line = outdir.note(dist)
@@ -250,6 +306,8 @@ def main(argv=None):
         fail("untracked")
     n_pages = n_with = n_notes = 0
     seeded_notes = 0
+    unassessed_notes = 0
+    boundary_notes = 0
     for p in pages:
         n_pages += 1
         try:
@@ -275,13 +333,24 @@ def main(argv=None):
             m = ID.match(note["id"] or "")
             if m:
                 for e in snap["regions"].get(m.group(1)) or []:
-                    if eralib.numeric(e) and e["from"] == int(m.group(2)) and e.get("seeded_from_archive") is True:
-                        seeded_notes += 1
+                    if eralib.numeric(e) and e["from"] == int(m.group(2)) and e.get("id") == note["id"]:
+                        if e.get("seeded_from_archive") is True:
+                            seeded_notes += 1
+                        if eralib.flag(e.get("approx")) == "unassessed" or eralib.flag(e.get("contested")) == "unassessed":
+                            unassessed_notes += 1
+                        if note.get("boundary") == "1":
+                            boundary_notes += 1
     if outdir.fingerprint(dist) != before:
         print("  --    era       THE BUILD CHANGED WHILE THIS RAN (another build in flight). Results would be noise, so nothing is reported.")
         return 2
-    print("  ..    era       %d page(s) read, %d with a note, %d note(s) (%d on a seeded region); snapshot: %d region(s), %d place(s), "
-          "built %s" % (n_pages, n_with, n_notes, seeded_notes, len(snap["regions"]), len(snap["places"]), snap.get("built", "?")))
+    print("  ..    era       %d page(s) read, %d with a note, %d note(s) (%d on a seeded region, %d on an era the Atlas has not assessed, "
+          "%d on a boundary year); snapshot: contract %s of %s, %d region(s), %d place(s) (%d not edge-checked), built %s; policy: "
+          "unassessed %s, boundary %s, recent from %s" % (n_pages, n_with, n_notes, seeded_notes, unassessed_notes, boundary_notes,
+                                                        snap["contract"]["version"], snap["contract"]["generated"], len(snap["regions"]),
+                                                        len(snap["places"]), len(snap["unchecked_edge"]), snap.get("built", "?"),
+                                                        snap["policy"]["unassessed"], snap["policy"]["boundary"], snap["policy"]["recent_from"]))
+    if a.strict_unassessed and snap["policy"]["unassessed"] == "allow":
+        fail("unassessed-policy")
     if n_notes < a.min_notes:
         print("  --    era       FOUND %d NOTE(S), fewer than --min-notes %d. A gate that saw nothing has not seen that nothing is wrong." %
               (n_notes, a.min_notes))
@@ -289,7 +358,7 @@ def main(argv=None):
     if fails:
         print("  FAIL  era       %d failure(s): %s" % (sum(fails.values()), ", ".join("%s %d" % kv for kv in sorted(fails.items()))))
         return 1
-    print("  ok    era       every note names an era the snapshot holds, the year lies inside it, and no note is on a living or noindex page")
+    print("  ok    era       every note names a contract era the snapshot holds, the year lies inside it (from <= year < to), and no note is on a living or noindex page")
     return 0
 
 
