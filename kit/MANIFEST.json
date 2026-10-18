@@ -97,7 +97,7 @@
   "styles/search.css": "5a2ed959536304133805e69dd80044e3d7897c9c770b140b3be0916fd2d8a7de",
   "tools/atlasdata.py": "b051f52c9bb435f4299c8edfe9c65ad72976b41292527fb564eee4ad8fb34ba2",
   "tools/book_logic.mjs": "305d331dd2fc53a75ecb57c34767d17f1d8259a8df9d07759e18f478d4f6e92e",
-  "tools/checkarchive.py": "5a879c88e0ffa5883c9fb6876c330496ddb958f05ba6ef506fc6ef950c416b9c",
+  "tools/checkarchive.py": "0b7053c77d6e5c0c66f9681d6c00b0ea4d64bbbc5ddc3fac424d39a20eb6436d",
   "tools/checkbook.py": "787dd18cdc81c14c1de1fbf6166c53f5c183374656e310e692d024aaffaf4afb",
   "tools/checkbook_selftest.py": "abc4237dc183e5ea93b31e0368bf47725ec4c5d1f9da1498b378538df23a5f30",
   "tools/checkcovers.py": "f7426cd7b0cce143169d3331390684a1a8a0940f440924d575b458b1b8427cc0",

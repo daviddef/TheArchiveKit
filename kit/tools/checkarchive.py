@@ -345,11 +345,29 @@ def main():
     # placeholder — the real one arrives over fetch. So it passed on all seven
     # while every one of them shipped "—times read". Check the MARKUP instead:
     # two adjacent spans with no whitespace and no CSS gap between them.
+    # Astro inlines a stylesheet only under 4 kB; a larger one is written to a file and linked. The gap rule can be in
+    # either place, so read the page's linked stylesheets too (found 18 Oct 2026: the book's head pushed one archive's
+    # shared stylesheet over the limit and this check "lost" a gap that was still drawn).
+    css_cache = {}
+    def linked_css(src):
+        out = []
+        for h in re.findall(r'<link[^>]+rel=["\']?stylesheet["\']?[^>]*>', src, re.I):
+            m = re.search(r'href=["\']?([^"\'\s>]+)', h)
+            if not m or re.match(r"^(?:[a-z]+:)?//", m.group(1), re.I):
+                continue
+            href = m.group(1).split("?")[0]
+            if a.base and href.startswith(a.base):
+                href = href[len(a.base):]
+            f = os.path.join(a.dist, href.lstrip("/"))
+            if f not in css_cache:
+                css_cache[f] = open(f, encoding="utf-8", errors="replace").read() if os.path.isfile(f) else ""
+            out.append(css_cache[f])
+        return "\n".join(out)
     for url, src in pages.items():
         for m in re.finditer(r'<span[^>]*\bvc-n\b[^>]*>.*?</span>(\s*)<span[^>]*\bvc-l\b', src):
             if m.group(1) == "":
                 has_gap = re.search(r'\.vc-l[^{,]*\{[^}]*(?:margin-left|padding-left|gap)\s*:',
-                                    src) is not None
+                                    src + "\n" + linked_css(src)) is not None
                 if not has_gap:
                     F("counter", url,
                       "the count and its label are adjacent spans with no whitespace and no CSS "
