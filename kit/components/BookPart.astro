@@ -15,7 +15,7 @@ const hasSlot = Astro.slots.has("default");
   {hasSlot && <div class="bk-fig"><slot /></div>}
   {first && <p><a class="bk-start" href={u(norm(first.path))}>Start reading: {first.title} →</a></p>}
   <ol class="bk-list">
-    {(part.chapters || []).map((c, i) => <li><span class="n">{i + 1}</span><span class="t"><a href={u(norm(c.path))}>{c.title}</a>{c.blurb && <em>{c.blurb}</em>}</span></li>)}
+    {(part.chapters || []).map((c, i) => <li><span class="n">{part.numeral}.{i + 1}</span><span class="t"><a href={u(norm(c.path))}>{c.title}</a>{c.blurb && <em>{c.blurb}</em>}</span></li>)}
   </ol>
   <p class="bk-all"><a href={u("/contents/")}>The whole book: Contents</a></p>
 </section>
@@ -26,8 +26,8 @@ const hasSlot = Astro.slots.has("default");
   .bk-fig { margin: 18px 0 22px; }
   .bk-start { display: inline-block; font: 600 14px/1 var(--sans, system-ui, sans-serif); color: var(--accent, #9a4b2b); text-decoration: none; border: 1px solid var(--accent, #9a4b2b); border-radius: 999px; padding: 10px 16px; }
   .bk-list { list-style: none; margin: 22px 0 0; padding: 0; display: grid; gap: 0; max-width: 62rem; }
-  .bk-list li { display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 10px; padding: 10px 0; border-top: 1px solid var(--rule, #ddd); }
-  .bk-list .n { font: 500 22px/1 var(--serif, Georgia, serif); color: var(--ink-3, #777); }
+  .bk-list li { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 10px; padding: 10px 0; border-top: 1px solid var(--rule, #ddd); }
+  .bk-list .n { font: 600 14px/1.5 var(--mono, ui-monospace, monospace); letter-spacing: .04em; color: var(--ink-3, #777); }
   .bk-list a { font: 500 18px/1.3 var(--serif, Georgia, serif); color: var(--ink, #222); text-decoration: none; }
   .bk-list a:hover { color: var(--accent, #9a4b2b); }
   .bk-list em { display: block; font: 400 14px/1.5 var(--sans, system-ui, sans-serif); color: var(--ink-2, #555); font-style: normal; }

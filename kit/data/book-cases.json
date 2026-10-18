@@ -69,7 +69,8 @@
     "prev": null,
     "next": "/about/",
     "part": null,
-    "inherited": false
+    "inherited": false,
+    "ref": "F.1"
    }
   },
   {
@@ -80,7 +81,8 @@
     "n": 2,
     "prev": "/",
     "next": "/part/one/",
-    "inherited": false
+    "inherited": false,
+    "ref": "F.2"
    }
   },
   {
@@ -91,7 +93,8 @@
     "n": 3,
     "prev": "/about/",
     "next": "/a/",
-    "part": "one"
+    "part": "one",
+    "ref": "I"
    }
   },
   {
@@ -102,7 +105,8 @@
     "n": 4,
     "prev": "/part/one/",
     "next": "/b/",
-    "part": "one"
+    "part": "one",
+    "ref": "I.1"
    }
   },
   {
@@ -113,7 +117,8 @@
     "n": 5,
     "prev": "/a/",
     "next": "/part/two/",
-    "part": "one"
+    "part": "one",
+    "ref": "I.2"
    }
   },
   {
@@ -124,7 +129,8 @@
     "n": 6,
     "prev": "/b/",
     "next": "/c/",
-    "part": "two"
+    "part": "two",
+    "ref": "II"
    }
   },
   {
@@ -135,7 +141,8 @@
     "n": 8,
     "prev": "/c/",
     "next": null,
-    "part": "two"
+    "part": "two",
+    "ref": "II.2"
    }
   },
   {
@@ -148,7 +155,8 @@
     "next": null,
     "part": "two",
     "inherited": true,
-    "via": "/people/"
+    "via": "/people/",
+    "ref": "II.2"
    }
   },
   {
@@ -161,7 +169,8 @@
     "next": null,
     "part": "two",
     "inherited": true,
-    "via": "/who/"
+    "via": "/who/",
+    "ref": "II.1"
    }
   },
   {

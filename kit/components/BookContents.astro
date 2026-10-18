@@ -5,12 +5,13 @@ import { PART_HUES, openerPath, norm } from "../lib/book.js";
 const { book, u = (p) => p } = Astro.props;
 const parts = book.parts || [];
 const hue = (i) => (parts[i] && parts[i].hue) || PART_HUES[i % PART_HUES.length];
-const groups = (chapters) => {
-  const out = []; let cur = null;
+const refOf = (pi, k) => `${(parts[pi] && (parts[pi].numeral || String(pi + 1))) || ''}.${k + 1}`;
+const groups = (chapters, pi) => {
+  const out = []; let cur = null; let k = 0;
   for (const c of chapters || []) {
     const g = c.group || "";
     if (!cur || cur.g !== g) { cur = { g, items: [] }; out.push(cur); }
-    cur.items.push(c);
+    cur.items.push({ ...c, ref: refOf(pi, k++) });
   }
   return out;
 };
@@ -21,7 +22,7 @@ const groups = (chapters) => {
       <div class="bk-band"><span class="bk-v">Front</span></div>
       <div class="bk-body"><h2>{book.front.label || "Front matter"}</h2>
         {book.front.intro && <p class="bk-intro">{book.front.intro}</p>}
-        <ol class="bk-ch">{(book.front.chapters || []).map((c) => <li><a href={u(norm(c.path))}>{c.title}</a>{c.blurb && <span>{c.blurb}</span>}</li>)}</ol></div>
+        <ol class="bk-ch">{(book.front.chapters || []).map((c, k) => <li><a href={u(norm(c.path))}><b class="bk-r">F.{k + 1}</b> {c.title}</a>{c.blurb && <span>{c.blurb}</span>}</li>)}</ol></div>
     </section>
   )}
   {parts.map((part, i) => (
@@ -30,10 +31,10 @@ const groups = (chapters) => {
       <div class="bk-body">
         <h2><a href={u(openerPath(part))}>{part.numeral}. {part.title}</a>{part.flags && <span class="bk-flags"> {part.flags}</span>}</h2>
         {part.intro && <p class="bk-intro">{part.intro}</p>}
-        {groups(part.chapters).map((g) => (
+        {groups(part.chapters, i).map((g) => (
           <>
             {g.g && <h3>{g.g}</h3>}
-            <ol class="bk-ch">{g.items.map((c) => <li><a href={u(norm(c.path))}>{c.title}</a>{c.blurb && <span>{c.blurb}</span>}</li>)}</ol>
+            <ol class="bk-ch">{g.items.map((c) => <li><a href={u(norm(c.path))}><b class="bk-r">{c.ref}</b> {c.title}</a>{c.blurb && <span>{c.blurb}</span>}</li>)}</ol>
           </>
         ))}
       </div>
@@ -53,6 +54,7 @@ const groups = (chapters) => {
   .bk-intro { margin: .2rem 0 .8rem; max-width: 78ch; font: 15px/1.5 var(--sans, system-ui, sans-serif); color: var(--ink-2, #555); }
   .bk-ch { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(250px, 100%), 1fr)); gap: 2px 22px; }
   .bk-ch li { min-width: 0; overflow-wrap: break-word; padding: 4px 0; border-bottom: 1px dotted var(--rule, #ddd); font: 500 15px/1.4 var(--sans, system-ui, sans-serif); }
+  .bk-r { font: 700 12px/1 var(--mono, ui-monospace, monospace); letter-spacing: .04em; color: var(--ink-3, #777); margin-right: 4px; }
   .bk-ch li a { color: var(--ink, #222); text-decoration: none; }
   .bk-ch li a:hover { color: var(--accent, #9a4b2b); text-decoration: underline; }
   .bk-ch li span { display: block; font-size: 12.5px; color: var(--ink-3, #777); font-weight: 400; }

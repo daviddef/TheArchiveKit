@@ -18,6 +18,10 @@
  * Previous / Next follow that order across the whole site. A page that is not in `chapters`, `inherit` or
  * `outside` fails the build (kit/tools/checkbook.py).
  *
+ * Every page has a REFERENCE: front matter F.1, F.2 ...; a part opener is its numeral (I, II ...); a chapter is its part's
+ * numeral and its place in that part (I.1, I.2 ... II.1 ...). Groups (sub-headings) do not take numbers. The reference is
+ * what the running head, the foot and the Contents print, so a chapter can be cited by it.
+ *
  * Pure functions: no imports, so the Python checker and this file are held to the same cases
  * (kit/data/book-cases.json) and cannot drift apart.
  */
@@ -36,14 +40,15 @@ export const openerPath = (part) => `/part/${part.id}/`;
 /* The linear order: [{ path, title, blurb, kind: "front"|"opener"|"chapter", part: index|null, group }] */
 export function flatten(book) {
   const out = [];
-  for (const c of (book.front && book.front.chapters) || []) {
-    out.push({ path: norm(c.path), title: c.title, blurb: c.blurb || "", kind: "front", part: null, group: c.group || "" });
-  }
+  ((book.front && book.front.chapters) || []).forEach((c, k) => {
+    out.push({ path: norm(c.path), title: c.title, blurb: c.blurb || "", kind: "front", part: null, group: c.group || "", ref: `F.${k + 1}` });
+  });
   (book.parts || []).forEach((part, i) => {
-    out.push({ path: openerPath(part), title: part.title, blurb: part.intro || "", kind: "opener", part: i, group: "" });
-    for (const c of part.chapters || []) {
-      out.push({ path: norm(c.path), title: c.title, blurb: c.blurb || "", kind: "chapter", part: i, group: c.group || "" });
-    }
+    const num = part.numeral || String(i + 1);
+    out.push({ path: openerPath(part), title: part.title, blurb: part.intro || "", kind: "opener", part: i, group: "", ref: num });
+    (part.chapters || []).forEach((c, k) => {
+      out.push({ path: norm(c.path), title: c.title, blurb: c.blurb || "", kind: "chapter", part: i, group: c.group || "", ref: `${num}.${k + 1}` });
+    });
   });
   return out;
 }

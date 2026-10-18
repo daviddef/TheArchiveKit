@@ -17,6 +17,7 @@ const summarise = (r, want) => {
     else if (k === "part") o.part = r.part ? r.part.id : null;
     else if (k === "inherited") o.inherited = r.inherited;
     else if (k === "via") o.via = r.via;
+    else if (k === "ref") o.ref = r.entry.ref;
   }
   return o;
 };
@@ -26,12 +27,13 @@ for (const [c, got] of runAll(B)) eq(c.id, got, c.want);
 // planted faults: a copy of book.js with one rule broken must fail the shared cases
 const src = fs.readFileSync(path.join(here, "..", "lib", "book.js"), "utf8");
 const faults = [
-  ["Previous/Next ignore the opener", "out.push({ path: openerPath(part), title: part.title, blurb: part.intro || \"\", kind: \"opener\", part: i, group: \"\" });", "", "opener-follows-front"],
+  ["Previous/Next ignore the opener", "out.push({ path: openerPath(part), title: part.title, blurb: part.intro || \"\", kind: \"opener\", part: i, group: \"\", ref: num });", "", "opener-follows-front"],
   ["a path is not normalised", "if (!s.endsWith(\"/\") && !/\\.[a-z0-9]+$/i.test(s)) s += \"/\";", "", "data-without-slash-is-normalised"],
   ["inheritance matches the index itself", "if (p.startsWith(pre) && p !== pre) {", "if (p.startsWith(pre)) {", "an-index-itself-is-not-inherited"],
   ["an outside page is not outside", "if ((book.outside || []).map(norm).includes(p)) return { outside: true };", "", "outside-page"],
   ["outside is read after inherit", "  if ((book.outside || []).map(norm).includes(p)) return { outside: true };\n", "", "outside-beats-inherit",
     ["  return null;\n}\n\n/* Every page", "  if ((book.outside || []).map(norm).includes(p)) return { outside: true };\n  return null;\n}\n\n/* Every page"]],
+  ["a chapter's reference ignores its part", "ref: `${num}.${k + 1}` });\n    });", "ref: `${k + 1}` });\n    });", "a-chapter-links-both-ways"],
   ["an inherited page gets a next link", "prev: null, next: null, part: partOf(e), inherited: true", "prev: null, next: entries[j + 1] || null, part: partOf(e), inherited: true", "who-page-inherits-another-chapter"],
 ];
 const os = await import("os"), pu = await import("url");

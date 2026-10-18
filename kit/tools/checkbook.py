@@ -7,7 +7,7 @@ WHAT IT REFUSES (kit/lib/book.js holds the rules; this file reads the BUILT page
   unplaced   a built page that is not a chapter, not covered by `inherit`, and not listed in `outside`
   dead       a chapter (or a part opener) in book.json that has no built page
   twice      the same path in book.json more than once, or two parts with one id, or a part with no chapters
-  head       a built page without the running head, or whose head names a different part, position, Previous or Next than the book
+  head       a built page without the running head, or whose head names a different part, position, reference, Previous or Next than the book
   foot       a built page whose Previous / Next differ from the book's order (an inherited page must link back instead)
   stub       a redirect stub (a tiny page that only sends the reader on) whose target is not built; stubs are otherwise set aside
   empty      nothing built, or a book with fewer than two parts: a check that examined nothing has not passed
@@ -39,12 +39,13 @@ def opener_path(part):
 
 def flatten(book):
     out = []
-    for c in (book.get("front") or {}).get("chapters", []) or []:
-        out.append({"path": norm(c["path"]), "title": c.get("title", ""), "kind": "front", "part": None})
+    for k, c in enumerate((book.get("front") or {}).get("chapters", []) or []):
+        out.append({"path": norm(c["path"]), "title": c.get("title", ""), "kind": "front", "part": None, "ref": "F.%d" % (k + 1)})
     for i, part in enumerate(book.get("parts") or []):
-        out.append({"path": opener_path(part), "title": part.get("title", ""), "kind": "opener", "part": i})
-        for c in part.get("chapters") or []:
-            out.append({"path": norm(c["path"]), "title": c.get("title", ""), "kind": "chapter", "part": i})
+        num = part.get("numeral") or str(i + 1)
+        out.append({"path": opener_path(part), "title": part.get("title", ""), "kind": "opener", "part": i, "ref": num})
+        for k, c in enumerate(part.get("chapters") or []):
+            out.append({"path": norm(c["path"]), "title": c.get("title", ""), "kind": "chapter", "part": i, "ref": "%s.%d" % (num, k + 1)})
     return out
 
 
@@ -173,6 +174,8 @@ def check(book, dist):
             fails.append("head: %s says part '%s', the book says '%s'" % (url, part, want_part))
         if attr(html, "n") != str(loc["n"]):
             fails.append("head: %s says position %s, the book says %d" % (url, attr(html, "n"), loc["n"]))
+        if attr(html, "ref") != loc["entry"]["ref"]:
+            fails.append("head: %s says reference %s, the book says %s" % (url, attr(html, "ref"), loc["entry"]["ref"]))
         wp = loc["prev"]["path"] if loc["prev"] else None
         wn = loc["next"]["path"] if loc["next"] else None
         if attr(html, "hprev") != wp:

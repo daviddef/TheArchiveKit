@@ -15,7 +15,7 @@ def page(url, loc, drop=None):
     """A built page as the kit components emit it for `url`."""
     if loc is None or loc.get("outside"):
         return "<html><body>%s</body></html>" % url
-    h = 'data-book-part="%s" data-book-n="%d" data-book-total="%d"' % (loc["part"]["id"] if loc["part"] else "front", loc["n"], loc["total"])
+    h = 'data-book-part="%s" data-book-n="%d" data-book-total="%d" data-book-ref="%s"' % (loc["part"]["id"] if loc["part"] else "front", loc["n"], loc["total"], loc["entry"]["ref"])
     if loc["inherited"]:
         h += ' data-book-inherited="%s"' % loc["entry"]["path"]
     f = ""
@@ -57,6 +57,7 @@ for c in FIX["cases"]:
                   and ("prev" not in w or (r["prev"]["path"] if r["prev"] else None) == w["prev"])
                   and ("next" not in w or (r["next"]["path"] if r["next"] else None) == w["next"])
                   and ("part" not in w or (r["part"]["id"] if r["part"] else None) == w["part"])
+                  and ("ref" not in w or r["entry"]["ref"] == w["ref"])
                   and ("inherited" not in w or r["inherited"] == w["inherited"]) and ("via" not in w or r.get("via") == w["via"]))
     if not ok: bad.append(c["id"])
 case("the Python placement agrees with the %d shared cases" % len(FIX["cases"]), not bad, bad)
@@ -81,6 +82,7 @@ f, s = with_stubs({"/old/": "https://elsewhere.example/x/"}); case("a stub that 
 f, s = run(urls=URLS + ["/people/private/"]); case("a page listed as outside stays outside under an inherited prefix", not f and s["outside"] == 3, f)
 f, s = run(mutate={"/a/": lambda h: h.replace('data-book-hnext="/b/"', 'data-book-hnext="/c/"')}); case("a running head whose Next differs from the book fails", any("running head" in x and "/a/" in x for x in f), f)
 f, s = run(mutate={"/a/": lambda h: h.replace(' data-book-hprev="/part/one/"', "")}); case("a running head with no Previous fails", any("running head" in x and "Previous" in x for x in f), f)
+f, s = run(mutate={"/a/": lambda h: h.replace('data-book-ref="I.1"', 'data-book-ref="I.9"')}); case("a head with the wrong reference fails", any("reference" in x and "/a/" in x for x in f), f)
 print("planted faults")
 f, s = run(urls=URLS + ["/orphan/"]); case("a built page nobody placed fails", any("unplaced" in x and "/orphan/" in x for x in f), f)
 f, s = run(urls=[u for u in URLS if u != "/b/"]); case("a chapter with no built page fails", any("dead: /b/" in x for x in f), f)
