@@ -1,0 +1,11 @@
+{
+  "people": [
+    {"name": "Orsolo Venti", "aliases": ["Venti Orsolo"], "url": "/people/orsolo-venti/"},
+    {"name": "Marta Arena", "aliases": ["Arena Marta"], "url": "/people/marta-arena/"},
+    {"name": "Elio Marn", "url": "/people/elio-marn/"},
+    {"name": "Tamsin Brightwell", "url": "/who/tamsin-brightwell/"}
+  ],
+  "ambiguous": [
+    {"name": "Pavel Korda", "url": "/people/?q=Pavel%20Korda"}
+  ]
+}

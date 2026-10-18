@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "scope": "main",
+  "include": ["/story/", "/notes/"],
+  "names": {
+    "entry_prefixes": ["/people/", "/who/"],
+    "read_blocks": [".rec"],
+    "allow": [
+      {"phrase": "Marta Dorin", "reason": "a notary named only in a deed; no page is planned for her"}
+    ]
+  },
+  "citations": {
+    "blocks": ["p", "li", "dd", "blockquote"],
+    "patterns": [
+      {"id": "act", "flags": "i", "regex": "\\bact\\s+(?P<n>\\d+)\\s+of\\s+(?P<y>\\d{4})", "key": "{y}-{n}"},
+      {"id": "film", "flags": "i", "regex": "\\bfilm\\s+\\d+"},
+      {"id": "manifest", "flags": "i", "regex": "\\bmanifest\\b(?: of the (?P<ship>[A-Za-z]+))?", "key": "ship-{ship}"}
+    ],
+    "record_links": {
+      "prefixes": ["/sources/", "/documents/", "/searched/"],
+      "hosts": ["archive.example.test", "vault.example.test"],
+      "fragments": ["#plate-"]
+    },
+    "next_block_max_chars": 160
+  },
+  "scans": {
+    "image_patterns": [
+      {"regex": "/plates/(?P<y>\\d{4})-act(?P<n>\\d+)", "key": "{y}-{n}"},
+      {"regex": "/plates/ship-(?P<ship>[a-z]+)", "key": "ship-{ship}"}
+    ],
+    "link_only": ["manifest"]
+  }
+}
