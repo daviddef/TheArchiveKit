@@ -34,7 +34,7 @@ const label = show
           : <span class="bk-pos"> · chapter {loc.n} of {loc.total}</span>}
       </span>
       <span class="bk-nav">
-        {loc.prev && <a class="bk-pn bk-prev" rel="prev" href={u(loc.prev.path)} title={`Previous: ${loc.prev.title}`} aria-label={`Previous: ${loc.prev.title}`}>← <span class="bk-w">Previous</span></a>}
+        {loc.prev && <a class="bk-pn bk-prev" rel="prev" href={u(loc.prev.path)} title={`Previous: ${loc.prev.title}`} aria-label={`Previous: ${loc.prev.title}`}>← Prev</a>}
         {loc.next && <a class="bk-pn bk-next" rel="next" href={u(loc.next.path)} title={`Next: ${loc.next.title}`} aria-label={`Next: ${loc.next.title}`}>Next<span class="bk-t">: {loc.next.title}</span> →</a>}
         <a class="bk-toc" href={u(contents)}>Contents</a>
       </span>
@@ -53,8 +53,7 @@ const label = show
   .bk-pn { color: var(--ink, #222); text-decoration: none; white-space: nowrap; }
   .bk-pn:hover { color: var(--accent, #9a4b2b); }
   .bk-t { display: none; }
-  .bk-w { display: none; }
-  @media (min-width: 900px) { .bk-t { display: inline-block; max-width: 28ch; overflow: hidden; text-overflow: ellipsis; vertical-align: bottom; } .bk-w { display: inline; } }
+  @media (min-width: 900px) { .bk-t { display: inline-block; max-width: 28ch; overflow: hidden; text-overflow: ellipsis; vertical-align: bottom; } }
   .bk-where a, .bk-toc { color: var(--ink-2, #555); text-decoration: none; }
   .bk-where a:hover, .bk-toc:hover { color: var(--accent, #9a4b2b); }
   .bk-where > a:first-child { color: var(--ink, #222); }

@@ -81,6 +81,10 @@ import { plain } from "../lib/md.js";
    that was hardcoded so no adopting archive changes. */
 const { rivers, caption, title } = Astro.props;
 const LANES = rivers?.lanes ?? [];
+/* TWO FIGURES ON ONE PAGE MUST NOT SHARE AN ID. riversttl and riverread were fixed strings, so a page with two drawings
+   pointed both SVGs at the first title and let the first figure's panel answer the second's clicks (found by Luwinski's
+   18 Oct 2026 corrections). The id is derived from the lanes, so it is distinct per drawing and the same on every build. */
+const uid = (() => { let h = 0; for (const c of LANES.map((l) => l.key + "|" + l.label).join("~")) h = (h * 31 + c.charCodeAt(0)) >>> 0; return h.toString(36); })();
 const UNPLACED = rivers?.unplaced ?? [];
 const LOOSE = rivers?.loose ?? [];
 const BRIDGES = rivers?.bridges ?? [];
@@ -191,8 +195,8 @@ const BR = BRIDGES.map((b) => ({ ...b, a: anchor(b.from), b: anchor(b.to) }))
 const BR_LOST = BRIDGES.length - BR.length;
 ---
 <figure class="rivers">
-  <svg viewBox={`0 0 1040 ${VH}`} role="img" aria-labelledby="riversttl">
-    <title id="riversttl">{title ?? `The lines of this name: ${LANES.length} ${LANES.length === 1 ? "lane" : "lanes"}, and the road each of them took`}</title>
+  <svg viewBox={`0 0 1040 ${VH}`} role="img" aria-labelledby={`rt-${uid}`}>
+    <title id={`rt-${uid}`}>{title ?? `The lines of this name: ${LANES.length} ${LANES.length === 1 ? "lane" : "lanes"}, and the road each of them took`}</title>
     {LANES.map((lane, li) => {
       const b = BANDS[li];
       const n = lane.nodes.length;
@@ -329,7 +333,7 @@ const BR_LOST = BRIDGES.length - BR.length;
     {HAS_L && <section class="rl-pen"><h3>{HEAD_L}</h3>
       <ul>{LOOSE.map((l) => <li><a href={u(l[1])}>{l[0]}</a></li>)}</ul>{LOOSE_NOTE && <p class="rl-note">{LOOSE_NOTE}</p>}</section>}
   </div>
-  <div class="riverread" id="riverread" aria-live="polite">
+  <div class="riverread" id={`rr-${uid}`} aria-live="polite">
     <b>Click or tab any dot</b> — the stops tell you what the document behind them says, and the destinations on the right tell their own story and link to it. Click a second time to go there.
   </div>
   {caption && <figcaption set:html={caption} />}
@@ -342,7 +346,10 @@ const BR_LOST = BRIDGES.length - BR.length;
 
 <script is:inline>
   (function () {
-    var host = document.getElementById("riverread");
+    /* scoped to ITS OWN figure: the script sits right after it, so two drawings on a page do not share a panel */
+    var fig = document.currentScript && document.currentScript.previousElementSibling;
+    if (!fig) return;
+    var host = fig.querySelector(".riverread");
     if (!host) return;
     var rest = host.innerHTML;
     function show(g) {
@@ -357,10 +364,10 @@ const BR_LOST = BRIDGES.length - BR.length;
       host.querySelector(".rr-year").textContent = year && year !== "\u2014" ? year : "";
       host.querySelector(".rr-why").textContent = why;
       if (href) host.querySelector(".rr-go").textContent = (read || "Read on") + " \u2192";
-      document.querySelectorAll(".rivers .node").forEach(function (n) { n.classList.remove("sel"); });
+      fig.querySelectorAll(".node").forEach(function (n) { n.classList.remove("sel"); });
       g.classList.add("sel");
     }
-    document.querySelectorAll(".rivers .node").forEach(function (g) {
+    fig.querySelectorAll(".node").forEach(function (g) {
       g.addEventListener("click", function () {
         var was = g.classList.contains("sel"), href = g.getAttribute("data-href");
         show(g);
