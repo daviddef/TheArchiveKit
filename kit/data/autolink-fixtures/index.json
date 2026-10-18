@@ -1,0 +1,17 @@
+{
+  "people": [
+    {"name": "Orsolo Venti", "aliases": ["Venti Orsolo"], "url": "/people/orsolo-venti/"},
+    {"name": "Marta Arena", "url": "/people/marta-arena/"},
+    {"name": "Hannah Saniger", "url": "/people/hannah-saniger/"},
+    {"name": "Elio Marn", "url": "/people/elio-marn/"},
+    {"name": "Elio Marn Costa", "url": "/people/elio-marn-costa/"},
+    {"name": "Nino D'Orsa", "url": "/people/nino-dorsa/"},
+    {"name": "Zoë Quill", "url": "/people/zoe-quill/"},
+    {"name": "Tamsin Brightwell", "aliases": ["Tam Brightwell"], "url": "/people/tamsin-brightwell/"},
+    {"name": "Wilhelm Ostrander", "url": "/who/wilhelm-ostrander/"}
+  ],
+  "ambiguous": [
+    {"name": "Pavel Korda", "url": "/people/?q=Pavel%20Korda"},
+    {"name": "Kit Mallow", "url": "/people/?q=Kit%20Mallow&kind=dead"}
+  ]
+}
