@@ -1,0 +1,34 @@
+---
+/* A quiet "at the time" note beside a dated place-event: who held that ground in that year, from the Record Atlas's region eras.
+ *
+ *   import { eraAt, plainYear } from "@daviddef/archive-kit/lib/era.js";
+ *   import EraNote from "@daviddef/archive-kit/components/EraNote.astro";
+ *   import snapshot from "../data/era-snapshot.json";
+ *
+ *   <div class="v">{e.place}<EraNote era={eraAt(snapshot, e.place, plainYear(e.date, e.year))} /></div>
+ *
+ * It draws a small muted line, "· At the time: Naples / the Two Sicilies per the Record Atlas", where the library finds an era the
+ * snapshot supports for that place and that year, and NOTHING AT ALL otherwise (era is null). It is context about the ground, never
+ * a claim about the family: it says where it came from, and the source words are a link to the Atlas's page for the region.
+ *
+ * THE PAGE'S RULE, not this component's: never call eraAt for a living, held-out or noindex person. This component cannot know
+ * who is living; checkera.py fails the build if a note is found on such a page. The text is the label (no flag image, nothing
+ * colour-only), so a screen reader reads it as it reads any line. kit/lib/era.js has the rules and kit/docs/era-notes.md the why.
+ */
+import { SRC_ATLAS } from "../lib/era.js";
+const { era = null } = Astro.props;
+const note = era && era.id && era.label ? era : null;
+---
+{note ? (
+  <span class="era-note" data-era={note.id} data-era-year={note.year}><span class="era-pre">· At the time: </span><span class="era-lab">{note.label}</span>{" "}{note.href
+    ? <a class="era-src" href={note.href} rel="noopener">{note.source || SRC_ATLAS}</a>
+    : <span class="era-src">{note.source || SRC_ATLAS}</span>}</span>
+) : null}
+<style is:global>
+  .era-note { display: block; margin: .1rem 0 0; font-family: var(--sans, system-ui, sans-serif); font-size: .82rem; line-height: 1.35;
+    font-weight: 400; font-style: normal; letter-spacing: normal; text-transform: none; color: var(--ink-2, #444); }
+  .era-note .era-src { white-space: nowrap; }
+  .era-note a.era-src { color: inherit; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: .15em; }
+  .era-note a.era-src:hover, .era-note a.era-src:focus-visible { color: var(--accent, var(--ink, #000)); }
+  @media print { .era-note a.era-src { text-decoration: none; } }
+</style>

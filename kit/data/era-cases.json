@@ -1,0 +1,703 @@
+{
+  "about": "Invented snapshot and cases for kit/lib/era.js (run by kit/tools/era_logic.mjs) AND kit/tools/eralib.py (run by kit/tools/era_selftest.py): the two halves must give the same answers. Ruritania is a country in a novel; nothing here is a real region, person or record. `want` is the era eraAt returns (checked field by field) or null; `why` is what whyNot says. `gate_snapshot` is a clean snapshot for the gate's tests (checkera.py refuses a malformed one); `snapshot` is deliberately full of faults for the library's.",
+  "snapshot": {
+    "version": 1,
+    "built": "2026-01-01",
+    "atlas": {
+      "base": "https://atlas.example.test",
+      "commit": "0000000",
+      "file_sha256": "0"
+    },
+    "regimes": {
+      "kingdom": "Kingdom of Ruritania",
+      "republic": "Republic of Ruritania",
+      "occupied": "Occupied Ruritania",
+      "blank": "  "
+    },
+    "regions": {
+      "ruritania": [
+        {
+          "from": 1700,
+          "to": 1800,
+          "regime": "kingdom",
+          "approx": false,
+          "contested": false,
+          "seeded_from_archive": false,
+          "sources": [
+            "regions.json"
+          ]
+        },
+        {
+          "from": 1800,
+          "to": 1850,
+          "regime": "occupied",
+          "approx": true,
+          "contested": false,
+          "seeded_from_archive": false,
+          "sources": [
+            "regions.json"
+          ]
+        },
+        {
+          "from": 1850,
+          "to": 1900,
+          "regime": "republic",
+          "approx": false,
+          "contested": false,
+          "seeded_from_archive": false,
+          "sources": [
+            "regions.json"
+          ]
+        },
+        {
+          "from": 1900,
+          "to": 1950,
+          "regime": "blank",
+          "approx": false,
+          "contested": false,
+          "seeded_from_archive": false,
+          "sources": [
+            "regions.json"
+          ]
+        },
+        {
+          "from": 1950,
+          "to": 2000,
+          "regime": "ghost",
+          "approx": false,
+          "contested": false,
+          "seeded_from_archive": false,
+          "sources": [
+            "regions.json"
+          ]
+        }
+      ],
+      "zenda": [
+        {
+          "from": 1700,
+          "to": 1800,
+          "regime": "kingdom",
+          "approx": false,
+          "contested": false,
+          "seeded_from_archive": false,
+          "sources": []
+        },
+        {
+          "from": 1790,
+          "to": 1850,
+          "regime": "republic",
+          "approx": false,
+          "contested": false,
+          "seeded_from_archive": false,
+          "sources": []
+        },
+        {
+          "from": 1850,
+          "to": "1900",
+          "regime": "kingdom",
+          "approx": false,
+          "contested": false,
+          "seeded_from_archive": false,
+          "sources": []
+        },
+        {
+          "from": 1900,
+          "to": 1950,
+          "regime": "kingdom",
+          "approx": false,
+          "contested": true,
+          "seeded_from_archive": false,
+          "sources": []
+        },
+        {
+          "from": 1950,
+          "to": 2000,
+          "regime": "kingdom",
+          "approx": false,
+          "contested": false,
+          "seeded_from_archive": true,
+          "sources": []
+        }
+      ],
+      "strelsau": [
+        {
+          "from": 1700,
+          "to": 1800,
+          "regime": "kingdom",
+          "approx": false,
+          "contested": false,
+          "seeded_from_archive": false,
+          "sources": []
+        },
+        {
+          "from": 1800,
+          "to": 1900,
+          "regime": "kingdom",
+          "approx": false,
+          "contested": false,
+          "seeded_from_archive": false,
+          "sources": []
+        }
+      ],
+      "bareera": [
+        {
+          "from": 1700,
+          "to": 1800,
+          "regime": "kingdom"
+        }
+      ]
+    },
+    "places": {
+      "hentzau": "ruritania",
+      "zenda": "zenda",
+      "strelsau": "strelsau",
+      "lonely castle": "atlantis",
+      "bare town": "bareera"
+    },
+    "dropped": [
+      {
+        "region": "strelsau",
+        "from": 1900,
+        "to": 1950,
+        "reason": "regime shorthand"
+      }
+    ]
+  },
+  "other_snapshots": {
+    "v2": {
+      "version": 2,
+      "regimes": {},
+      "regions": {},
+      "places": {}
+    },
+    "empty": {}
+  },
+  "fold": [
+    [
+      "Zénda, Ruritania",
+      "zenda ruritania"
+    ],
+    [
+      "St. John's",
+      "st johns"
+    ],
+    [
+      "St. John’s",
+      "st johns"
+    ],
+    [
+      "Potenzoni (Briatico), Vibo Valentia",
+      "potenzoni briatico vibo valentia"
+    ],
+    [
+      "  A--B  ",
+      "a b"
+    ],
+    [
+      "ZENDA",
+      "zenda"
+    ],
+    [
+      "Łódź",
+      "łodz"
+    ],
+    [
+      "",
+      ""
+    ],
+    [
+      null,
+      ""
+    ]
+  ],
+  "years": [
+    [
+      "1860",
+      1860,
+      1860
+    ],
+    [
+      "March 1860",
+      1860,
+      1860
+    ],
+    [
+      "12 March 1860",
+      1860,
+      1860
+    ],
+    [
+      "12 Mar 1860",
+      1860,
+      1860
+    ],
+    [
+      "Jan 1860",
+      1860,
+      1860
+    ],
+    [
+      "12  March 1860",
+      1860,
+      1860
+    ],
+    [
+      "1860-03-12",
+      1860,
+      1860
+    ],
+    [
+      "1860-03",
+      1860,
+      1860
+    ],
+    [
+      "c. 1860",
+      1860,
+      null
+    ],
+    [
+      "about 1860",
+      1860,
+      null
+    ],
+    [
+      "circa 1860",
+      1860,
+      null
+    ],
+    [
+      "before 1860",
+      1860,
+      null
+    ],
+    [
+      "after 12 March 1860",
+      1860,
+      null
+    ],
+    [
+      "between 1860 and 1862",
+      1860,
+      null
+    ],
+    [
+      "1860 or 1861",
+      1860,
+      null
+    ],
+    [
+      "1860?",
+      1860,
+      null
+    ],
+    [
+      "alive at Zenda, July 1844",
+      1844,
+      null
+    ],
+    [
+      "1860",
+      1861,
+      null
+    ],
+    [
+      "",
+      1860,
+      null
+    ],
+    [
+      null,
+      1860,
+      null
+    ],
+    [
+      "1860",
+      null,
+      null
+    ],
+    [
+      "1860",
+      "1860",
+      null
+    ],
+    [
+      "1860",
+      1860.5,
+      null
+    ],
+    [
+      "1860",
+      0,
+      null
+    ]
+  ],
+  "cases": [
+    {
+      "id": "inside-the-first-era",
+      "place": "Hentzau",
+      "year": 1750,
+      "why": "ok",
+      "want": {
+        "region": "ruritania",
+        "id": "ruritania--1700",
+        "label": "Kingdom of Ruritania",
+        "from": 1700,
+        "to": 1800,
+        "year": 1750,
+        "source": "per the Record Atlas",
+        "seeded": false,
+        "href": "https://atlas.example.test/region/ruritania/"
+      }
+    },
+    {
+      "id": "inside-a-later-era",
+      "place": "Hentzau",
+      "year": 1860,
+      "why": "ok",
+      "want": {
+        "id": "ruritania--1850",
+        "label": "Republic of Ruritania",
+        "source": "per the Record Atlas"
+      }
+    },
+    {
+      "id": "the-place-is-folded",
+      "place": "HENTZAU!",
+      "year": 1860,
+      "why": "ok",
+      "want": {
+        "id": "ruritania--1850"
+      }
+    },
+    {
+      "id": "accents-and-case-are-folded",
+      "place": "ZÉNDA",
+      "year": 1975,
+      "why": "ok",
+      "want": {
+        "id": "zenda--1950"
+      }
+    },
+    {
+      "id": "boundary-year-between-two-eras",
+      "place": "Hentzau",
+      "year": 1800,
+      "why": "boundary",
+      "want": null
+    },
+    {
+      "id": "boundary-year-between-eras-of-one-regime",
+      "place": "Strelsau",
+      "year": 1800,
+      "why": "boundary",
+      "want": null
+    },
+    {
+      "id": "first-year-of-an-era-is-a-boundary",
+      "place": "Hentzau",
+      "year": 1850,
+      "why": "boundary",
+      "want": null
+    },
+    {
+      "id": "last-year-of-a-region-is-a-boundary",
+      "place": "Hentzau",
+      "year": 2000,
+      "why": "boundary",
+      "want": null
+    },
+    {
+      "id": "first-year-of-a-region-is-a-boundary",
+      "place": "Hentzau",
+      "year": 1700,
+      "why": "boundary",
+      "want": null
+    },
+    {
+      "id": "before-any-era",
+      "place": "Hentzau",
+      "year": 1699,
+      "why": "no-era",
+      "want": null
+    },
+    {
+      "id": "after-every-era",
+      "place": "Hentzau",
+      "year": 2001,
+      "why": "no-era",
+      "want": null
+    },
+    {
+      "id": "an-approximate-era-is-silent",
+      "place": "Hentzau",
+      "year": 1820,
+      "why": "approx",
+      "want": null
+    },
+    {
+      "id": "an-empty-regime-label-is-silent",
+      "place": "Hentzau",
+      "year": 1920,
+      "why": "no-label",
+      "want": null
+    },
+    {
+      "id": "a-regime-the-snapshot-does-not-define-is-silent",
+      "place": "Hentzau",
+      "year": 1970,
+      "why": "no-label",
+      "want": null
+    },
+    {
+      "id": "a-year-inside-two-overlapping-eras-is-silent",
+      "place": "Zenda",
+      "year": 1795,
+      "why": "contested",
+      "want": null
+    },
+    {
+      "id": "an-era-that-overlaps-another-is-silent-even-where-it-stands-alone",
+      "place": "Zenda",
+      "year": 1710,
+      "why": "contested",
+      "want": null
+    },
+    {
+      "id": "an-era-marked-contested-is-silent",
+      "place": "Zenda",
+      "year": 1920,
+      "why": "contested",
+      "want": null
+    },
+    {
+      "id": "an-era-with-a-words-only-end-is-not-an-era",
+      "place": "Zenda",
+      "year": 1860,
+      "why": "no-era",
+      "want": null
+    },
+    {
+      "id": "a-seeded-region-says-so",
+      "place": "Zenda",
+      "year": 1975,
+      "why": "ok",
+      "want": {
+        "seeded": true,
+        "source": "per this archive's own research",
+        "label": "Kingdom of Ruritania"
+      }
+    },
+    {
+      "id": "a-refused-era-is-silent-and-counted-as-refused",
+      "place": "Strelsau",
+      "year": 1920,
+      "why": "era-refused",
+      "want": null
+    },
+    {
+      "id": "a-year-inside-a-merged-pair-of-eras",
+      "place": "Strelsau",
+      "year": 1850,
+      "why": "ok",
+      "want": {
+        "id": "strelsau--1800"
+      }
+    },
+    {
+      "id": "an-era-with-no-flags-at-all-is-allowed",
+      "place": "Bare Town",
+      "year": 1750,
+      "why": "ok",
+      "want": {
+        "id": "bareera--1700",
+        "seeded": false
+      }
+    },
+    {
+      "id": "a-place-with-no-region",
+      "place": "Elphberg",
+      "year": 1750,
+      "why": "no-region",
+      "want": null
+    },
+    {
+      "id": "a-place-mapped-to-a-region-the-snapshot-lacks",
+      "place": "Lonely Castle",
+      "year": 1750,
+      "why": "no-region",
+      "want": null
+    },
+    {
+      "id": "an-inherited-object-key-is-not-a-place",
+      "place": "constructor",
+      "year": 1750,
+      "why": "no-region",
+      "want": null
+    },
+    {
+      "id": "the-prototype-key-is-not-a-place",
+      "place": "__proto__",
+      "year": 1750,
+      "why": "no-region",
+      "want": null
+    },
+    {
+      "id": "a-string-year-is-refused",
+      "place": "Hentzau",
+      "year": "1750",
+      "why": "year",
+      "want": null
+    },
+    {
+      "id": "a-fractional-year-is-refused",
+      "place": "Hentzau",
+      "year": 1750.5,
+      "why": "year",
+      "want": null
+    },
+    {
+      "id": "no-year-is-refused",
+      "place": "Hentzau",
+      "year": null,
+      "why": "year",
+      "want": null
+    },
+    {
+      "id": "year-zero-is-refused",
+      "place": "Hentzau",
+      "year": 0,
+      "why": "year",
+      "want": null
+    },
+    {
+      "id": "no-place-is-refused",
+      "place": "",
+      "year": 1750,
+      "why": "place",
+      "want": null
+    },
+    {
+      "id": "a-number-is-not-a-place",
+      "place": 12,
+      "year": 1750,
+      "why": "place",
+      "want": null
+    },
+    {
+      "id": "a-snapshot-of-another-version-is-refused",
+      "snap": "v2",
+      "place": "Hentzau",
+      "year": 1750,
+      "why": "snapshot",
+      "want": null
+    },
+    {
+      "id": "an-empty-snapshot-is-refused",
+      "snap": "empty",
+      "place": "Hentzau",
+      "year": 1750,
+      "why": "snapshot",
+      "want": null
+    },
+    {
+      "id": "no-snapshot-is-refused",
+      "snap": "none",
+      "place": "Hentzau",
+      "year": 1750,
+      "why": "snapshot",
+      "want": null
+    }
+  ],
+  "href_cases": [
+    {
+      "id": "href-needs-https",
+      "base": "http://atlas.example.test",
+      "href": null
+    },
+    {
+      "id": "href-with-a-path-is-refused",
+      "base": "https://atlas.example.test/x",
+      "href": null
+    },
+    {
+      "id": "href-trailing-slash-is-fine",
+      "base": "https://atlas.example.test/",
+      "href": "https://atlas.example.test/region/ruritania/"
+    },
+    {
+      "id": "href-without-a-base-is-null",
+      "base": null,
+      "href": null
+    }
+  ],
+  "gate_snapshot": {
+    "version": 1,
+    "built": "2026-01-01",
+    "atlas_commit_or_etag": "abc1234",
+    "atlas": {
+      "base": "https://atlas.example.test",
+      "file_sha256": "0"
+    },
+    "regimes": {
+      "kingdom": "Kingdom of Ruritania",
+      "republic": "Republic of Ruritania",
+      "occupied": "Occupied Ruritania"
+    },
+    "regions": {
+      "ruritania": [
+        {
+          "from": 1700,
+          "to": 1800,
+          "regime": "kingdom",
+          "approx": false,
+          "contested": false,
+          "seeded_from_archive": false,
+          "sources": [
+            "regions.json"
+          ]
+        },
+        {
+          "from": 1800,
+          "to": 1850,
+          "regime": "occupied",
+          "approx": true,
+          "contested": false,
+          "seeded_from_archive": false,
+          "sources": [
+            "regions.json"
+          ]
+        },
+        {
+          "from": 1850,
+          "to": 1900,
+          "regime": "republic",
+          "approx": false,
+          "contested": false,
+          "seeded_from_archive": false,
+          "sources": [
+            "regions.json"
+          ]
+        }
+      ],
+      "elphberg": [
+        {
+          "from": 1900,
+          "to": 2000,
+          "regime": "kingdom",
+          "approx": false,
+          "contested": false,
+          "seeded_from_archive": true,
+          "sources": [
+            "regions.json"
+          ]
+        }
+      ]
+    },
+    "places": {
+      "hentzau": "ruritania",
+      "zenda": "elphberg"
+    },
+    "dropped": []
+  }
+}
