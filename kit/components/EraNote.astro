@@ -22,6 +22,11 @@
  * names a ruler (era.ruler) only where exactly one reign covers the year, well inside it, of a polity the era's regime allows, in a region the
  * snapshot says has rulers; otherwise nothing is added. Without the prop the note is what it always was.
  *
+ * A SEEDED ERA (rule f): where the Atlas's bands were seeded from this estate's own research (the era's seeded flag, `era.seeded`), "per the
+ * Record Atlas" alone would read as a second, independent source when it is the archive quoting itself. The note then says "per the Record Atlas,
+ * drawn from this archive's own research" and carries data-era-seeded="1". An archive that wants its own words passes seededText="..." (a usable
+ * string; empty, or the plain phrase, falls back to the default) and gives the same words to the gate (checkera.py --seeded-text).
+ *
  * THE PAGE'S RULE, not this component's: never call eraAt for a living, held-out or noindex person. This component cannot know
  * who is living; checkera.py fails the build if a note is found on such a page. The text is the label (no flag image, nothing
  * colour-only), so a screen reader reads it as it reads any line. kit/lib/era.js has the rules and kit/docs/era-notes.md the why.
@@ -31,16 +36,18 @@
  * draws one small <style is:inline data-era-css> ahead of itself, once per page (claim(Astro.request, ...), the mechanism Rec.astro
  * uses for its figure ids), and a page with no note carries no era CSS. The rules are the same, muted and token-driven (ERA_CSS).
  */
-import { SRC_ATLAS, PRE_NORMAL, PRE_BOUNDARY, ERA_CSS, ERA_CSS_KEY } from "../lib/era.js";
+import { SRC_ATLAS, seededWords, PRE_NORMAL, PRE_BOUNDARY, ERA_CSS, ERA_CSS_KEY } from "../lib/era.js";
 import { claim } from "../lib/rec.js";
-const { era = null, rulers = false } = Astro.props;
+const { era = null, rulers = false, seededText = undefined } = Astro.props;
 const note = era && era.id && era.label ? era : null;
 const ruler = rulers === true && note && note.ruler && typeof note.ruler.name === "string" && note.ruler.name !== "" ? note.ruler : null;
+const seeded = note !== null && note.seeded === true;
+const srcWords = seeded ? seededWords(seededText) : (note && note.source) || SRC_ATLAS;
 const drawCss = note ? claim(Astro.request, ERA_CSS_KEY) : false;
 ---
 {drawCss ? <style is:inline data-era-css set:html={ERA_CSS} /> : null}
 {note ? (
-  <span class="era-note" data-era={note.id} data-era-year={note.year} data-era-boundary={note.boundary === true ? "1" : undefined} data-era-assessed={note.assessed === true ? "1" : "0"} data-era-approx={note.approx === true ? "1" : undefined} data-era-contested={note.contested === true ? "1" : undefined} data-era-margin-unsourced={note.unsourced === true ? "1" : undefined} data-era-edge-agree={note.edgeAgree === true ? "1" : undefined} data-era-place={typeof note.place === "string" && note.place !== "" ? note.place : undefined} data-era-ruler={ruler ? ruler.name : undefined}><span class="era-pre">{note.boundary === true ? PRE_BOUNDARY : PRE_NORMAL}</span><span class="era-lab">{note.label}</span>{ruler ? <>{" "}<span class="era-ruler">({ruler.name})</span></> : null}{" "}{note.href
-    ? <a class="era-src" href={note.href} rel="noopener">{note.source || SRC_ATLAS}</a>
-    : <span class="era-src">{note.source || SRC_ATLAS}</span>}</span>
+  <span class="era-note" data-era={note.id} data-era-year={note.year} data-era-boundary={note.boundary === true ? "1" : undefined} data-era-assessed={note.assessed === true ? "1" : "0"} data-era-approx={note.approx === true ? "1" : undefined} data-era-contested={note.contested === true ? "1" : undefined} data-era-margin-unsourced={note.unsourced === true ? "1" : undefined} data-era-edge-agree={note.edgeAgree === true ? "1" : undefined} data-era-seeded={seeded ? "1" : undefined} data-era-place={typeof note.place === "string" && note.place !== "" ? note.place : undefined} data-era-ruler={ruler ? ruler.name : undefined}><span class="era-pre">{note.boundary === true ? PRE_BOUNDARY : PRE_NORMAL}</span><span class="era-lab">{note.label}</span>{ruler ? <>{" "}<span class="era-ruler">({ruler.name})</span></> : null}{" "}{note.href
+    ? <a class="era-src" href={note.href} rel="noopener">{srcWords}</a>
+    : <span class="era-src">{srcWords}</span>}</span>
 ) : null}

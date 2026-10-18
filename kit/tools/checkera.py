@@ -38,8 +38,11 @@ template: a template that is right can still be fed a wrong year) and the era sn
   ruler      a ruler (data-era-ruler, span.era-ruler) the snapshot does not name for the place and year (the reign does not cover the year, overlaps another,
              lies within the margin of its bounds, is of a polity the era's regime does not allow, or the region has no rulers), whose name is not the
              Atlas's exactly, or on a boundary or edge note; with --rulers also a MISSING ruler where the snapshot names one
-  source     a note that does not say where it came from ("per the Record Atlas", or "per this archive's own research" for an era
-             the snapshot marks seeded_from_archive: rule f), or whose link is not the era's own url on the Atlas (rule e)
+  source     a note that does not say where it came from ("per the Record Atlas", or "per the Record Atlas, drawn from this archive's own
+             research" for an era the snapshot marks seeded_from_archive: rule f, never the plain phrase there; --seeded-text gives the
+             archive's own words), or whose link is not the era's own url on the Atlas (rule e)
+  seeded     a note on a seeded era (the Atlas's bands came from this estate's own research) that lacks data-era-seeded="1", or a note
+             on an era that is not seeded that carries it (the mark is re-derived from the snapshot: missing, extra or wrong all fail)
 
 It prints COUNTS ONLY: never a place, a person, a date or a path. ZERO PAGES EXAMINED IS NOT A PASS, and neither are zero notes
 (--min-notes, default 1): a gate that found nothing because it looked in the wrong place has not found that nothing is wrong. It
@@ -99,7 +102,7 @@ class Page(HTMLParser):
         part = None
         if "data-era" in a:
             note = {"id": a["data-era"], "year": a.get("data-era-year"), "boundary": a.get("data-era-boundary"),
-                    "assessed": a.get("data-era-assessed"), "approx": a.get("data-era-approx"), "contested": a.get("data-era-contested"), "unsourced": a.get("data-era-margin-unsourced"), "edge_agree": a.get("data-era-edge-agree"), "place": a.get("data-era-place"),
+                    "assessed": a.get("data-era-assessed"), "approx": a.get("data-era-approx"), "contested": a.get("data-era-contested"), "unsourced": a.get("data-era-margin-unsourced"), "edge_agree": a.get("data-era-edge-agree"), "seeded": a.get("data-era-seeded"), "place": a.get("data-era-place"),
                     "ruler": a.get("data-era-ruler"), "text": "", "pres": [], "labs": [], "rus": [],
                     "srcs": [], "hrefs": []}
             self.notes.append(note)
@@ -328,9 +331,9 @@ def tracked(path):
         return False
 
 
-def judge(note, snap, rulers=False):
+def judge(note, snap, rulers=False, seeded_text=None):
     """The failures of one note, as category names (each once). Pure: the self-test drives it. rulers: the archive has opted in to rulers,
-    so a note whose snapshot names a ruler must carry it."""
+    so a note whose snapshot names a ruler must carry it. seeded_text: the archive's own words for a seeded era's note (None: the kit's)."""
     out = []
     m = ID.match(note["id"] or "")
     era = None
@@ -380,16 +383,18 @@ def judge(note, snap, rulers=False):
             snap["places"].get(k) == region for k in (snap.get("edge_neighbours") or {}))):
         out.append("edge")
     seeded = era.get("seeded_from_archive") is True
-    want_words = eralib.SRC_OWN if seeded else eralib.SRC_ATLAS
+    want_words = norm(eralib.seeded_words(seeded_text)) if seeded else eralib.SRC_ATLAS
+    if note.get("seeded") != ("1" if seeded else None):
+        out.append("seeded")
     want_href = eralib.era_href(snap, region, era)
     srcs = [norm(x) for x in note["srcs"]]
     if len(srcs) != 1 or srcs[0] != want_words or want_href is None or note["hrefs"] != [want_href]:
         out.append("source")
-    out += rederive(note, snap, region, era, yi, rulers)
+    out += rederive(note, snap, region, era, yi, rulers, seeded_text)
     return list(dict.fromkeys(out))
 
 
-def rederive(note, snap, region, era, yi, rulers):
+def rederive(note, snap, region, era, yi, rulers, seeded_text=None):
     """Re-derive the whole note from the snapshot, its own place and its year, with the library's own era_at, and hold the note to it: the era, every
     mark missing, extra or wrong, the words, the link and the ruler. -> the category names it fails (the same names as above where one exists)."""
     out = []
@@ -413,6 +418,8 @@ def rederive(note, snap, region, era, yi, rulers):
         out.append("approx")
     if note.get("edge_agree") != ("1" if want["edgeAgree"] else None):
         out.append("edge")
+    if note.get("seeded") != ("1" if want["seeded"] else None):
+        out.append("seeded")
     # the ruler: what the library names for this place and year, the Atlas's name exactly, and nothing where it names none
     wr = want["ruler"]
     got = note.get("ruler")
@@ -424,7 +431,7 @@ def rederive(note, snap, region, era, yi, rulers):
         out.append("ruler")
     # the whole text of the note is the snapshot's words: the mark, the label, the ruler (if any), the source, and nothing else
     pre = eralib.PRE_BOUNDARY if want["boundary"] else eralib.PRE_NORMAL
-    parts = [pre, want["label"]] + (["(%s)" % wr["name"]] if got is not None and wr is not None else []) + [want["source"]]
+    parts = [pre, want["label"]] + (["(%s)" % wr["name"]] if got is not None and wr is not None else []) + [eralib.seeded_words(seeded_text) if want["seeded"] else want["source"]]
     if norm(note.get("text")) != norm(" ".join(parts)):
         out.append("text")
     return out
@@ -440,9 +447,14 @@ def main(argv=None):
     ap.add_argument("--min-notes", type=int, default=1)
     ap.add_argument("--rulers", action="store_true",
                     help="the archive has opted in to rulers (EraNote rulers): a note whose snapshot names a ruler for its place and year must carry it")
+    ap.add_argument("--seeded-text", default=None,
+                    help="the archive's own words for a seeded era's note (EraNote seededText): the gate then requires exactly these; default is the kit's "
+                         "\"%s\". Empty, or the plain phrase, is refused" % eralib.SRC_SEEDED)
     ap.add_argument("--strict-unassessed", action="store_true",
                     help="fail a snapshot whose policy keeps eras the Atlas has not assessed (contested/approx null)")
     a = ap.parse_args(argv)
+    if a.seeded_text is not None and eralib.seeded_words(a.seeded_text) != " ".join(a.seeded_text.split()):
+        ap.error("--seeded-text must be words of the archive's own that are not empty and not the plain \"%s\" (that would read as a second source)" % eralib.SRC_ATLAS)
     dist = outdir.resolve(a.dist)
     line = outdir.note(dist)
     if line:
@@ -506,7 +518,7 @@ def main(argv=None):
         if pg.living or url_of(dist, p) in living:
             fail("living", len(pg.notes))
         for note in pg.notes:
-            for cat in judge(note, snap, a.rulers):
+            for cat in judge(note, snap, a.rulers, a.seeded_text):
                 fail(cat)
             m = ID.match(note["id"] or "")
             if m:

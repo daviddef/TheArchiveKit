@@ -27,6 +27,7 @@ function failing(lib) {
   }
   for (const [s, want] of FIX.fold) { let g; try { g = lib.fold(s); } catch (e) { g = "threw"; } if (g !== want) out.push("fold:" + s); }
   for (const [d, y, want] of FIX.years) { let g; try { g = lib.plainYear(d, y); } catch (e) { g = "threw"; } if (g !== want) out.push("year:" + d + "|" + y); }
+  for (const [given, want] of FIX.seeded_words) { let g; try { g = lib.seededWords(given); } catch (e) { g = "threw"; } if (g !== want) out.push("seeded_words:" + JSON.stringify(given)); }
   for (const h of FIX.href_cases) {
     const snap = { atlas: { base: h.base } }; let g; try { g = lib.regionHref(snap, "ruritania"); } catch (e) { g = "threw"; }
     if (g !== h.href) out.push(h.id);
@@ -83,14 +84,29 @@ function failing(lib) {
     if (/era-ruler/.test(ed) || !ed.includes("data-era-edge-agree")) out.push("render:ruler-edge");
   }
   const seeded = lib.eraAt(JSON.parse(JSON.stringify(FIX.snapshot)), "Zenda", 1975);
-  if (!lib.renderEra(seeded).includes("per this archive's own research</a>")) out.push("render:seeded-words");
+  /* rule f: a seeded era's note says "per the Record Atlas, drawn from this archive's own research", is marked data-era-seeded, never says the plain phrase;
+     the archive's own words (seededText) replace the default, but an empty one or the plain phrase does not; a note on an era that is not seeded has no mark */
+  const SEEDED_WORDS = "per the Record Atlas, drawn from this archive's own research";
+  if (seeded === null) { out.push("seeded:era-source"); return out; }
+  const sh = lib.renderEra(seeded);
+  if (!(seeded.seeded === true && seeded.source === SEEDED_WORDS && lib.SRC_SEEDED === SEEDED_WORDS)) out.push("seeded:era-source");
+  if (!sh.includes(SEEDED_WORDS + "</a>") || sh.includes(">per the Record Atlas</a>")) out.push("render:seeded-words");
+  if (!sh.includes(' data-era-seeded="1" data-era-place="zenda"') || html.includes("data-era-seeded") || edgeHtml.includes("data-era-seeded")) out.push("render:seeded-mark");
+  if (!lib.renderEra(seeded, { seededText: "per our own reading of the Atlas" }).includes(">per our own reading of the Atlas</a>")
+      || !lib.renderEra(seeded, { seededText: "  per   our own\nreading " }).includes(">per our own reading</a>")) out.push("render:seeded-override");
+  for (const bad of ["", "   ", "per the Record Atlas", "  Per The  RECORD atlas ", null, 7, {}]) {
+    const r = lib.renderEra(seeded, { seededText: bad });
+    if (!r.includes(SEEDED_WORDS + "</a>")) out.push("render:seeded-override-refused");
+  }
+  if (lib.renderEra(era, { seededText: "per our own reading" }).includes("our own reading") || lib.seededWords() !== SEEDED_WORDS) out.push("render:seeded-override-plain");
+  if (!lib.renderEra({ ...seeded, href: null }).includes('<span class="era-src">' + SEEDED_WORDS + "</span>")) out.push("render:seeded-nolink");
   const e = lib.renderEra({ id: 'x--1"', label: "<script>alert(1)</script> & \"q\"", year: 1750, source: "<b>", href: 'https://a.example.test/"x' });
   if (/<script|<b>|\sx=|href="https:\/\/a\.example\.test\/"x/.test(e) || !e.includes("&lt;script&gt;") || !e.includes("&amp;") || !e.includes("&quot;")) out.push("render:escapes");
   return out;
 }
 
 const real = failing(E);
-ok("the shared cases all hold (" + (FIX.cases.length + FIX.fold.length + FIX.years.length + FIX.href_cases.length) + " cases and the markup checks)", real.length === 0, real.join(", "));
+ok("the shared cases all hold (" + (FIX.cases.length + FIX.fold.length + FIX.years.length + FIX.seeded_words.length + FIX.href_cases.length) + " cases and the markup checks)", real.length === 0, real.join(", "));
 
 // planted faults: a copy of era.js with one rule broken must fail the case that guards it
 const src = fs.readFileSync(path.join(kit, "lib", "era.js"), "utf8");
@@ -153,6 +169,15 @@ const faults = [
   ["a snapshot of another version is read", "snap.version !== VERSION", "false", "a-snapshot-of-the-first-version-is-refused"],
   ["an http base is accepted", "/^https:\\/\\/[^/?#\\s]+$/i", "/^https?:\\/\\/[^/?#\\s]+$/i", "href-needs-https"],
   ["a seeded region is not marked", "const seeded = e.seeded_from_archive === true;", "const seeded = false;", "accents-and-case-are-folded"],
+  ["a seeded era's note says the plain phrase", "source: seeded ? SRC_SEEDED : SRC_ATLAS", "source: SRC_ATLAS", "seeded:era-source"],
+  ["the seeded mark is not drawn", "${sd ? ' data-era-seeded=\"1\"' : \"\"}", "", "render:seeded-mark"],
+  ["the seeded mark is drawn on every note", "${sd ? ' data-era-seeded=\"1\"' : \"\"}", " data-era-seeded=\"1\"", "render:note"],
+  ["the archive's own seeded words are ignored", "seededWords(opts && opts.seededText)", "seededWords()", "render:seeded-override"],
+  ["the archive's own words are used on a note that is not seeded", "const words = sd ? seededWords(opts && opts.seededText) : era.source;", "const words = opts && typeof opts.seededText === \"string\" ? opts.seededText : sd ? SRC_SEEDED : era.source;", "render:seeded-override-plain"],
+  ["the plain phrase is accepted as the archive's own seeded words", "t === \"\" || t.toLowerCase() === SRC_ATLAS.toLowerCase() ? SRC_SEEDED : t", "t === \"\" ? SRC_SEEDED : t", "render:seeded-override-refused"],
+  ["empty seeded words are accepted", "t === \"\" || t.toLowerCase() === SRC_ATLAS.toLowerCase() ? SRC_SEEDED : t", "t.toLowerCase() === SRC_ATLAS.toLowerCase() ? SRC_SEEDED : t", "render:seeded-override-refused"],
+  ["the plain phrase is refused only in its exact spelling", "t === \"\" || t.toLowerCase() === SRC_ATLAS.toLowerCase() ? SRC_SEEDED : t", "t === \"\" || t === SRC_ATLAS ? SRC_SEEDED : t", "render:seeded-override-refused"],
+  ["the archive's seeded words are not tidied", "const t = text.replace(/\\s+/g, \" \").trim();", "const t = text;", "render:seeded-override"],
   ["a refused era is reported as no era", "refused.length ? \"era-refused\" : \"no-era\"", "\"no-era\"", "a-refused-era-is-silent-and-counted-as-refused"],
   ["a place on the edge is not silent", "if (own(snap.places_silent, key) && VALID_SILENT.includes(snap.places_silent[key])) return no(snap.places_silent[key]);", "", "a-place-on-the-edge-is-silent"],
   ["any silence reason is believed", " && VALID_SILENT.includes(snap.places_silent[key])", "", "an-unknown-silence-reason-is-no-region"],
@@ -240,7 +265,7 @@ for (const [label, from, to, must, extra] of faults) {
 // the component draws what the library describes: its template carries the attributes the gate relies on
 const astro = fs.readFileSync(path.join(kit, "components", "EraNote.astro"), "utf8");
 for (const needle of ['class="era-note"', "data-era={note.id}", "data-era-year={note.year}", 'data-era-boundary={note.boundary === true ? "1" : undefined}', 'data-era-assessed={note.assessed === true ? "1" : "0"}', 'data-era-approx={note.approx === true ? "1" : undefined}', 'data-era-contested={note.contested === true ? "1" : undefined}', 'data-era-margin-unsourced={note.unsourced === true ? "1" : undefined}', 'data-era-edge-agree={note.edgeAgree === true ? "1" : undefined}', "PRE_BOUNDARY : PRE_NORMAL", 'class="era-pre"', 'class="era-lab"', 'class="era-src"', 'rel="noopener"', "note.href", "era && era.id && era.label ? era : null",
-  "note ? claim(Astro.request, ERA_CSS_KEY) : false", "<style is:inline data-era-css set:html={ERA_CSS} />"]) {
+  "data-era-seeded={seeded ? \"1\" : undefined}", "seededWords(seededText)", "note ? claim(Astro.request, ERA_CSS_KEY) : false", "<style is:inline data-era-css set:html={ERA_CSS} />"]) {
   ok("EraNote.astro carries " + needle, astro.includes(needle));
 }
 const astroCode = astro.replace(/\/\*[\s\S]*?\*\//g, "");
@@ -313,6 +338,39 @@ ok("gate: a page with the era style and no note fails (css): it is the weight th
   ok("gate: a page with no note carries no era style, and that passes", r2.status === 0, r2.stdout);
   const nm = fs.readFileSync(path.join(dist, "b", "index.html"), "utf8");
   ok("the page without a note has no era CSS marker at all", !nm.includes("data-era-css") && !nm.includes(".era-note"));
+}
+/* rule f at the gate: a seeded era's note (Zenda 1975 is on a seeded era of the gate's snapshot) carries the mark and the wording, and a note that is not seeded does not */
+{
+  const SEEDED_WORDS = "per the Record Atlas, drawn from this archive's own research";
+  const sn = note("Zenda", 1975), plain = note("Hentzau", 1750);
+  const g = gate(page(sn));
+  ok("gate (seeded): a seeded era's note the library drew (the mark, the new words) passes, and is counted as seeded", g.code === 0 && /1 on a seeded region/.test(g.out) && sn.includes('data-era-seeded="1"') && sn.includes(SEEDED_WORDS), g.out);
+  const noMark = gate(page(sn.replace(' data-era-seeded="1"', "")));
+  ok("gate (seeded): the same note with its data-era-seeded REMOVED fails (seeded)", noMark.code === 1 && /seeded 1/.test(noMark.out), noMark.out);
+  const plainWords = gate(page(sn.replace(SEEDED_WORDS, "per the Record Atlas")));
+  ok("gate (seeded): the same note worded with the plain phrase (mark kept) fails (source, text)", plainWords.code === 1 && /source 1/.test(plainWords.out) && /text 1/.test(plainWords.out), plainWords.out);
+  const oldWords = gate(page(sn.replace(SEEDED_WORDS, "per this archive's own research")));
+  ok("gate (seeded): the words the kit used before (not the plain phrase, not the new) fail (source, text)", oldWords.code === 1 && /source 1/.test(oldWords.out), oldWords.out);
+  const both = gate(page(sn.replace(' data-era-seeded="1"', "").replace(SEEDED_WORDS, "per the Record Atlas")));
+  ok("gate (seeded): the plain note a seeded era used to get (no mark, plain phrase) fails (seeded, source, text)", both.code === 1 && /seeded 1/.test(both.out) && /source 1/.test(both.out) && /text 1/.test(both.out), both.out);
+  const extra = gate(page(plain.replace(' data-era-place=', ' data-era-seeded="1" data-era-place=')));
+  ok("gate (seeded): a note on an era that is NOT seeded that carries data-era-seeded fails (seeded)", extra.code === 1 && /seeded 1/.test(extra.out), extra.out);
+  const extraWords = gate(page(plain.replace("per the Record Atlas", SEEDED_WORDS)));
+  ok("gate (seeded): a note on an era that is not seeded that says the seeded words fails (source, text)", extraWords.code === 1 && /source 1/.test(extraWords.out) && /text 1/.test(extraWords.out), extraWords.out);
+  const OWN = "per the Atlas, which holds our own reading";
+  const own = E.renderEra(E.eraAt(FIX.gate_snapshot, "Zenda", 1975), { seededText: OWN });
+  const g2 = gate(page(own), ["--seeded-text", OWN]);
+  ok("gate (seeded): the archive's own words (seededText) pass when the gate is given the same (--seeded-text)", g2.code === 0 && own.includes(OWN), g2.out);
+  const g3 = gate(page(own));
+  ok("gate (seeded): ...and fail when the gate is not told of them (the default words are the rule)", g3.code === 1 && /source 1/.test(g3.out), g3.out);
+  const g4 = gate(page(sn), ["--seeded-text", OWN]);
+  ok("gate (seeded): ...and the kit's words fail when the gate is told the archive uses its own (source, text)", g4.code === 1 && /source 1/.test(g4.out) && /text 1/.test(g4.out), g4.out);
+  for (const bad of ["per the Record Atlas", "  Per the RECORD Atlas ", ""]) {
+    const g5 = gate(page(sn), ["--seeded-text", bad]);
+    ok("gate (seeded): --seeded-text " + JSON.stringify(bad) + " (the plain phrase, or nothing) is refused (exit 2)", g5.code === 2, g5.out);
+  }
+  const g6 = gate(page(plain), ["--seeded-text", OWN]);
+  ok("gate (seeded): --seeded-text changes nothing for a note that is not seeded", g6.code === 0, g6.out);
 }
 const assessedWrong = gate(page(note("Hentzau", 1750).replace('data-era-assessed="1"', 'data-era-assessed="0"')));
 ok("gate: a note that says it rests on an unassessed era when the snapshot says assessed fails (assessed)", assessedWrong.code === 1 && /assessed 1/.test(assessedWrong.out), assessedWrong.out);

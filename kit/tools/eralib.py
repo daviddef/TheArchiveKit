@@ -10,7 +10,8 @@ import unicodedata
 
 VERSION = 5
 SRC_ATLAS = "per the Record Atlas"
-SRC_OWN = "per this archive's own research"
+SRC_SEEDED = "per the Record Atlas, drawn from this archive's own research"
+SRC_OWN = SRC_SEEDED   # the name this had before the words changed
 PRE_NORMAL = "· At the time: "
 PRE_BOUNDARY = "· From that year: "
 RECENT_FROM = 1990
@@ -19,6 +20,15 @@ MARGIN_YEARS = 5      # PROVISIONAL: the margin for an approx era whose contract
 VALID_SILENT = ("edge", "marked-edge", "ring-conflict")
 EDGE_KINDS = ("edge", "ring-conflict")
 ERA_CSS_KEY = "kit:era-css"
+
+
+def seeded_words(text):
+    """The source words of a SEEDED era's note (rule f): the archive's own if it gave a usable string (EraNote seededText, checkera.py
+    --seeded-text), else SRC_SEEDED. Never empty and never the plain phrase (SRC_ATLAS, however spaced or cased). Twin of seededWords in era.js."""
+    if not isinstance(text, str):
+        return SRC_SEEDED
+    t = " ".join(text.split())
+    return SRC_SEEDED if t == "" or t.lower() == SRC_ATLAS.lower() else t
 
 
 def fold(s):
@@ -366,7 +376,7 @@ def era_at(snap, place, year, recent_from=None):
     region, e = d["region"], d["e"]
     seeded = e.get("seeded_from_archive") is True
     return {"region": region, "place": d["key"], "id": e["id"], "label": _label(e), "from": e["from"], "to": e.get("to"), "year": year,
-            "source": SRC_OWN if seeded else SRC_ATLAS, "seeded": seeded, "href": era_href(snap, region, e),
+            "source": SRC_SEEDED if seeded else SRC_ATLAS, "seeded": seeded, "href": era_href(snap, region, e),
             "boundary": d["boundary"], "unchecked": d["key"] in (snap.get("unchecked_edge") or []),
             "unassessed": d["unassessed"], "assessed": not d["unassessed"],
             "approx": flag(e.get("approx")) == "yes", "contested": flag(e.get("contested")) == "yes",

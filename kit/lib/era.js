@@ -23,7 +23,10 @@
         the page marks uncertain ("c. 1783", "before 1820") has no year at all (plainYear gives null).
      e  The note links to the ERA the contract names (its `url`, on the Atlas's base), and carries the contract's era id in data-era.
      f  Where the contract's `basis` says an era's bands were seeded from this estate's own research (seeded:...) the snapshot says
-        so (`seeded_from_archive`) and the note says "per this archive's own research": the Atlas is then the archive quoting itself.
+        so (`seeded_from_archive`; eraAt returns it as `seeded`) and the note says "per the Record Atlas, drawn from this archive's own
+        research" and carries data-era-seeded="1": the Atlas is then the archive quoting itself, and "per the Record Atlas" alone would read
+        as a second, independent source. The archive may use its own words for a seeded era (EraNote `seededText`, seededWords below);
+        never the plain phrase, and the gate (checkera.py) holds the page to the words and the mark both ways.
      g  null is not false. `contested` and `approx` null mean nobody has assessed the era; they are UNCERTAIN, and silent, unless the
         snapshot says policy.unassessed = "allow" (a deliberate, recorded choice an archive makes with erasnap.py --unassessed).
      h  THE QUIET RULE: an event in the era that is still running (`to` null) from policy.recent_from (default 1990) is silent: a
@@ -103,7 +106,8 @@
 
 export const VERSION = 5;
 export const SRC_ATLAS = "per the Record Atlas";
-export const SRC_OWN = "per this archive's own research";
+export const SRC_SEEDED = "per the Record Atlas, drawn from this archive's own research";
+export const SRC_OWN = SRC_SEEDED;   // the name this had before the words changed; kept so an archive's import does not break
 export const PRE_NORMAL = "· At the time: ";
 export const PRE_BOUNDARY = "· From that year: ";
 export const RECENT_FROM = 1990;
@@ -117,6 +121,15 @@ export const ERA_CSS = ".era-note{display:block;margin:.1rem 0 0;font-family:var
   + ".era-note a.era-src{color:inherit;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:.15em}"
   + ".era-note a.era-src:hover,.era-note a.era-src:focus-visible{color:var(--accent,var(--ink,#000))}"
   + "@media print{.era-note a.era-src{text-decoration:none}}";
+
+/* The source words of a SEEDED era's note: the archive's own (EraNote seededText, checkera.py --seeded-text) if it gave a usable string, else
+   SRC_SEEDED. Never empty, and never the plain phrase (SRC_ATLAS, however it is spaced or cased): for a seeded era that would read as
+   independent confirmation, which it is not. */
+export function seededWords(text) {
+  if (typeof text !== "string") return SRC_SEEDED;
+  const t = text.replace(/\s+/g, " ").trim();
+  return t === "" || t.toLowerCase() === SRC_ATLAS.toLowerCase() ? SRC_SEEDED : t;
+}
 
 const own = (o, k) => o != null && typeof o === "object" && Object.prototype.hasOwnProperty.call(o, k);
 
@@ -370,7 +383,7 @@ export function eraAt(snap, place, year, opts) {
   const seeded = e.seeded_from_archive === true;
   return {
     region, place: d.key, id: e.id, label: label(e), from: e.from, to: e.to, year,
-    source: seeded ? SRC_OWN : SRC_ATLAS, seeded, href: eraHref(snap, region, e),
+    source: seeded ? SRC_SEEDED : SRC_ATLAS, seeded, href: eraHref(snap, region, e),
     boundary: d.boundary, unchecked: Array.isArray(snap.unchecked_edge) && snap.unchecked_edge.includes(d.key),
     unassessed: d.unassessed, assessed: !d.unassessed, approx: flag(e.approx) === "yes", contested: flag(e.contested) === "yes", unsourced: e.margin_sourced === false && marginSpan(e, floorOf(snap.policy)) !== null, edgeAgree: d.edgeAgree, basis: typeof e.basis === "string" ? e.basis : null,
     /* rule m: no ruler on a boundary-year note ("From that year") or on an edge note (held to its neighbours) */
@@ -381,16 +394,19 @@ export function eraAt(snap, place, year, opts) {
 const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
 /* The markup of one note, as components/EraNote.astro draws it (the node test holds the component to these attributes).
-   opts.rulers === true draws the ruler too (rule m): the archive's choice, off by default. */
+   opts.rulers === true draws the ruler too (rule m): the archive's choice, off by default. A seeded era's note (rule f) carries
+   data-era-seeded="1" and says opts.seededText (seededWords: the default SRC_SEEDED) in place of the era's source words. */
 export function renderEra(era, opts) {
   if (!era) return "";
+  const sd = era.seeded === true;
+  const words = sd ? seededWords(opts && opts.seededText) : era.source;
   const src = era.href
-    ? `<a class="era-src" href="${esc(era.href)}" rel="noopener">${esc(era.source)}</a>`
-    : `<span class="era-src">${esc(era.source)}</span>`;
+    ? `<a class="era-src" href="${esc(era.href)}" rel="noopener">${esc(words)}</a>`
+    : `<span class="era-src">${esc(words)}</span>`;
   const b = era.boundary === true;
   const ru = opts && opts.rulers === true && era.ruler && typeof era.ruler.name === "string" && era.ruler.name !== "" ? era.ruler : null;
   return `<span class="era-note" data-era="${esc(era.id)}" data-era-year="${esc(era.year)}"${b ? ' data-era-boundary="1"' : ""}`
-    + ` data-era-assessed="${era.assessed === true ? "1" : "0"}"${era.approx === true ? ' data-era-approx="1"' : ""}${era.contested === true ? ' data-era-contested="1"' : ""}${era.unsourced === true ? ' data-era-margin-unsourced="1"' : ""}${era.edgeAgree === true ? ' data-era-edge-agree="1"' : ""}`
+    + ` data-era-assessed="${era.assessed === true ? "1" : "0"}"${era.approx === true ? ' data-era-approx="1"' : ""}${era.contested === true ? ' data-era-contested="1"' : ""}${era.unsourced === true ? ' data-era-margin-unsourced="1"' : ""}${era.edgeAgree === true ? ' data-era-edge-agree="1"' : ""}${sd ? ' data-era-seeded="1"' : ""}`
     + `${typeof era.place === "string" && era.place !== "" ? ` data-era-place="${esc(era.place)}"` : ""}${ru ? ` data-era-ruler="${esc(ru.name)}"` : ""}>`
     + `<span class="era-pre">${b ? PRE_BOUNDARY : PRE_NORMAL}</span><span class="era-lab">${esc(era.label)}</span>${ru ? ` <span class="era-ruler">(${esc(ru.name)})</span>` : ""} ${src}</span>`;
 }

@@ -1,5 +1,5 @@
 {
- "about": "Invented snapshots and cases for kit/lib/era.js (run by kit/tools/era_logic.mjs) AND kit/tools/eralib.py (run by kit/tools/era_selftest.py): the two halves must give the same answers. Ruritania is a country in a novel; nothing here is a real region, person or record. `want` is the era eraAt returns (checked field by field) or null; `why` is what whyNot says; `opts.recent_from` is the caller's override of the quiet rule. `gate_snapshot` is a clean snapshot for the gate's tests (checkera.py refuses a malformed one); `snapshot` is deliberately full of faults for the library's. The expected answers were written by hand, not computed. Snapshot version 5 adds rule m (rulers: the snapshot's `rulers` and policy.ruler_polities, the cases 'ruler_cases' and 'ruler_note_cases', the snapshots 'rulers', 'rulers_n0', 'rulers_bad'); version 4 adds rule l (boundary margins: from_margin, to_margin, margin_src, margin_sourced, contested_scope and margin_ok on an era; approx, contested, margin_years and margins in the policy; the cases whose ids begin 'margin-', on the snapshots 'margin', 'margin_contested_margin', 'margin_contested_refuse' and 'margin_approx_refuse' and 'margin_n0'); the previous version (3) is refused. Version 3 added edge_neighbours: a place near a ring edge (or inside another region's ring) is mapped with the regions that could claim it, and the note needs every one of them to hold the same label for the year (the cases whose places are named '... Edge Town', with a planted fault for each doubt: no era, another label, a refused or approximate or contested or unassessed or overlapping neighbour era, a neighbour whose era begins that year after another regime, a neighbour the snapshot does not hold); the previous version (v2) is refused. In the margin cases the expected answers follow the rule written in lib/era.js: an era that is flagged or carries a margin is used only for a year MORE THAN its margin from each numeric bound (year - from > from_margin, to - year > to_margin, the end only for a closed era; a margin of 0 is a clean date). Rule m (rulers): a ruler is named only where the snapshot says the region has rulers (has === true; a missing field is silence), exactly ONE reign touches the year (a reign touches [fromYear - fromMargin, toYear + toMargin]; an open reign has no end), the year is MORE than max(N, fromMargin) after its start and, if closed, more than max(N, toMargin) before its end, the reign's polity_id is one policy.ruler_polities allows for the era's regime, and the region has exactly one kept era over the year and none refused; a boundary note and an edge note name none. The names are invented: nothing here is a real ruler.",
+ "about": "Invented snapshots and cases for kit/lib/era.js (run by kit/tools/era_logic.mjs) AND kit/tools/eralib.py (run by kit/tools/era_selftest.py): the two halves must give the same answers. Ruritania is a country in a novel; nothing here is a real region, person or record. `want` is the era eraAt returns (checked field by field) or null; `why` is what whyNot says; `opts.recent_from` is the caller's override of the quiet rule. `gate_snapshot` is a clean snapshot for the gate's tests (checkera.py refuses a malformed one); `snapshot` is deliberately full of faults for the library's. The expected answers were written by hand, not computed. Snapshot version 5 adds rule m (rulers: the snapshot's `rulers` and policy.ruler_polities, the cases 'ruler_cases' and 'ruler_note_cases', the snapshots 'rulers', 'rulers_n0', 'rulers_bad'); version 4 adds rule l (boundary margins: from_margin, to_margin, margin_src, margin_sourced, contested_scope and margin_ok on an era; approx, contested, margin_years and margins in the policy; the cases whose ids begin 'margin-', on the snapshots 'margin', 'margin_contested_margin', 'margin_contested_refuse' and 'margin_approx_refuse' and 'margin_n0'); the previous version (3) is refused. Version 3 added edge_neighbours: a place near a ring edge (or inside another region's ring) is mapped with the regions that could claim it, and the note needs every one of them to hold the same label for the year (the cases whose places are named '... Edge Town', with a planted fault for each doubt: no era, another label, a refused or approximate or contested or unassessed or overlapping neighbour era, a neighbour whose era begins that year after another regime, a neighbour the snapshot does not hold); the previous version (v2) is refused. In the margin cases the expected answers follow the rule written in lib/era.js: an era that is flagged or carries a margin is used only for a year MORE THAN its margin from each numeric bound (year - from > from_margin, to - year > to_margin, the end only for a closed era; a margin of 0 is a clean date). Rule m (rulers): a ruler is named only where the snapshot says the region has rulers (has === true; a missing field is silence), exactly ONE reign touches the year (a reign touches [fromYear - fromMargin, toYear + toMargin]; an open reign has no end), the year is MORE than max(N, fromMargin) after its start and, if closed, more than max(N, toMargin) before its end, the reign's polity_id is one policy.ruler_polities allows for the era's regime, and the region has exactly one kept era over the year and none refused; a boundary note and an edge note name none. The names are invented: nothing here is a real ruler. `seeded_words` ([text given, words used]) holds the words a seeded era's note says (rule f): the archive's own if it gave a usable string (whitespace tidied), else the kit's; empty, not a string, or the plain phrase 'per the Record Atlas' (any case or spacing) gives the kit's. Snapshot version 5 is unchanged by it.",
  "snapshot": {
   "version": 5,
   "built": "2026-01-01",
@@ -14305,7 +14305,7 @@
    "want": {
     "id": "elphberg--era-1900",
     "seeded": true,
-    "source": "per this archive's own research",
+    "source": "per the Record Atlas, drawn from this archive's own research",
     "to": null,
     "basis": "seeded:test-archive"
    }
@@ -15762,6 +15762,52 @@
    "why": "snapshot",
    "want": null
   }
+ ],
+ "seeded_words": [
+  [
+   null,
+   "per the Record Atlas, drawn from this archive's own research"
+  ],
+  [
+   "",
+   "per the Record Atlas, drawn from this archive's own research"
+  ],
+  [
+   "   ",
+   "per the Record Atlas, drawn from this archive's own research"
+  ],
+  [
+   "per the Record Atlas",
+   "per the Record Atlas, drawn from this archive's own research"
+  ],
+  [
+   "  Per The  RECORD atlas ",
+   "per the Record Atlas, drawn from this archive's own research"
+  ],
+  [
+   "per our own reading",
+   "per our own reading"
+  ],
+  [
+   "  per   our\n own reading ",
+   "per our own reading"
+  ],
+  [
+   7,
+   "per the Record Atlas, drawn from this archive's own research"
+  ],
+  [
+   {},
+   "per the Record Atlas, drawn from this archive's own research"
+  ],
+  [
+   true,
+   "per the Record Atlas, drawn from this archive's own research"
+  ],
+  [
+   "per the Record Atlas, drawn from this archive's own research",
+   "per the Record Atlas, drawn from this archive's own research"
+  ]
  ],
  "href_cases": [
   {

@@ -59,6 +59,12 @@ def failing(lib):
                 out.append(c["id"])
         elif got is None or any(got.get(k) != v for k, v in c["want"].items()):
             out.append(c["id"])
+    for given, want in CASES["seeded_words"]:
+        try:
+            if lib.seeded_words(given) != want:
+                out.append("seeded_words:%s" % json.dumps(given))
+        except Exception as e:  # noqa: BLE001
+            out.append("seeded_words:%s (threw %s)" % (json.dumps(given), type(e).__name__))
     for c in CASES["ruler_cases"]:
         s = copy.deepcopy(CASES["other_snapshots"][c["snap"]])
         try:
@@ -168,6 +174,13 @@ FAULTS = [
     ("a snapshot of another version is read", 'snap.get("version") != VERSION:\n        return no("snapshot")\n    if not is_year(year):\n        return no("year")\n    if not isinstance(place',
      'False:\n        return no("snapshot")\n    if not is_year(year):\n        return no("year")\n    if not isinstance(place', "a-snapshot-of-the-first-version-is-refused"),
     ("a seeded era is not marked", 'seeded = e.get("seeded_from_archive") is True', "seeded = False", "accents-and-case-are-folded"),
+    ("a seeded era's note says the plain phrase", '"source": SRC_SEEDED if seeded else SRC_ATLAS', '"source": SRC_ATLAS', "accents-and-case-are-folded"),
+    ("the archive's own seeded words are ignored", "return SRC_SEEDED if t == \"\" or t.lower() == SRC_ATLAS.lower() else t", "return SRC_SEEDED", 'seeded_words:"per our own reading"'),
+    ("the plain phrase is accepted as the archive's own seeded words", 't == "" or t.lower() == SRC_ATLAS.lower()', 't == ""', 'seeded_words:"per the Record Atlas"'),
+    ("the plain phrase is refused only in its exact spelling", 't == "" or t.lower() == SRC_ATLAS.lower()', 't == "" or t == SRC_ATLAS', 'seeded_words:"  Per The  RECORD atlas "'),
+    ("empty seeded words are accepted", 't == "" or t.lower() == SRC_ATLAS.lower()', 't.lower() == SRC_ATLAS.lower()', 'seeded_words:""'),
+    ("seeded words that are not a string are believed", 'if not isinstance(text, str):\n        return SRC_SEEDED\n    t =', 'if not isinstance(text, str):\n        return text\n    t =', "seeded_words:7"),
+    ("the archive's seeded words are not tidied", 't = " ".join(text.split())', "t = text", 'seeded_words:"  per   our'),
     ("a near-edge place is noted whatever its neighbours say", 'if kind is None or not lst or any(nb == region or not _neighbour_agrees(snap, nb, year, e, boundary, pol) for nb in lst):\n            return no(kind or "edge")',
      "if False:\n            return no(kind or \"edge\")", "a-place-near-an-edge-is-silent-where-its-neighbour-has-another-regime"),
     ("a near-edge place needs only ONE agreeing neighbour", "any(nb == region or not _neighbour_agrees(", "all(nb == region or not _neighbour_agrees(",
@@ -242,6 +255,7 @@ for label, a, b, must in FAULTS:
         why_not = staticmethod(ns["why_not"])
         ruler_at = staticmethod(ns["ruler_at"])
         why_no_ruler = staticmethod(ns["why_no_ruler"])
+        seeded_words = staticmethod(ns["seeded_words"])
     f = failing(Lib)
     case("planted fault '%s' is caught (%s)" % (label, must), any(x.startswith(must) for x in f), f[:3])
 
@@ -823,16 +837,25 @@ PLACE_OF = {"ruritania": "hentzau", "elphberg": "zenda"}
 
 
 def note(id_="ruritania--era-1700", year="1750", label="Kingdom of Ruritania", src="per the Record Atlas", href=ERA_URL % ("ruritania", 1700), boundary=False,
-         pre=None, assessed="1", edge=False, approx=False, contested=False, unsourced=False, place=True, ruler=None, extra=""):
+         pre=None, assessed="1", edge=False, approx=False, contested=False, unsourced=False, place=True, ruler=None, extra="", seeded=False):
     a = '<a class="era-src" href="%s" rel="noopener">%s</a>' % (href, src) if href else '<span class="era-src">%s</span>' % src
     b = ' data-era-boundary="1"' if boundary else ""
-    m = (' data-era-assessed="%s"' % assessed if assessed is not None else "") + (' data-era-approx="1"' if approx else "") + (' data-era-contested="1"' if contested else "") + (' data-era-margin-unsourced="1"' if unsourced else "") + (' data-era-edge-agree="1"' if edge else "")
+    m = (' data-era-assessed="%s"' % assessed if assessed is not None else "") + (' data-era-approx="1"' if approx else "") + (' data-era-contested="1"' if contested else "") + (' data-era-margin-unsourced="1"' if unsourced else "") + (' data-era-edge-agree="1"' if edge else "") + (' data-era-seeded="1"' if seeded else "")
     place = PLACE_OF.get(id_.split("--")[0]) if place is True else place
     m += (' data-era-place="%s"' % place if place else "") + (' data-era-ruler="%s"' % ruler if ruler else "")
     pre = pre if pre is not None else ("· From that year: " if boundary else "· At the time: ")
     ru = ' <span class="era-ruler">(%s)</span>' % ruler if ruler else ""
     return ('<span class="era-note" data-era="%s" data-era-year="%s"%s%s><span class="era-pre">%s</span>'
             '<span class="era-lab">%s</span>%s %s%s</span>' % (id_, year, b, m, pre, label, ru, a, extra))
+
+
+SEEDED = eralib.SRC_SEEDED
+
+
+def snote(year="1975", src=SEEDED, **kw):
+    """A note on the seeded era of the gate's snapshot (elphberg, from 1900), worded and marked as the component draws it (rule f)."""
+    kw.setdefault("seeded", True)
+    return note("elphberg--era-1900", year, "Kingdom of Ruritania", src, ERA_URL % ("elphberg", 1900), **kw)
 
 
 ERA_CSS = '<style is:inline data-era-css>.era-note{display:block;color:var(--ink-2,#444)}</style>'
@@ -874,8 +897,7 @@ P = "people/a/index.html"
 c, o = gate({P: page(note())})
 case("control: a note the snapshot supports passes (exit 0)", c == 0 and "1 note(s)" in o, o)
 case("...and the summary says which contract, and what policy, the snapshot rests on", "contract 1.7.0 of 2026-01-01" in o and "unassessed refuse" in o and "recent from 1990" in o, o)
-c, o = gate({P: page(note()), "people/b/index.html": page(note("elphberg--era-1900", "1975", "Kingdom of Ruritania", "per this archive's own research",
-                                                                ERA_URL % ("elphberg", 1900)))})
+c, o = gate({P: page(note()), "people/b/index.html": page(snote())})
 case("control: a note on a seeded era that says so passes, and is counted as seeded", c == 0 and "1 on a seeded region" in o, o)
 c, o = gate({P: page(note("ruritania--era-1850", "1850", "Republic of Ruritania", href=ERA_URL % ("ruritania", 1850), boundary=True))})
 case("control: a boundary-year note, marked and worded as one, passes and is counted", c == 0 and "1 on a boundary year" in o, o)
@@ -954,11 +976,11 @@ fails("a year that is not a number", {P: page(note(year="about 1750"))}, "year 1
 c, o = gate({P: page(note(year="1700"))})
 case("the first year of the first era is inside it (no boundary: nothing precedes it)", c == 0, o)
 print("  the quiet rule")
-fails("a note in the running era from the quiet-rule year", {P: page(note("elphberg--era-1900", "1990", "Kingdom of Ruritania", "per this archive's own research", ERA_URL % ("elphberg", 1900)))}, "recent 1")
-c, o = gate({P: page(note("elphberg--era-1900", "1989", "Kingdom of Ruritania", "per this archive's own research", ERA_URL % ("elphberg", 1900)))})
+fails("a note in the running era from the quiet-rule year", {P: page(snote("1990"))}, "recent 1")
+c, o = gate({P: page(snote("1989"))})
 case("the year before it is fine", c == 0, o)
 s = copy.deepcopy(CLEAN); s["policy"]["recent_from"] = 2000
-c, o = gate({P: page(note("elphberg--era-1900", "1995", "Kingdom of Ruritania", "per this archive's own research", ERA_URL % ("elphberg", 1900)))}, s)
+c, o = gate({P: page(snote("1995"))}, s)
 case("the snapshot's own quiet-rule year is the one the gate holds the page to", c == 0, o)
 print("  boundary years")
 fails("a boundary-year note that is not marked as one", {P: page(note("ruritania--era-1850", "1850", "Republic of Ruritania", href=ERA_URL % ("ruritania", 1850)))}, "boundary 1")
@@ -970,7 +992,28 @@ print("  words: the label and the source")
 fails("a label that differs from the snapshot's label", {P: page(note(label="Empire of Ruritania"))}, "label 1")
 fails("a note with no label", {P: page(note().replace('<span class="era-lab">Kingdom of Ruritania</span>', ""))}, "label 1")
 fails("a note that does not say where it came from", {P: page(note(src="at the time"))}, "source 1")
-fails("a seeded era's note that says 'per the Record Atlas' (rule f)", {P: page(note("elphberg--era-1900", "1975", "Kingdom of Ruritania", "per the Record Atlas", ERA_URL % ("elphberg", 1900)))}, "source 1")
+print("  rule f: a seeded era's note says it is drawn from this archive's own research, and carries data-era-seeded; no other note does")
+fails("a seeded era's note that says 'per the Record Atlas' (mark kept)", {P: page(snote(src="per the Record Atlas"))}, "source 1")
+fails("...and its text is not the snapshot's words either", {P: page(snote(src="per the Record Atlas"))}, "text 1")
+fails("a seeded era's note with the words the kit used before ('per this archive's own research')", {P: page(snote(src="per this archive's own research"))}, "source 1")
+fails("a seeded era's note with the words and no data-era-seeded mark", {P: page(snote(seeded=False))}, "seeded 1")
+fails("the plain note a seeded era used to get (no mark, 'per the Record Atlas')", {P: page(snote(src="per the Record Atlas", seeded=False))}, "seeded 1")
+c, o = gate({P: page(snote(src="per the Record Atlas", seeded=False))})
+case("...which fails the mark, the words and the text all at once", all(k in o for k in ("seeded 1", "source 1", "text 1")), o)
+fails("a note on an era that is not seeded that carries data-era-seeded", {P: page(note(seeded=True))}, "seeded 1")
+fails("a note on an era that is not seeded that says the seeded words", {P: page(note(src=SEEDED))}, "source 1")
+fails("a data-era-seeded that is not 1", {P: page(snote().replace('data-era-seeded="1"', 'data-era-seeded="yes"'))}, "seeded 1")
+fails("a data-era-seeded=\"0\" on a seeded era", {P: page(snote().replace('data-era-seeded="1"', 'data-era-seeded="0"'))}, "seeded 1")
+OWN = "per the Atlas, which holds our own reading"
+c, o = gate({P: page(snote(src=OWN))}, extra=["--seeded-text", OWN])
+case("the archive's own words (seededText), given to the gate with --seeded-text, pass", c == 0 and "1 on a seeded region" in o, o)
+fails("...and fail when the gate is not told of them", {P: page(snote(src=OWN))}, "source 1")
+fails("...and the kit's words fail when the gate is told the archive's own", {P: page(snote())}, "source 1", extra=["--seeded-text", OWN])
+fails("...and the plain phrase fails even with the archive's own words set", {P: page(snote(src="per the Record Atlas"))}, "source 1", extra=["--seeded-text", OWN])
+for bad_ in ("per the Record Atlas", "  PER the record ATLAS  ", "", "   "):
+    fails("--seeded-text %r (empty, or the plain phrase) is refused" % bad_, {P: page(snote())}, None, extra=["--seeded-text", bad_], code=2)
+c, o = gate({P: page(note())}, extra=["--seeded-text", OWN])
+case("--seeded-text changes nothing for a note on an era that is not seeded", c == 0, o)
 fails("a link to the REGION, not the era (rule e)", {P: page(note(href="https://atlas.example.test/region/ruritania/"))}, "source 1")
 fails("a link that is not the Atlas's", {P: page(note(href="https://elsewhere.example.test/"))}, "source 1")
 fails("a source with no link at all", {P: page(note(href=None))}, "source 1")
