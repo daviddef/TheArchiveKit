@@ -21,6 +21,14 @@
              nodes are the places along the lane, ends the fan at its right
    unplaced  households of the name that are documented and not yet placed
    loose     the labels under the rule at the foot
+   unplacedHead / looseHead / looseNote
+             the headings over the two holding pens and the italic note at the
+             end of the second. All three are the archive's words. The pens are
+             drawn ONLY when they hold something: an empty heading is a claim
+             the archive has looked and found nothing, and nobody has said so.
+             looseNote has no default (it used to print "the commonest
+             patronymic in Italy" under every archive's pen, which is true of
+             one surname in one country).
    unplacedAfter
              a lane key. The unplaced block is drawn under THAT lane rather
              than under every lane, and everything below it moves down to
@@ -61,8 +69,8 @@ import { plain } from "../lib/md.js";
    it - the teal river, Argentina, Monheim, Brazil and Ticino - so every other
    archive that adopted the drawing got Defranceschi's words underneath it,
    describing rivers it does not have. Raised by that session, whose words they
-   are. It is a prop now, defaulting to the text that was hardcoded, so the
-   page it was written for reads exactly as it did. */
+   are. It is a prop now with NO default (an archive that passes none draws no
+   caption), and Defranceschi passes its own. */
 /* THE SVG TITLE IS THE GRAPHIC'S ACCESSIBLE NAME, AND IT CARRIED A COUNT.
    «Six families of one surname, and the road each of them took» was hardcoded
    here, so it was what a screen reader announced for the whole drawing — and
@@ -76,15 +84,23 @@ const LANES = rivers?.lanes ?? [];
 const UNPLACED = rivers?.unplaced ?? [];
 const LOOSE = rivers?.loose ?? [];
 const BRIDGES = rivers?.bridges ?? [];
-const DEFAULT_CAPTION = `The teal river is the one this archive descends from, and the only one that arrived on foot looking for work. <strong>The green river at the bottom is drawn dashed because it never came to Istria at all</strong> — a fully documented family of the same name that goes from Cap Corse to the Caribbean, put here so that a Franceschi found in Puerto Rico or Caracas can be seen for what they are. <strong>A dotted end-point means the attachment is family lore, not a document</strong> — Argentina hangs off Carnia only on the word of a reunion album, and Monheim is a pin on a map. Below the rule are the households this archive will not pretend to have placed: <strong>Fiume, Svetvinčenat, Bakar and Vodnjan are real, documented families of the name that belong to nobody yet</strong>, and Brazil, Ticino and Michigan are somebody else's entirely. The table under this diagram gives every one of them a verdict.`;
 
 const W = 1040;
 const BH = 140, BGAP = 152;
 /* HOW FAR DOWN THE UNPLACED BLOCK PUSHES WHATEVER FOLLOWS IT: the 22px gap
    above its rule, its two headings and the loose row (124 between them), and
    26 more for every row of households past the first. */
+const HAS_U = UNPLACED.length > 0, HAS_L = LOOSE.length > 0;
 const UROWS = Math.max(1, Math.ceil(UNPLACED.length / 3));
-const BLOCK = 22 + 124 + (UROWS - 1) * 26;
+/* The pens are drawn only when they hold something. With both present these come to exactly the numbers they always
+   were (second heading at +80, its row at +100, the block 124 tall, each extra row of households 26 more). */
+const U_H = HAS_U ? 60 + (UROWS - 1) * 26 : 0;        // from the first heading to the second heading
+const L_HEAD = 20 + U_H;                                // the second heading, below the rule
+const END = HAS_L ? L_HEAD + 44 : HAS_U ? 40 + (UROWS - 1) * 26 + 24 : 0;
+const BLOCK = HAS_U || HAS_L ? 22 + END : 0;
+const HEAD_U = rivers?.unplacedHead ?? "Real households of the name — not yet placed on any of these lines";
+const HEAD_L = rivers?.looseHead ?? "Attached to no line here — a different stock of a very common name";
+const LOOSE_NOTE = rivers?.looseNote ?? "";
 
 /* WHERE THE BLOCK SITS IN THE STACK, AND WHY IT IS NO LONGER ALWAYS LAST.
    It began at the foot, because "everything not yet placed" belongs after
@@ -97,7 +113,7 @@ const BLOCK = 22 + 124 + (UROWS - 1) * 26;
    nothing, or naming a lane that is not drawn, leaves it at the foot exactly
    where it was, so no archive that does not ask for this sees any change. */
 let CUT = LANES.length;
-if (rivers?.unplacedAfter) {
+if (rivers?.unplacedAfter && (HAS_U || HAS_L)) {
   const ci = LANES.findIndex((l) => l.key === rivers.unplacedAfter);
   if (ci > -1) CUT = ci + 1;
 }
@@ -159,7 +175,7 @@ const GAPS = BANDS.map((b) => b.y0 + BH + 6);
    fixed x positions, so a strip level with them is not empty at the x a
    bridge label starts from. Measured: a label put 12px higher ran straight
    through «Ticino» and «Michigan». */
-if (CUT < LANES.length) GAPS.push(LOOSE_Y + 124 + (UROWS - 1) * 26);
+if (CUT < LANES.length) GAPS.push(LOOSE_Y + END);
 GAPS.sort((a, b) => a - b);
 const TAKEN = new Set();
 const labelY = (y) => {
@@ -176,7 +192,7 @@ const BR_LOST = BRIDGES.length - BR.length;
 ---
 <figure class="rivers">
   <svg viewBox={`0 0 1040 ${VH}`} role="img" aria-labelledby="riversttl">
-    <title id="riversttl">{title ?? "Six families of one surname, and the road each of them took"}</title>
+    <title id="riversttl">{title ?? `The lines of this name: ${LANES.length} ${LANES.length === 1 ? "lane" : "lanes"}, and the road each of them took`}</title>
     {LANES.map((lane, li) => {
       const b = BANDS[li];
       const n = lane.nodes.length;
@@ -262,9 +278,10 @@ const BR_LOST = BRIDGES.length - BR.length;
         </g>
       );
     })}
+    {(HAS_U || HAS_L) && (
     <g>
       <line x1="12" y1={LOOSE_Y} x2={W - 12} y2={LOOSE_Y} stroke="var(--rule-strong)" stroke-width="1" stroke-dasharray="2 4" />
-      <text x="12" y={LOOSE_Y + 20} class="loose-head">Real households of the name — not yet placed on any of these lines</text>
+      {HAS_U && <text x="12" y={LOOSE_Y + 20} class="loose-head">{HEAD_U}</text>}
       {UNPLACED.map((l, i) => (
         <g class="node" tabindex="0" role="button"
            data-place={l[0]} data-year="unplaced" data-why={l[2]}
@@ -276,24 +293,46 @@ const BR_LOST = BRIDGES.length - BR.length;
         </g>
       ))}
 
-      <text x="12" y={LOOSE_Y + 80 + (UROWS - 1) * 26} class="loose-head">Attached to no line here — a different stock of a very common name</text>
+      {HAS_L && <text x="12" y={LOOSE_Y + L_HEAD} class="loose-head">{HEAD_L}</text>}
       {LOOSE.map((l, i) => (
         <g class="node" tabindex="0" role="button"
            data-place={l[0]} data-year="—" data-why={l[2]}
            data-lane="Attached to no line here" data-href={u(l[1])} data-read={`Where ${l[0]} is written up`}>
           <title>{l[0]} — {plain(l[2])}</title>
-          <circle cx={150 + i * 200} cy={LOOSE_Y + 100 + (UROWS - 1) * 26} r="7" fill="transparent" />
-          <circle cx={150 + i * 200} cy={LOOSE_Y + 100 + (UROWS - 1) * 26} r="4.5" fill="none" stroke="var(--ink-3)" stroke-width="1.6" stroke-dasharray="2 2" />
-          <text x={162 + i * 200} y={LOOSE_Y + 104 + (UROWS - 1) * 26} class="loose">{l[0]}</text>
+          <circle cx={150 + i * 200} cy={LOOSE_Y + L_HEAD + 20} r="7" fill="transparent" />
+          <circle cx={150 + i * 200} cy={LOOSE_Y + L_HEAD + 20} r="4.5" fill="none" stroke="var(--ink-3)" stroke-width="1.6" stroke-dasharray="2 2" />
+          <text x={162 + i * 200} y={LOOSE_Y + L_HEAD + 24} class="loose">{l[0]}</text>
         </g>
       ))}
-      <text x={760} y={LOOSE_Y + 104 + (UROWS - 1) * 26} class="loose-note">— the commonest patronymic in Italy</text>
+      {HAS_L && LOOSE_NOTE && <text x={760} y={LOOSE_Y + L_HEAD + 24} class="loose-note">{LOOSE_NOTE}</text>}
     </g>
+    )}
   </svg>
+  {/* THE PHONE READS A LIST, NOT A SHRUNK DRAWING. At 390px the drawing was 660px wide in a sideways scroll with labels near
+      7px. Under 700px the drawing is hidden and this list, the same lanes in the same order with the same links, is shown. */}
+  <div class="rivers-list">
+    {LANES.map((lane) => (
+      <section class="rl-lane" style={`--lc:${lane.colour}`}>
+        <h3>{lane.label}</h3>
+        <p class="rl-conf">{lane.conf}</p>
+        <ol class="rl-nodes">{lane.nodes.map(([place, year]) => (
+          <li><b>{place}</b>{year && year !== "—" ? <span> · {year}</span> : null}</li>
+        ))}</ol>
+        {lane.ends.length > 0 && <p class="rl-ends"><span>Went on to</span> {lane.ends.map(([e]) => e.replace("?", "")).join(" · ")}</p>}
+        <a class="rl-read" href={u(lane.href)}>{lane.read}</a>
+      </section>
+    ))}
+    {BR.length > 0 && <section class="rl-pen"><h3>Candidate joins, not documents</h3>
+      <ul>{BR.map((br) => <li>{br.label || "A candidate join"}{br.href ? <> · <a href={u(br.href)}>where it is argued</a></> : null}</li>)}</ul></section>}
+    {HAS_U && <section class="rl-pen"><h3>{HEAD_U}</h3>
+      <ul>{UNPLACED.map((l) => <li><a href={u(l[1])}>{l[0]}</a></li>)}</ul></section>}
+    {HAS_L && <section class="rl-pen"><h3>{HEAD_L}</h3>
+      <ul>{LOOSE.map((l) => <li><a href={u(l[1])}>{l[0]}</a></li>)}</ul>{LOOSE_NOTE && <p class="rl-note">{LOOSE_NOTE}</p>}</section>}
+  </div>
   <div class="riverread" id="riverread" aria-live="polite">
     <b>Click or tab any dot</b> — the stops tell you what the document behind them says, and the destinations on the right tell their own story and link to it. Click a second time to go there.
   </div>
-  <figcaption set:html={caption ?? DEFAULT_CAPTION} />
+  {caption && <figcaption set:html={caption} />}
   {BR_LOST > 0 && (
     <p class="rivers-note">{BR_LOST === 1
       ? "One candidate join names a lane or household that is not on this drawing, and is not drawn."
@@ -384,8 +423,20 @@ const BR_LOST = BRIDGES.length - BR.length;
   .rivers .bridge:hover path,.rivers .bridge:focus path{opacity:.8}
   .rivers figcaption{font-family:var(--sans);font-size:13px;color:var(--ink-2);
     margin-top:14px;max-width:78ch;line-height:1.6}
+  .rivers-list{display:none}
+  .rl-lane{border-left:4px solid var(--lc,var(--accent));padding:2px 0 2px 14px;margin:0 0 18px}
+  .rl-lane h3,.rl-pen h3{margin:0 0 2px;font:600 15px/1.3 var(--sans)}
+  .rl-conf{margin:0 0 6px;font:11px/1.3 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3)}
+  .rl-nodes{margin:0 0 6px;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:2px 14px;font:14px/1.5 var(--sans);color:var(--ink)}
+  .rl-nodes span{color:var(--ink-3);font-family:var(--mono);font-size:12px}
+  .rl-ends{margin:0 0 6px;font:13px/1.5 var(--sans);color:var(--ink-2)}
+  .rl-ends span{font:11px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)}
+  .rl-read{font:600 13px var(--sans);color:var(--accent);text-decoration:none}
+  .rl-pen{margin:0 0 18px;padding-top:12px;border-top:1px dotted var(--rule-strong,var(--rule))}
+  .rl-pen ul{margin:6px 0 0;padding-left:18px;font:14px/1.6 var(--sans);color:var(--ink-2)}
+  .rl-note{margin:6px 0 0;font:italic 12.5px var(--sans);color:var(--ink-3)}
   @media (max-width:700px){
-    .rivers svg{min-width:660px}
-    .rivers{overflow-x:auto}
+    .rivers svg,.rivers .riverread{display:none}
+    .rivers-list{display:block}
   }
 </style>
