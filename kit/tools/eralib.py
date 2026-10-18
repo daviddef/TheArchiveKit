@@ -8,7 +8,7 @@ import math
 import re
 import unicodedata
 
-VERSION = 4
+VERSION = 5
 SRC_ATLAS = "per the Record Atlas"
 SRC_OWN = "per this archive's own research"
 PRE_NORMAL = "· At the time: "
@@ -215,6 +215,83 @@ def _neighbour_agrees(snap, nb, year, mine, boundary, pol):
     return True
 
 
+_SLUG = re.compile(r"^[a-z0-9][a-z0-9-]*$")
+RULER_WHY = ("snapshot", "year", "no-region", "no-rulers", "bad-rows", "no-era", "no-reign", "overlap", "polity", "margin", "ok")
+
+
+def reign_ok(r):
+    """A reign row the library can read (kit/lib/era.js reignOk): a name, a polityId slug, whole-number years (the end may be null: the reign
+    goes on) and whole-number margins. One unusable row leaves the whole region silent."""
+    if not isinstance(r, dict) or not isinstance(r.get("name"), str) or not r["name"].strip():
+        return False
+    if not isinstance(r.get("polity_id"), str) or not _SLUG.match(r["polity_id"]) or not is_year(r.get("from_year")):
+        return False
+    ty = r.get("to_year", "missing")
+    if not (ty is None or (is_year(ty) and r["from_year"] <= ty)):
+        return False
+    if not is_margin(r.get("from_margin")):
+        return False
+    return (r.get("to_margin", "missing") is None or is_margin(r.get("to_margin"))) if ty is None else is_margin(r.get("to_margin"))
+
+
+def _reign_touches(r, year):
+    return r["from_year"] - r["from_margin"] <= year and (r["to_year"] is None or year <= r["to_year"] + (r["to_margin"] or 0))
+
+
+def _ruler_decide(snap, region, year):
+    """Rule m (kit/lib/era.js rulerDecide): who reigned, or why not. Same reasons, same order."""
+    def no(why):
+        return {"why": why}
+
+    if not isinstance(snap, dict) or snap.get("version") != VERSION:
+        return no("snapshot")
+    if not is_year(year):
+        return no("year")
+    regions = snap.get("regions")
+    if not isinstance(region, str) or not isinstance(regions, dict) or not isinstance(regions.get(region), list):
+        return no("no-region")
+    allr = snap.get("rulers")
+    rs = allr.get(region) if isinstance(allr, dict) else None
+    if not isinstance(rs, dict) or rs.get("has") is not True or not isinstance(rs.get("reigns"), list) or not rs["reigns"]:
+        return no("no-rulers")
+    if not all(reign_ok(r) for r in rs["reigns"]):
+        return no("bad-rows")
+    pol = snap.get("policy") if isinstance(snap.get("policy"), dict) else {}
+    covering = [e for e in regions[region] if numeric(e) and covers(e, year)]
+    refused = [d for d in (snap.get("dropped") or []) if drop_ok(d) and d.get("region") == region and covers(d, year)]
+    if len(covering) != 1 or refused:
+        return no("no-era")
+    touching = [r for r in rs["reigns"] if _reign_touches(r, year)]
+    if not touching:
+        return no("no-reign")
+    if len(touching) > 1:
+        return no("overlap")
+    r = touching[0]
+    rp = pol.get("ruler_polities")
+    allowed = rp.get(covering[0].get("regime")) if isinstance(rp, dict) else None
+    if not isinstance(allowed, list) or r["polity_id"] not in allowed:
+        return no("polity")
+    n = floor_of(pol)
+    if not year - r["from_year"] > max(n, r["from_margin"]) or (r["to_year"] is not None and not r["to_year"] - year > max(n, r["to_margin"])):
+        return no("margin")
+    return {"why": "ok", "reign": r}
+
+
+def why_no_ruler(snap, region, year):
+    """Why no ruler for this region and year (one of RULER_WHY), or "ok"."""
+    return _ruler_decide(snap, region, year)["why"]
+
+
+def ruler_at(snap, region, year):
+    """Who reigned in this region in this year, as the Atlas states it: {name, polityId, from, to, fromYear, toYear, q}, or None."""
+    d = _ruler_decide(snap, region, year)
+    if d["why"] != "ok":
+        return None
+    r = d["reign"]
+    return {"name": r["name"], "polityId": r["polity_id"], "from": r.get("from"), "to": r.get("to"), "fromYear": r["from_year"], "toYear": r["to_year"],
+            "q": r["q"] if isinstance(r.get("q"), str) else None}
+
+
 def _decide(snap, place, year, recent_from=None):
     def no(why):
         return {"why": why}
@@ -288,12 +365,13 @@ def era_at(snap, place, year, recent_from=None):
         return None
     region, e = d["region"], d["e"]
     seeded = e.get("seeded_from_archive") is True
-    return {"region": region, "id": e["id"], "label": _label(e), "from": e["from"], "to": e.get("to"), "year": year,
+    return {"region": region, "place": d["key"], "id": e["id"], "label": _label(e), "from": e["from"], "to": e.get("to"), "year": year,
             "source": SRC_OWN if seeded else SRC_ATLAS, "seeded": seeded, "href": era_href(snap, region, e),
             "boundary": d["boundary"], "unchecked": d["key"] in (snap.get("unchecked_edge") or []),
             "unassessed": d["unassessed"], "assessed": not d["unassessed"],
             "approx": flag(e.get("approx")) == "yes", "contested": flag(e.get("contested")) == "yes",
-            "unsourced": e.get("margin_sourced") is False and margin_span(e, floor_of(snap.get("policy"))) is not None, "edgeAgree": d["edge_agree"], "basis": e.get("basis") if isinstance(e.get("basis"), str) else None}
+            "unsourced": e.get("margin_sourced") is False and margin_span(e, floor_of(snap.get("policy"))) is not None, "edgeAgree": d["edge_agree"], "basis": e.get("basis") if isinstance(e.get("basis"), str) else None,
+            "ruler": None if d["boundary"] or d["edge_agree"] else ruler_at(snap, region, year)}
 
 
 # ---- geometry, shared by erasnap.py (the builder) ------------------------------------------------------------------------

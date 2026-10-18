@@ -72,6 +72,17 @@ on every era, so a note says "per this archive's own research" and does not pret
 The boundary policy comes from the contract's own `rule` text: "newer" only if it says a year equal to a boundary belongs to the
 newer era; otherwise "silent". --boundary silent can make it stricter, never looser.
 
+THE RULERS (rule m; contract 1.11.0 and later, today for one region). A region the contract marks `hasRulers: true` carries `rulers`, one row per
+reign: `name` (the Atlas's own words), `polityId` (a stable slug), `from` / `to` as the source states them, numeric `fromYear` / `toYear`
+(`toYear` null: the reign goes on), `fromMargin` / `toMargin` (0 where a page gives a day, 1 where only a year), `marginWhy`, `q` (a
+Wikidata id or null) and `source`. They are carried into the snapshot under `rulers[<region>]` = {has, why, reigns}, for the regions the
+snapshot holds: `has` is true only where the contract says so AND every row is usable (a name, a slug, whole-number years, whole-number
+margins; a margin that is null is unknowable). One unusable row refuses the whole region's rulers (the row may be the one that overlaps a
+year); `why` then says so. `hasRulers` false, or a contract that has no such field (before 1.11.0), is `has` false / null: a missing field is
+never read as "none". The row's `note` and `language` are not carried (the language of administration is not used). The snapshot's policy
+carries `ruler_polities` {regime id: [polityId]}: which polities an era of that regime may name a ruler of (default RULER_POLITIES below:
+twosicilies and italy only; `--ruler-polities <file>` replaces it). A regime not in the table gets no ruler.
+
 Prints counts only; never a place or a person.
 """
 import argparse
@@ -89,6 +100,10 @@ DEFAULT_REFUSE = "feudal,german"
 DEFAULT_QUALIFY = "napo"
 DEFAULT_BASE = "https://recordatlas.org"
 CONTRACT_NAME = "recordatlas-context"
+# Which polities (the Atlas's polityId slugs on a reign) an era of a regime may name a ruler of. Only the regimes whose label IS one polity
+# or the unbroken line of two (Italy: the Kingdom, then the Republic); an era of any other regime (the shorthand "Napoleonic", a regime the
+# Atlas files several states under) gets no ruler. An archive replaces it with --ruler-polities, on the record.
+RULER_POLITIES = {"twosicilies": ["kingdom-of-the-two-sicilies"], "italy": ["kingdom-of-italy", "italian-republic"]}
 
 R_START = "start is words-only or not a year"
 R_END = "end is neither a year nor null"
@@ -280,6 +295,53 @@ def resolve_margin(e, frm, to, ap, co, scope, a, override):
     return sides[0], sides[1], (max(src, key=rank.get) if src else None), ms
 
 
+def load_ruler_polities(path):
+    """{regime id: [polityId]} from --ruler-polities, or the kit's default."""
+    if not path:
+        return {k: list(v) for k, v in RULER_POLITIES.items()}
+    j = json.load(open(path, encoding="utf-8"))
+    if isinstance(j, dict) and isinstance(j.get("ruler_polities"), dict):
+        j = j["ruler_polities"]
+    if not isinstance(j, dict) or not all(isinstance(k, str) and isinstance(v, list) and v and all(isinstance(x, str) and re.fullmatch(r"[a-z0-9][a-z0-9-]*", x) for x in v)
+                                          for k, v in j.items() if not k.startswith("_")):
+        raise SystemExit("erasnap: --ruler-polities must be a JSON object of regime id -> a list of polityId slugs")
+    return {k: list(v) for k, v in sorted(j.items()) if not k.startswith("_")}
+
+
+def region_rulers(r):
+    """The contract's rulers for one region -> the snapshot's {has, why, reigns} (rule m). has is true only if the contract says hasRulers: true
+    and every row is usable; otherwise why says what stopped it. A missing field is never read as none: has null says the contract is silent."""
+    has = r.get("hasRulers")
+    if has is None and "hasRulers" not in r:
+        return {"has": None, "why": "the contract has no hasRulers for this region", "reigns": []}
+    if has is not True:
+        return {"has": False, "why": "the contract says the region has no rulers", "reigns": []}
+    rows = r.get("rulers")
+    if not isinstance(rows, list) or not rows:
+        return {"has": False, "why": "hasRulers is true but the contract carries no reigns", "reigns": []}
+    reigns = []
+    for row in rows:
+        if not isinstance(row, dict):
+            return {"has": False, "why": "a reign row that is not an object", "reigns": []}
+        ty = row.get("toYear")
+        q = row.get("q")
+        out = {"name": row.get("name"), "polity_id": row.get("polityId"), "from": row.get("from") if isinstance(row.get("from"), str) else None,
+               "to": row.get("to") if isinstance(row.get("to"), str) else None, "from_year": row.get("fromYear"), "to_year": ty,
+               "from_margin": _margin(row.get("fromMargin")), "to_margin": _margin(row.get("toMargin")),
+               "margin_why": row.get("marginWhy") if isinstance(row.get("marginWhy"), str) else None,
+               "q": q if isinstance(q, str) and re.fullmatch(r"Q\d+", q) else None,
+               "source": row.get("source") if isinstance(row.get("source"), str) else None}
+        # the numeric years must follow the dates as the source states them, and an end must be stated either way: a closed reign with no
+        # toYear would otherwise read as a reign that goes on for ever
+        fs, ts = row.get("from"), row.get("to")
+        consistent = ("toYear" in row and isinstance(fs, str) and str(row.get("fromYear")) == fs[:4]
+                      and ((ts is None and ty is None) or (isinstance(ts, str) and ty is not None and str(ty) == ts[:4])))
+        if not consistent or not eralib.reign_ok(out):
+            return {"has": False, "why": "a reign row the library cannot read (a name, a polityId slug, whole-number years that follow the dates stated, and whole-number margins are needed; a null margin is unknowable)", "reigns": []}
+        reigns.append(out)
+    return {"has": True, "why": None, "reigns": reigns}
+
+
 def display_label(era, regime_label, qualify):
     """The contract's regimeLabel, or, for a bare-shorthand regime, the label with the era's own polity (never invented)."""
     lab = regime_label.strip()
@@ -314,6 +376,7 @@ def build(contract_path, rings_path, table_path, a, built):
     all_rings = bool(rings) and all(r["id"] in rings for r in doc["regions"])
     gap_ids, overlap_ids = quality_ids(doc["quality"])
     overrides = load_margins(a.margins)
+    ruler_polities = load_ruler_polities(a.ruler_polities)
 
     stats = {"eras_in": 0, "eras_kept": 0, "eras_kept_assessed": 0, "eras_kept_unassessed": 0, "eras_overlapping_another_kept_era": 0,
              "eras_kept_flagged": 0, "eras_kept_flagged_by_fallback": 0, "eras_kept_with_unsourced_margin": 0}
@@ -496,8 +559,9 @@ def build(contract_path, rings_path, table_path, a, built):
         "atlas": {"base": a.atlas_base, "rings_source": rings_source, "rings_sha256": rings_sha},
         "policy": {"unassessed": a.unassessed, "boundary": boundary, "recent_from": a.recent_from, "edge_km": a.edge_km, "edge": a.edge,
                    "approx": a.approx, "contested": a.contested, "margin_years": a.margin_years,
-                   "margins": {k: {"from": v[0], "to": v[1]} for k, v in sorted(overrides.items())}},
+                   "margins": {k: {"from": v[0], "to": v[1]} for k, v in sorted(overrides.items())}, "ruler_polities": ruler_polities},
         "regions": {k: regions[k] for k in sorted(regions) if k in used},
+        "rulers": {r["id"]: region_rulers(r) for r in sorted(doc["regions"], key=lambda x: x["id"]) if r["id"] in used},
         "places": places,
         "places_silent": silent,
         "edge_neighbours": edge_nb,
@@ -514,6 +578,9 @@ def build(contract_path, rings_path, table_path, a, built):
         stats["regions_without_a_usable_ring"] = sum(1 for r in doc["regions"] if r["id"] not in rings)
     stats["eras_dropped"] = dict(sorted(drop_by_reason.items()))
     stats["regions_in_snapshot"] = len(snap["regions"])
+    stats["regions_with_rulers"] = sum(1 for v in snap["rulers"].values() if v["has"] is True)
+    stats["reigns_carried"] = sum(len(v["reigns"]) for v in snap["rulers"].values())
+    stats["regions_with_rulers_refused"] = sum(1 for v in snap["rulers"].values() if v["has"] is False and v["why"].startswith(("a reign", "hasRulers is true")))
     stats["contract"] = "%s generated %s" % (version, doc["generated"])
     report = {"contract": snap["contract"], "policy": snap["policy"], "eras_in": stats["eras_in"], "eras_kept": stats["eras_kept"],
               "eras_dropped_by_reason": dict(sorted(drop_by_reason.items())),
@@ -549,6 +616,8 @@ def main(argv=None):
                          "(N more where marginSourced is false). 0 switches the floor off. For an approx era from a contract with no margins N alone holds it: "
                          "PROVISIONAL, not an Atlas fact" % eralib.MARGIN_YEARS)
     ap.add_argument("--margins", default=None, help="JSON {era id: years | {from, to}}: margins an archive WIDENS (never narrows) for single eras")
+    ap.add_argument("--ruler-polities", default=None, help="JSON {regime id: [polityId, ...]}: which polities an era of a regime may name a ruler of "
+                    "(replaces the kit's default: twosicilies and italy). A regime not in the table gets no ruler")
     ap.add_argument("--recent-from", type=int, default=eralib.RECENT_FROM,
                     help="the quiet rule: an event in the era still running from this year is silent (default %d)" % eralib.RECENT_FROM)
     ap.add_argument("--edge-km", type=float, default=eralib.EDGE_KM)

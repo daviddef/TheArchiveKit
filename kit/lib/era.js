@@ -59,15 +59,31 @@
         last year a note may use) and the library recomputes it from the margins and N: a record that does not agree is silence
         (whyNot "bad-margin"). Within the reach the reason is "margin". A note on an approx or contested era says so (data-era-approx /
         data-era-contested), and its words are unchanged: the regime label and "per the Record Atlas", no bound of the era in them.
+   m  RULERS (off unless the archive asks; the Atlas's contract 1.11.0+, today for one region). A note may name who reigned, beside the
+        regime label: "· At the time: Naples / the Two Sicilies (Ferdinand II) per the Record Atlas". rulerAt(snap, region, year) names a
+        ruler only when ALL of these hold, else null (whyNoRuler says which fails):
+          - the snapshot says the region HAS rulers (rulers[region].has === true: the contract's hasRulers; a missing field is NOT "none",
+            it is unknown, and unknown is silence) and every reign row is usable;
+          - exactly ONE reign covers the year, a reign covering [fromYear - fromMargin, toYear + toMargin] (to open: no end); two reigns
+            that overlap there (Joanna III and Charles IV; a changeover year) are null, never a pick;
+          - the year is MORE than max(N, fromMargin) after the reign's start and, if the reign is closed, more than max(N, toMargin)
+            before its end (N = policy.margin_years: the same floor as rule l);
+          - the reign's polityId is one the era's regime allows (policy.ruler_polities[regime]: a Naples reign in a Two Sicilies era is null);
+          - the region's era for that year is the single kept era covering it, with none refused over the year.
+        The name shown is the Atlas's `name` exactly (not translated, not normalised); the polity shown is the regime label, never the
+        polity string; the note ALWAYS keeps "per the Record Atlas". A boundary-year note ("From that year") and an edge note (a place
+        held to its neighbours) name no ruler. eraAt returns the ruler (era.ruler: {name, polityId, from, to, q} or null); the note
+        draws it only when the archive asks for it (EraNote rulers), as data-era-ruler and a span.era-ruler.
    Rule c is the PAGE's. Rule i is prepared by the snapshot builder, which has the place's coordinates; this file reads the result.
 
-   THE SNAPSHOT (JSON; version 4)
-     version        4
+   THE SNAPSHOT (JSON; version 5)
+     version        5
      built          the day it was built, YYYY-MM-DD
      contract       { name, version, generated, sha256 }   the contract the snapshot was cut from (sha256 of the file's bytes)
      atlas          { base: "https://recordatlas.org", rings_source: "contract"|"file"|"none", rings_sha256: <sha of the file>|null }
      policy         { unassessed: "refuse"|"allow", boundary: "newer"|"silent", recent_from: 1990, edge_km: 15, edge: "agree"|"strict",
-                      approx: "refuse"|"margin", contested: "refuse"|"scope"|"margin", margin_years: 5, margins: { <era id>: years } }
+                      approx: "refuse"|"margin", contested: "refuse"|"scope"|"margin", margin_years: 5, margins: { <era id>: years },
+                      ruler_polities: { <regime id>: [ <polityId> ] } }
      regions        { <region id>: [ { id, from, to|null, present, regime, label, polity, basis, seeded_from_archive, approx,
                                        contested, assessed, why, url, from_margin, to_margin, margin_src, contested_scope,
                                        margin_ok } ] }
@@ -80,9 +96,12 @@
      dropped        [ { region, id, from, to, reason } ]   eras the builder refused (so a count of what was left silent can say why)
      quality        { counts: { gaps, overlaps }, gaps: [...], overlaps: [...] }   the contract's own lists, the entries that name
                     a region of this snapshot (the lookup is silent there)
+     rulers         { <region id>: { has: true|false|null, why: null|text, reigns: [ { name, polity_id, from, to, from_year, to_year,
+                    from_margin, to_margin, margin_why, q, source } ] } }   the contract's rulers (1.11.0+) for the regions the snapshot
+                    holds; has is the contract's hasRulers (null: the contract has no such field), true only if every reign row is usable
    No import: this runs in node as it does in a build, so the kit can test it without Astro. */
 
-export const VERSION = 4;
+export const VERSION = 5;
 export const SRC_ATLAS = "per the Record Atlas";
 export const SRC_OWN = "per this archive's own research";
 export const PRE_NORMAL = "· At the time: ";
@@ -290,31 +309,88 @@ function decide(snap, place, year, opts) {
   return { why: "ok", region, e, boundary, key, unassessed, edgeAgree };
 }
 
+/* Rule m. A reign row the library can read: a name, a polityId slug, whole-number years (the end may be null: the reign goes on) and whole-number
+   margins. One unusable row leaves the whole region silent: the row might be the one that overlaps the year. */
+const SLUG = /^[a-z0-9][a-z0-9-]*$/;
+export const reignOk = (r) => r != null && typeof r === "object" && typeof r.name === "string" && r.name.trim() !== ""
+  && typeof r.polity_id === "string" && SLUG.test(r.polity_id) && isYear(r.from_year)
+  && (r.to_year === null || (isYear(r.to_year) && r.from_year <= r.to_year))
+  && isMargin(r.from_margin) && (r.to_year === null ? (r.to_margin === null || isMargin(r.to_margin)) : isMargin(r.to_margin));
+
+/* Does this reign touch the year, at all, within its own margins? [fromYear - fromMargin, toYear + toMargin]; an open reign has no end. */
+const reignTouches = (r, year) => r.from_year - r.from_margin <= year && (r.to_year === null || year <= r.to_year + (r.to_margin || 0));
+
+export const RULER_WHY = ["snapshot", "year", "no-region", "no-rulers", "bad-rows", "no-era", "no-reign", "overlap", "polity", "margin", "ok"];
+
+/* Why a region and a year name no ruler, or "ok" with the reign. Pure. The order is the order a person would ask the questions in. */
+function rulerDecide(snap, region, year) {
+  const no = (why) => ({ why });
+  if (!snap || typeof snap !== "object" || snap.version !== VERSION) return no("snapshot");
+  if (!isYear(year)) return no("year");
+  if (typeof region !== "string" || !own(snap.regions, region) || !Array.isArray(snap.regions[region])) return no("no-region");
+  const rs = own(snap.rulers, region) ? snap.rulers[region] : null;
+  if (rs == null || typeof rs !== "object" || rs.has !== true || !Array.isArray(rs.reigns) || rs.reigns.length === 0) return no("no-rulers");
+  if (!rs.reigns.every(reignOk)) return no("bad-rows");
+  const eras = snap.regions[region];
+  const pol = snap.policy && typeof snap.policy === "object" ? snap.policy : {};
+  const covering = eras.filter((e) => numeric(e) && covers(e, year));
+  const refused = (snap.dropped || []).filter((d) => dropOk(d) && d.region === region && covers(d, year));
+  if (covering.length !== 1 || refused.length > 0) return no("no-era");
+  const touching = rs.reigns.filter((r) => reignTouches(r, year));
+  if (touching.length === 0) return no("no-reign");
+  if (touching.length > 1) return no("overlap");
+  const r = touching[0];
+  const allowed = own(pol.ruler_polities, covering[0].regime) ? pol.ruler_polities[covering[0].regime] : null;
+  if (!Array.isArray(allowed) || !allowed.includes(r.polity_id)) return no("polity");
+  const n = floorOf(pol);
+  if (!(year - r.from_year > Math.max(n, r.from_margin)) || (r.to_year !== null && !(r.to_year - year > Math.max(n, r.to_margin)))) return no("margin");
+  return { why: "ok", reign: r };
+}
+
+/* Why no ruler for this region and year (one of RULER_WHY), or "ok". An archive that reports "n notes, k with a ruler, the rest silent because ..." uses it. */
+export function whyNoRuler(snap, region, year) {
+  return rulerDecide(snap, region, year).why;
+}
+
+/* Who reigned in this region in this year, as the Atlas states it, or null. -> { name, polityId, from, to, fromYear, toYear, q }.
+   `name` is the Atlas's own field, not translated or normalised; from / to are the dates as the source states them (to null: still reigning). */
+export function rulerAt(snap, region, year) {
+  const d = rulerDecide(snap, region, year);
+  if (d.why !== "ok") return null;
+  const r = d.reign;
+  return { name: r.name, polityId: r.polity_id, from: r.from === undefined ? null : r.from, to: r.to === undefined ? null : r.to, fromYear: r.from_year, toYear: r.to_year, q: typeof r.q === "string" ? r.q : null };
+}
+
 /* The era a note may name for this place in this year, or null. The year must already be a plain one (plainYear).
-   -> { region, id, label, from, to, year, source, seeded, href, boundary, unchecked, unassessed, assessed, approx, contested, edgeAgree, basis } */
+   -> { region, place, id, label, from, to, year, source, seeded, href, boundary, unchecked, unassessed, assessed, approx, contested, edgeAgree, basis, ruler } */
 export function eraAt(snap, place, year, opts) {
   const d = decide(snap, place, year, opts);
   if (d.why !== "ok") return null;
   const { region, e } = d;
   const seeded = e.seeded_from_archive === true;
   return {
-    region, id: e.id, label: label(e), from: e.from, to: e.to, year,
+    region, place: d.key, id: e.id, label: label(e), from: e.from, to: e.to, year,
     source: seeded ? SRC_OWN : SRC_ATLAS, seeded, href: eraHref(snap, region, e),
     boundary: d.boundary, unchecked: Array.isArray(snap.unchecked_edge) && snap.unchecked_edge.includes(d.key),
     unassessed: d.unassessed, assessed: !d.unassessed, approx: flag(e.approx) === "yes", contested: flag(e.contested) === "yes", unsourced: e.margin_sourced === false && marginSpan(e, floorOf(snap.policy)) !== null, edgeAgree: d.edgeAgree, basis: typeof e.basis === "string" ? e.basis : null,
+    /* rule m: no ruler on a boundary-year note ("From that year") or on an edge note (held to its neighbours) */
+    ruler: d.boundary || d.edgeAgree ? null : rulerAt(snap, region, year),
   };
 }
 
 const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
-/* The markup of one note, as components/EraNote.astro draws it (the node test holds the component to these attributes). */
-export function renderEra(era) {
+/* The markup of one note, as components/EraNote.astro draws it (the node test holds the component to these attributes).
+   opts.rulers === true draws the ruler too (rule m): the archive's choice, off by default. */
+export function renderEra(era, opts) {
   if (!era) return "";
   const src = era.href
     ? `<a class="era-src" href="${esc(era.href)}" rel="noopener">${esc(era.source)}</a>`
     : `<span class="era-src">${esc(era.source)}</span>`;
   const b = era.boundary === true;
+  const ru = opts && opts.rulers === true && era.ruler && typeof era.ruler.name === "string" && era.ruler.name !== "" ? era.ruler : null;
   return `<span class="era-note" data-era="${esc(era.id)}" data-era-year="${esc(era.year)}"${b ? ' data-era-boundary="1"' : ""}`
-    + ` data-era-assessed="${era.assessed === true ? "1" : "0"}"${era.approx === true ? ' data-era-approx="1"' : ""}${era.contested === true ? ' data-era-contested="1"' : ""}${era.unsourced === true ? ' data-era-margin-unsourced="1"' : ""}${era.edgeAgree === true ? ' data-era-edge-agree="1"' : ""}>`
-    + `<span class="era-pre">${b ? PRE_BOUNDARY : PRE_NORMAL}</span><span class="era-lab">${esc(era.label)}</span> ${src}</span>`;
+    + ` data-era-assessed="${era.assessed === true ? "1" : "0"}"${era.approx === true ? ' data-era-approx="1"' : ""}${era.contested === true ? ' data-era-contested="1"' : ""}${era.unsourced === true ? ' data-era-margin-unsourced="1"' : ""}${era.edgeAgree === true ? ' data-era-edge-agree="1"' : ""}`
+    + `${typeof era.place === "string" && era.place !== "" ? ` data-era-place="${esc(era.place)}"` : ""}${ru ? ` data-era-ruler="${esc(ru.name)}"` : ""}>`
+    + `<span class="era-pre">${b ? PRE_BOUNDARY : PRE_NORMAL}</span><span class="era-lab">${esc(era.label)}</span>${ru ? ` <span class="era-ruler">(${esc(ru.name)})</span>` : ""} ${src}</span>`;
 }

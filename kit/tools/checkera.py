@@ -32,6 +32,12 @@ template: a template that is right can still be fed a wrong year) and the era sn
              of the era's region has edge neighbours (the mark says "I stand at an edge and my neighbours agree")
   css        the era style (<style data-era-css>, drawn once by the first note of a page) is missing from a page that has a note,
              drawn twice, or drawn on a page that has no note (the weight the component's old bundled style put on every page)
+  place      a note with no data-era-place, a place the snapshot does not map, or a place that maps to another era than the one the note names
+  silent     a note the library would not have drawn at all for its place and year (the gate re-derives every note: era, marks, words, link, ruler)
+  text       a note whose whole text is not exactly what the snapshot gives for its era (the mark, the label, the ruler if any, the source): nothing may be added
+  ruler      a ruler (data-era-ruler, span.era-ruler) the snapshot does not name for the place and year (the reign does not cover the year, overlaps another,
+             lies within the margin of its bounds, is of a polity the era's regime does not allow, or the region has no rulers), whose name is not the
+             Atlas's exactly, or on a boundary or edge note; with --rulers also a MISSING ruler where the snapshot names one
   source     a note that does not say where it came from ("per the Record Atlas", or "per this archive's own research" for an era
              the snapshot marks seeded_from_archive: rule f), or whose link is not the era's own url on the Atlas (rule e)
 
@@ -41,7 +47,12 @@ reads the tree twice and throws its results away if the tree changed while it ra
 --dist, as everywhere in this kit (outdir.py). With --strict-unassessed it also fails a snapshot whose policy allows eras the Atlas has
 not assessed (every region era was null on contested/approx in contract 1.7.0).
 
-    python3 checkera.py --dist dist --snapshot src/data/era-snapshot.json [--living-urls living.json] [--require-tracked]
+THE RE-DERIVATION. A note carries data-era-place (the folded place it was drawn for), so the gate calls the library's own era_at(snapshot, place,
+year) for it and holds the note to the result: the era, the year, every mark (boundary, assessed, approx, contested, margin-unsourced, edge-agree)
+MISSING, EXTRA or WRONG, the words, the link and the ruler. A mark taken off a built note fails as surely as one added. --rulers says the archive has
+opted in to rulers (EraNote rulers): then a note whose snapshot names a ruler must carry it; without it a ruler that is there is still verified.
+
+    python3 checkera.py --dist dist --snapshot src/data/era-snapshot.json [--living-urls living.json] [--require-tracked] [--rulers]
 Exit: 0 clean; 1 any failure; 2 could not see what it needed (no pages, no snapshot, too few notes, tree changed).
 """
 import argparse
@@ -88,7 +99,8 @@ class Page(HTMLParser):
         part = None
         if "data-era" in a:
             note = {"id": a["data-era"], "year": a.get("data-era-year"), "boundary": a.get("data-era-boundary"),
-                    "assessed": a.get("data-era-assessed"), "approx": a.get("data-era-approx"), "contested": a.get("data-era-contested"), "unsourced": a.get("data-era-margin-unsourced"), "edge_agree": a.get("data-era-edge-agree"), "pres": [], "labs": [],
+                    "assessed": a.get("data-era-assessed"), "approx": a.get("data-era-approx"), "contested": a.get("data-era-contested"), "unsourced": a.get("data-era-margin-unsourced"), "edge_agree": a.get("data-era-edge-agree"), "place": a.get("data-era-place"),
+                    "ruler": a.get("data-era-ruler"), "text": "", "pres": [], "labs": [], "rus": [],
                     "srcs": [], "hrefs": []}
             self.notes.append(note)
             self.cur = note
@@ -99,6 +111,9 @@ class Page(HTMLParser):
             if "era-lab" in cls:
                 part = "lab"
                 self.cur["labs"].append("")
+            if "era-ruler" in cls:
+                part = "ru"
+                self.cur["rus"].append("")
             if "era-src" in cls:
                 part = "src"
                 self.cur["srcs"].append("")
@@ -122,12 +137,16 @@ class Page(HTMLParser):
             return
         if self.cur is None:
             return
+        self.cur["text"] += data
         for t, note, part in reversed(self.stack):
             if part == "pre":
                 self.cur["pres"][-1] += data
                 break
             if part == "lab":
                 self.cur["labs"][-1] += data
+                break
+            if part == "ru":
+                self.cur["rus"][-1] += data
                 break
             if part == "src":
                 self.cur["srcs"][-1] += data
@@ -168,8 +187,26 @@ def check_snapshot(snap):
               and eralib.is_margin(pol.get("margin_years")) and isinstance(pol.get("margins"), dict)):
         bad.append("policy has no approx / contested / margin_years / margins (rule l)")
         pol = {}
+    rp = pol.get("ruler_polities") if isinstance(pol, dict) else None
+    if pol and not (isinstance(rp, dict) and all(isinstance(k, str) and isinstance(v, list) and v and all(isinstance(x, str) and re.fullmatch(r"[a-z0-9][a-z0-9-]*", x) for x in v)
+                                                  for k, v in rp.items())):
+        bad.append("policy has no ruler_polities (rule m)")
     if not isinstance(snap.get("regions"), dict) or not isinstance(snap.get("places"), dict):
         return bad + ["regions or places missing"]
+    rl = snap.get("rulers")
+    if not isinstance(rl, dict):
+        bad.append("rulers missing (rule m)")
+        rl = {}
+    for rid, rs in rl.items():
+        if rid not in snap["regions"]:
+            bad.append("rulers for a region the snapshot does not hold")
+        elif not (isinstance(rs, dict) and rs.get("has") in (True, False, None) and isinstance(rs.get("reigns"), list)
+                  and (rs.get("why") is None or isinstance(rs.get("why"), str))):
+            bad.append("a region's rulers are not {has, why, reigns}")
+        elif rs["has"] is True and not (rs["reigns"] and rs.get("why") is None and all(eralib.reign_ok(r) for r in rs["reigns"])):
+            bad.append("a region marked as having rulers whose reigns are missing or unusable")
+        elif rs["has"] is not True and (rs["reigns"] or not rs.get("why")):
+            bad.append("a region without rulers that carries reigns, or does not say why")
     silent = snap.get("places_silent")
     if not isinstance(silent, dict) or any(v not in eralib.VALID_SILENT for v in silent.values()):
         bad.append("places_silent missing or has a reason it does not know")
@@ -291,8 +328,9 @@ def tracked(path):
         return False
 
 
-def judge(note, snap):
-    """The failures of one note, as category names. Pure: the self-test drives it."""
+def judge(note, snap, rulers=False):
+    """The failures of one note, as category names (each once). Pure: the self-test drives it. rulers: the archive has opted in to rulers,
+    so a note whose snapshot names a ruler must carry it."""
     out = []
     m = ID.match(note["id"] or "")
     era = None
@@ -347,6 +385,48 @@ def judge(note, snap):
     srcs = [norm(x) for x in note["srcs"]]
     if len(srcs) != 1 or srcs[0] != want_words or want_href is None or note["hrefs"] != [want_href]:
         out.append("source")
+    out += rederive(note, snap, region, era, yi, rulers)
+    return list(dict.fromkeys(out))
+
+
+def rederive(note, snap, region, era, yi, rulers):
+    """Re-derive the whole note from the snapshot, its own place and its year, with the library's own era_at, and hold the note to it: the era, every
+    mark missing, extra or wrong, the words, the link and the ruler. -> the category names it fails (the same names as above where one exists)."""
+    out = []
+    place = note.get("place")
+    if not isinstance(place, str) or not place or place != eralib.fold(place) or place not in snap["places"]:
+        return ["place"]
+    if yi is None:
+        return []
+    want = eralib.era_at(snap, place, yi)
+    if want is None:
+        return ["silent"]
+    if want["id"] != note["id"] or snap["places"][place] != region:
+        return ["place"]
+    # the marks, each compared with what the library derives: missing, extra and wrong all fail
+    if (note.get("boundary") == "1") != (want["boundary"] is True) or note.get("boundary") not in (None, "1"):
+        out.append("boundary")
+    if note.get("assessed") != ("1" if want["assessed"] else "0"):
+        out.append("assessed")
+    if (note.get("approx") != ("1" if want["approx"] else None) or note.get("contested") != ("1" if want["contested"] else None)
+            or note.get("unsourced") != ("1" if want["unsourced"] else None)):
+        out.append("approx")
+    if note.get("edge_agree") != ("1" if want["edgeAgree"] else None):
+        out.append("edge")
+    # the ruler: what the library names for this place and year, the Atlas's name exactly, and nothing where it names none
+    wr = want["ruler"]
+    got = note.get("ruler")
+    spans = [norm(x) for x in note.get("rus") or []]
+    if got is not None:
+        if wr is None or got != wr["name"] or spans != [norm("(%s)" % wr["name"])]:
+            out.append("ruler")
+    elif spans or (rulers and wr is not None):
+        out.append("ruler")
+    # the whole text of the note is the snapshot's words: the mark, the label, the ruler (if any), the source, and nothing else
+    pre = eralib.PRE_BOUNDARY if want["boundary"] else eralib.PRE_NORMAL
+    parts = [pre, want["label"]] + (["(%s)" % wr["name"]] if got is not None and wr is not None else []) + [want["source"]]
+    if norm(note.get("text")) != norm(" ".join(parts)):
+        out.append("text")
     return out
 
 
@@ -358,6 +438,8 @@ def main(argv=None):
     ap.add_argument("--require-tracked", action="store_true", help="fail if the snapshot is not committed to git")
     ap.add_argument("--min-pages", type=int, default=1)
     ap.add_argument("--min-notes", type=int, default=1)
+    ap.add_argument("--rulers", action="store_true",
+                    help="the archive has opted in to rulers (EraNote rulers): a note whose snapshot names a ruler for its place and year must carry it")
     ap.add_argument("--strict-unassessed", action="store_true",
                     help="fail a snapshot whose policy keeps eras the Atlas has not assessed (contested/approx null)")
     a = ap.parse_args(argv)
@@ -399,7 +481,7 @@ def main(argv=None):
     boundary_notes = 0
     assessed_notes = 0
     edge_notes = 0
-    approx_notes = contested_notes = provisional_notes = unsourced_notes = 0
+    approx_notes = contested_notes = provisional_notes = unsourced_notes = ruler_notes = 0
     css_pages = 0
     for p in pages:
         n_pages += 1
@@ -424,7 +506,7 @@ def main(argv=None):
         if pg.living or url_of(dist, p) in living:
             fail("living", len(pg.notes))
         for note in pg.notes:
-            for cat in judge(note, snap):
+            for cat in judge(note, snap, a.rulers):
                 fail(cat)
             m = ID.match(note["id"] or "")
             if m:
@@ -448,6 +530,8 @@ def main(argv=None):
                             provisional_notes += 1
                         if note.get("unsourced") == "1":
                             unsourced_notes += 1
+                        if note.get("ruler") is not None:
+                            ruler_notes += 1
     if outdir.fingerprint(dist) != before:
         print("  --    era       THE BUILD CHANGED WHILE THIS RAN (another build in flight). Results would be noise, so nothing is reported.")
         return 2
@@ -455,11 +539,11 @@ def main(argv=None):
           "seeded region, %d on a boundary year, %d at an edge where every neighbour agrees; %d on an approximate era and %d on a contested one, "
           "each more than max(N, margin) from the era's bounds with N = %d year(s): %d of them on the PROVISIONAL floor alone (the Atlas gave that era no margin: "
           "not an Atlas fact), %d resting on an UNSOURCED margin (the assessor knew the date but did not find it in a page: softer, N more)); "
-          "%d page(s) carry the era style, one each; "
+          "%d note(s) name a ruler (the Atlas's reign, exactly one covering the year, well inside it%s); %d page(s) carry the era style, one each; "
           "snapshot: contract %s of %s, rings from the %s, %d region(s), %d place(s) (%d not edge-checked, %d at an edge), built %s; policy: "
           "unassessed %s, boundary %s, recent from %s, edge %s, approx %s, contested %s" % (n_pages, n_with, n_notes, assessed_notes, unassessed_notes, seeded_notes,
                                                                  boundary_notes, edge_notes, approx_notes, contested_notes,
-                                                                 snap["policy"]["margin_years"], provisional_notes, unsourced_notes, css_pages, snap["contract"]["version"],
+                                                                 snap["policy"]["margin_years"], provisional_notes, unsourced_notes, ruler_notes, "; rulers are opted in" if a.rulers else "; rulers are not opted in", css_pages, snap["contract"]["version"],
                                                                  snap["contract"]["generated"], snap["atlas"]["rings_source"], len(snap["regions"]),
                                                                  len(snap["places"]), len(snap["unchecked_edge"]), len(snap["edge_neighbours"]),
                                                                  snap.get("built", "?"), snap["policy"]["unassessed"], snap["policy"]["boundary"],

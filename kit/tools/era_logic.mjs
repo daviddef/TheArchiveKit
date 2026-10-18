@@ -31,26 +31,57 @@ function failing(lib) {
     const snap = { atlas: { base: h.base } }; let g; try { g = lib.regionHref(snap, "ruritania"); } catch (e) { g = "threw"; }
     if (g !== h.href) out.push(h.id);
   }
+  /* rule m: who reigned. The region-level cases (rulerAt and whyNoRuler) and the note-level cases (eraAt's ruler) */
+  for (const c of FIX.ruler_cases) {
+    const snap = JSON.parse(JSON.stringify(FIX.other_snapshots[c.snap])); let got, why, threw = null;
+    try { got = lib.rulerAt(snap, c.region, c.year); why = lib.whyNoRuler(snap, c.region, c.year); } catch (e) { threw = e.message; }
+    if (!(threw === null && why === c.why && (c.name === null ? got === null : got !== null && got.name === c.name))) out.push(c.id);
+  }
+  for (const c of FIX.ruler_note_cases) {
+    const snap = JSON.parse(JSON.stringify(FIX.other_snapshots[c.snap])); let got, threw = null;
+    try { got = lib.eraAt(snap, c.place, c.year); } catch (e) { threw = e.message; }
+    if (!(threw === null && (got !== null) === c.era && (!c.era || ((got.ruler ? got.ruler.name : null) === c.ruler && got.boundary === c.boundary)))) out.push(c.id);
+  }
+  {
+    const rs = JSON.parse(JSON.stringify(FIX.other_snapshots.rulers));
+    const f = lib.rulerAt(rs, "rulerland", 1836), q = lib.rulerAt(rs, "rulerland", 1745);
+    if (!(f && f.polityId === "union-of-the-two-realms" && f.from === "1830" && f.to === "1859" && f.fromYear === 1830 && f.toYear === 1859 && f.q === null && q && q.q === "Q1")) out.push("ruler:fields");
+  }
   // the words a reader gets
   const era = lib.eraAt(JSON.parse(JSON.stringify(FIX.snapshot)), "Hentzau", 1750);
   const html = lib.renderEra(era);
-  if (!(html.startsWith('<span class="era-note" data-era="ruritania--era-1700" data-era-year="1750" data-era-assessed="1"><span class="era-pre">· At the time: </span>') && html.includes('<span class="era-lab">Kingdom of Ruritania</span>')
+  if (!(html.startsWith('<span class="era-note" data-era="ruritania--era-1700" data-era-year="1750" data-era-assessed="1" data-era-place="hentzau"><span class="era-pre">· At the time: </span>') && html.includes('<span class="era-lab">Kingdom of Ruritania</span>')
         && html.includes('<a class="era-src" href="https://atlas.example.test/region/ruritania/#era-1700" rel="noopener">per the Record Atlas</a>') && !html.includes("data-era-boundary"))) out.push("render:note");
   const bnd = lib.renderEra(lib.eraAt(JSON.parse(JSON.stringify(FIX.snapshot)), "Hentzau", 1850));
   if (!(bnd.includes(' data-era-boundary="1"') && bnd.includes('<span class="era-pre">· From that year: </span>') && bnd.includes('data-era="ruritania--era-1850"'))) out.push("render:boundary");
   if (lib.renderEra(null) !== "") out.push("render:null-is-empty");
   const edgeHtml = lib.renderEra(lib.eraAt(JSON.parse(JSON.stringify(FIX.snapshot)), "Edge Agree Town", 1750));
-  if (!edgeHtml.includes(' data-era-assessed="1" data-era-edge-agree="1">') || html.includes("data-era-edge-agree")) out.push("render:edge-agree");
+  if (!edgeHtml.includes(' data-era-assessed="1" data-era-edge-agree="1" data-era-place="edge agree town">') || html.includes("data-era-edge-agree")) out.push("render:edge-agree");
   const unas = lib.renderEra(lib.eraAt(JSON.parse(JSON.stringify(FIX.other_snapshots.allow)), "Null Town", 1750));
   if (!unas.includes(' data-era-assessed="0"')) out.push("render:unassessed");
   const mar = lib.renderEra(lib.eraAt(JSON.parse(JSON.stringify(FIX.other_snapshots.margin)), "Calabrio", 1830));
   const con = lib.renderEra(lib.eraAt(JSON.parse(JSON.stringify(FIX.other_snapshots.margin)), "Scopetown", 1825));
-  if (!(mar.includes(' data-era-assessed="1" data-era-approx="1">') && !mar.includes("data-era-contested") && con.includes(' data-era-assessed="1" data-era-contested="1">') && !con.includes("data-era-approx") && !html.includes("data-era-approx") && !html.includes("data-era-contested"))) out.push("render:margin-marks");
+  if (!(mar.includes(' data-era-assessed="1" data-era-approx="1" data-era-place=') && !mar.includes("data-era-contested") && con.includes(' data-era-assessed="1" data-era-contested="1" data-era-place=') && !con.includes("data-era-approx") && !html.includes("data-era-approx") && !html.includes("data-era-contested"))) out.push("render:margin-marks");
   /* the words claim no more than the Atlas does: the regime label and the source, no bound of the era, no digit but the event year's */
   const words = (h) => h.replace(/<[^>]*>/g, "");
   if (!(words(mar) === "· At the time: Kingdom of the Two Realms per the Record Atlas" && words(con) === "· At the time: Realm of the Seven Seats per the Record Atlas")) out.push("render:margin-words");
   const soft = lib.renderEra(lib.eraAt(JSON.parse(JSON.stringify(FIX.other_snapshots.margin)), "Softton", 1711));
   if (!(soft.includes(' data-era-margin-unsourced="1"') && !mar.includes("margin-unsourced") && !html.includes("margin-unsourced"))) out.push("render:margin-marks");
+  /* rule m in the markup: off unless the archive asks, the Atlas's name exactly and escaped, no ruler on a boundary note */
+  {
+    const rs = () => JSON.parse(JSON.stringify(FIX.other_snapshots.rulers));
+    const er = lib.eraAt(rs(), "Rulertown", 1745);
+    const off = lib.renderEra(er), on = lib.renderEra(er, { rulers: true }), onFalse = lib.renderEra(er, { rulers: "yes" });
+    if (/era-ruler/.test(off) || /era-ruler/.test(onFalse) || off.replace(/<[^>]*>/g, "") !== "· At the time: Kingdom of Ruritania per the Record Atlas") out.push("render:ruler-off");
+    if (!(on.includes(' data-era-place="rulertown" data-era-ruler="Rudolf II">') && on.includes('<span class="era-lab">Kingdom of Ruritania</span> <span class="era-ruler">(Rudolf II)</span> <a class="era-src" href=')
+          && on.replace(/<[^>]*>/g, "") === "· At the time: Kingdom of Ruritania (Rudolf II) per the Record Atlas")) out.push("render:ruler");
+    const ex = lib.renderEra(lib.eraAt(rs(), "Rulertown", 1888), { rulers: true });
+    if (!(ex.includes('data-era-ruler="Stefan I &amp; Ana (listed as Štefan II)"') && ex.includes('<span class="era-ruler">(Stefan I &amp; Ana (listed as Štefan II))</span>'))) out.push("render:ruler-escapes");
+    const bn = lib.renderEra(lib.eraAt(rs(), "Tidy Town", 1800), { rulers: true });
+    if (/era-ruler/.test(bn) || !bn.includes("data-era-boundary")) out.push("render:ruler-boundary");
+    const ed = lib.renderEra(lib.eraAt(rs(), "Rulerborder Town", 1750), { rulers: true });
+    if (/era-ruler/.test(ed) || !ed.includes("data-era-edge-agree")) out.push("render:ruler-edge");
+  }
   const seeded = lib.eraAt(JSON.parse(JSON.stringify(FIX.snapshot)), "Zenda", 1975);
   if (!lib.renderEra(seeded).includes("per this archive's own research</a>")) out.push("render:seeded-words");
   const e = lib.renderEra({ id: 'x--1"', label: "<script>alert(1)</script> & \"q\"", year: 1750, source: "<b>", href: 'https://a.example.test/"x' });
@@ -163,6 +194,34 @@ const faults = [
   ["the source is not a link", "era.href\n    ? `<a class=\"era-src\"", "false\n    ? `<a class=\"era-src\"", "render:note"],
   ["a boundary note is not marked", "${b ? ' data-era-boundary=\"1\"' : \"\"}", "", "render:boundary"],
   ["a boundary note says 'at the time'", "${b ? PRE_BOUNDARY : PRE_NORMAL}", "${PRE_NORMAL}", "render:boundary"],
+  /* rule m: rulers */
+  ["a region the contract says has no rulers is named a ruler", " || rs.has !== true", "", "ruler-a-region-the-contract-says-has-no-rulers-is-silent-though-reigns-are-listed"],
+  ["overlapping reigns: the first is picked", "if (touching.length > 1) return no(\"overlap\");", "", "ruler-two-overlapping-reigns-are-silent-whichever-polity"],
+  ["a reign's start margin does not widen it", "r.from_year - r.from_margin <= year", "r.from_year <= year", "ruler-the-year-before-the-federation-has-two-reigns-through-its-start-margin"],
+  ["a reign's end margin does not widen it", "year <= r.to_year + (r.to_margin || 0)", "year <= r.to_year", "ruler-an-end-margin-of-1-widens-a-reign-one-year-past-its-end"],
+  ["an open reign is measured from an end it has not got", "(r.to_year !== null && !(r.to_year - year > Math.max(n, r.to_margin)))", "(!(r.to_year - year > Math.max(n, r.to_margin)))", "ruler-an-open-reign-is-named-with-no-end-to-measure-from"],
+  ["the floor is not applied at a reign's start", "year - r.from_year > Math.max(n, r.from_margin)", "year - r.from_year > r.from_margin", "ruler-within-5-years-of-the-reign-start-is-silent"],
+  ["the floor is not applied at a reign's end", "r.to_year - year > Math.max(n, r.to_margin)", "r.to_year - year > r.to_margin", "ruler-within-5-years-of-the-reign-end-is-silent"],
+  ["a year AT the reach of the start is allowed (at least, not more than)", "year - r.from_year > Math.max(n, r.from_margin)", "year - r.from_year >= Math.max(n, r.from_margin)", "ruler-the-year-AT-the-reach-is-silent-not-more-than-5"],
+  ["a year AT the reach of the end is allowed", "r.to_year - year > Math.max(n, r.to_margin)", "r.to_year - year >= Math.max(n, r.to_margin)", "ruler-the-union-ruler-5-years-before-the-end-is-silent"],
+  ["the snapshot's floor is ignored for rulers", "const n = floorOf(pol);\n  if (!(year - r.from_year", "const n = MARGIN_YEARS;\n  if (!(year - r.from_year", "ruler-with-the-floor-off-a-zero-margin-reign-is-named-up-to-the-year-before-its-end-1736"],
+  ["a reign of another polity is named", "if (!Array.isArray(allowed) || !allowed.includes(r.polity_id)) return no(\"polity\");", "", "ruler-the-reign-of-another-polity-is-silent"],
+  ["a regime the polity table does not list is allowed any polity", "if (!Array.isArray(allowed) || !allowed.includes(r.polity_id)) return no(\"polity\");", "if (Array.isArray(allowed) && !allowed.includes(r.polity_id)) return no(\"polity\");", "ruler-a-regime-the-polity-table-does-not-list-is-silent"],
+  ["two eras over the year do not silence the ruler", "if (covering.length !== 1 || refused.length > 0) return no(\"no-era\");", "if (covering.length < 1 || refused.length > 0) return no(\"no-era\");", "ruler-two-kept-eras-over-the-year-is-silent"],
+  ["a refused era over the year does not silence the ruler", "if (covering.length !== 1 || refused.length > 0) return no(\"no-era\");", "if (covering.length !== 1) return no(\"no-era\");", "ruler-a-refused-era-over-the-year-is-silent"],
+  ["an unusable reign row is ignored", "if (!rs.reigns.every(reignOk)) return no(\"bad-rows\");", "", "ruler-a-region-with-an-unusable-reign-row-is-silent-whole"],
+  ["the Atlas's name is changed", "return { name: r.name,", "return { name: r.name.toUpperCase(),", "ruler-a-year-well-inside-one-reign-names-it"],
+  ["the polityId is not returned", "polityId: r.polity_id,", "polityId: null,", "ruler:fields"],
+  ["a boundary-year note names a ruler", "ruler: d.boundary || d.edgeAgree ? null : rulerAt(snap, region, year),", "ruler: d.edgeAgree ? null : rulerAt(snap, region, year),", "note-a-boundary-year-note-names-no-ruler-though-a-reign-covers-it"],
+  ["an edge note names a ruler", "ruler: d.boundary || d.edgeAgree ? null : rulerAt(snap, region, year),", "ruler: d.boundary ? null : rulerAt(snap, region, year),", "note-an-edge-note-names-no-ruler"],
+  ["the note carries no ruler", "ruler: d.boundary || d.edgeAgree ? null : rulerAt(snap, region, year),", "ruler: null,", "note-a-ruler-well-inside-a-reign-is-on-the-note"],
+  ["the ruler is drawn without being asked for", "opts && opts.rulers === true && era.ruler &&", "era.ruler &&", "render:ruler-off"],
+  ["the ruler is never drawn", "? era.ruler : null;", "? null : null;", "render:ruler"],
+  ["the ruler mark is not drawn", "${ru ? ` data-era-ruler=\"${esc(ru.name)}\"` : \"\"}", "", "render:ruler"],
+  ["the ruler's words are not drawn", "${ru ? ` <span class=\"era-ruler\">(${esc(ru.name)})</span>` : \"\"}", "", "render:ruler"],
+  ["the ruler's name is not escaped", "(${esc(ru.name)})</span>", "(${ru.name})</span>", "render:ruler-escapes"],
+  ["the place is not drawn", " data-era-place=\"${esc(era.place)}\"", "", "render:note"],
+  ["the place is not returned by eraAt", "region, place: d.key, id: e.id,", "region, place: null, id: e.id,", "render:note"],
 ];
 for (const [label, from, to, must, extra] of faults) {
   if (!src.includes(from)) { n++; bad++; console.log("  FAIL  planted fault '" + label + "' could not be planted (the code changed)"); continue; }
@@ -261,6 +320,93 @@ const assessedMissing = gate(page(note("Hentzau", 1750).replace(' data-era-asses
 ok("gate: a note with no assessed mark fails (assessed)", assessedMissing.code === 1 && /assessed 1/.test(assessedMissing.out), assessedMissing.out);
 const edgeNoPlace = gate(page(note("Hentzau", 1750).replace('data-era-assessed="1"', 'data-era-assessed="1" data-era-edge-agree="1"')));
 ok("gate: an edge-agree mark where the snapshot holds no place that could carry it fails (edge)", edgeNoPlace.code === 1 && /edge 1/.test(edgeNoPlace.out), edgeNoPlace.out);
+
+/* THE RE-DERIVATION (rule m and the gate gap): the gate recomputes every mark of a built note from the snapshot, its place and its year, and fails a mark that is
+   missing, extra or wrong, a ruler the snapshot does not name, and text that is not the snapshot's words. The real renderer draws the notes; the real gate reads them. */
+const RS = FIX.other_snapshots.rulers;
+const rsPath = path.join(t, "era-snapshot-rulers.json");
+fs.writeFileSync(rsPath, JSON.stringify(RS));
+const rgate = (html, extra = []) => {
+  const dist = path.join(t, "dist-r"); fs.rmSync(dist, { recursive: true, force: true });
+  fs.mkdirSync(path.join(dist, "people", "a"), { recursive: true });
+  fs.writeFileSync(path.join(dist, "people", "a", "index.html"), html);
+  const env = Object.fromEntries(Object.entries(process.env).filter(([k]) => k !== "ARCHIVE_OUT"));
+  const r = spawnSync("python3", [path.join(here, "checkera.py"), "--dist", dist, "--snapshot", rsPath, ...extra], { encoding: "utf8", env });
+  return { code: r.status, out: (r.stdout || "") + (r.stderr || "") };
+};
+const rnote = (p, y, rulers = false) => E.renderEra(E.eraAt(RS, p, y), { rulers });
+const MARKS = [
+  // [mark, a place and year whose note carries it, the attribute as drawn, the gate's category]
+  ["data-era-boundary", "Tidy Town", 1800, ' data-era-boundary="1"', "boundary"],
+  ["data-era-assessed", "Rulertown", 1745, ' data-era-assessed="1"', "assessed"],
+  ["data-era-approx", "Rulertown", 1830, ' data-era-approx="1"', "approx"],
+  ["data-era-contested", "Dispute Town", 1750, ' data-era-contested="1"', "approx"],
+  ["data-era-margin-unsourced", "Soft Town", 1750, ' data-era-margin-unsourced="1"', "approx"],
+  ["data-era-edge-agree", "Rulerborder Town", 1750, ' data-era-edge-agree="1"', "edge"],
+  ["data-era-place", "Rulertown", 1745, ' data-era-place="rulertown"', "place"],
+];
+for (const [mark, place, year, attr, cat] of MARKS) {
+  const base = rnote(place, year);
+  ok("gate (re-derivation): the note the library drew with " + mark + " passes", base.includes(attr) && rgate(page(base)).code === 0, rgate(page(base)).out);
+  const gone = rgate(page(base.replace(attr, "")));
+  ok("gate (re-derivation): the same note with " + mark + " REMOVED fails (" + cat + ")", gone.code === 1 && new RegExp(cat + " 1").test(gone.out), gone.out);
+}
+for (const [mark, place, year, attr, cat] of MARKS.filter((m) => !["data-era-assessed", "data-era-place"].includes(m[0]))) {
+  // the mark ADDED to a note whose place and year do not carry it
+  const plain = rnote("Rulertown", 1745);
+  const added = rgate(page(plain.replace(' data-era-place="rulertown"', attr + ' data-era-place="rulertown"')));
+  ok("gate (re-derivation): a note with " + mark + " ADDED where the snapshot does not give it fails (" + cat + ")", added.code === 1 && new RegExp(cat + " 1").test(added.out), added.out);
+}
+{
+  const wrongVal = rgate(page(rnote("Rulertown", 1745).replace('data-era-assessed="1"', 'data-era-assessed="0"')));
+  ok("gate (re-derivation): data-era-assessed with the wrong value fails (assessed)", wrongVal.code === 1 && /assessed 1/.test(wrongVal.out), wrongVal.out);
+  const wrongPlace = rgate(page(rnote("Rulertown", 1745).replace('data-era-place="rulertown"', 'data-era-place="plain town"')));
+  ok("gate (re-derivation): a note drawn for another place (same year, another region) fails (place)", wrongPlace.code === 1 && /place 1/.test(wrongPlace.out), wrongPlace.out);
+  const unknownPlace = rgate(page(rnote("Rulertown", 1745).replace('data-era-place="rulertown"', 'data-era-place="nowhere"')));
+  ok("gate (re-derivation): a place the snapshot does not map fails (place)", unknownPlace.code === 1 && /place 1/.test(unknownPlace.out), unknownPlace.out);
+  const unfolded = rgate(page(rnote("Rulertown", 1745).replace('data-era-place="rulertown"', 'data-era-place="Rulertown"')));
+  ok("gate (re-derivation): a place that is not the folded key fails (place)", unfolded.code === 1 && /place 1/.test(unfolded.out), unfolded.out);
+  const silentNote = rgate(page(rnote("Rulertown", 1745).replace('data-era-year="1745"', 'data-era-year="1736"')));
+  ok("gate (re-derivation): the same place and a year the library is silent in still passes (1736 is a year the library draws a note for: control)", silentNote.code === 0, silentNote.out);
+  const lib0 = rgate(page(rnote("Rulertown", 1745).replace('data-era-year="1745"', 'data-era-year="1860"')));
+  ok("gate (re-derivation): a note for a place and year the library would not draw at all fails (silent)", lib0.code === 1 && /silent 1/.test(lib0.out), lib0.out);
+  const extraText = rgate(page(rnote("Rulertown", 1745).replace("</a></span>", "</a> (and more)</span>")));
+  ok("gate (re-derivation): text added inside the note fails (text)", extraText.code === 1 && /text 1/.test(extraText.out), extraText.out);
+  const labelText = rgate(page(rnote("Rulertown", 1745).replace("Kingdom of Ruritania", "Kingdom of Ruritania, Greater")));
+  ok("gate (re-derivation): the label changed in the note's text fails (label, text)", labelText.code === 1 && /label 1/.test(labelText.out) && /text 1/.test(labelText.out), labelText.out);
+}
+// rulers
+{
+  const withR = rnote("Rulertown", 1745, true);
+  const g1 = rgate(page(withR), ["--rulers"]);
+  ok("gate (rulers): a note that names the Atlas's ruler passes, and is counted", g1.code === 0 && /1 note\(s\) name a ruler/.test(g1.out) && /rulers are opted in/.test(g1.out), g1.out);
+  ok("gate (rulers): ...also without --rulers (a ruler that is there is verified either way)", rgate(page(withR)).code === 0 && /rulers are not opted in/.test(rgate(page(withR)).out));
+  const bare = rnote("Rulertown", 1745);
+  ok("gate (rulers): a note with no ruler passes without --rulers (the archive has not opted in)", rgate(page(bare)).code === 0);
+  const miss = rgate(page(bare), ["--rulers"]);
+  ok("gate (rulers): ... and fails with --rulers, when the snapshot names a ruler the note leaves out (ruler)", miss.code === 1 && /ruler 1/.test(miss.out), miss.out);
+  const silentOk = rgate(page(rnote("Rulertown", 1736, true)), ["--rulers"]);
+  ok("gate (rulers): a note whose year is within a reign's margin carries no ruler, and passes with --rulers", silentOk.code === 0 && /0 note\(s\) name a ruler/.test(silentOk.out), silentOk.out);
+  const stripped = withR.replace(' data-era-ruler="Rudolf II"', "").replace(' <span class="era-ruler">(Rudolf II)</span>', "");
+  ok("gate (rulers): the ruler stripped by hand is the bare note: passes without --rulers, fails with it", stripped === bare && rgate(page(stripped), ["--rulers"]).code === 1);
+  const inject = (html, name) => html.replace(' data-era-place="', ' data-era-place="').replace(/(data-era-place="[^"]*")/, '$1 data-era-ruler="' + name + '"').replace('</span> <a class="era-src"', '</span> <span class="era-ruler">(' + name + ')</span> <a class="era-src"');
+  const bad = (label, html) => { const g = rgate(page(html), ["--rulers"]); ok("gate (rulers): " + label + " fails (ruler)", g.code === 1 && /ruler 1/.test(g.out), g.out); };
+  bad("a ruler other than the one the snapshot names for the year", inject(bare, "Rudolf I"));
+  bad("a ruler whose name is the Atlas's, normalised (\"Rudolf 2\")", inject(bare, "Rudolf 2"));
+  bad("a ruler on a year inside a reign's margin of its end (1736)", inject(rnote("Rulertown", 1736), "Rudolf I"));
+  bad("a ruler on an overlap year (1830: two reigns)", inject(rnote("Rulertown", 1830), "Francis"));
+  bad("a ruler of another polity than the era's regime allows (1770)", inject(rnote("Rulertown", 1770), "Karl the Elder"));
+  bad("a ruler on a boundary-year note", inject(rnote("Tidy Town", 1800), "Tidy Karl"));
+  bad("a ruler on an edge note", inject(rnote("Rulerborder Town", 1750), "Rudolf II"));
+  bad("a ruler on a note of a region that has no rulers", inject(rnote("Plain Town", 1750), "Plain King"));
+  bad("a ruler on a note of a region with no rulers entry at all", inject(rnote("Nofield Town", 1750), "Nobody"));
+  bad("a ruler span without its data-era-ruler mark", withR.replace(' data-era-ruler="Rudolf II"', ""));
+  bad("a data-era-ruler mark without its words", withR.replace(' <span class="era-ruler">(Rudolf II)</span>', ""));
+  bad("a ruler mark whose words differ", withR.replace("(Rudolf II)", "(Rudolf the Second)"));
+  bad("a ruler mark that is empty", withR.replace('data-era-ruler="Rudolf II"', 'data-era-ruler=""'));
+  const reign1830 = rgate(page(rnote("Rulertown", 1836, true)), ["--rulers"]);
+  ok("gate (rulers): the Atlas's name with an ampersand and an accent, escaped by the renderer, passes", rgate(page(rnote("Rulertown", 1888, true)), ["--rulers"]).code === 0 && reign1830.code === 0, reign1830.out);
+}
 fs.rmSync(t, { recursive: true, force: true });
 
 console.log(bad ? "\n" + bad + " of " + n + " FAILED" : "\n  ok    " + n + " checks: the era note, its markup, and the gate that reads it");

@@ -59,6 +59,32 @@ def failing(lib):
                 out.append(c["id"])
         elif got is None or any(got.get(k) != v for k, v in c["want"].items()):
             out.append(c["id"])
+    for c in CASES["ruler_cases"]:
+        s = copy.deepcopy(CASES["other_snapshots"][c["snap"]])
+        try:
+            got = lib.ruler_at(s, c["region"], c["year"])
+            why = lib.why_no_ruler(s, c["region"], c["year"])
+        except Exception as e:  # noqa: BLE001
+            out.append(c["id"] + " (threw %s)" % type(e).__name__)
+            continue
+        if why != c["why"] or (c["name"] is None and got is not None) or (c["name"] is not None and (got is None or got["name"] != c["name"])):
+            out.append(c["id"])
+    for c in CASES["ruler_note_cases"]:
+        s = copy.deepcopy(CASES["other_snapshots"][c["snap"]])
+        try:
+            got = lib.era_at(s, c["place"], c["year"])
+        except Exception as e:  # noqa: BLE001
+            out.append(c["id"] + " (threw %s)" % type(e).__name__)
+            continue
+        if (got is not None) != c["era"] or (c["era"] and ((got["ruler"] or {}).get("name") != c["ruler"] or got["boundary"] != c["boundary"])):
+            out.append(c["id"])
+    rs_ = copy.deepcopy(CASES["other_snapshots"]["rulers"])
+    f_, q_ = lib.ruler_at(rs_, "rulerland", 1836), lib.ruler_at(rs_, "rulerland", 1745)
+    if not (f_ and f_["polityId"] == "union-of-the-two-realms" and f_["from"] == "1830" and f_["to"] == "1859" and f_["fromYear"] == 1830 and f_["toYear"] == 1859
+            and f_["q"] is None and q_ and q_["q"] == "Q1"):
+        out.append("ruler:fields")
+    if (lib.era_at(rs_, "Rulertown", 1745) or {}).get("place") != "rulertown":
+        out.append("note:place")
     return out
 
 
@@ -139,7 +165,8 @@ FAULTS = [
      "if False:\n        return no(silent[key])", "a-place-on-the-edge-is-silent"),
     ("any silence reason is believed", "isinstance(silent, dict) and silent.get(key) in VALID_SILENT", "isinstance(silent, dict) and key in silent", "an-unknown-silence-reason-is-no-region"),
     ("an unchecked place is not flagged", '"unchecked": d["key"] in (snap.get("unchecked_edge") or [])', '"unchecked": False', "a-place-that-could-not-be-edge-checked-is-flagged"),
-    ("a snapshot of another version is read", 'snap.get("version") != VERSION', "False", "a-snapshot-of-the-first-version-is-refused"),
+    ("a snapshot of another version is read", 'snap.get("version") != VERSION:\n        return no("snapshot")\n    if not is_year(year):\n        return no("year")\n    if not isinstance(place',
+     'False:\n        return no("snapshot")\n    if not is_year(year):\n        return no("year")\n    if not isinstance(place', "a-snapshot-of-the-first-version-is-refused"),
     ("a seeded era is not marked", 'seeded = e.get("seeded_from_archive") is True', "seeded = False", "accents-and-case-are-folded"),
     ("a near-edge place is noted whatever its neighbours say", 'if kind is None or not lst or any(nb == region or not _neighbour_agrees(snap, nb, year, e, boundary, pol) for nb in lst):\n            return no(kind or "edge")',
      "if False:\n            return no(kind or \"edge\")", "a-place-near-an-edge-is-silent-where-its-neighbour-has-another-regime"),
@@ -179,6 +206,28 @@ FAULTS = [
     ("a neighbour with no era before its first is trusted", "if not before or any(", "if any(", "a-neighbour-whose-first-era-begins-this-year-is-unknown-before-it"),
     ("a neighbour's refused predecessor is ignored", 'if any(d.get("to") == year for d in dropped):\n            return False', "", "a-neighbour-whose-predecessor-was-refused-is-unknown"),
     ("a neighbour's predecessor may have another label", "if not before or any(_label(o) != _label(mine) or", "if not before or any(False or", "a-neighbour-whose-era-begins-this-year-after-another-regime-is-silent"),
+    # rule m: rulers
+    ("a region the contract says has no rulers is named a ruler", ' or rs.get("has") is not True', "", "ruler-a-region-the-contract-says-has-no-rulers-is-silent-though-reigns-are-listed"),
+    ("overlapping reigns: the first is picked", 'if len(touching) > 1:\n        return no("overlap")', "", "ruler-two-overlapping-reigns-are-silent-whichever-polity"),
+    ("a reign's start margin does not widen it", 'r["from_year"] - r["from_margin"] <= year', 'r["from_year"] <= year', "ruler-the-year-before-the-federation-has-two-reigns-through-its-start-margin"),
+    ("a reign's end margin does not widen it", 'year <= r["to_year"] + (r["to_margin"] or 0)', 'year <= r["to_year"]', "ruler-an-end-margin-of-1-widens-a-reign-one-year-past-its-end"),
+    ("an open reign is measured from an end it has not got", '(r["to_year"] is not None and not r["to_year"] - year > max(n, r["to_margin"]))', '(not r["to_year"] - year > max(n, r["to_margin"]))', "ruler-an-open-reign-is-named-with-no-end-to-measure-from"),
+    ("the floor is not applied at a reign's start", 'year - r["from_year"] > max(n, r["from_margin"])', 'year - r["from_year"] > r["from_margin"]', "ruler-within-5-years-of-the-reign-start-is-silent"),
+    ("the floor is not applied at a reign's end", 'r["to_year"] - year > max(n, r["to_margin"])', 'r["to_year"] - year > r["to_margin"]', "ruler-within-5-years-of-the-reign-end-is-silent"),
+    ("a year AT the reach of the start is allowed (at least, not more than)", 'year - r["from_year"] > max(n, r["from_margin"])', 'year - r["from_year"] >= max(n, r["from_margin"])', "ruler-the-year-AT-the-reach-is-silent-not-more-than-5"),
+    ("a year AT the reach of the end is allowed", 'r["to_year"] - year > max(n, r["to_margin"])', 'r["to_year"] - year >= max(n, r["to_margin"])', "ruler-the-union-ruler-5-years-before-the-end-is-silent"),
+    ("the snapshot's floor is ignored for rulers", 'n = floor_of(pol)\n    if not year - r["from_year"]', 'n = MARGIN_YEARS\n    if not year - r["from_year"]', "ruler-with-the-floor-off-a-zero-margin-reign-is-named-up-to-the-year-before-its-end-1736"),
+    ("a reign of another polity is named", 'if not isinstance(allowed, list) or r["polity_id"] not in allowed:\n        return no("polity")', "", "ruler-the-reign-of-another-polity-is-silent"),
+    ("a regime the polity table does not list is allowed any polity", 'if not isinstance(allowed, list) or r["polity_id"] not in allowed:', 'if isinstance(allowed, list) and r["polity_id"] not in allowed:', "ruler-a-regime-the-polity-table-does-not-list-is-silent"),
+    ("two eras over the year do not silence the ruler", 'if len(covering) != 1 or refused:\n        return no("no-era")', 'if len(covering) < 1 or refused:\n        return no("no-era")', "ruler-two-kept-eras-over-the-year-is-silent"),
+    ("a refused era over the year does not silence the ruler", 'if len(covering) != 1 or refused:\n        return no("no-era")', 'if len(covering) != 1:\n        return no("no-era")', "ruler-a-refused-era-over-the-year-is-silent"),
+    ("an unusable reign row is ignored", 'if not all(reign_ok(r) for r in rs["reigns"]):\n        return no("bad-rows")', "", "ruler-a-region-with-an-unusable-reign-row-is-silent-whole"),
+    ("the Atlas's name is changed", 'return {"name": r["name"],', 'return {"name": r["name"].upper(),', "ruler-a-year-well-inside-one-reign-names-it"),
+    ("the polityId is not returned", '"polityId": r["polity_id"],', '"polityId": None,', "ruler:fields"),
+    ("a boundary-year note names a ruler", '"ruler": None if d["boundary"] or d["edge_agree"] else ruler_at(snap, region, year)}', '"ruler": None if d["edge_agree"] else ruler_at(snap, region, year)}', "note-a-boundary-year-note-names-no-ruler-though-a-reign-covers-it"),
+    ("an edge note names a ruler", '"ruler": None if d["boundary"] or d["edge_agree"] else ruler_at(snap, region, year)}', '"ruler": None if d["boundary"] else ruler_at(snap, region, year)}', "note-an-edge-note-names-no-ruler"),
+    ("the note carries no ruler", '"ruler": None if d["boundary"] or d["edge_agree"] else ruler_at(snap, region, year)}', '"ruler": None}', "note-a-ruler-well-inside-a-reign-is-on-the-note"),
+    ("the place is not returned by era_at", '"place": d["key"],', '"place": None,', "note:place"),
 ]
 for label, a, b, must in FAULTS:
     if a not in src:
@@ -191,6 +240,8 @@ for label, a, b, must in FAULTS:
     class Lib:
         era_at = staticmethod(ns["era_at"])
         why_not = staticmethod(ns["why_not"])
+        ruler_at = staticmethod(ns["ruler_at"])
+        why_no_ruler = staticmethod(ns["why_no_ruler"])
     f = failing(Lib)
     case("planted fault '%s' is caught (%s)" % (label, must), any(x.startswith(must) for x in f), f[:3])
 
@@ -300,14 +351,15 @@ base_file = ["--contract", cp, "--approx", "refuse", "--rings", rp, "--places", 
 rep = os.path.join(tmp, "report.json")
 c, o = run("erasnap.py", base + ["--unassessed", "allow", "--report", rep])
 snap = json.load(open(out)) if c == 0 else {}
-case("it builds a version 4 snapshot from the contract (its rings and bboxes) and an archive's place table", c == 0 and snap.get("version") == 4, o)
+case("it builds a version 5 snapshot from the contract (its rings and bboxes) and an archive's place table", c == 0 and snap.get("version") == 5, o)
 want_sha = hashlib.sha256(open(cp, "rb").read()).hexdigest()
 case("it records the contract's version, its generated stamp and the sha256 of the file's bytes",
      snap.get("contract") == {"name": "recordatlas-context", "version": "1.8.0", "generated": "2026-01-01", "sha256": want_sha}, snap.get("contract"))
 case("it records where the rings came from: the contract (no second file, so no second hash)", snap.get("atlas") == {"base": "https://recordatlas.org", "rings_source": "contract", "rings_sha256": None}, snap.get("atlas"))
 case("it records its policy: unassessed, boundary (from the contract's rule), quiet-rule year, edge km",
      snap.get("policy") == {"unassessed": "allow", "boundary": "newer", "recent_from": 1990, "edge_km": 15.0, "edge": "agree",
-                            "approx": "refuse", "contested": "scope", "margin_years": 5, "margins": {}}, snap.get("policy"))
+                            "approx": "refuse", "contested": "scope", "margin_years": 5, "margins": {},
+                            "ruler_polities": {"italy": ["kingdom-of-italy", "italian-republic"], "twosicilies": ["kingdom-of-the-two-sicilies"]}}, snap.get("policy"))
 case("only the regions the archive's table uses (and the neighbours of its edge places) are kept", sorted(snap.get("regions", {})) == ["badids", "eastland", "elphberg", "gapped", "nullr", "ruritania", "unknownbasis"], list(snap.get("regions", {})))
 R = snap.get("regions", {}).get("ruritania", [])
 case("the kept eras of a region carry the contract's id, its url, its label and its basis",
@@ -664,20 +716,123 @@ case("the snapshots built from 1.10.0 pass the gate's shape check", checkera.che
 c_, o_, _ = build19(p110, "s1100.json", ["--check"])
 case("--check passes on the rebuilt margin snapshot", c_ == 0, o_)
 
+# ---------------------------------------------------------------- 2c. erasnap.py: rule m, the rulers
+print("erasnap.py: the contract's rulers are carried, or refused whole, and never read from a missing field")
+
+
+def rrow(name, polity, fy, ty, fm=0, tm=0, frm=None, to="auto", q=None, **kw):
+    r_ = {"name": name, "polity": "Kingdom of X (free text)", "from": frm or str(fy), "to": (str(ty) if ty is not None else None) if to == "auto" else to,
+          "fromYear": fy, "toYear": ty, "polityId": polity, "fromMargin": fm, "toMargin": tm, "marginWhy": "invented", "source": "https://atlas.example.test/r", "note": "a long note"}
+    if q:
+        r_["q"] = q
+    r_.update(kw)
+    return r_
+
+
+def rregion(rid, lat, **kw):
+    r_ = mk_region(rid, lat, [ce(rid, 1700, None, regime="kingdom", label="Kingdom of X")])
+    r_.update(kw)
+    return r_
+
+
+GOOD = [rrow("Alpha I", "kingdom-of-x", 1700, 1750, frm="1700-01-02", to="1750-03-04", q="Q5"), rrow("Alpha II", "kingdom-of-x", 1750, None, to=None, frm="1750-03-04")]
+C12 = copy.deepcopy(C19)
+C12["contract"]["version"] = "1.12.0"
+C12["regions"] = [
+    rregion("hasr", 0, hasRulers=True, hasLanguage=False, rulers=GOOD),
+    rregion("norulers", 10, hasRulers=False, hasLanguage=False),
+    rregion("nofield", 20),
+    rregion("nullmargin", 30, hasRulers=True, rulers=[rrow("A", "kingdom-of-x", 1700, 1750, tm=None)]),
+    rregion("badyears", 40, hasRulers=True, rulers=[rrow("A", "kingdom-of-x", 1701, 1750, frm="1700-01-01")]),
+    rregion("noend", 50, hasRulers=True, rulers=[{k: v for k, v in rrow("A", "kingdom-of-x", 1700, 1750).items() if k != "toYear"}]),
+    rregion("openbad", 60, hasRulers=True, rulers=[rrow("A", "kingdom-of-x", 1700, 1750, to=None)]),
+    rregion("emptyrows", 70, hasRulers=True, rulers=[]),
+    rregion("strangeyear", 80, hasRulers=True, rulers=[rrow("A", "kingdom-of-x", 1700, "1750")]),
+    rregion("badslug", 90, hasRulers=True, rulers=[rrow("A", "Kingdom Of X", 1700, 1750)]),
+    rregion("noname", 100, hasRulers=True, rulers=[rrow("  ", "kingdom-of-x", 1700, 1750)]),
+    rregion("hasrtext", 110, hasRulers="yes", rulers=GOOD),
+    rregion("unusedr", 120, hasRulers=True, rulers=GOOD),
+]
+T12 = {"places": {"Has Town": "hasr", "Plain Town": "norulers", "Nofield Town": "nofield", "Nullm Town": "nullmargin", "Years Town": "badyears", "Noend Town": "noend",
+                  "Open Town": "openbad", "Empty Town": "emptyrows", "Strange Town": "strangeyear", "Slug Town": "badslug", "Noname Town": "noname", "Text Town": "hasrtext"}}
+p12 = os.path.join(tmp, "c120.json")
+json.dump(C12, open(p12, "w"))
+KP = os.path.join(tmp, "kp.json")
+json.dump({"kingdom": ["kingdom-of-x"]}, open(KP, "w"))
+c_, o_, s12 = build19(p12, "s120.json", table=T12)
+R12 = s12.get("rulers", {})
+case("it carries the rulers of every region the snapshot holds, and only those (a region no place uses is not carried)",
+     c_ == 0 and sorted(R12) == sorted(r_["id"] for r_ in C12["regions"] if r_["id"] != "unusedr") and "regions_with_rulers" in o_, (o_, sorted(R12)))
+case("a region the contract marks hasRulers true, with usable rows, has them: the Atlas's own name, polityId, the dates as stated, the numeric years and margins, q and source; not the note or the polity string",
+     R12["hasr"]["has"] is True and R12["hasr"]["why"] is None and R12["hasr"]["reigns"][0] == {
+         "name": "Alpha I", "polity_id": "kingdom-of-x", "from": "1700-01-02", "to": "1750-03-04", "from_year": 1700, "to_year": 1750, "from_margin": 0, "to_margin": 0,
+         "margin_why": "invented", "q": "Q5", "source": "https://atlas.example.test/r"} and R12["hasr"]["reigns"][1]["to_year"] is None and R12["hasr"]["reigns"][1]["q"] is None
+     and "note" not in R12["hasr"]["reigns"][0] and "polity" not in R12["hasr"]["reigns"][0], R12.get("hasr"))
+case("hasRulers false is recorded as false, with why and no reigns; a region the contract does not state is null (a missing field is never read as none)",
+     R12["norulers"] == {"has": False, "why": "the contract says the region has no rulers", "reigns": []}
+     and R12["nofield"] == {"has": None, "why": "the contract has no hasRulers for this region", "reigns": []}, (R12["norulers"], R12["nofield"]))
+case("hasRulers that is not true (a string) is not true", R12["hasrtext"]["has"] is False and R12["hasrtext"]["reigns"] == [])
+refused = {k: R12[k] for k in ("nullmargin", "badyears", "noend", "openbad", "emptyrows", "strangeyear", "badslug", "noname")}
+case("ONE unusable row refuses the whole region's rulers (a null margin is unknowable; years that do not follow the dates stated; a closed reign with no toYear, which would read as one that goes on for ever; an open reign with a toYear; "
+     "no rows; a string year; a polityId that is not a slug; a name with nothing in it), and says why",
+     all(v["has"] is False and v["reigns"] == [] and v["why"] for v in refused.values()), refused)
+case("the output counts regions with rulers, reigns carried and regions refused for an unusable row", any(l.split()[:2] == ["regions_with_rulers", "1"] for l in o_.splitlines())
+     and any(l.split()[:2] == ["reigns_carried", "2"] for l in o_.splitlines()) and any(l.split()[:2] == ["regions_with_rulers_refused", "8"] for l in o_.splitlines()), o_)
+case("the policy records the polities each regime may name a ruler of (the kit's default: twosicilies and italy)", s12["policy"]["ruler_polities"] == {
+    "italy": ["kingdom-of-italy", "italian-republic"], "twosicilies": ["kingdom-of-the-two-sicilies"]}, s12.get("policy"))
+case("...so an era of another regime names no ruler, though the region has them",
+     eralib.era_at(s12, "Has Town", 1725)["ruler"] is None and eralib.why_no_ruler(s12, "hasr", 1725) == "polity")
+c_, o_, s12k = build19(p12, "s120k.json", ["--ruler-polities", KP], table=T12)
+case("--ruler-polities replaces the table, and is recorded: the same snapshot now names Alpha I in 1725, Alpha II in 1760 (an open reign)",
+     c_ == 0 and s12k["policy"]["ruler_polities"] == {"kingdom": ["kingdom-of-x"]} and (eralib.era_at(s12k, "Has Town", 1725)["ruler"] or {}).get("name") == "Alpha I"
+     and (eralib.era_at(s12k, "Has Town", 1760)["ruler"] or {}).get("name") == "Alpha II", o_)
+case("...and no ruler where the year is within the margin of a reign, in a region with none, a region unstated, or one whose rows were unusable",
+     eralib.era_at(s12k, "Has Town", 1748)["ruler"] is None and all(eralib.era_at(s12k, pl, 1725) is not None and eralib.era_at(s12k, pl, 1725)["ruler"] is None
+                                                                      for pl in ("Plain Town", "Nofield Town", "Nullm Town", "Years Town", "Noend Town", "Open Town", "Empty Town", "Strange Town", "Slug Town", "Noname Town", "Text Town")))
+case("the snapshots built with rulers pass the gate's shape check", checkera.check_snapshot(s12) == [] and checkera.check_snapshot(s12k) == [], (checkera.check_snapshot(s12), checkera.check_snapshot(s12k)))
+c_, o_, _ = build19(p12, "s120k.json", ["--ruler-polities", KP, "--check"], table=T12)
+case("--check passes on the rebuilt snapshot, with the rulers and the table", c_ == 0, o_)
+json.dump(["not", "an", "object"], open(KP, "w"))
+c_, o_, _ = build19(p12, "s120x.json", ["--ruler-polities", KP], table=T12)
+case("a --ruler-polities file that is not {regime: [slug, ...]} is refused", c_ != 0 and "ruler-polities" in o_, o_)
+p_old = contract_with(lambda d_: d_["contract"].update(version="1.10.0"), "c1100r.json")
+c_, o_, s_old = build19(p_old, "s_old.json", table={"places": {"Calabrio": "calabrio"}})
+case("a contract before the rulers (no hasRulers at all) gives has null for its regions: no ruler, and the snapshot is still well formed",
+     c_ == 0 and all(v["has"] is None for v in s_old["rulers"].values()) and checkera.check_snapshot(s_old) == [], o_)
+for tag, mut, expect in (
+        ("a region marked as having rulers whose reigns are unusable", lambda sn: sn["rulers"]["hasr"]["reigns"][0].update(to_year="c. 1750"), True),
+        ("a region marked as having rulers with no reigns", lambda sn: sn["rulers"]["hasr"].update(reigns=[]), True),
+        ("a region without rulers that carries reigns", lambda sn: sn["rulers"]["norulers"].update(reigns=copy.deepcopy(sn["rulers"]["hasr"]["reigns"])), True),
+        ("a region without rulers that does not say why", lambda sn: sn["rulers"]["norulers"].update(why=None), True),
+        ("rulers for a region the snapshot does not hold", lambda sn: sn["rulers"].update(narnia={"has": False, "why": "x", "reigns": []}), True),
+        ("a has that is not true, false or null", lambda sn: sn["rulers"]["hasr"].update(has="yes"), True),
+        ("no rulers at all", lambda sn: sn.pop("rulers"), True),
+        ("a policy without ruler_polities", lambda sn: sn["policy"].pop("ruler_polities"), True),
+        ("a ruler_polities entry that is not a list of slugs", lambda sn: sn["policy"].update(ruler_polities={"kingdom": "kingdom-of-x"}), True)):
+    sn_ = copy.deepcopy(s12k)
+    mut(sn_)
+    case("the gate's shape check: %s is malformed" % tag, bool(checkera.check_snapshot(sn_)) == expect, checkera.check_snapshot(sn_))
+
 # ---------------------------------------------------------------- 3. checkera.py
 print("checkera.py: a planted fault for each rule")
 CLEAN = CASES["gate_snapshot"]
 ERA_URL = "https://atlas.example.test/region/%s/#era-%s"
 
 
+PLACE_OF = {"ruritania": "hentzau", "elphberg": "zenda"}
+
+
 def note(id_="ruritania--era-1700", year="1750", label="Kingdom of Ruritania", src="per the Record Atlas", href=ERA_URL % ("ruritania", 1700), boundary=False,
-         pre=None, assessed="1", edge=False, approx=False, contested=False, unsourced=False):
+         pre=None, assessed="1", edge=False, approx=False, contested=False, unsourced=False, place=True, ruler=None, extra=""):
     a = '<a class="era-src" href="%s" rel="noopener">%s</a>' % (href, src) if href else '<span class="era-src">%s</span>' % src
     b = ' data-era-boundary="1"' if boundary else ""
     m = (' data-era-assessed="%s"' % assessed if assessed is not None else "") + (' data-era-approx="1"' if approx else "") + (' data-era-contested="1"' if contested else "") + (' data-era-margin-unsourced="1"' if unsourced else "") + (' data-era-edge-agree="1"' if edge else "")
+    place = PLACE_OF.get(id_.split("--")[0]) if place is True else place
+    m += (' data-era-place="%s"' % place if place else "") + (' data-era-ruler="%s"' % ruler if ruler else "")
     pre = pre if pre is not None else ("· From that year: " if boundary else "· At the time: ")
+    ru = ' <span class="era-ruler">(%s)</span>' % ruler if ruler else ""
     return ('<span class="era-note" data-era="%s" data-era-year="%s"%s%s><span class="era-pre">%s</span>'
-            '<span class="era-lab">%s</span> %s</span>' % (id_, year, b, m, pre, label, a))
+            '<span class="era-lab">%s</span>%s %s%s</span>' % (id_, year, b, m, pre, label, ru, a, extra))
 
 
 ERA_CSS = '<style is:inline data-era-css>.era-note{display:block;color:var(--ink-2,#444)}</style>'
@@ -834,8 +989,94 @@ fails("a note with no assessed mark", {P: page(note(assessed=None))}, "assessed 
 fails("an assessed mark that is neither 1 nor 0", {P: page(note(assessed="yes"))}, "assessed 1")
 fails("an edge-agree mark where the snapshot holds no edge place of the region", {P: page(note(edge=True))}, "edge 1")
 s = copy.deepcopy(CLEAN); s["places"]["edgy"] = "ruritania"; s["edge_neighbours"]["edgy"] = {"kind": "edge", "regions": ["elphberg"]}
-c, o = gate({P: page(note(edge=True))}, s)
+s["regions"]["elphberg"].insert(0, dict(s["regions"]["elphberg"][0], id="elphberg--era-1700", **{"from": 1700, "to": 1900, "present": False, "url": "/region/elphberg/#era-1700",
+                                                                                                    "seeded_from_archive": False, "basis": "not-recorded"}))
+c, o = gate({P: page(note(edge=True, place="edgy"))}, s)
 case("control: an edge-agree mark where the snapshot holds such a place passes, and is counted", c == 0 and "1 at an edge where every neighbour agrees" in o and "(0 not edge-checked, 1 at an edge)" in o, o)
+print("  the re-derivation: every mark of a built note is recomputed from the snapshot, its place and its year (missing, extra or wrong all fail)")
+RS = CASES["other_snapshots"]["rulers"]
+
+
+def esc(x):
+    return str(x).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;")
+
+
+def draw(place, year, rulers=False, snap=None):
+    """A note as lib/era.js renderEra draws it (the Python twin of the markup, held to the JS one by the component test in era_logic.mjs)."""
+    e = eralib.era_at(snap or RS, place, year)
+    ru = e["ruler"] if rulers and e["ruler"] else None
+    a = '<a class="era-src" href="%s" rel="noopener">%s</a>' % (esc(e["href"]), esc(e["source"])) if e["href"] else '<span class="era-src">%s</span>' % esc(e["source"])
+    return ('<span class="era-note" data-era="%s" data-era-year="%s"%s data-era-assessed="%s"%s%s%s%s data-era-place="%s"%s><span class="era-pre">%s</span><span class="era-lab">%s</span>%s %s</span>'
+            % (esc(e["id"]), e["year"], ' data-era-boundary="1"' if e["boundary"] else "", "1" if e["assessed"] else "0", ' data-era-approx="1"' if e["approx"] else "",
+               ' data-era-contested="1"' if e["contested"] else "", ' data-era-margin-unsourced="1"' if e["unsourced"] else "", ' data-era-edge-agree="1"' if e["edgeAgree"] else "",
+               esc(e["place"]), ' data-era-ruler="%s"' % esc(ru["name"]) if ru else "", eralib.PRE_BOUNDARY if e["boundary"] else eralib.PRE_NORMAL, esc(e["label"]),
+               ' <span class="era-ruler">(%s)</span>' % esc(ru["name"]) if ru else "", a))
+
+
+def rfails(label, body, cat, extra=None, code=1):
+    c, o = gate({P: page(body)}, RS, extra)
+    case(label, c == code and (cat is None or cat in o), "exit %s: %s" % (c, o))
+
+
+MARKS = [("data-era-boundary", "Tidy Town", 1800, ' data-era-boundary="1"', "boundary 1"), ("data-era-assessed", "Rulertown", 1745, ' data-era-assessed="1"', "assessed 1"),
+         ("data-era-approx", "Rulertown", 1830, ' data-era-approx="1"', "approx 1"), ("data-era-contested", "Dispute Town", 1750, ' data-era-contested="1"', "approx 1"),
+         ("data-era-margin-unsourced", "Soft Town", 1750, ' data-era-margin-unsourced="1"', "approx 1"), ("data-era-edge-agree", "Rulerborder Town", 1750, ' data-era-edge-agree="1"', "edge 1"),
+         ("data-era-place", "Rulertown", 1745, ' data-era-place="rulertown"', "place 1")]
+for mark, place, year, attr, cat in MARKS:
+    base_ = draw(place, year)
+    c, o = gate({P: page(base_)}, RS)
+    case("control: the %s note the library draws for %s %s carries %s and passes" % (place, year, mark, mark), c == 0 and attr in base_, o)
+    rfails("the same note with %s REMOVED fails (%s)" % (mark, cat.split()[0]), base_.replace(attr, ""), cat)
+for mark, place, year, attr, cat in MARKS:
+    if mark in ("data-era-assessed", "data-era-place"):
+        continue
+    plain_ = draw("Rulertown", 1745)
+    rfails("a note with %s ADDED where the snapshot does not give it fails (%s)" % (mark, cat.split()[0]), plain_.replace(' data-era-place="rulertown"', attr + ' data-era-place="rulertown"'), cat)
+rfails("data-era-assessed with the wrong value fails (assessed)", draw("Rulertown", 1745).replace('data-era-assessed="1"', 'data-era-assessed="0"'), "assessed 1")
+rfails("a note drawn for another place of another region (same year) fails (place)", draw("Rulertown", 1745).replace('data-era-place="rulertown"', 'data-era-place="plain town"'), "place 1")
+rfails("a note drawn for a place the snapshot does not map fails (place)", draw("Rulertown", 1745).replace('data-era-place="rulertown"', 'data-era-place="nowhere"'), "place 1")
+rfails("a place that is not the folded key fails (place)", draw("Rulertown", 1745).replace('data-era-place="rulertown"', 'data-era-place="Rulertown"'), "place 1")
+rfails("a note for a place and year the library would not draw at all fails (silent)", draw("Rulertown", 1745).replace('data-era-year="1745"', 'data-era-year="1860"'), "silent 1")
+rfails("text added inside the note fails (text)", draw("Rulertown", 1745).replace("</a></span>", "</a> (and more)</span>"), "text 1")
+rfails("the label changed fails (label and text)", draw("Rulertown", 1745).replace("Kingdom of Ruritania", "Kingdom of Ruritania, Greater"), "label 1")
+print("  rule m: rulers")
+bare_, withr_ = draw("Rulertown", 1745), draw("Rulertown", 1745, True)
+c, o = gate({P: page(withr_)}, RS, ["--rulers"])
+case("control: a note that names the Atlas's ruler passes, is counted, and the summary says rulers are opted in", c == 0 and "1 note(s) name a ruler" in o and "rulers are opted in" in o, o)
+c, o = gate({P: page(withr_)}, RS)
+case("...and passes without --rulers (a ruler that is there is verified either way)", c == 0 and "rulers are not opted in" in o, o)
+c, o = gate({P: page(bare_)}, RS)
+case("a note with no ruler passes without --rulers: the archive has not opted in", c == 0, o)
+rfails("...and fails with --rulers, where the snapshot names a ruler the note leaves out (ruler)", bare_, "ruler 1", ["--rulers"])
+c, o = gate({P: page(draw("Rulertown", 1736, True))}, RS, ["--rulers"])
+case("a year within a reign's margin carries no ruler and passes with --rulers", c == 0 and "0 note(s) name a ruler" in o, o)
+
+
+def inject(html, name):
+    return html.replace(' data-era-place="', ' data-era-place="', 1).replace('"><span class="era-pre">', '" data-era-ruler="%s"><span class="era-pre">' % name, 1).replace(
+        '</span> <a class="era-src"', '</span> <span class="era-ruler">(%s)</span> <a class="era-src"' % name, 1)
+
+
+for label, html in (("a ruler other than the one the snapshot names for the year", inject(bare_, "Rudolf I")),
+                    ("the Atlas's name normalised (\"Rudolf 2\")", inject(bare_, "Rudolf 2")),
+                    ("a ruler on a year within a reign's margin of its end (1736)", inject(draw("Rulertown", 1736), "Rudolf I")),
+                    ("a ruler on an overlap year (1830: two reigns)", inject(draw("Rulertown", 1830), "Francis")),
+                    ("a ruler of another polity than the era's regime allows (1770)", inject(draw("Rulertown", 1770), "Karl the Elder")),
+                    ("a ruler on a boundary-year note", inject(draw("Tidy Town", 1800), "Tidy Karl")),
+                    ("a ruler on an edge note", inject(draw("Rulerborder Town", 1750), "Rudolf II")),
+                    ("a ruler on a note of a region the contract says has no rulers", inject(draw("Plain Town", 1750), "Plain King")),
+                    ("a ruler on a note of a region with no rulers entry at all", inject(draw("Nofield Town", 1750), "Nobody")),
+                    ("a ruler's words without the data-era-ruler mark", withr_.replace(' data-era-ruler="Rudolf II"', "")),
+                    ("a data-era-ruler mark without its words", withr_.replace(' <span class="era-ruler">(Rudolf II)</span>', "")),
+                    ("a ruler mark whose words differ", withr_.replace("(Rudolf II)", "(Rudolf the Second)")),
+                    ("an empty ruler mark", withr_.replace('data-era-ruler="Rudolf II"', 'data-era-ruler=""'))):
+    rfails(label + " fails (ruler)", html, "ruler 1", ["--rulers"])
+c, o = gate({P: page(draw("Rulertown", 1888, True))}, RS, ["--rulers"])
+case("the Atlas's name with an ampersand, an accent and brackets, escaped, passes exactly", c == 0, o)
+s = copy.deepcopy(RS); s["rulers"]["rulerland"]["reigns"][1]["name"] = "Rudolf II "
+c, o = gate({P: page(draw("Rulertown", 1745, True, s))}, s, ["--rulers"])
+case("a name with a trailing space is the Atlas's name: the gate holds the attribute to it exactly", c == 0, o)
+
 print("  rule c: no note on a living, held-out or noindex page")
 fails("a note on a page that says noindex", {P: page(note(), '<meta name="robots" content="noindex, nofollow">')}, "noindex 1")
 fails("a note on a page marked living", {P: page(note(), attrs='data-living="1"')}, "living 1")
