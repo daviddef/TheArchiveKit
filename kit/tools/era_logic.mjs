@@ -43,6 +43,14 @@ function failing(lib) {
   if (!edgeHtml.includes(' data-era-assessed="1" data-era-edge-agree="1">') || html.includes("data-era-edge-agree")) out.push("render:edge-agree");
   const unas = lib.renderEra(lib.eraAt(JSON.parse(JSON.stringify(FIX.other_snapshots.allow)), "Null Town", 1750));
   if (!unas.includes(' data-era-assessed="0"')) out.push("render:unassessed");
+  const mar = lib.renderEra(lib.eraAt(JSON.parse(JSON.stringify(FIX.other_snapshots.margin)), "Calabrio", 1830));
+  const con = lib.renderEra(lib.eraAt(JSON.parse(JSON.stringify(FIX.other_snapshots.margin)), "Scopetown", 1825));
+  if (!(mar.includes(' data-era-assessed="1" data-era-approx="1">') && !mar.includes("data-era-contested") && con.includes(' data-era-assessed="1" data-era-contested="1">') && !con.includes("data-era-approx") && !html.includes("data-era-approx") && !html.includes("data-era-contested"))) out.push("render:margin-marks");
+  /* the words claim no more than the Atlas does: the regime label and the source, no bound of the era, no digit but the event year's */
+  const words = (h) => h.replace(/<[^>]*>/g, "");
+  if (!(words(mar) === "· At the time: Kingdom of the Two Realms per the Record Atlas" && words(con) === "· At the time: Realm of the Seven Seats per the Record Atlas")) out.push("render:margin-words");
+  const soft = lib.renderEra(lib.eraAt(JSON.parse(JSON.stringify(FIX.other_snapshots.margin)), "Softton", 1711));
+  if (!(soft.includes(' data-era-margin-unsourced="1"') && !mar.includes("margin-unsourced") && !html.includes("margin-unsourced"))) out.push("render:margin-marks");
   const seeded = lib.eraAt(JSON.parse(JSON.stringify(FIX.snapshot)), "Zenda", 1975);
   if (!lib.renderEra(seeded).includes("per this archive's own research</a>")) out.push("render:seeded-words");
   const e = lib.renderEra({ id: 'x--1"', label: "<script>alert(1)</script> & \"q\"", year: 1750, source: "<b>", href: 'https://a.example.test/"x' });
@@ -55,7 +63,7 @@ ok("the shared cases all hold (" + (FIX.cases.length + FIX.fold.length + FIX.yea
 
 // planted faults: a copy of era.js with one rule broken must fail the case that guards it
 const src = fs.readFileSync(path.join(kit, "lib", "era.js"), "utf8");
-const IFC = 'if (covering.length > 1 || refused.length > 0 || covering.some((e) => e.contested === true || eras.some((o) => o !== e && numeric(o) && meets(e, o)))) return no("contested");';
+const IFC = 'if (covering.length > 1 || refused.length > 0 || covering.some((e) => eras.some((o) => o !== e && numeric(o) && meets(e, o)))) return no("contested");';
 const faults = [
   ["the end year of an era is inside it (closed interval)", "(e.to === null || year < e.to)", "(e.to === null || year <= e.to)", "the-year-an-era-ends-belongs-to-the-next-era"],
   ["a still-running era covers nothing", "(e.to === null || year < e.to)", "year < e.to", "accents-and-case-are-folded"],
@@ -72,10 +80,30 @@ const faults = [
   ["an unassessed era is noted whatever the policy says", "if (unassessed && pol.unassessed !== \"allow\") return no(\"unassessed\");", "", "an-era-with-null-flags-is-unassessed"],
   ["an unassessed era is never allowed", "if (unassessed && pol.unassessed !== \"allow\")", "if (unassessed)", "an-era-with-null-flags-is-allowed-when-the-snapshot-says-so"],
   ["a flag that is neither true, false nor null counts as false", ": v === null || v === undefined ? \"unassessed\" : \"yes\")", ": v === null || v === undefined ? \"unassessed\" : \"no\")", "a-flag-that-is-neither-true-false-nor-null-is-silent-even-when-allowing"],
-  ["an approximate era gets a note", "if (flag(e.approx) === \"yes\") return no(\"approx\");", "", "an-approximate-era-is-silent"],
-  ["an era flagged contested gets a note", "e.contested === true || eras.some(", "eras.some(", "an-era-marked-contested-is-silent",
-    [["if (flag(e.contested) === \"yes\") return no(\"contested\");", ""]]],
-  ["an era that overlaps another is not contested", " || eras.some((o) => o !== e && numeric(o) && meets(e, o))", "", "an-era-that-overlaps-another-is-silent-even-where-it-stands-alone"],
+  ["an approximate era is noted under the refuse policy", "if (ap === \"yes\" && pol.approx !== \"margin\") return \"approx\";", "", "margin-approx-refuse-policy-refuses-an-approx-era"],
+  ["an approximate era with no margin gets a note", "&& !(isMargin(e.from_margin) && (e.to === null || isMargin(e.to_margin)))) return ap === \"yes\" ? \"approx\" : \"contested\";", "&& false) return null;", "margin-a-flagged-era-with-an-unknown-end-margin-is-silent"],
+  ["a contested era is noted under the refuse policy", "if (cp !== \"scope\" && cp !== \"margin\") return \"contested\";", "", "margin-contested-refuse-policy-refuses-a-bounds-scope-era"],
+  ["a regime scope on an unflagged era is used", "if (e.contested_scope === \"regime\" || e.contested_scope === \"part\") return \"contested\";", "", "margin-a-regime-scope-on-an-era-that-is-not-flagged-contested-is-still-silent"],
+  ["a contested era of an unknown scope is noted", "if (e.contested_scope !== \"bounds\" && e.contested_scope !== \"none\" && !(", "if (false && !(", "margin-an-unknown-scope-on-a-contested-era-is-silent"],
+  ["a contested era of scope none is refused", " && e.contested_scope !== \"none\" && !(", " && !(", "margin-a-contested-era-of-scope-none-is-used"],
+  ["the floor is not applied", "Math.max(n, m)", "m", "margin-margin-0-from-the-atlas-the-floor-still-holds-1805"],
+  ["an unsourced margin is not softer", "+ (soft ? n : 0)", "+ 0", "margin-an-unsourced-margin-of-2-1711-is-allowed-and-says-it-rests-on-an-unsourced-margin"],
+  ["the snapshot's floor is ignored", "isMargin(pol.margin_years) ? pol.margin_years : MARGIN_YEARS", "MARGIN_YEARS", "margin-margin-0-and-a-floor-of-0-is-a-clean-date-1800"],
+  ["the unsourced mark is not carried on the era", "unsourced: e.margin_sourced === false &&", "unsourced: false &&", "margin-an-unsourced-margin-of-2-1711-is-allowed-and-says-it-rests-on-an-unsourced-margin"],
+  ["the unsourced mark is not drawn", "${era.unsourced === true ? ' data-era-margin-unsourced=\"1\"' : \"\"}", "", "render:margin-marks"],
+  ["a contested era with no scope is noted under the scope policy", "(e.contested_scope === null || e.contested_scope === undefined) && cp === \"margin\"", "(e.contested_scope === null || e.contested_scope === undefined)", "margin-contested-with-no-scope-is-silent-under-the-scope-policy"],
+  ["a contested era with no scope is never noted", "(e.contested_scope === null || e.contested_scope === undefined) && cp === \"margin\"", "false", "margin-contested-with-no-scope-is-allowed-10-years-inside-under-the-margin-policy"],
+  ["the start margin is not applied", "return year >= span.first && (span.last === null || year <= span.last) ? null : \"margin\";", "return (span.last === null || year <= span.last) ? null : \"margin\";", "margin-approx-1820-is-5-years-from-the-start-so-silent"],
+  ["the end margin is not applied", "return year >= span.first && (span.last === null || year <= span.last) ? null : \"margin\";", "return year >= span.first ? null : \"margin\";", "margin-approx-1856-is-5-years-from-the-end-so-silent"],
+  ["a year AT the margin is allowed (at least, not more than)", "first: e.from + (rf !== null && rf > 0 ? rf + 1 : 0)", "first: e.from + (rf !== null ? rf : 0)", "margin-approx-1820-is-5-years-from-the-start-so-silent"],
+  ["the end margin counts a year too few", "last: e.to === null ? null : e.to - 1 - (rt !== null ? rt : 0)", "last: e.to === null ? null : e.to - (rt !== null ? rt : 0)", "margin-approx-1856-is-5-years-from-the-end-so-silent"],
+  ["a margin of 0 is silent in the first year", "first: e.from + (rf !== null && rf > 0 ? rf + 1 : 0)", "first: e.from + (rf !== null ? rf + 1 : 0)", "margin-margin-0-and-a-floor-of-0-is-a-clean-date-1800"],
+  ["an unflagged era's own margin is ignored", "if (!ap && !co && rf === null && rt === null) return null;", "if (!ap && !co) return null;", "margin-an-unflagged-era-keeps-the-margin-the-contract-gives-it-1705"],
+  ["the recorded decision is not held to the margins", "if (r == null || typeof r !== \"object\" || r.kind !== span.kind || r.first !== span.first || r.last !== span.last) return \"bad-margin\";", "", "margin-a-recorded-decision-that-does-not-follow-the-margins-is-silent"],
+  ["a missing record is accepted", "if (r == null || typeof r !== \"object\" ||", "if (r != null && (typeof r !== \"object\") ||", "margin-a-flagged-era-with-no-recorded-decision-is-silent"],
+  ["the approx mark is not carried on the era", "approx: flag(e.approx) === \"yes\",", "approx: false,", "margin-approx-1830-in-1815-1861-keeps-its-note"],
+  ["the contested mark is not carried on the era", "contested: flag(e.contested) === \"yes\", unsourced", "contested: false, unsourced", "margin-contested-bounds-1822-is-allowed-under-scope-bounds"],
+  ["an era that overlaps another is not contested", "covering.some((e) => eras.some((o) => o !== e && numeric(o) && meets(e, o)))", "false", "an-era-that-overlaps-another-is-silent-even-where-it-stands-alone"],
   ["a year inside two eras gets a note", IFC, "", "a-year-inside-two-overlapping-eras-is-silent"],
   ["a refused era overlapping a kept one is ignored", "covering.length > 1 || refused.length > 0 ||", "covering.length > 1 ||", "a-refused-era-overlapping-a-kept-one-is-silent"],
   ["an empty label is allowed", "if (!label(e)) return no(\"no-label\");", "", "an-empty-regime-label-is-silent"],
@@ -104,14 +132,17 @@ const faults = [
   ["an unknown kind of edge is believed", "kind === null || list.length === 0", "list.length === 0", "an-edge-place-with-a-kind-the-library-does-not-know-is-silent"],
   ["a region is its own neighbour", "nb === region || !neighbourAgrees(", "!neighbourAgrees(", "an-edge-place-that-names-its-own-region-as-neighbour-is-silent"],
   ["a ring conflict is reported as an edge", "return no(kind || \"edge\");", "return no(\"edge\");", "a-place-in-a-neighbours-ring-is-silent-as-a-ring-conflict-where-they-differ"],
-  ["the edge agreement is not recorded on the era", "assessed: !d.unassessed, edgeAgree: d.edgeAgree,", "assessed: !d.unassessed, edgeAgree: false,", "a-place-near-an-edge-keeps-its-note-where-its-neighbour-has-the-same-regime"],
+  ["the edge agreement is not recorded on the era", "edgeAgree: d.edgeAgree,", "edgeAgree: false,", "a-place-near-an-edge-keeps-its-note-where-its-neighbour-has-the-same-regime"],
   ["the assessed flag is not recorded on the era", "assessed: !d.unassessed,", "assessed: true,", "an-era-with-null-flags-is-allowed-when-the-snapshot-says-so"],
   ["a neighbour the snapshot does not hold is trusted", "if (typeof nb !== \"string\" || !own(snap.regions, nb) || !Array.isArray(snap.regions[nb])) return false;", "if (!own(snap.regions, nb)) return true;", "a-neighbour-the-snapshot-does-not-hold-is-unknown"],
   ["a neighbour with a refused era over the year is trusted", "if (dropped.some((d) => covers(d, year))) return false;", "", "a-neighbour-with-a-refused-era-over-the-year-is-silent"],
   ["a neighbour with no era for the year is trusted", "if (covering.length !== 1) return false;\n  const x = covering[0];", "if (covering.length > 1) return false;\n  const x = covering[0] || mine;", "a-place-near-an-edge-is-silent-where-its-neighbour-has-no-era-for-the-year"],
-  ["a neighbour era that overlaps another elsewhere is trusted", "if (eras.some((o) => o !== x && numeric(o) && meets(x, o))) return false;\n  if (flag(x.approx)", "if (flag(x.approx)", "a-neighbour-era-that-overlaps-another-anywhere-is-silent"],
-  ["a neighbour era marked approximate is trusted", "if (flag(x.approx) === \"yes\" || flag(x.contested) === \"yes\") return false;\n  if ((flag(x.approx) === \"unassessed\"", "if ((flag(x.approx) === \"unassessed\"", "a-place-near-an-edge-is-silent-where-its-neighbour-era-is-approximate"],
-  ["a neighbour era marked contested is trusted", "if (flag(x.approx) === \"yes\" || flag(x.contested) === \"yes\") return false;\n  if ((flag(x.approx) === \"unassessed\"", "if (flag(x.approx) === \"yes\") return false;\n  if ((flag(x.approx) === \"unassessed\"", "a-neighbour-marked-contested-is-silent"],
+  ["a neighbour era that overlaps another elsewhere is trusted", "if (eras.some((o) => o !== x && numeric(o) && meets(x, o))) return false;\n  if (marginGate(", "if (marginGate(", "a-neighbour-era-that-overlaps-another-anywhere-is-silent"],
+  ["a neighbour era marked approximate is trusted", "if (marginGate(x, year, pol) !== null) return false;", "if (flag(x.contested) === \"yes\" && marginGate(x, year, pol) !== null) return false;", "a-place-near-an-edge-is-silent-where-its-neighbour-era-is-approximate"],
+  ["a neighbour era marked contested is trusted", "if (marginGate(x, year, pol) !== null) return false;", "if (flag(x.approx) === \"yes\" && marginGate(x, year, pol) !== null) return false;", "a-neighbour-marked-contested-is-silent"],
+  ["a neighbour era's margins are ignored", "if (marginGate(x, year, pol) !== null) return false;", "if (flag(x.approx) === \"yes\" || flag(x.contested) === \"yes\") return false;", "margin-an-edge-place-keeps-its-note-where-the-neighbour-is-approx-but-well-inside-it"],
+  ["a neighbour era within its margin is trusted", "if (marginGate(x, year, pol) !== null) return false;", "", "margin-an-edge-place-is-silent-where-the-neighbours-approx-era-is-within-its-margin"],
+  ["a neighbour era contested about its regime is trusted", "if (marginGate(x, year, pol) !== null) return false;", "if (flag(x.approx) === \"yes\" && marginGate(x, year, pol) !== null) return false;", "margin-an-edge-place-is-silent-where-the-neighbours-era-is-contested-about-its-regime"],
   ["a neighbour the Atlas has not assessed is trusted whatever the policy says", "&& pol.unassessed !== \"allow\") return false;\n  if (label(x)", "&& false) return false;\n  if (label(x)", "a-neighbour-the-atlas-has-not-assessed-is-unknown-under-the-refuse-policy"],
   ["a neighbour the Atlas has not assessed is never allowed", "&& pol.unassessed !== \"allow\") return false;\n  if (label(x)", "&& true) return false;\n  if (label(x)", "a-neighbour-the-atlas-has-not-assessed-is-allowed-when-the-snapshot-says-so"],
   ["a neighbour's label need not be the same words", "if (label(x) !== label(mine)) return false;", "if (label(x).toLowerCase() !== label(mine).toLowerCase()) return false;", "a-neighbour-label-must-be-the-same-words"],
@@ -123,6 +154,9 @@ const faults = [
   ["a neighbour's predecessor may have another label", "before.some((o) => label(o) !== label(mine) ||", "before.some((o) => false ||", "a-neighbour-whose-era-begins-this-year-after-another-regime-is-silent"],
   ["the assessed mark is not drawn", " data-era-assessed=\"${era.assessed === true ? \"1\" : \"0\"}\"", "", "render:note"],
   ["the edge mark is not drawn", "${era.edgeAgree === true ? ' data-era-edge-agree=\"1\"' : \"\"}", "", "render:edge-agree"],
+  ["the approx mark is not drawn", "${era.approx === true ? ' data-era-approx=\"1\"' : \"\"}", "", "render:margin-marks"],
+  ["the contested mark is not drawn", "${era.contested === true ? ' data-era-contested=\"1\"' : \"\"}", "", "render:margin-marks"],
+  ["the note's words carry the era's bounds", "<span class=\"era-lab\">${esc(era.label)}</span>", "<span class=\"era-lab\">${esc(era.label)} (${era.from}-${era.to})</span>", "render:margin-words"],
   ["an unassessed note is drawn as assessed", "era.assessed === true ? \"1\" : \"0\"", "\"1\"", "render:unassessed"],
   ["the label is not escaped", "const esc = (s) => String(s).replace(/&/g, \"&amp;\").replace(/</g, \"&lt;\").replace(/>/g, \"&gt;\").replace(/\"/g, \"&quot;\");", "const esc = (s) => String(s);", "render:escapes"],
   ["the year is not carried", " data-era-year=\"${esc(era.year)}\"", "", "render:note"],
@@ -146,7 +180,7 @@ for (const [label, from, to, must, extra] of faults) {
 
 // the component draws what the library describes: its template carries the attributes the gate relies on
 const astro = fs.readFileSync(path.join(kit, "components", "EraNote.astro"), "utf8");
-for (const needle of ['class="era-note"', "data-era={note.id}", "data-era-year={note.year}", 'data-era-boundary={note.boundary === true ? "1" : undefined}', 'data-era-assessed={note.assessed === true ? "1" : "0"}', 'data-era-edge-agree={note.edgeAgree === true ? "1" : undefined}', "PRE_BOUNDARY : PRE_NORMAL", 'class="era-pre"', 'class="era-lab"', 'class="era-src"', 'rel="noopener"', "note.href", "era && era.id && era.label ? era : null",
+for (const needle of ['class="era-note"', "data-era={note.id}", "data-era-year={note.year}", 'data-era-boundary={note.boundary === true ? "1" : undefined}', 'data-era-assessed={note.assessed === true ? "1" : "0"}', 'data-era-approx={note.approx === true ? "1" : undefined}', 'data-era-contested={note.contested === true ? "1" : undefined}', 'data-era-margin-unsourced={note.unsourced === true ? "1" : undefined}', 'data-era-edge-agree={note.edgeAgree === true ? "1" : undefined}', "PRE_BOUNDARY : PRE_NORMAL", 'class="era-pre"', 'class="era-lab"', 'class="era-src"', 'rel="noopener"', "note.href", "era && era.id && era.label ? era : null",
   "note ? claim(Astro.request, ERA_CSS_KEY) : false", "<style is:inline data-era-css set:html={ERA_CSS} />"]) {
   ok("EraNote.astro carries " + needle, astro.includes(needle));
 }

@@ -1,7 +1,7 @@
 {
- "about": "Invented snapshots and cases for kit/lib/era.js (run by kit/tools/era_logic.mjs) AND kit/tools/eralib.py (run by kit/tools/era_selftest.py): the two halves must give the same answers. Ruritania is a country in a novel; nothing here is a real region, person or record. `want` is the era eraAt returns (checked field by field) or null; `why` is what whyNot says; `opts.recent_from` is the caller's override of the quiet rule. `gate_snapshot` is a clean snapshot for the gate's tests (checkera.py refuses a malformed one); `snapshot` is deliberately full of faults for the library's. The expected answers were written by hand, not computed. Snapshot version 3 adds edge_neighbours: a place near a ring edge (or inside another region's ring) is mapped with the regions that could claim it, and the note needs every one of them to hold the same label for the year (the cases whose places are named '... Edge Town', with a planted fault for each doubt: no era, another label, a refused or approximate or contested or unassessed or overlapping neighbour era, a neighbour whose era begins that year after another regime, a neighbour the snapshot does not hold); the previous version (v2) is refused.",
+ "about": "Invented snapshots and cases for kit/lib/era.js (run by kit/tools/era_logic.mjs) AND kit/tools/eralib.py (run by kit/tools/era_selftest.py): the two halves must give the same answers. Ruritania is a country in a novel; nothing here is a real region, person or record. `want` is the era eraAt returns (checked field by field) or null; `why` is what whyNot says; `opts.recent_from` is the caller's override of the quiet rule. `gate_snapshot` is a clean snapshot for the gate's tests (checkera.py refuses a malformed one); `snapshot` is deliberately full of faults for the library's. The expected answers were written by hand, not computed. Snapshot version 4 adds rule l (boundary margins: from_margin, to_margin, margin_src, margin_sourced, contested_scope and margin_ok on an era; approx, contested, margin_years and margins in the policy; the cases whose ids begin 'margin-', on the snapshots 'margin', 'margin_contested_margin', 'margin_contested_refuse' and 'margin_approx_refuse' and 'margin_n0'); the previous version (3) is refused. Version 3 added edge_neighbours: a place near a ring edge (or inside another region's ring) is mapped with the regions that could claim it, and the note needs every one of them to hold the same label for the year (the cases whose places are named '... Edge Town', with a planted fault for each doubt: no era, another label, a refused or approximate or contested or unassessed or overlapping neighbour era, a neighbour whose era begins that year after another regime, a neighbour the snapshot does not hold); the previous version (v2) is refused. In the margin cases the expected answers follow the rule written in lib/era.js: an era that is flagged or carries a margin is used only for a year MORE THAN its margin from each numeric bound (year - from > from_margin, to - year > to_margin, the end only for a closed era; a margin of 0 is a clean date).",
  "snapshot": {
-  "version": 3,
+  "version": 4,
   "built": "2026-01-01",
   "contract": {
    "name": "recordatlas-context",
@@ -19,7 +19,11 @@
    "boundary": "newer",
    "recent_from": 1990,
    "edge_km": 15,
-   "edge": "agree"
+   "edge": "agree",
+   "approx": "margin",
+   "contested": "scope",
+   "margin_years": 5,
+   "margins": {}
   },
   "regions": {
    "ruritania": [
@@ -37,7 +41,13 @@
      "contested": false,
      "url": "/region/ruritania/#era-1700",
      "assessed": true,
-     "why": null
+     "why": null,
+     "from_margin": null,
+     "to_margin": null,
+     "margin_src": null,
+     "margin_sourced": null,
+     "contested_scope": null,
+     "margin_ok": null
     },
     {
      "id": "ruritania--era-1800",
@@ -53,7 +63,13 @@
      "contested": false,
      "url": "/region/ruritania/#era-1800",
      "assessed": true,
-     "why": null
+     "why": null,
+     "from_margin": null,
+     "to_margin": null,
+     "margin_src": null,
+     "margin_sourced": null,
+     "contested_scope": null,
+     "margin_ok": null
     },
     {
      "id": "ruritania--era-1850",
@@ -69,7 +85,13 @@
      "contested": false,
      "url": "/region/ruritania/#era-1850",
      "assessed": true,
-     "why": null
+     "why": null,
+     "from_margin": null,
+     "to_margin": null,
+     "margin_src": null,
+     "margin_sourced": null,
+     "contested_scope": null,
+     "margin_ok": null
     },
     {
      "id": "ruritania--era-1900",
@@ -85,7 +107,13 @@
      "contested": false,
      "url": "/region/ruritania/#era-1900",
      "assessed": true,
-     "why": null
+     "why": null,
+     "from_margin": null,
+     "to_margin": null,
+     "margin_src": null,
+     "margin_sourced": null,
+     "contested_scope": null,
+     "margin_ok": null
     },
     {
      "id": "ruritania--era-1950",
@@ -100,7 +128,13 @@
      "contested": false,
      "url": "/region/ruritania/#era-1950",
      "assessed": true,
-     "why": null
+     "why": null,
+     "from_margin": null,
+     "to_margin": null,
+     "margin_src": null,
+     "margin_sourced": null,
+     "contested_scope": null,
+     "margin_ok": null
     },
     {
      "id": "ruritania--era-1991",
@@ -116,7 +150,13 @@
      "contested": false,
      "url": "/region/ruritania/#era-1991",
      "assessed": true,
-     "why": null
+     "why": null,
+     "from_margin": null,
+     "to_margin": null,
+     "margin_src": null,
+     "margin_sourced": null,
+     "contested_scope": null,
+     "margin_ok": null
     }
    ],
    "elphberg": [
@@ -134,7 +174,13 @@
      "contested": false,
      "url": "/region/elphberg/#era-1900",
      "assessed": true,
-     "why": null
+     "why": null,
+     "from_margin": null,
+     "to_margin": null,
+     "margin_src": null,
+     "margin_sourced": null,
+     "contested_scope": null,
+     "margin_ok": null
     }
    ],
    "zenda": [
@@ -152,7 +198,13 @@
      "contested": false,
      "url": "/region/zenda/#era-1700",
      "assessed": true,
-     "why": null
+     "why": null,
+     "from_margin": null,
+     "to_margin": null,
+     "margin_src": null,
+     "margin_sourced": null,
+     "contested_scope": null,
+     "margin_ok": null
     },
     {
      "id": "zenda--era-1790",
@@ -168,7 +220,13 @@
      "contested": false,
      "url": "/region/zenda/#era-1790",
      "assessed": true,
-     "why": null
+     "why": null,
+     "from_margin": null,
+     "to_margin": null,
+     "margin_src": null,
+     "margin_sourced": null,
+     "contested_scope": null,
+     "margin_ok": null
     },
     {
      "id": "zenda--era-1850",
@@ -184,7 +242,13 @@
      "contested": false,
      "url": "/region/zenda/#era-1850",
      "assessed": true,
-     "why": null
+     "why": null,
+     "from_margin": null,
+     "to_margin": null,
+     "margin_src": null,
+     "margin_sourced": null,
+     "contested_scope": null,
+     "margin_ok": null
     },
     {
      "id": "zenda--era-1900",
@@ -200,7 +264,13 @@
      "contested": true,
      "url": "/region/zenda/#era-1900",
      "assessed": true,
-     "why": null
+     "why": null,
+     "from_margin": null,
+     "to_margin": null,
+     "margin_src": null,
+     "margin_sourced": null,
+     "contested_scope": null,
+     "margin_ok": null
     },
     {
      "id": "zenda--era-1950",
@@ -216,7 +286,13 @@
      "contested": false,
      "url": "/region/zenda/#era-1950",
      "assessed": true,
-     "why": null
+     "why": null,
+     "from_margin": null,
+     "to_margin": null,
+     "margin_src": null,
+     "margin_sourced": null,
+     "contested_scope": null,
+     "margin_ok": null
     }
    ],
    "strelsau": [
@@ -234,7 +310,13 @@
      "contested": false,
      "url": "/region/strelsau/#era-1700",
      "assessed": true,
-     "why": null
+     "why": null,
+     "from_margin": null,
+     "to_margin": null,
+     "margin_src": null,
+     "margin_sourced": null,
+     "contested_scope": null,
+     "margin_ok": null
     },
     {
      "id": "strelsau--era-1800",
@@ -250,7 +332,13 @@
      "contested": false,
      "url": "/region/strelsau/#era-1800",
      "assessed": true,
-     "why": null
+     "why": null,
+     "from_margin": null,
+     "to_margin": null,
+     "margin_src": null,
+     "margin_sourced": null,
+     "contested_scope": null,
+     "margin_ok": null
     }
    ],
    "bareera": [
@@ -266,7 +354,13 @@
      "seeded_from_archive": false,
      "url": "/region/bareera/#era-1700",
      "assessed": false,
-     "why": null
+     "why": null,
+     "from_margin": null,
+     "to_margin": null,
+     "margin_src": null,
+     "margin_sourced": null,
+     "contested_scope": null,
+     "margin_ok": null
     }
    ],
    "nullflags": [
@@ -284,7 +378,13 @@
      "contested": null,
      "url": "/region/nullflags/#era-1700",
      "assessed": false,
-     "why": null
+     "why": null,
+     "from_margin": null,
+     "to_margin": null,
+     "margin_src": null,
+     "margin_sourced": null,
+     "contested_scope": null,
+     "margin_ok": null
     }
    ],
    "gappy": [
@@ -302,7 +402,13 @@
      "contested": false,
      "url": "/region/gappy/#era-1700",
      "assessed": true,
-     "why": null
+     "why": null,
+     "from_margin": null,
+     "to_margin": null,
+     "margin_src": null,
+     "margin_sourced": null,
+     "contested_scope": null,
+     "margin_ok": null
     },
     {
      "id": "gappy--era-1760",
@@ -318,7 +424,13 @@
      "contested": false,
      "url": "/region/gappy/#era-1760",
      "assessed": true,
-     "why": null
+     "why": null,
+     "from_margin": null,
+     "to_margin": null,
+     "margin_src": null,
+     "margin_sourced": null,
+     "contested_scope": null,
+     "margin_ok": null
     }
    ],
    "dropbound": [
@@ -336,7 +448,13 @@
      "contested": false,
      "url": "/region/dropbound/#era-1800",
      "assessed": true,
-     "why": null
+     "why": null,
+     "from_margin": null,
+     "to_margin": null,
+     "margin_src": null,
+     "margin_sourced": null,
+     "contested_scope": null,
+     "margin_ok": null
     }
    ],
    "badid": [
@@ -354,7 +472,13 @@
      "contested": false,
      "url": "/region/badid/#era-1700",
      "assessed": true,
-     "why": null
+     "why": null,
+     "from_margin": null,
+     "to_margin": null,
+     "margin_src": null,
+     "margin_sourced": null,
+     "contested_scope": null,
+     "margin_ok": null
     }
    ],
    "badurl": [
@@ -372,7 +496,13 @@
      "contested": false,
      "url": "/region/other/#era-1700",
      "assessed": true,
-     "why": null
+     "why": null,
+     "from_margin": null,
+     "to_margin": null,
+     "margin_src": null,
+     "margin_sourced": null,
+     "contested_scope": null,
+     "margin_ok": null
     }
    ],
    "openword": [
@@ -390,7 +520,13 @@
      "contested": false,
      "url": "/region/openword/#era-1700",
      "assessed": true,
-     "why": null
+     "why": null,
+     "from_margin": null,
+     "to_margin": null,
+     "margin_src": null,
+     "margin_sourced": null,
+     "contested_scope": null,
+     "margin_ok": null
     }
    ],
    "noend": [
@@ -407,7 +543,13 @@
      "contested": false,
      "url": "/region/noend/#era-1700",
      "assessed": true,
-     "why": null
+     "why": null,
+     "from_margin": null,
+     "to_margin": null,
+     "margin_src": null,
+     "margin_sourced": null,
+     "contested_scope": null,
+     "margin_ok": null
     }
    ],
    "garbage": [
@@ -425,7 +567,13 @@
      "contested": false,
      "url": "/region/garbage/#era-1700",
      "assessed": true,
-     "why": null
+     "why": null,
+     "from_margin": null,
+     "to_margin": null,
+     "margin_src": null,
+     "margin_sourced": null,
+     "contested_scope": null,
+     "margin_ok": null
     }
    ],
    "noeras": [],
@@ -444,7 +592,13 @@
      "contested": false,
      "url": "/region/refover/#era-1700",
      "assessed": true,
-     "why": null
+     "why": null,
+     "from_margin": null,
+     "to_margin": null,
+     "margin_src": null,
+     "margin_sourced": null,
+     "contested_scope": null,
+     "margin_ok": null
     }
    ],
    "marchia": [
@@ -462,7 +616,13 @@
      "contested": false,
      "assessed": true,
      "why": null,
-     "url": "/region/marchia/#era-1700"
+     "url": "/region/marchia/#era-1700",
+     "from_margin": null,
+     "to_margin": null,
+     "margin_src": null,
+     "margin_sourced": null,
+     "contested_scope": null,
+     "margin_ok": null
     },
     {
      "id": "marchia--era-1800",
@@ -478,7 +638,13 @@
      "contested": false,
      "assessed": true,
      "why": null,
-     "url": "/region/marchia/#era-1800"
+     "url": "/region/marchia/#era-1800",
+     "from_margin": null,
+     "to_margin": null,
+     "margin_src": null,
+     "margin_sourced": null,
+     "contested_scope": null,
+     "margin_ok": null
     },
     {
      "id": "marchia--era-1850",
@@ -494,7 +660,13 @@
      "contested": false,
      "assessed": true,
      "why": null,
-     "url": "/region/marchia/#era-1850"
+     "url": "/region/marchia/#era-1850",
+     "from_margin": null,
+     "to_margin": null,
+     "margin_src": null,
+     "margin_sourced": null,
+     "contested_scope": null,
+     "margin_ok": null
     },
     {
      "id": "marchia--era-1900",
@@ -510,7 +682,13 @@
      "contested": false,
      "assessed": true,
      "why": null,
-     "url": "/region/marchia/#era-1900"
+     "url": "/region/marchia/#era-1900",
+     "from_margin": null,
+     "to_margin": null,
+     "margin_src": null,
+     "margin_sourced": null,
+     "contested_scope": null,
+     "margin_ok": null
     }
    ],
    "borderia": [
@@ -528,7 +706,13 @@
      "contested": false,
      "assessed": true,
      "why": null,
-     "url": "/region/borderia/#era-1700"
+     "url": "/region/borderia/#era-1700",
+     "from_margin": null,
+     "to_margin": null,
+     "margin_src": null,
+     "margin_sourced": null,
+     "contested_scope": null,
+     "margin_ok": null
     },
     {
      "id": "borderia--era-1800",
@@ -544,7 +728,13 @@
      "contested": false,
      "assessed": true,
      "why": null,
-     "url": "/region/borderia/#era-1800"
+     "url": "/region/borderia/#era-1800",
+     "from_margin": null,
+     "to_margin": null,
+     "margin_src": null,
+     "margin_sourced": null,
+     "contested_scope": null,
+     "margin_ok": null
     },
     {
      "id": "borderia--era-1900",
@@ -560,7 +750,13 @@
      "contested": false,
      "assessed": true,
      "why": null,
-     "url": "/region/borderia/#era-1900"
+     "url": "/region/borderia/#era-1900",
+     "from_margin": null,
+     "to_margin": null,
+     "margin_src": null,
+     "margin_sourced": null,
+     "contested_scope": null,
+     "margin_ok": null
     }
    ],
    "twinnb": [
@@ -578,7 +774,13 @@
      "contested": false,
      "assessed": true,
      "why": null,
-     "url": "/region/twinnb/#era-1700"
+     "url": "/region/twinnb/#era-1700",
+     "from_margin": null,
+     "to_margin": null,
+     "margin_src": null,
+     "margin_sourced": null,
+     "contested_scope": null,
+     "margin_ok": null
     }
    ],
    "sidonia": [
@@ -596,7 +798,13 @@
      "contested": false,
      "assessed": true,
      "why": null,
-     "url": "/region/sidonia/#era-1700"
+     "url": "/region/sidonia/#era-1700",
+     "from_margin": null,
+     "to_margin": null,
+     "margin_src": null,
+     "margin_sourced": null,
+     "contested_scope": null,
+     "margin_ok": null
     }
    ],
    "nullnb": [
@@ -614,7 +822,13 @@
      "contested": null,
      "assessed": false,
      "why": null,
-     "url": "/region/nullnb/#era-1700"
+     "url": "/region/nullnb/#era-1700",
+     "from_margin": null,
+     "to_margin": null,
+     "margin_src": null,
+     "margin_sourced": null,
+     "contested_scope": null,
+     "margin_ok": null
     }
    ],
    "contnb": [
@@ -632,7 +846,13 @@
      "contested": true,
      "assessed": true,
      "why": null,
-     "url": "/region/contnb/#era-1700"
+     "url": "/region/contnb/#era-1700",
+     "from_margin": null,
+     "to_margin": null,
+     "margin_src": null,
+     "margin_sourced": null,
+     "contested_scope": null,
+     "margin_ok": null
     }
    ],
    "casenb": [
@@ -650,7 +870,13 @@
      "contested": false,
      "assessed": true,
      "why": null,
-     "url": "/region/casenb/#era-1700"
+     "url": "/region/casenb/#era-1700",
+     "from_margin": null,
+     "to_margin": null,
+     "margin_src": null,
+     "margin_sourced": null,
+     "contested_scope": null,
+     "margin_ok": null
     }
    ],
    "overnb": [
@@ -668,7 +894,13 @@
      "contested": false,
      "assessed": true,
      "why": null,
-     "url": "/region/overnb/#era-1700"
+     "url": "/region/overnb/#era-1700",
+     "from_margin": null,
+     "to_margin": null,
+     "margin_src": null,
+     "margin_sourced": null,
+     "contested_scope": null,
+     "margin_ok": null
     },
     {
      "id": "overnb--era-1790",
@@ -684,7 +916,13 @@
      "contested": false,
      "assessed": true,
      "why": null,
-     "url": "/region/overnb/#era-1790"
+     "url": "/region/overnb/#era-1790",
+     "from_margin": null,
+     "to_margin": null,
+     "margin_src": null,
+     "margin_sourced": null,
+     "contested_scope": null,
+     "margin_ok": null
     }
    ],
    "refusednb": [
@@ -702,7 +940,13 @@
      "contested": false,
      "assessed": true,
      "why": null,
-     "url": "/region/refusednb/#era-1700"
+     "url": "/region/refusednb/#era-1700",
+     "from_margin": null,
+     "to_margin": null,
+     "margin_src": null,
+     "margin_sourced": null,
+     "contested_scope": null,
+     "margin_ok": null
     }
    ],
    "turnnb": [
@@ -720,7 +964,13 @@
      "contested": false,
      "assessed": true,
      "why": null,
-     "url": "/region/turnnb/#era-1700"
+     "url": "/region/turnnb/#era-1700",
+     "from_margin": null,
+     "to_margin": null,
+     "margin_src": null,
+     "margin_sourced": null,
+     "contested_scope": null,
+     "margin_ok": null
     },
     {
      "id": "turnnb--era-1760",
@@ -736,7 +986,13 @@
      "contested": false,
      "assessed": true,
      "why": null,
-     "url": "/region/turnnb/#era-1760"
+     "url": "/region/turnnb/#era-1760",
+     "from_margin": null,
+     "to_margin": null,
+     "margin_src": null,
+     "margin_sourced": null,
+     "contested_scope": null,
+     "margin_ok": null
     }
    ],
    "turn2nb": [
@@ -754,7 +1010,13 @@
      "contested": false,
      "assessed": true,
      "why": null,
-     "url": "/region/turn2nb/#era-1800"
+     "url": "/region/turn2nb/#era-1800",
+     "from_margin": null,
+     "to_margin": null,
+     "margin_src": null,
+     "margin_sourced": null,
+     "contested_scope": null,
+     "margin_ok": null
     },
     {
      "id": "turn2nb--era-1850",
@@ -770,7 +1032,13 @@
      "contested": false,
      "assessed": true,
      "why": null,
-     "url": "/region/turn2nb/#era-1850"
+     "url": "/region/turn2nb/#era-1850",
+     "from_margin": null,
+     "to_margin": null,
+     "margin_src": null,
+     "margin_sourced": null,
+     "contested_scope": null,
+     "margin_ok": null
     }
    ],
    "firstnb": [
@@ -788,7 +1056,13 @@
      "contested": false,
      "assessed": true,
      "why": null,
-     "url": "/region/firstnb/#era-1760"
+     "url": "/region/firstnb/#era-1760",
+     "from_margin": null,
+     "to_margin": null,
+     "margin_src": null,
+     "margin_sourced": null,
+     "contested_scope": null,
+     "margin_ok": null
     }
    ],
    "droppednb": [
@@ -806,7 +1080,13 @@
      "contested": false,
      "assessed": true,
      "why": null,
-     "url": "/region/droppednb/#era-1700"
+     "url": "/region/droppednb/#era-1700",
+     "from_margin": null,
+     "to_margin": null,
+     "margin_src": null,
+     "margin_sourced": null,
+     "contested_scope": null,
+     "margin_ok": null
     },
     {
      "id": "droppednb--era-1760",
@@ -822,7 +1102,13 @@
      "contested": false,
      "assessed": true,
      "why": null,
-     "url": "/region/droppednb/#era-1760"
+     "url": "/region/droppednb/#era-1760",
+     "from_margin": null,
+     "to_margin": null,
+     "margin_src": null,
+     "margin_sourced": null,
+     "contested_scope": null,
+     "margin_ok": null
     }
    ]
   },
@@ -1036,7 +1322,7 @@
  },
  "other_snapshots": {
   "allow": {
-   "version": 3,
+   "version": 4,
    "built": "2026-01-01",
    "contract": {
     "name": "recordatlas-context",
@@ -1054,7 +1340,11 @@
     "boundary": "newer",
     "recent_from": 1990,
     "edge_km": 15,
-    "edge": "agree"
+    "edge": "agree",
+    "approx": "margin",
+    "contested": "scope",
+    "margin_years": 5,
+    "margins": {}
    },
    "regions": {
     "ruritania": [
@@ -1072,7 +1362,13 @@
       "contested": false,
       "url": "/region/ruritania/#era-1700",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      },
      {
       "id": "ruritania--era-1800",
@@ -1088,7 +1384,13 @@
       "contested": false,
       "url": "/region/ruritania/#era-1800",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      },
      {
       "id": "ruritania--era-1850",
@@ -1104,7 +1406,13 @@
       "contested": false,
       "url": "/region/ruritania/#era-1850",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      },
      {
       "id": "ruritania--era-1900",
@@ -1120,7 +1428,13 @@
       "contested": false,
       "url": "/region/ruritania/#era-1900",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      },
      {
       "id": "ruritania--era-1950",
@@ -1135,7 +1449,13 @@
       "contested": false,
       "url": "/region/ruritania/#era-1950",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      },
      {
       "id": "ruritania--era-1991",
@@ -1151,7 +1471,13 @@
       "contested": false,
       "url": "/region/ruritania/#era-1991",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      }
     ],
     "elphberg": [
@@ -1169,7 +1495,13 @@
       "contested": false,
       "url": "/region/elphberg/#era-1900",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      }
     ],
     "zenda": [
@@ -1187,7 +1519,13 @@
       "contested": false,
       "url": "/region/zenda/#era-1700",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      },
      {
       "id": "zenda--era-1790",
@@ -1203,7 +1541,13 @@
       "contested": false,
       "url": "/region/zenda/#era-1790",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      },
      {
       "id": "zenda--era-1850",
@@ -1219,7 +1563,13 @@
       "contested": false,
       "url": "/region/zenda/#era-1850",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      },
      {
       "id": "zenda--era-1900",
@@ -1235,7 +1585,13 @@
       "contested": true,
       "url": "/region/zenda/#era-1900",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      },
      {
       "id": "zenda--era-1950",
@@ -1251,7 +1607,13 @@
       "contested": false,
       "url": "/region/zenda/#era-1950",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      }
     ],
     "strelsau": [
@@ -1269,7 +1631,13 @@
       "contested": false,
       "url": "/region/strelsau/#era-1700",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      },
      {
       "id": "strelsau--era-1800",
@@ -1285,7 +1653,13 @@
       "contested": false,
       "url": "/region/strelsau/#era-1800",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      }
     ],
     "bareera": [
@@ -1301,7 +1675,13 @@
       "seeded_from_archive": false,
       "url": "/region/bareera/#era-1700",
       "assessed": false,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      }
     ],
     "nullflags": [
@@ -1319,7 +1699,13 @@
       "contested": null,
       "url": "/region/nullflags/#era-1700",
       "assessed": false,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      }
     ],
     "gappy": [
@@ -1337,7 +1723,13 @@
       "contested": false,
       "url": "/region/gappy/#era-1700",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      },
      {
       "id": "gappy--era-1760",
@@ -1353,7 +1745,13 @@
       "contested": false,
       "url": "/region/gappy/#era-1760",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      }
     ],
     "dropbound": [
@@ -1371,7 +1769,13 @@
       "contested": false,
       "url": "/region/dropbound/#era-1800",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      }
     ],
     "badid": [
@@ -1389,7 +1793,13 @@
       "contested": false,
       "url": "/region/badid/#era-1700",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      }
     ],
     "badurl": [
@@ -1407,7 +1817,13 @@
       "contested": false,
       "url": "/region/other/#era-1700",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      }
     ],
     "openword": [
@@ -1425,7 +1841,13 @@
       "contested": false,
       "url": "/region/openword/#era-1700",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      }
     ],
     "noend": [
@@ -1442,7 +1864,13 @@
       "contested": false,
       "url": "/region/noend/#era-1700",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      }
     ],
     "garbage": [
@@ -1460,7 +1888,13 @@
       "contested": false,
       "url": "/region/garbage/#era-1700",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      }
     ],
     "noeras": [],
@@ -1479,7 +1913,13 @@
       "contested": false,
       "url": "/region/refover/#era-1700",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      }
     ],
     "marchia": [
@@ -1497,7 +1937,13 @@
       "contested": false,
       "assessed": true,
       "why": null,
-      "url": "/region/marchia/#era-1700"
+      "url": "/region/marchia/#era-1700",
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      },
      {
       "id": "marchia--era-1800",
@@ -1513,7 +1959,13 @@
       "contested": false,
       "assessed": true,
       "why": null,
-      "url": "/region/marchia/#era-1800"
+      "url": "/region/marchia/#era-1800",
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      },
      {
       "id": "marchia--era-1850",
@@ -1529,7 +1981,13 @@
       "contested": false,
       "assessed": true,
       "why": null,
-      "url": "/region/marchia/#era-1850"
+      "url": "/region/marchia/#era-1850",
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      },
      {
       "id": "marchia--era-1900",
@@ -1545,7 +2003,13 @@
       "contested": false,
       "assessed": true,
       "why": null,
-      "url": "/region/marchia/#era-1900"
+      "url": "/region/marchia/#era-1900",
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      }
     ],
     "borderia": [
@@ -1563,7 +2027,13 @@
       "contested": false,
       "assessed": true,
       "why": null,
-      "url": "/region/borderia/#era-1700"
+      "url": "/region/borderia/#era-1700",
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      },
      {
       "id": "borderia--era-1800",
@@ -1579,7 +2049,13 @@
       "contested": false,
       "assessed": true,
       "why": null,
-      "url": "/region/borderia/#era-1800"
+      "url": "/region/borderia/#era-1800",
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      },
      {
       "id": "borderia--era-1900",
@@ -1595,7 +2071,13 @@
       "contested": false,
       "assessed": true,
       "why": null,
-      "url": "/region/borderia/#era-1900"
+      "url": "/region/borderia/#era-1900",
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      }
     ],
     "twinnb": [
@@ -1613,7 +2095,13 @@
       "contested": false,
       "assessed": true,
       "why": null,
-      "url": "/region/twinnb/#era-1700"
+      "url": "/region/twinnb/#era-1700",
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      }
     ],
     "sidonia": [
@@ -1631,7 +2119,13 @@
       "contested": false,
       "assessed": true,
       "why": null,
-      "url": "/region/sidonia/#era-1700"
+      "url": "/region/sidonia/#era-1700",
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      }
     ],
     "nullnb": [
@@ -1649,7 +2143,13 @@
       "contested": null,
       "assessed": false,
       "why": null,
-      "url": "/region/nullnb/#era-1700"
+      "url": "/region/nullnb/#era-1700",
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      }
     ],
     "contnb": [
@@ -1667,7 +2167,13 @@
       "contested": true,
       "assessed": true,
       "why": null,
-      "url": "/region/contnb/#era-1700"
+      "url": "/region/contnb/#era-1700",
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      }
     ],
     "casenb": [
@@ -1685,7 +2191,13 @@
       "contested": false,
       "assessed": true,
       "why": null,
-      "url": "/region/casenb/#era-1700"
+      "url": "/region/casenb/#era-1700",
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      }
     ],
     "overnb": [
@@ -1703,7 +2215,13 @@
       "contested": false,
       "assessed": true,
       "why": null,
-      "url": "/region/overnb/#era-1700"
+      "url": "/region/overnb/#era-1700",
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      },
      {
       "id": "overnb--era-1790",
@@ -1719,7 +2237,13 @@
       "contested": false,
       "assessed": true,
       "why": null,
-      "url": "/region/overnb/#era-1790"
+      "url": "/region/overnb/#era-1790",
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      }
     ],
     "refusednb": [
@@ -1737,7 +2261,13 @@
       "contested": false,
       "assessed": true,
       "why": null,
-      "url": "/region/refusednb/#era-1700"
+      "url": "/region/refusednb/#era-1700",
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      }
     ],
     "turnnb": [
@@ -1755,7 +2285,13 @@
       "contested": false,
       "assessed": true,
       "why": null,
-      "url": "/region/turnnb/#era-1700"
+      "url": "/region/turnnb/#era-1700",
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      },
      {
       "id": "turnnb--era-1760",
@@ -1771,7 +2307,13 @@
       "contested": false,
       "assessed": true,
       "why": null,
-      "url": "/region/turnnb/#era-1760"
+      "url": "/region/turnnb/#era-1760",
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      }
     ],
     "turn2nb": [
@@ -1789,7 +2331,13 @@
       "contested": false,
       "assessed": true,
       "why": null,
-      "url": "/region/turn2nb/#era-1800"
+      "url": "/region/turn2nb/#era-1800",
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      },
      {
       "id": "turn2nb--era-1850",
@@ -1805,7 +2353,13 @@
       "contested": false,
       "assessed": true,
       "why": null,
-      "url": "/region/turn2nb/#era-1850"
+      "url": "/region/turn2nb/#era-1850",
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      }
     ],
     "firstnb": [
@@ -1823,7 +2377,13 @@
       "contested": false,
       "assessed": true,
       "why": null,
-      "url": "/region/firstnb/#era-1760"
+      "url": "/region/firstnb/#era-1760",
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      }
     ],
     "droppednb": [
@@ -1841,7 +2401,13 @@
       "contested": false,
       "assessed": true,
       "why": null,
-      "url": "/region/droppednb/#era-1700"
+      "url": "/region/droppednb/#era-1700",
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      },
      {
       "id": "droppednb--era-1760",
@@ -1857,7 +2423,13 @@
       "contested": false,
       "assessed": true,
       "why": null,
-      "url": "/region/droppednb/#era-1760"
+      "url": "/region/droppednb/#era-1760",
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      }
     ]
    },
@@ -2070,7 +2642,7 @@
    }
   },
   "silent_boundary": {
-   "version": 3,
+   "version": 4,
    "built": "2026-01-01",
    "contract": {
     "name": "recordatlas-context",
@@ -2088,7 +2660,11 @@
     "boundary": "silent",
     "recent_from": 1990,
     "edge_km": 15,
-    "edge": "agree"
+    "edge": "agree",
+    "approx": "margin",
+    "contested": "scope",
+    "margin_years": 5,
+    "margins": {}
    },
    "regions": {
     "ruritania": [
@@ -2106,7 +2682,13 @@
       "contested": false,
       "url": "/region/ruritania/#era-1700",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      },
      {
       "id": "ruritania--era-1800",
@@ -2122,7 +2704,13 @@
       "contested": false,
       "url": "/region/ruritania/#era-1800",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      },
      {
       "id": "ruritania--era-1850",
@@ -2138,7 +2726,13 @@
       "contested": false,
       "url": "/region/ruritania/#era-1850",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      },
      {
       "id": "ruritania--era-1900",
@@ -2154,7 +2748,13 @@
       "contested": false,
       "url": "/region/ruritania/#era-1900",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      },
      {
       "id": "ruritania--era-1950",
@@ -2169,7 +2769,13 @@
       "contested": false,
       "url": "/region/ruritania/#era-1950",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      },
      {
       "id": "ruritania--era-1991",
@@ -2185,7 +2791,13 @@
       "contested": false,
       "url": "/region/ruritania/#era-1991",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      }
     ],
     "elphberg": [
@@ -2203,7 +2815,13 @@
       "contested": false,
       "url": "/region/elphberg/#era-1900",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      }
     ],
     "zenda": [
@@ -2221,7 +2839,13 @@
       "contested": false,
       "url": "/region/zenda/#era-1700",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      },
      {
       "id": "zenda--era-1790",
@@ -2237,7 +2861,13 @@
       "contested": false,
       "url": "/region/zenda/#era-1790",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      },
      {
       "id": "zenda--era-1850",
@@ -2253,7 +2883,13 @@
       "contested": false,
       "url": "/region/zenda/#era-1850",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      },
      {
       "id": "zenda--era-1900",
@@ -2269,7 +2905,13 @@
       "contested": true,
       "url": "/region/zenda/#era-1900",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      },
      {
       "id": "zenda--era-1950",
@@ -2285,7 +2927,13 @@
       "contested": false,
       "url": "/region/zenda/#era-1950",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      }
     ],
     "strelsau": [
@@ -2303,7 +2951,13 @@
       "contested": false,
       "url": "/region/strelsau/#era-1700",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      },
      {
       "id": "strelsau--era-1800",
@@ -2319,7 +2973,13 @@
       "contested": false,
       "url": "/region/strelsau/#era-1800",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      }
     ],
     "bareera": [
@@ -2335,7 +2995,13 @@
       "seeded_from_archive": false,
       "url": "/region/bareera/#era-1700",
       "assessed": false,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      }
     ],
     "nullflags": [
@@ -2353,7 +3019,13 @@
       "contested": null,
       "url": "/region/nullflags/#era-1700",
       "assessed": false,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      }
     ],
     "gappy": [
@@ -2371,7 +3043,13 @@
       "contested": false,
       "url": "/region/gappy/#era-1700",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      },
      {
       "id": "gappy--era-1760",
@@ -2387,7 +3065,13 @@
       "contested": false,
       "url": "/region/gappy/#era-1760",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      }
     ],
     "dropbound": [
@@ -2405,7 +3089,13 @@
       "contested": false,
       "url": "/region/dropbound/#era-1800",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      }
     ],
     "badid": [
@@ -2423,7 +3113,13 @@
       "contested": false,
       "url": "/region/badid/#era-1700",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      }
     ],
     "badurl": [
@@ -2441,7 +3137,13 @@
       "contested": false,
       "url": "/region/other/#era-1700",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      }
     ],
     "openword": [
@@ -2459,7 +3161,13 @@
       "contested": false,
       "url": "/region/openword/#era-1700",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      }
     ],
     "noend": [
@@ -2476,7 +3184,13 @@
       "contested": false,
       "url": "/region/noend/#era-1700",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      }
     ],
     "garbage": [
@@ -2494,7 +3208,13 @@
       "contested": false,
       "url": "/region/garbage/#era-1700",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      }
     ],
     "noeras": [],
@@ -2513,7 +3233,13 @@
       "contested": false,
       "url": "/region/refover/#era-1700",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      }
     ]
    },
@@ -2586,7 +3312,7 @@
    "edge_neighbours": {}
   },
   "nopolicy": {
-   "version": 3,
+   "version": 4,
    "built": "2026-01-01",
    "contract": {
     "name": "recordatlas-context",
@@ -2615,7 +3341,13 @@
       "contested": false,
       "url": "/region/ruritania/#era-1700",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      },
      {
       "id": "ruritania--era-1800",
@@ -2631,7 +3363,13 @@
       "contested": false,
       "url": "/region/ruritania/#era-1800",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      },
      {
       "id": "ruritania--era-1850",
@@ -2647,7 +3385,13 @@
       "contested": false,
       "url": "/region/ruritania/#era-1850",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      },
      {
       "id": "ruritania--era-1900",
@@ -2663,7 +3407,13 @@
       "contested": false,
       "url": "/region/ruritania/#era-1900",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      },
      {
       "id": "ruritania--era-1950",
@@ -2678,7 +3428,13 @@
       "contested": false,
       "url": "/region/ruritania/#era-1950",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      },
      {
       "id": "ruritania--era-1991",
@@ -2694,7 +3450,13 @@
       "contested": false,
       "url": "/region/ruritania/#era-1991",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      }
     ],
     "elphberg": [
@@ -2712,7 +3474,13 @@
       "contested": false,
       "url": "/region/elphberg/#era-1900",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      }
     ],
     "zenda": [
@@ -2730,7 +3498,13 @@
       "contested": false,
       "url": "/region/zenda/#era-1700",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      },
      {
       "id": "zenda--era-1790",
@@ -2746,7 +3520,13 @@
       "contested": false,
       "url": "/region/zenda/#era-1790",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      },
      {
       "id": "zenda--era-1850",
@@ -2762,7 +3542,13 @@
       "contested": false,
       "url": "/region/zenda/#era-1850",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      },
      {
       "id": "zenda--era-1900",
@@ -2778,7 +3564,13 @@
       "contested": true,
       "url": "/region/zenda/#era-1900",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      },
      {
       "id": "zenda--era-1950",
@@ -2794,7 +3586,13 @@
       "contested": false,
       "url": "/region/zenda/#era-1950",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      }
     ],
     "strelsau": [
@@ -2812,7 +3610,13 @@
       "contested": false,
       "url": "/region/strelsau/#era-1700",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      },
      {
       "id": "strelsau--era-1800",
@@ -2828,7 +3632,13 @@
       "contested": false,
       "url": "/region/strelsau/#era-1800",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      }
     ],
     "bareera": [
@@ -2844,7 +3654,13 @@
       "seeded_from_archive": false,
       "url": "/region/bareera/#era-1700",
       "assessed": false,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      }
     ],
     "nullflags": [
@@ -2862,7 +3678,13 @@
       "contested": null,
       "url": "/region/nullflags/#era-1700",
       "assessed": false,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      }
     ],
     "gappy": [
@@ -2880,7 +3702,13 @@
       "contested": false,
       "url": "/region/gappy/#era-1700",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      },
      {
       "id": "gappy--era-1760",
@@ -2896,7 +3724,13 @@
       "contested": false,
       "url": "/region/gappy/#era-1760",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      }
     ],
     "dropbound": [
@@ -2914,7 +3748,13 @@
       "contested": false,
       "url": "/region/dropbound/#era-1800",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      }
     ],
     "badid": [
@@ -2932,7 +3772,13 @@
       "contested": false,
       "url": "/region/badid/#era-1700",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      }
     ],
     "badurl": [
@@ -2950,7 +3796,13 @@
       "contested": false,
       "url": "/region/other/#era-1700",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      }
     ],
     "openword": [
@@ -2968,7 +3820,13 @@
       "contested": false,
       "url": "/region/openword/#era-1700",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      }
     ],
     "noend": [
@@ -2985,7 +3843,13 @@
       "contested": false,
       "url": "/region/noend/#era-1700",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      }
     ],
     "garbage": [
@@ -3003,7 +3867,13 @@
       "contested": false,
       "url": "/region/garbage/#era-1700",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      }
     ],
     "noeras": [],
@@ -3022,7 +3892,13 @@
       "contested": false,
       "url": "/region/refover/#era-1700",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      }
     ]
    },
@@ -3095,7 +3971,7 @@
    "edge_neighbours": {}
   },
   "recent2000": {
-   "version": 3,
+   "version": 4,
    "built": "2026-01-01",
    "contract": {
     "name": "recordatlas-context",
@@ -3113,7 +3989,11 @@
     "boundary": "newer",
     "recent_from": 2000,
     "edge_km": 15,
-    "edge": "agree"
+    "edge": "agree",
+    "approx": "margin",
+    "contested": "scope",
+    "margin_years": 5,
+    "margins": {}
    },
    "regions": {
     "ruritania": [
@@ -3131,7 +4011,13 @@
       "contested": false,
       "url": "/region/ruritania/#era-1700",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      },
      {
       "id": "ruritania--era-1800",
@@ -3147,7 +4033,13 @@
       "contested": false,
       "url": "/region/ruritania/#era-1800",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      },
      {
       "id": "ruritania--era-1850",
@@ -3163,7 +4055,13 @@
       "contested": false,
       "url": "/region/ruritania/#era-1850",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      },
      {
       "id": "ruritania--era-1900",
@@ -3179,7 +4077,13 @@
       "contested": false,
       "url": "/region/ruritania/#era-1900",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      },
      {
       "id": "ruritania--era-1950",
@@ -3194,7 +4098,13 @@
       "contested": false,
       "url": "/region/ruritania/#era-1950",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      },
      {
       "id": "ruritania--era-1991",
@@ -3210,7 +4120,13 @@
       "contested": false,
       "url": "/region/ruritania/#era-1991",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      }
     ],
     "elphberg": [
@@ -3228,7 +4144,13 @@
       "contested": false,
       "url": "/region/elphberg/#era-1900",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      }
     ],
     "zenda": [
@@ -3246,7 +4168,13 @@
       "contested": false,
       "url": "/region/zenda/#era-1700",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      },
      {
       "id": "zenda--era-1790",
@@ -3262,7 +4190,13 @@
       "contested": false,
       "url": "/region/zenda/#era-1790",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      },
      {
       "id": "zenda--era-1850",
@@ -3278,7 +4212,13 @@
       "contested": false,
       "url": "/region/zenda/#era-1850",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      },
      {
       "id": "zenda--era-1900",
@@ -3294,7 +4234,13 @@
       "contested": true,
       "url": "/region/zenda/#era-1900",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      },
      {
       "id": "zenda--era-1950",
@@ -3310,7 +4256,13 @@
       "contested": false,
       "url": "/region/zenda/#era-1950",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      }
     ],
     "strelsau": [
@@ -3328,7 +4280,13 @@
       "contested": false,
       "url": "/region/strelsau/#era-1700",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      },
      {
       "id": "strelsau--era-1800",
@@ -3344,7 +4302,13 @@
       "contested": false,
       "url": "/region/strelsau/#era-1800",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      }
     ],
     "bareera": [
@@ -3360,7 +4324,13 @@
       "seeded_from_archive": false,
       "url": "/region/bareera/#era-1700",
       "assessed": false,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      }
     ],
     "nullflags": [
@@ -3378,7 +4348,13 @@
       "contested": null,
       "url": "/region/nullflags/#era-1700",
       "assessed": false,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      }
     ],
     "gappy": [
@@ -3396,7 +4372,13 @@
       "contested": false,
       "url": "/region/gappy/#era-1700",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      },
      {
       "id": "gappy--era-1760",
@@ -3412,7 +4394,13 @@
       "contested": false,
       "url": "/region/gappy/#era-1760",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      }
     ],
     "dropbound": [
@@ -3430,7 +4418,13 @@
       "contested": false,
       "url": "/region/dropbound/#era-1800",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      }
     ],
     "badid": [
@@ -3448,7 +4442,13 @@
       "contested": false,
       "url": "/region/badid/#era-1700",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      }
     ],
     "badurl": [
@@ -3466,7 +4466,13 @@
       "contested": false,
       "url": "/region/other/#era-1700",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      }
     ],
     "openword": [
@@ -3484,7 +4490,13 @@
       "contested": false,
       "url": "/region/openword/#era-1700",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      }
     ],
     "noend": [
@@ -3501,7 +4513,13 @@
       "contested": false,
       "url": "/region/noend/#era-1700",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      }
     ],
     "garbage": [
@@ -3519,7 +4537,13 @@
       "contested": false,
       "url": "/region/garbage/#era-1700",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      }
     ],
     "noeras": [],
@@ -3538,7 +4562,13 @@
       "contested": false,
       "url": "/region/refover/#era-1700",
       "assessed": true,
-      "why": null
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
      }
     ]
    },
@@ -4133,8 +5163,1328 @@
    },
    "edge_neighbours": {}
   },
-  "v4": {
-   "version": 4,
+  "v3": {
+   "version": 3,
+   "built": "2026-01-01",
+   "contract": {
+    "name": "recordatlas-context",
+    "version": "1.7.0",
+    "generated": "2026-01-01",
+    "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+   },
+   "atlas": {
+    "base": "https://atlas.example.test",
+    "rings_source": "contract",
+    "rings_sha256": null
+   },
+   "policy": {
+    "unassessed": "refuse",
+    "boundary": "newer",
+    "recent_from": 1990,
+    "edge_km": 15,
+    "edge": "agree",
+    "approx": "margin",
+    "contested": "scope",
+    "margin_years": 5,
+    "margins": {}
+   },
+   "regions": {
+    "ruritania": [
+     {
+      "id": "ruritania--era-1700",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/ruritania/#era-1700",
+      "assessed": true,
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
+     },
+     {
+      "id": "ruritania--era-1800",
+      "from": 1800,
+      "to": 1850,
+      "present": false,
+      "regime": "occupied",
+      "label": "Occupied Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": true,
+      "contested": false,
+      "url": "/region/ruritania/#era-1800",
+      "assessed": true,
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
+     },
+     {
+      "id": "ruritania--era-1850",
+      "from": 1850,
+      "to": 1900,
+      "present": false,
+      "regime": "republic",
+      "label": "Republic of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/ruritania/#era-1850",
+      "assessed": true,
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
+     },
+     {
+      "id": "ruritania--era-1900",
+      "from": 1900,
+      "to": 1950,
+      "present": false,
+      "regime": "blank",
+      "label": "  ",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/ruritania/#era-1900",
+      "assessed": true,
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
+     },
+     {
+      "id": "ruritania--era-1950",
+      "from": 1950,
+      "to": 1991,
+      "present": false,
+      "regime": "ghost",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/ruritania/#era-1950",
+      "assessed": true,
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
+     },
+     {
+      "id": "ruritania--era-1991",
+      "from": 1991,
+      "to": null,
+      "present": true,
+      "regime": "third",
+      "label": "Third Republic of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/ruritania/#era-1991",
+      "assessed": true,
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
+     }
+    ],
+    "elphberg": [
+     {
+      "id": "elphberg--era-1900",
+      "from": 1900,
+      "to": null,
+      "present": true,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "seeded:test-archive",
+      "seeded_from_archive": true,
+      "approx": false,
+      "contested": false,
+      "url": "/region/elphberg/#era-1900",
+      "assessed": true,
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
+     }
+    ],
+    "zenda": [
+     {
+      "id": "zenda--era-1700",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/zenda/#era-1700",
+      "assessed": true,
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
+     },
+     {
+      "id": "zenda--era-1790",
+      "from": 1790,
+      "to": 1850,
+      "present": false,
+      "regime": "republic",
+      "label": "Republic of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/zenda/#era-1790",
+      "assessed": true,
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
+     },
+     {
+      "id": "zenda--era-1850",
+      "from": 1850,
+      "to": 1900,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/zenda/#era-1850",
+      "assessed": true,
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
+     },
+     {
+      "id": "zenda--era-1900",
+      "from": 1900,
+      "to": 1950,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": true,
+      "url": "/region/zenda/#era-1900",
+      "assessed": true,
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
+     },
+     {
+      "id": "zenda--era-1950",
+      "from": 1950,
+      "to": 2000,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/zenda/#era-1950",
+      "assessed": true,
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
+     }
+    ],
+    "strelsau": [
+     {
+      "id": "strelsau--era-1700",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/strelsau/#era-1700",
+      "assessed": true,
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
+     },
+     {
+      "id": "strelsau--era-1800",
+      "from": 1800,
+      "to": 1900,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/strelsau/#era-1800",
+      "assessed": true,
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
+     }
+    ],
+    "bareera": [
+     {
+      "id": "bareera--era-1700",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "url": "/region/bareera/#era-1700",
+      "assessed": false,
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
+     }
+    ],
+    "nullflags": [
+     {
+      "id": "nullflags--era-1700",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": null,
+      "contested": null,
+      "url": "/region/nullflags/#era-1700",
+      "assessed": false,
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
+     }
+    ],
+    "gappy": [
+     {
+      "id": "gappy--era-1700",
+      "from": 1700,
+      "to": 1750,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/gappy/#era-1700",
+      "assessed": true,
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
+     },
+     {
+      "id": "gappy--era-1760",
+      "from": 1760,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/gappy/#era-1760",
+      "assessed": true,
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
+     }
+    ],
+    "dropbound": [
+     {
+      "id": "dropbound--era-1800",
+      "from": 1800,
+      "to": 1900,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/dropbound/#era-1800",
+      "assessed": true,
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
+     }
+    ],
+    "badid": [
+     {
+      "id": "badid--era-1701",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/badid/#era-1700",
+      "assessed": true,
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
+     }
+    ],
+    "badurl": [
+     {
+      "id": "badurl--era-1700",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/other/#era-1700",
+      "assessed": true,
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
+     }
+    ],
+    "openword": [
+     {
+      "id": "openword--era-1700",
+      "from": 1700,
+      "to": "present",
+      "present": true,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/openword/#era-1700",
+      "assessed": true,
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
+     }
+    ],
+    "noend": [
+     {
+      "id": "noend--era-1700",
+      "from": 1700,
+      "present": true,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/noend/#era-1700",
+      "assessed": true,
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
+     }
+    ],
+    "garbage": [
+     {
+      "id": "garbage--era-1700",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": "maybe",
+      "contested": false,
+      "url": "/region/garbage/#era-1700",
+      "assessed": true,
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
+     }
+    ],
+    "noeras": [],
+    "refover": [
+     {
+      "id": "refover--era-1700",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "url": "/region/refover/#era-1700",
+      "assessed": true,
+      "why": null,
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
+     }
+    ],
+    "marchia": [
+     {
+      "id": "marchia--era-1700",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "assessed": true,
+      "why": null,
+      "url": "/region/marchia/#era-1700",
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
+     },
+     {
+      "id": "marchia--era-1800",
+      "from": 1800,
+      "to": 1850,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Republic of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "assessed": true,
+      "why": null,
+      "url": "/region/marchia/#era-1800",
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
+     },
+     {
+      "id": "marchia--era-1850",
+      "from": 1850,
+      "to": 1900,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "assessed": true,
+      "why": null,
+      "url": "/region/marchia/#era-1850",
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
+     },
+     {
+      "id": "marchia--era-1900",
+      "from": 1900,
+      "to": 1950,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Republic of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "assessed": true,
+      "why": null,
+      "url": "/region/marchia/#era-1900",
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
+     }
+    ],
+    "borderia": [
+     {
+      "id": "borderia--era-1700",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "assessed": true,
+      "why": null,
+      "url": "/region/borderia/#era-1700",
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
+     },
+     {
+      "id": "borderia--era-1800",
+      "from": 1800,
+      "to": 1850,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "assessed": true,
+      "why": null,
+      "url": "/region/borderia/#era-1800",
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
+     },
+     {
+      "id": "borderia--era-1900",
+      "from": 1900,
+      "to": 1950,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Republic of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": true,
+      "contested": false,
+      "assessed": true,
+      "why": null,
+      "url": "/region/borderia/#era-1900",
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
+     }
+    ],
+    "twinnb": [
+     {
+      "id": "twinnb--era-1700",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "assessed": true,
+      "why": null,
+      "url": "/region/twinnb/#era-1700",
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
+     }
+    ],
+    "sidonia": [
+     {
+      "id": "sidonia--era-1700",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Republic of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "assessed": true,
+      "why": null,
+      "url": "/region/sidonia/#era-1700",
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
+     }
+    ],
+    "nullnb": [
+     {
+      "id": "nullnb--era-1700",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": null,
+      "contested": null,
+      "assessed": false,
+      "why": null,
+      "url": "/region/nullnb/#era-1700",
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
+     }
+    ],
+    "contnb": [
+     {
+      "id": "contnb--era-1700",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": true,
+      "assessed": true,
+      "why": null,
+      "url": "/region/contnb/#era-1700",
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
+     }
+    ],
+    "casenb": [
+     {
+      "id": "casenb--era-1700",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "kingdom of ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "assessed": true,
+      "why": null,
+      "url": "/region/casenb/#era-1700",
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
+     }
+    ],
+    "overnb": [
+     {
+      "id": "overnb--era-1700",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "assessed": true,
+      "why": null,
+      "url": "/region/overnb/#era-1700",
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
+     },
+     {
+      "id": "overnb--era-1790",
+      "from": 1790,
+      "to": 1850,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "assessed": true,
+      "why": null,
+      "url": "/region/overnb/#era-1790",
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
+     }
+    ],
+    "refusednb": [
+     {
+      "id": "refusednb--era-1700",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "assessed": true,
+      "why": null,
+      "url": "/region/refusednb/#era-1700",
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
+     }
+    ],
+    "turnnb": [
+     {
+      "id": "turnnb--era-1700",
+      "from": 1700,
+      "to": 1760,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Republic of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "assessed": true,
+      "why": null,
+      "url": "/region/turnnb/#era-1700",
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
+     },
+     {
+      "id": "turnnb--era-1760",
+      "from": 1760,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "assessed": true,
+      "why": null,
+      "url": "/region/turnnb/#era-1760",
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
+     }
+    ],
+    "turn2nb": [
+     {
+      "id": "turn2nb--era-1800",
+      "from": 1800,
+      "to": 1850,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Republic of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "assessed": true,
+      "why": null,
+      "url": "/region/turn2nb/#era-1800",
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
+     },
+     {
+      "id": "turn2nb--era-1850",
+      "from": 1850,
+      "to": 1900,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "assessed": true,
+      "why": null,
+      "url": "/region/turn2nb/#era-1850",
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
+     }
+    ],
+    "firstnb": [
+     {
+      "id": "firstnb--era-1760",
+      "from": 1760,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "assessed": true,
+      "why": null,
+      "url": "/region/firstnb/#era-1760",
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
+     }
+    ],
+    "droppednb": [
+     {
+      "id": "droppednb--era-1700",
+      "from": 1700,
+      "to": 1760,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "assessed": true,
+      "why": null,
+      "url": "/region/droppednb/#era-1700",
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
+     },
+     {
+      "id": "droppednb--era-1760",
+      "from": 1760,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "assessed": true,
+      "why": null,
+      "url": "/region/droppednb/#era-1760",
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
+     }
+    ]
+   },
+   "places": {
+    "hentzau": "ruritania",
+    "zenda": "elphberg",
+    "overlap town": "zenda",
+    "strelsau": "strelsau",
+    "bare town": "bareera",
+    "null town": "nullflags",
+    "gappy town": "gappy",
+    "dropbound town": "dropbound",
+    "bad id town": "badid",
+    "bad url town": "badurl",
+    "open word town": "openword",
+    "no end town": "noend",
+    "garbage town": "garbage",
+    "unchecked town": "ruritania",
+    "lonely castle": "atlantis",
+    "no eras town": "noeras",
+    "refover town": "refover",
+    "edge agree town": "marchia",
+    "conflict agree town": "marchia",
+    "twin edge town": "marchia",
+    "two edge town": "marchia",
+    "null edge town": "marchia",
+    "contested edge town": "marchia",
+    "case edge town": "marchia",
+    "stretch edge town": "marchia",
+    "refused edge town": "marchia",
+    "turn edge town": "marchia",
+    "turn boundary town": "marchia",
+    "first edge town": "marchia",
+    "dropped edge town": "marchia",
+    "lost edge town": "marchia",
+    "empty edge town": "marchia",
+    "self edge town": "marchia",
+    "banana edge town": "marchia",
+    "bare edge town": "marchia"
+   },
+   "places_silent": {
+    "edge town": "edge",
+    "marked town": "marked-edge",
+    "conflict town": "ring-conflict",
+    "weird town": "banana"
+   },
+   "unchecked_edge": [
+    "unchecked town"
+   ],
+   "dropped": [
+    {
+     "region": "strelsau",
+     "id": "strelsau--era-1900",
+     "from": 1900,
+     "to": 1950,
+     "reason": "regime shorthand"
+    },
+    {
+     "region": "dropbound",
+     "id": "dropbound--era-1700",
+     "from": 1700,
+     "to": 1800,
+     "reason": "not assessed"
+    },
+    {
+     "region": "zenda",
+     "id": "zenda--era-2100",
+     "from": 2100,
+     "to": null,
+     "reason": "x"
+    },
+    {
+     "region": "refover",
+     "id": "refover--era-1750",
+     "from": 1750,
+     "to": 1850,
+     "reason": "x"
+    },
+    {
+     "region": "refusednb",
+     "id": "refusednb--era-1750",
+     "from": 1750,
+     "to": 1800,
+     "reason": "x"
+    },
+    {
+     "region": "droppednb",
+     "id": "droppednb--era-1740",
+     "from": 1740,
+     "to": 1760,
+     "reason": "x"
+    }
+   ],
+   "quality": {
+    "counts": {
+     "gaps": 0,
+     "overlaps": 0
+    },
+    "gaps": [],
+    "overlaps": []
+   },
+   "edge_neighbours": {
+    "edge agree town": {
+     "kind": "edge",
+     "regions": [
+      "borderia"
+     ]
+    },
+    "conflict agree town": {
+     "kind": "ring-conflict",
+     "regions": [
+      "borderia"
+     ]
+    },
+    "twin edge town": {
+     "kind": "edge",
+     "regions": [
+      "borderia",
+      "twinnb"
+     ]
+    },
+    "two edge town": {
+     "kind": "edge",
+     "regions": [
+      "borderia",
+      "sidonia"
+     ]
+    },
+    "null edge town": {
+     "kind": "edge",
+     "regions": [
+      "nullnb"
+     ]
+    },
+    "contested edge town": {
+     "kind": "edge",
+     "regions": [
+      "contnb"
+     ]
+    },
+    "case edge town": {
+     "kind": "edge",
+     "regions": [
+      "casenb"
+     ]
+    },
+    "stretch edge town": {
+     "kind": "edge",
+     "regions": [
+      "overnb"
+     ]
+    },
+    "refused edge town": {
+     "kind": "edge",
+     "regions": [
+      "refusednb"
+     ]
+    },
+    "turn edge town": {
+     "kind": "edge",
+     "regions": [
+      "turnnb"
+     ]
+    },
+    "turn boundary town": {
+     "kind": "edge",
+     "regions": [
+      "turn2nb"
+     ]
+    },
+    "first edge town": {
+     "kind": "edge",
+     "regions": [
+      "firstnb"
+     ]
+    },
+    "dropped edge town": {
+     "kind": "edge",
+     "regions": [
+      "droppednb"
+     ]
+    },
+    "lost edge town": {
+     "kind": "edge",
+     "regions": [
+      "narnia"
+     ]
+    },
+    "empty edge town": {
+     "kind": "edge",
+     "regions": []
+    },
+    "self edge town": {
+     "kind": "edge",
+     "regions": [
+      "marchia"
+     ]
+    },
+    "banana edge town": {
+     "kind": "banana",
+     "regions": [
+      "borderia"
+     ]
+    },
+    "bare edge town": {
+     "regions": [
+      "borderia"
+     ]
+    }
+   }
+  },
+  "v5": {
+   "version": 5,
    "built": "2026-01-01",
    "contract": {
     "name": "recordatlas-context",
@@ -4585,6 +6935,3241 @@
      "from": 1750,
      "to": 1850,
      "reason": "x"
+    }
+   ],
+   "quality": {
+    "counts": {
+     "gaps": 0,
+     "overlaps": 0
+    },
+    "gaps": [],
+    "overlaps": []
+   }
+  },
+  "margin": {
+   "version": 4,
+   "built": "2026-01-01",
+   "contract": {
+    "name": "recordatlas-context",
+    "version": "1.10.0",
+    "generated": "2026-01-01",
+    "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+   },
+   "atlas": {
+    "base": "https://atlas.example.test",
+    "rings_source": "contract",
+    "rings_sha256": null
+   },
+   "policy": {
+    "unassessed": "refuse",
+    "boundary": "newer",
+    "recent_from": 1990,
+    "edge_km": 15,
+    "edge": "agree",
+    "approx": "margin",
+    "contested": "scope",
+    "margin_years": 5,
+    "margins": {}
+   },
+   "regions": {
+    "calabrio": [
+     {
+      "id": "calabrio--era-1815",
+      "from": 1815,
+      "to": 1861,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of the Two Realms",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": true,
+      "contested": false,
+      "assessed": true,
+      "why": "The start is a lower bound.",
+      "url": "/region/calabrio/#era-1815",
+      "from_margin": 0,
+      "to_margin": 0,
+      "margin_src": "fallback",
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": {
+       "kind": "approx",
+       "first": 1821,
+       "last": 1855
+      }
+     },
+     {
+      "id": "calabrio--era-1861",
+      "from": 1861,
+      "to": null,
+      "present": true,
+      "regime": "kingdom",
+      "label": "Union of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": true,
+      "contested": false,
+      "assessed": true,
+      "why": null,
+      "url": "/region/calabrio/#era-1861",
+      "from_margin": 0,
+      "to_margin": null,
+      "margin_src": "fallback",
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": {
+       "kind": "approx",
+       "first": 1867,
+       "last": null
+      }
+     }
+    ],
+    "zeroton": [
+     {
+      "id": "zeroton--era-1800",
+      "from": 1800,
+      "to": 1850,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Old Duchy",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": true,
+      "contested": false,
+      "assessed": true,
+      "why": null,
+      "url": "/region/zeroton/#era-1800",
+      "from_margin": 0,
+      "to_margin": 0,
+      "margin_src": "contract",
+      "margin_sourced": true,
+      "contested_scope": "none",
+      "margin_ok": {
+       "kind": "approx",
+       "first": 1806,
+       "last": 1844
+      }
+     },
+     {
+      "id": "zeroton--era-1850",
+      "from": 1850,
+      "to": null,
+      "present": true,
+      "regime": "kingdom",
+      "label": "New Duchy",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": true,
+      "contested": false,
+      "assessed": true,
+      "why": null,
+      "url": "/region/zeroton/#era-1850",
+      "from_margin": 0,
+      "to_margin": null,
+      "margin_src": "contract",
+      "margin_sourced": true,
+      "contested_scope": "none",
+      "margin_ok": {
+       "kind": "approx",
+       "first": 1856,
+       "last": null
+      }
+     }
+    ],
+    "scoped": [
+     {
+      "id": "scoped--era-1816",
+      "from": 1816,
+      "to": 1861,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Realm of the Seven Seats",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": true,
+      "assessed": true,
+      "why": null,
+      "url": "/region/scoped/#era-1816",
+      "from_margin": 1,
+      "to_margin": 1,
+      "margin_src": "contract",
+      "margin_sourced": true,
+      "contested_scope": "bounds",
+      "margin_ok": {
+       "kind": "contested",
+       "first": 1822,
+       "last": 1855
+      }
+     },
+     {
+      "id": "scoped--era-1861",
+      "from": 1861,
+      "to": null,
+      "present": true,
+      "regime": "kingdom",
+      "label": "Union of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "assessed": true,
+      "why": null,
+      "url": "/region/scoped/#era-1861",
+      "from_margin": 1,
+      "to_margin": null,
+      "margin_src": "contract",
+      "margin_sourced": true,
+      "contested_scope": "none",
+      "margin_ok": {
+       "kind": "margin",
+       "first": 1867,
+       "last": null
+      }
+     }
+    ],
+    "regimeland": [
+     {
+      "id": "regimeland--era-1900",
+      "from": 1900,
+      "to": 1950,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Free City",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": true,
+      "assessed": true,
+      "why": null,
+      "url": "/region/regimeland/#era-1900",
+      "from_margin": 1,
+      "to_margin": 1,
+      "margin_src": "contract",
+      "margin_sourced": true,
+      "contested_scope": "regime",
+      "margin_ok": {
+       "kind": "contested",
+       "first": 1906,
+       "last": 1944
+      }
+     },
+     {
+      "id": "regimeland--era-1950",
+      "from": 1950,
+      "to": 2000,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Partitioned Zone",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": true,
+      "assessed": true,
+      "why": null,
+      "url": "/region/regimeland/#era-1950",
+      "from_margin": 1,
+      "to_margin": 1,
+      "margin_src": "contract",
+      "margin_sourced": true,
+      "contested_scope": "part",
+      "margin_ok": {
+       "kind": "contested",
+       "first": 1956,
+       "last": 1994
+      }
+     }
+    ],
+    "noscope": [
+     {
+      "id": "noscope--era-1900",
+      "from": 1900,
+      "to": 1950,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Margraviate of Nowhere",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": true,
+      "assessed": true,
+      "why": null,
+      "url": "/region/noscope/#era-1900",
+      "from_margin": 0,
+      "to_margin": 0,
+      "margin_src": "fallback",
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": {
+       "kind": "contested",
+       "first": 1906,
+       "last": 1944
+      }
+     }
+    ],
+    "tamper": [
+     {
+      "id": "tamper--era-1800",
+      "from": 1800,
+      "to": 1900,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Tampered Kingdom",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": true,
+      "contested": false,
+      "assessed": true,
+      "why": null,
+      "url": "/region/tamper/#era-1800",
+      "from_margin": 0,
+      "to_margin": 0,
+      "margin_src": "fallback",
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": {
+       "kind": "approx",
+       "first": 1800,
+       "last": 1899
+      }
+     },
+     {
+      "id": "tamper--era-1900",
+      "from": 1900,
+      "to": 2000,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Half-Known Kingdom",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": true,
+      "contested": false,
+      "assessed": true,
+      "why": null,
+      "url": "/region/tamper/#era-1900",
+      "from_margin": 0,
+      "to_margin": null,
+      "margin_src": "fallback",
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": {
+       "kind": "approx",
+       "first": 1906,
+       "last": 1999
+      }
+     },
+     {
+      "id": "tamper--era-2000",
+      "from": 2000,
+      "to": 2100,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Unrecorded Kingdom",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": true,
+      "contested": false,
+      "assessed": true,
+      "why": null,
+      "url": "/region/tamper/#era-2000",
+      "from_margin": 0,
+      "to_margin": 0,
+      "margin_src": "fallback",
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
+     }
+    ],
+    "plainm": [
+     {
+      "id": "plainm--era-1700",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Margined Kingdom",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "assessed": true,
+      "why": null,
+      "url": "/region/plainm/#era-1700",
+      "from_margin": 2,
+      "to_margin": 2,
+      "margin_src": "contract",
+      "margin_sourced": true,
+      "contested_scope": "none",
+      "margin_ok": {
+       "kind": "margin",
+       "first": 1706,
+       "last": 1794
+      }
+     }
+    ],
+    "wide": [
+     {
+      "id": "wide--era-1700",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Wide Kingdom",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "assessed": true,
+      "why": null,
+      "url": "/region/wide/#era-1700",
+      "from_margin": 12,
+      "to_margin": 9,
+      "margin_src": "contract",
+      "margin_sourced": true,
+      "contested_scope": "none",
+      "margin_ok": {
+       "kind": "margin",
+       "first": 1713,
+       "last": 1790
+      }
+     }
+    ],
+    "soft": [
+     {
+      "id": "soft--era-1700",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Softly Dated Kingdom",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "assessed": true,
+      "why": null,
+      "url": "/region/soft/#era-1700",
+      "from_margin": 2,
+      "to_margin": 7,
+      "margin_src": "contract",
+      "margin_sourced": false,
+      "contested_scope": "none",
+      "margin_ok": {
+       "kind": "margin",
+       "first": 1711,
+       "last": 1787
+      }
+     }
+    ],
+    "edgea": [
+     {
+      "id": "edgea--era-1700",
+      "from": 1700,
+      "to": 1900,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Edge",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "assessed": true,
+      "why": null,
+      "url": "/region/edgea/#era-1700",
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
+     }
+    ],
+    "edgeb": [
+     {
+      "id": "edgeb--era-1700",
+      "from": 1700,
+      "to": 1900,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Edge",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": true,
+      "contested": false,
+      "assessed": true,
+      "why": null,
+      "url": "/region/edgeb/#era-1700",
+      "from_margin": 0,
+      "to_margin": 0,
+      "margin_src": "fallback",
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": {
+       "kind": "approx",
+       "first": 1706,
+       "last": 1894
+      }
+     }
+    ],
+    "edgec": [
+     {
+      "id": "edgec--era-1700",
+      "from": 1700,
+      "to": 1900,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Edge",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": true,
+      "assessed": true,
+      "why": null,
+      "url": "/region/edgec/#era-1700",
+      "from_margin": 1,
+      "to_margin": 1,
+      "margin_src": "contract",
+      "margin_sourced": true,
+      "contested_scope": "regime",
+      "margin_ok": {
+       "kind": "contested",
+       "first": 1706,
+       "last": 1894
+      }
+     }
+    ],
+    "oddscope": [
+     {
+      "id": "oddscope--era-1700",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Oddly Scoped Kingdom",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "assessed": true,
+      "why": null,
+      "url": "/region/oddscope/#era-1700",
+      "from_margin": 0,
+      "to_margin": 0,
+      "margin_src": "contract",
+      "margin_sourced": true,
+      "contested_scope": "regime",
+      "margin_ok": {
+       "kind": "margin",
+       "first": 1706,
+       "last": 1794
+      }
+     }
+    ],
+    "weirdscope": [
+     {
+      "id": "weirdscope--era-1700",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Weirdly Scoped Kingdom",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": true,
+      "assessed": true,
+      "why": null,
+      "url": "/region/weirdscope/#era-1700",
+      "from_margin": 0,
+      "to_margin": 0,
+      "margin_src": "contract",
+      "margin_sourced": true,
+      "contested_scope": "whole",
+      "margin_ok": {
+       "kind": "contested",
+       "first": 1706,
+       "last": 1794
+      }
+     }
+    ],
+    "noneland": [
+     {
+      "id": "noneland--era-1700",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Quietly Contested Kingdom",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": true,
+      "assessed": true,
+      "why": null,
+      "url": "/region/noneland/#era-1700",
+      "from_margin": 0,
+      "to_margin": 0,
+      "margin_src": "contract",
+      "margin_sourced": true,
+      "contested_scope": "none",
+      "margin_ok": {
+       "kind": "contested",
+       "first": 1706,
+       "last": 1794
+      }
+     }
+    ],
+    "feudland": []
+   },
+   "places": {
+    "calabrio": "calabrio",
+    "zeroton": "zeroton",
+    "scopetown": "scoped",
+    "fiumeish": "regimeland",
+    "nowhereton": "noscope",
+    "tamperton": "tamper",
+    "plainton": "plainm",
+    "wideton": "wide",
+    "softton": "soft",
+    "oddton": "oddscope",
+    "weirdton": "weirdscope",
+    "noneton": "noneland",
+    "edge margin town": "edgea",
+    "edge regime town": "edgea",
+    "feudton": "feudland"
+   },
+   "places_silent": {},
+   "edge_neighbours": {
+    "edge margin town": {
+     "kind": "edge",
+     "regions": [
+      "edgeb"
+     ]
+    },
+    "edge regime town": {
+     "kind": "edge",
+     "regions": [
+      "edgec"
+     ]
+    }
+   },
+   "unchecked_edge": [],
+   "dropped": [
+    {
+     "region": "feudland",
+     "id": "feudland--era-1000",
+     "from": 1000,
+     "to": 1700,
+     "reason": "regime is the project's own shorthand, not a state"
+    }
+   ],
+   "quality": {
+    "counts": {
+     "gaps": 0,
+     "overlaps": 0
+    },
+    "gaps": [],
+    "overlaps": []
+   }
+  },
+  "margin_contested_margin": {
+   "version": 4,
+   "built": "2026-01-01",
+   "contract": {
+    "name": "recordatlas-context",
+    "version": "1.10.0",
+    "generated": "2026-01-01",
+    "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+   },
+   "atlas": {
+    "base": "https://atlas.example.test",
+    "rings_source": "contract",
+    "rings_sha256": null
+   },
+   "policy": {
+    "unassessed": "refuse",
+    "boundary": "newer",
+    "recent_from": 1990,
+    "edge_km": 15,
+    "edge": "agree",
+    "approx": "margin",
+    "contested": "margin",
+    "margin_years": 5,
+    "margins": {}
+   },
+   "regions": {
+    "calabrio": [
+     {
+      "id": "calabrio--era-1815",
+      "from": 1815,
+      "to": 1861,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of the Two Realms",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": true,
+      "contested": false,
+      "assessed": true,
+      "why": "The start is a lower bound.",
+      "url": "/region/calabrio/#era-1815",
+      "from_margin": 0,
+      "to_margin": 0,
+      "margin_src": "fallback",
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": {
+       "kind": "approx",
+       "first": 1821,
+       "last": 1855
+      }
+     },
+     {
+      "id": "calabrio--era-1861",
+      "from": 1861,
+      "to": null,
+      "present": true,
+      "regime": "kingdom",
+      "label": "Union of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": true,
+      "contested": false,
+      "assessed": true,
+      "why": null,
+      "url": "/region/calabrio/#era-1861",
+      "from_margin": 0,
+      "to_margin": null,
+      "margin_src": "fallback",
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": {
+       "kind": "approx",
+       "first": 1867,
+       "last": null
+      }
+     }
+    ],
+    "zeroton": [
+     {
+      "id": "zeroton--era-1800",
+      "from": 1800,
+      "to": 1850,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Old Duchy",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": true,
+      "contested": false,
+      "assessed": true,
+      "why": null,
+      "url": "/region/zeroton/#era-1800",
+      "from_margin": 0,
+      "to_margin": 0,
+      "margin_src": "contract",
+      "margin_sourced": true,
+      "contested_scope": "none",
+      "margin_ok": {
+       "kind": "approx",
+       "first": 1806,
+       "last": 1844
+      }
+     },
+     {
+      "id": "zeroton--era-1850",
+      "from": 1850,
+      "to": null,
+      "present": true,
+      "regime": "kingdom",
+      "label": "New Duchy",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": true,
+      "contested": false,
+      "assessed": true,
+      "why": null,
+      "url": "/region/zeroton/#era-1850",
+      "from_margin": 0,
+      "to_margin": null,
+      "margin_src": "contract",
+      "margin_sourced": true,
+      "contested_scope": "none",
+      "margin_ok": {
+       "kind": "approx",
+       "first": 1856,
+       "last": null
+      }
+     }
+    ],
+    "scoped": [
+     {
+      "id": "scoped--era-1816",
+      "from": 1816,
+      "to": 1861,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Realm of the Seven Seats",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": true,
+      "assessed": true,
+      "why": null,
+      "url": "/region/scoped/#era-1816",
+      "from_margin": 1,
+      "to_margin": 1,
+      "margin_src": "contract",
+      "margin_sourced": true,
+      "contested_scope": "bounds",
+      "margin_ok": {
+       "kind": "contested",
+       "first": 1822,
+       "last": 1855
+      }
+     },
+     {
+      "id": "scoped--era-1861",
+      "from": 1861,
+      "to": null,
+      "present": true,
+      "regime": "kingdom",
+      "label": "Union of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "assessed": true,
+      "why": null,
+      "url": "/region/scoped/#era-1861",
+      "from_margin": 1,
+      "to_margin": null,
+      "margin_src": "contract",
+      "margin_sourced": true,
+      "contested_scope": "none",
+      "margin_ok": {
+       "kind": "margin",
+       "first": 1867,
+       "last": null
+      }
+     }
+    ],
+    "regimeland": [
+     {
+      "id": "regimeland--era-1900",
+      "from": 1900,
+      "to": 1950,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Free City",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": true,
+      "assessed": true,
+      "why": null,
+      "url": "/region/regimeland/#era-1900",
+      "from_margin": 1,
+      "to_margin": 1,
+      "margin_src": "contract",
+      "margin_sourced": true,
+      "contested_scope": "regime",
+      "margin_ok": {
+       "kind": "contested",
+       "first": 1906,
+       "last": 1944
+      }
+     },
+     {
+      "id": "regimeland--era-1950",
+      "from": 1950,
+      "to": 2000,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Partitioned Zone",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": true,
+      "assessed": true,
+      "why": null,
+      "url": "/region/regimeland/#era-1950",
+      "from_margin": 1,
+      "to_margin": 1,
+      "margin_src": "contract",
+      "margin_sourced": true,
+      "contested_scope": "part",
+      "margin_ok": {
+       "kind": "contested",
+       "first": 1956,
+       "last": 1994
+      }
+     }
+    ],
+    "noscope": [
+     {
+      "id": "noscope--era-1900",
+      "from": 1900,
+      "to": 1950,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Margraviate of Nowhere",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": true,
+      "assessed": true,
+      "why": null,
+      "url": "/region/noscope/#era-1900",
+      "from_margin": 0,
+      "to_margin": 0,
+      "margin_src": "fallback",
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": {
+       "kind": "contested",
+       "first": 1906,
+       "last": 1944
+      }
+     }
+    ],
+    "tamper": [
+     {
+      "id": "tamper--era-1800",
+      "from": 1800,
+      "to": 1900,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Tampered Kingdom",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": true,
+      "contested": false,
+      "assessed": true,
+      "why": null,
+      "url": "/region/tamper/#era-1800",
+      "from_margin": 0,
+      "to_margin": 0,
+      "margin_src": "fallback",
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": {
+       "kind": "approx",
+       "first": 1800,
+       "last": 1899
+      }
+     },
+     {
+      "id": "tamper--era-1900",
+      "from": 1900,
+      "to": 2000,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Half-Known Kingdom",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": true,
+      "contested": false,
+      "assessed": true,
+      "why": null,
+      "url": "/region/tamper/#era-1900",
+      "from_margin": 0,
+      "to_margin": null,
+      "margin_src": "fallback",
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": {
+       "kind": "approx",
+       "first": 1906,
+       "last": 1999
+      }
+     },
+     {
+      "id": "tamper--era-2000",
+      "from": 2000,
+      "to": 2100,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Unrecorded Kingdom",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": true,
+      "contested": false,
+      "assessed": true,
+      "why": null,
+      "url": "/region/tamper/#era-2000",
+      "from_margin": 0,
+      "to_margin": 0,
+      "margin_src": "fallback",
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
+     }
+    ],
+    "plainm": [
+     {
+      "id": "plainm--era-1700",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Margined Kingdom",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "assessed": true,
+      "why": null,
+      "url": "/region/plainm/#era-1700",
+      "from_margin": 2,
+      "to_margin": 2,
+      "margin_src": "contract",
+      "margin_sourced": true,
+      "contested_scope": "none",
+      "margin_ok": {
+       "kind": "margin",
+       "first": 1706,
+       "last": 1794
+      }
+     }
+    ],
+    "wide": [
+     {
+      "id": "wide--era-1700",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Wide Kingdom",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "assessed": true,
+      "why": null,
+      "url": "/region/wide/#era-1700",
+      "from_margin": 12,
+      "to_margin": 9,
+      "margin_src": "contract",
+      "margin_sourced": true,
+      "contested_scope": "none",
+      "margin_ok": {
+       "kind": "margin",
+       "first": 1713,
+       "last": 1790
+      }
+     }
+    ],
+    "soft": [
+     {
+      "id": "soft--era-1700",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Softly Dated Kingdom",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "assessed": true,
+      "why": null,
+      "url": "/region/soft/#era-1700",
+      "from_margin": 2,
+      "to_margin": 7,
+      "margin_src": "contract",
+      "margin_sourced": false,
+      "contested_scope": "none",
+      "margin_ok": {
+       "kind": "margin",
+       "first": 1711,
+       "last": 1787
+      }
+     }
+    ],
+    "edgea": [
+     {
+      "id": "edgea--era-1700",
+      "from": 1700,
+      "to": 1900,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Edge",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "assessed": true,
+      "why": null,
+      "url": "/region/edgea/#era-1700",
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
+     }
+    ],
+    "edgeb": [
+     {
+      "id": "edgeb--era-1700",
+      "from": 1700,
+      "to": 1900,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Edge",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": true,
+      "contested": false,
+      "assessed": true,
+      "why": null,
+      "url": "/region/edgeb/#era-1700",
+      "from_margin": 0,
+      "to_margin": 0,
+      "margin_src": "fallback",
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": {
+       "kind": "approx",
+       "first": 1706,
+       "last": 1894
+      }
+     }
+    ],
+    "edgec": [
+     {
+      "id": "edgec--era-1700",
+      "from": 1700,
+      "to": 1900,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Edge",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": true,
+      "assessed": true,
+      "why": null,
+      "url": "/region/edgec/#era-1700",
+      "from_margin": 1,
+      "to_margin": 1,
+      "margin_src": "contract",
+      "margin_sourced": true,
+      "contested_scope": "regime",
+      "margin_ok": {
+       "kind": "contested",
+       "first": 1706,
+       "last": 1894
+      }
+     }
+    ],
+    "oddscope": [
+     {
+      "id": "oddscope--era-1700",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Oddly Scoped Kingdom",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "assessed": true,
+      "why": null,
+      "url": "/region/oddscope/#era-1700",
+      "from_margin": 0,
+      "to_margin": 0,
+      "margin_src": "contract",
+      "margin_sourced": true,
+      "contested_scope": "regime",
+      "margin_ok": {
+       "kind": "margin",
+       "first": 1706,
+       "last": 1794
+      }
+     }
+    ],
+    "weirdscope": [
+     {
+      "id": "weirdscope--era-1700",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Weirdly Scoped Kingdom",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": true,
+      "assessed": true,
+      "why": null,
+      "url": "/region/weirdscope/#era-1700",
+      "from_margin": 0,
+      "to_margin": 0,
+      "margin_src": "contract",
+      "margin_sourced": true,
+      "contested_scope": "whole",
+      "margin_ok": {
+       "kind": "contested",
+       "first": 1706,
+       "last": 1794
+      }
+     }
+    ],
+    "noneland": [
+     {
+      "id": "noneland--era-1700",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Quietly Contested Kingdom",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": true,
+      "assessed": true,
+      "why": null,
+      "url": "/region/noneland/#era-1700",
+      "from_margin": 0,
+      "to_margin": 0,
+      "margin_src": "contract",
+      "margin_sourced": true,
+      "contested_scope": "none",
+      "margin_ok": {
+       "kind": "contested",
+       "first": 1706,
+       "last": 1794
+      }
+     }
+    ],
+    "feudland": []
+   },
+   "places": {
+    "calabrio": "calabrio",
+    "zeroton": "zeroton",
+    "scopetown": "scoped",
+    "fiumeish": "regimeland",
+    "nowhereton": "noscope",
+    "tamperton": "tamper",
+    "plainton": "plainm",
+    "wideton": "wide",
+    "softton": "soft",
+    "oddton": "oddscope",
+    "weirdton": "weirdscope",
+    "noneton": "noneland",
+    "edge margin town": "edgea",
+    "edge regime town": "edgea",
+    "feudton": "feudland"
+   },
+   "places_silent": {},
+   "edge_neighbours": {
+    "edge margin town": {
+     "kind": "edge",
+     "regions": [
+      "edgeb"
+     ]
+    },
+    "edge regime town": {
+     "kind": "edge",
+     "regions": [
+      "edgec"
+     ]
+    }
+   },
+   "unchecked_edge": [],
+   "dropped": [
+    {
+     "region": "feudland",
+     "id": "feudland--era-1000",
+     "from": 1000,
+     "to": 1700,
+     "reason": "regime is the project's own shorthand, not a state"
+    }
+   ],
+   "quality": {
+    "counts": {
+     "gaps": 0,
+     "overlaps": 0
+    },
+    "gaps": [],
+    "overlaps": []
+   }
+  },
+  "margin_contested_refuse": {
+   "version": 4,
+   "built": "2026-01-01",
+   "contract": {
+    "name": "recordatlas-context",
+    "version": "1.10.0",
+    "generated": "2026-01-01",
+    "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+   },
+   "atlas": {
+    "base": "https://atlas.example.test",
+    "rings_source": "contract",
+    "rings_sha256": null
+   },
+   "policy": {
+    "unassessed": "refuse",
+    "boundary": "newer",
+    "recent_from": 1990,
+    "edge_km": 15,
+    "edge": "agree",
+    "approx": "margin",
+    "contested": "refuse",
+    "margin_years": 5,
+    "margins": {}
+   },
+   "regions": {
+    "calabrio": [
+     {
+      "id": "calabrio--era-1815",
+      "from": 1815,
+      "to": 1861,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of the Two Realms",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": true,
+      "contested": false,
+      "assessed": true,
+      "why": "The start is a lower bound.",
+      "url": "/region/calabrio/#era-1815",
+      "from_margin": 0,
+      "to_margin": 0,
+      "margin_src": "fallback",
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": {
+       "kind": "approx",
+       "first": 1821,
+       "last": 1855
+      }
+     },
+     {
+      "id": "calabrio--era-1861",
+      "from": 1861,
+      "to": null,
+      "present": true,
+      "regime": "kingdom",
+      "label": "Union of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": true,
+      "contested": false,
+      "assessed": true,
+      "why": null,
+      "url": "/region/calabrio/#era-1861",
+      "from_margin": 0,
+      "to_margin": null,
+      "margin_src": "fallback",
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": {
+       "kind": "approx",
+       "first": 1867,
+       "last": null
+      }
+     }
+    ],
+    "zeroton": [
+     {
+      "id": "zeroton--era-1800",
+      "from": 1800,
+      "to": 1850,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Old Duchy",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": true,
+      "contested": false,
+      "assessed": true,
+      "why": null,
+      "url": "/region/zeroton/#era-1800",
+      "from_margin": 0,
+      "to_margin": 0,
+      "margin_src": "contract",
+      "margin_sourced": true,
+      "contested_scope": "none",
+      "margin_ok": {
+       "kind": "approx",
+       "first": 1806,
+       "last": 1844
+      }
+     },
+     {
+      "id": "zeroton--era-1850",
+      "from": 1850,
+      "to": null,
+      "present": true,
+      "regime": "kingdom",
+      "label": "New Duchy",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": true,
+      "contested": false,
+      "assessed": true,
+      "why": null,
+      "url": "/region/zeroton/#era-1850",
+      "from_margin": 0,
+      "to_margin": null,
+      "margin_src": "contract",
+      "margin_sourced": true,
+      "contested_scope": "none",
+      "margin_ok": {
+       "kind": "approx",
+       "first": 1856,
+       "last": null
+      }
+     }
+    ],
+    "scoped": [
+     {
+      "id": "scoped--era-1816",
+      "from": 1816,
+      "to": 1861,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Realm of the Seven Seats",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": true,
+      "assessed": true,
+      "why": null,
+      "url": "/region/scoped/#era-1816",
+      "from_margin": 1,
+      "to_margin": 1,
+      "margin_src": "contract",
+      "margin_sourced": true,
+      "contested_scope": "bounds",
+      "margin_ok": {
+       "kind": "contested",
+       "first": 1822,
+       "last": 1855
+      }
+     },
+     {
+      "id": "scoped--era-1861",
+      "from": 1861,
+      "to": null,
+      "present": true,
+      "regime": "kingdom",
+      "label": "Union of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "assessed": true,
+      "why": null,
+      "url": "/region/scoped/#era-1861",
+      "from_margin": 1,
+      "to_margin": null,
+      "margin_src": "contract",
+      "margin_sourced": true,
+      "contested_scope": "none",
+      "margin_ok": {
+       "kind": "margin",
+       "first": 1867,
+       "last": null
+      }
+     }
+    ],
+    "regimeland": [
+     {
+      "id": "regimeland--era-1900",
+      "from": 1900,
+      "to": 1950,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Free City",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": true,
+      "assessed": true,
+      "why": null,
+      "url": "/region/regimeland/#era-1900",
+      "from_margin": 1,
+      "to_margin": 1,
+      "margin_src": "contract",
+      "margin_sourced": true,
+      "contested_scope": "regime",
+      "margin_ok": {
+       "kind": "contested",
+       "first": 1906,
+       "last": 1944
+      }
+     },
+     {
+      "id": "regimeland--era-1950",
+      "from": 1950,
+      "to": 2000,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Partitioned Zone",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": true,
+      "assessed": true,
+      "why": null,
+      "url": "/region/regimeland/#era-1950",
+      "from_margin": 1,
+      "to_margin": 1,
+      "margin_src": "contract",
+      "margin_sourced": true,
+      "contested_scope": "part",
+      "margin_ok": {
+       "kind": "contested",
+       "first": 1956,
+       "last": 1994
+      }
+     }
+    ],
+    "noscope": [
+     {
+      "id": "noscope--era-1900",
+      "from": 1900,
+      "to": 1950,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Margraviate of Nowhere",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": true,
+      "assessed": true,
+      "why": null,
+      "url": "/region/noscope/#era-1900",
+      "from_margin": 0,
+      "to_margin": 0,
+      "margin_src": "fallback",
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": {
+       "kind": "contested",
+       "first": 1906,
+       "last": 1944
+      }
+     }
+    ],
+    "tamper": [
+     {
+      "id": "tamper--era-1800",
+      "from": 1800,
+      "to": 1900,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Tampered Kingdom",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": true,
+      "contested": false,
+      "assessed": true,
+      "why": null,
+      "url": "/region/tamper/#era-1800",
+      "from_margin": 0,
+      "to_margin": 0,
+      "margin_src": "fallback",
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": {
+       "kind": "approx",
+       "first": 1800,
+       "last": 1899
+      }
+     },
+     {
+      "id": "tamper--era-1900",
+      "from": 1900,
+      "to": 2000,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Half-Known Kingdom",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": true,
+      "contested": false,
+      "assessed": true,
+      "why": null,
+      "url": "/region/tamper/#era-1900",
+      "from_margin": 0,
+      "to_margin": null,
+      "margin_src": "fallback",
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": {
+       "kind": "approx",
+       "first": 1906,
+       "last": 1999
+      }
+     },
+     {
+      "id": "tamper--era-2000",
+      "from": 2000,
+      "to": 2100,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Unrecorded Kingdom",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": true,
+      "contested": false,
+      "assessed": true,
+      "why": null,
+      "url": "/region/tamper/#era-2000",
+      "from_margin": 0,
+      "to_margin": 0,
+      "margin_src": "fallback",
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
+     }
+    ],
+    "plainm": [
+     {
+      "id": "plainm--era-1700",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Margined Kingdom",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "assessed": true,
+      "why": null,
+      "url": "/region/plainm/#era-1700",
+      "from_margin": 2,
+      "to_margin": 2,
+      "margin_src": "contract",
+      "margin_sourced": true,
+      "contested_scope": "none",
+      "margin_ok": {
+       "kind": "margin",
+       "first": 1706,
+       "last": 1794
+      }
+     }
+    ],
+    "wide": [
+     {
+      "id": "wide--era-1700",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Wide Kingdom",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "assessed": true,
+      "why": null,
+      "url": "/region/wide/#era-1700",
+      "from_margin": 12,
+      "to_margin": 9,
+      "margin_src": "contract",
+      "margin_sourced": true,
+      "contested_scope": "none",
+      "margin_ok": {
+       "kind": "margin",
+       "first": 1713,
+       "last": 1790
+      }
+     }
+    ],
+    "soft": [
+     {
+      "id": "soft--era-1700",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Softly Dated Kingdom",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "assessed": true,
+      "why": null,
+      "url": "/region/soft/#era-1700",
+      "from_margin": 2,
+      "to_margin": 7,
+      "margin_src": "contract",
+      "margin_sourced": false,
+      "contested_scope": "none",
+      "margin_ok": {
+       "kind": "margin",
+       "first": 1711,
+       "last": 1787
+      }
+     }
+    ],
+    "edgea": [
+     {
+      "id": "edgea--era-1700",
+      "from": 1700,
+      "to": 1900,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Edge",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "assessed": true,
+      "why": null,
+      "url": "/region/edgea/#era-1700",
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
+     }
+    ],
+    "edgeb": [
+     {
+      "id": "edgeb--era-1700",
+      "from": 1700,
+      "to": 1900,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Edge",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": true,
+      "contested": false,
+      "assessed": true,
+      "why": null,
+      "url": "/region/edgeb/#era-1700",
+      "from_margin": 0,
+      "to_margin": 0,
+      "margin_src": "fallback",
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": {
+       "kind": "approx",
+       "first": 1706,
+       "last": 1894
+      }
+     }
+    ],
+    "edgec": [
+     {
+      "id": "edgec--era-1700",
+      "from": 1700,
+      "to": 1900,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Edge",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": true,
+      "assessed": true,
+      "why": null,
+      "url": "/region/edgec/#era-1700",
+      "from_margin": 1,
+      "to_margin": 1,
+      "margin_src": "contract",
+      "margin_sourced": true,
+      "contested_scope": "regime",
+      "margin_ok": {
+       "kind": "contested",
+       "first": 1706,
+       "last": 1894
+      }
+     }
+    ],
+    "oddscope": [
+     {
+      "id": "oddscope--era-1700",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Oddly Scoped Kingdom",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "assessed": true,
+      "why": null,
+      "url": "/region/oddscope/#era-1700",
+      "from_margin": 0,
+      "to_margin": 0,
+      "margin_src": "contract",
+      "margin_sourced": true,
+      "contested_scope": "regime",
+      "margin_ok": {
+       "kind": "margin",
+       "first": 1706,
+       "last": 1794
+      }
+     }
+    ],
+    "weirdscope": [
+     {
+      "id": "weirdscope--era-1700",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Weirdly Scoped Kingdom",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": true,
+      "assessed": true,
+      "why": null,
+      "url": "/region/weirdscope/#era-1700",
+      "from_margin": 0,
+      "to_margin": 0,
+      "margin_src": "contract",
+      "margin_sourced": true,
+      "contested_scope": "whole",
+      "margin_ok": {
+       "kind": "contested",
+       "first": 1706,
+       "last": 1794
+      }
+     }
+    ],
+    "noneland": [
+     {
+      "id": "noneland--era-1700",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Quietly Contested Kingdom",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": true,
+      "assessed": true,
+      "why": null,
+      "url": "/region/noneland/#era-1700",
+      "from_margin": 0,
+      "to_margin": 0,
+      "margin_src": "contract",
+      "margin_sourced": true,
+      "contested_scope": "none",
+      "margin_ok": {
+       "kind": "contested",
+       "first": 1706,
+       "last": 1794
+      }
+     }
+    ],
+    "feudland": []
+   },
+   "places": {
+    "calabrio": "calabrio",
+    "zeroton": "zeroton",
+    "scopetown": "scoped",
+    "fiumeish": "regimeland",
+    "nowhereton": "noscope",
+    "tamperton": "tamper",
+    "plainton": "plainm",
+    "wideton": "wide",
+    "softton": "soft",
+    "oddton": "oddscope",
+    "weirdton": "weirdscope",
+    "noneton": "noneland",
+    "edge margin town": "edgea",
+    "edge regime town": "edgea",
+    "feudton": "feudland"
+   },
+   "places_silent": {},
+   "edge_neighbours": {
+    "edge margin town": {
+     "kind": "edge",
+     "regions": [
+      "edgeb"
+     ]
+    },
+    "edge regime town": {
+     "kind": "edge",
+     "regions": [
+      "edgec"
+     ]
+    }
+   },
+   "unchecked_edge": [],
+   "dropped": [
+    {
+     "region": "feudland",
+     "id": "feudland--era-1000",
+     "from": 1000,
+     "to": 1700,
+     "reason": "regime is the project's own shorthand, not a state"
+    }
+   ],
+   "quality": {
+    "counts": {
+     "gaps": 0,
+     "overlaps": 0
+    },
+    "gaps": [],
+    "overlaps": []
+   }
+  },
+  "margin_approx_refuse": {
+   "version": 4,
+   "built": "2026-01-01",
+   "contract": {
+    "name": "recordatlas-context",
+    "version": "1.10.0",
+    "generated": "2026-01-01",
+    "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+   },
+   "atlas": {
+    "base": "https://atlas.example.test",
+    "rings_source": "contract",
+    "rings_sha256": null
+   },
+   "policy": {
+    "unassessed": "refuse",
+    "boundary": "newer",
+    "recent_from": 1990,
+    "edge_km": 15,
+    "edge": "agree",
+    "approx": "refuse",
+    "contested": "scope",
+    "margin_years": 5,
+    "margins": {}
+   },
+   "regions": {
+    "calabrio": [
+     {
+      "id": "calabrio--era-1815",
+      "from": 1815,
+      "to": 1861,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of the Two Realms",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": true,
+      "contested": false,
+      "assessed": true,
+      "why": "The start is a lower bound.",
+      "url": "/region/calabrio/#era-1815",
+      "from_margin": 0,
+      "to_margin": 0,
+      "margin_src": "fallback",
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": {
+       "kind": "approx",
+       "first": 1821,
+       "last": 1855
+      }
+     },
+     {
+      "id": "calabrio--era-1861",
+      "from": 1861,
+      "to": null,
+      "present": true,
+      "regime": "kingdom",
+      "label": "Union of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": true,
+      "contested": false,
+      "assessed": true,
+      "why": null,
+      "url": "/region/calabrio/#era-1861",
+      "from_margin": 0,
+      "to_margin": null,
+      "margin_src": "fallback",
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": {
+       "kind": "approx",
+       "first": 1867,
+       "last": null
+      }
+     }
+    ],
+    "zeroton": [
+     {
+      "id": "zeroton--era-1800",
+      "from": 1800,
+      "to": 1850,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Old Duchy",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": true,
+      "contested": false,
+      "assessed": true,
+      "why": null,
+      "url": "/region/zeroton/#era-1800",
+      "from_margin": 0,
+      "to_margin": 0,
+      "margin_src": "contract",
+      "margin_sourced": true,
+      "contested_scope": "none",
+      "margin_ok": {
+       "kind": "approx",
+       "first": 1806,
+       "last": 1844
+      }
+     },
+     {
+      "id": "zeroton--era-1850",
+      "from": 1850,
+      "to": null,
+      "present": true,
+      "regime": "kingdom",
+      "label": "New Duchy",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": true,
+      "contested": false,
+      "assessed": true,
+      "why": null,
+      "url": "/region/zeroton/#era-1850",
+      "from_margin": 0,
+      "to_margin": null,
+      "margin_src": "contract",
+      "margin_sourced": true,
+      "contested_scope": "none",
+      "margin_ok": {
+       "kind": "approx",
+       "first": 1856,
+       "last": null
+      }
+     }
+    ],
+    "scoped": [
+     {
+      "id": "scoped--era-1816",
+      "from": 1816,
+      "to": 1861,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Realm of the Seven Seats",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": true,
+      "assessed": true,
+      "why": null,
+      "url": "/region/scoped/#era-1816",
+      "from_margin": 1,
+      "to_margin": 1,
+      "margin_src": "contract",
+      "margin_sourced": true,
+      "contested_scope": "bounds",
+      "margin_ok": {
+       "kind": "contested",
+       "first": 1822,
+       "last": 1855
+      }
+     },
+     {
+      "id": "scoped--era-1861",
+      "from": 1861,
+      "to": null,
+      "present": true,
+      "regime": "kingdom",
+      "label": "Union of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "assessed": true,
+      "why": null,
+      "url": "/region/scoped/#era-1861",
+      "from_margin": 1,
+      "to_margin": null,
+      "margin_src": "contract",
+      "margin_sourced": true,
+      "contested_scope": "none",
+      "margin_ok": {
+       "kind": "margin",
+       "first": 1867,
+       "last": null
+      }
+     }
+    ],
+    "regimeland": [
+     {
+      "id": "regimeland--era-1900",
+      "from": 1900,
+      "to": 1950,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Free City",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": true,
+      "assessed": true,
+      "why": null,
+      "url": "/region/regimeland/#era-1900",
+      "from_margin": 1,
+      "to_margin": 1,
+      "margin_src": "contract",
+      "margin_sourced": true,
+      "contested_scope": "regime",
+      "margin_ok": {
+       "kind": "contested",
+       "first": 1906,
+       "last": 1944
+      }
+     },
+     {
+      "id": "regimeland--era-1950",
+      "from": 1950,
+      "to": 2000,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Partitioned Zone",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": true,
+      "assessed": true,
+      "why": null,
+      "url": "/region/regimeland/#era-1950",
+      "from_margin": 1,
+      "to_margin": 1,
+      "margin_src": "contract",
+      "margin_sourced": true,
+      "contested_scope": "part",
+      "margin_ok": {
+       "kind": "contested",
+       "first": 1956,
+       "last": 1994
+      }
+     }
+    ],
+    "noscope": [
+     {
+      "id": "noscope--era-1900",
+      "from": 1900,
+      "to": 1950,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Margraviate of Nowhere",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": true,
+      "assessed": true,
+      "why": null,
+      "url": "/region/noscope/#era-1900",
+      "from_margin": 0,
+      "to_margin": 0,
+      "margin_src": "fallback",
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": {
+       "kind": "contested",
+       "first": 1906,
+       "last": 1944
+      }
+     }
+    ],
+    "tamper": [
+     {
+      "id": "tamper--era-1800",
+      "from": 1800,
+      "to": 1900,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Tampered Kingdom",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": true,
+      "contested": false,
+      "assessed": true,
+      "why": null,
+      "url": "/region/tamper/#era-1800",
+      "from_margin": 0,
+      "to_margin": 0,
+      "margin_src": "fallback",
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": {
+       "kind": "approx",
+       "first": 1800,
+       "last": 1899
+      }
+     },
+     {
+      "id": "tamper--era-1900",
+      "from": 1900,
+      "to": 2000,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Half-Known Kingdom",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": true,
+      "contested": false,
+      "assessed": true,
+      "why": null,
+      "url": "/region/tamper/#era-1900",
+      "from_margin": 0,
+      "to_margin": null,
+      "margin_src": "fallback",
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": {
+       "kind": "approx",
+       "first": 1906,
+       "last": 1999
+      }
+     },
+     {
+      "id": "tamper--era-2000",
+      "from": 2000,
+      "to": 2100,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Unrecorded Kingdom",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": true,
+      "contested": false,
+      "assessed": true,
+      "why": null,
+      "url": "/region/tamper/#era-2000",
+      "from_margin": 0,
+      "to_margin": 0,
+      "margin_src": "fallback",
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
+     }
+    ],
+    "plainm": [
+     {
+      "id": "plainm--era-1700",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Margined Kingdom",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "assessed": true,
+      "why": null,
+      "url": "/region/plainm/#era-1700",
+      "from_margin": 2,
+      "to_margin": 2,
+      "margin_src": "contract",
+      "margin_sourced": true,
+      "contested_scope": "none",
+      "margin_ok": {
+       "kind": "margin",
+       "first": 1706,
+       "last": 1794
+      }
+     }
+    ],
+    "wide": [
+     {
+      "id": "wide--era-1700",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Wide Kingdom",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "assessed": true,
+      "why": null,
+      "url": "/region/wide/#era-1700",
+      "from_margin": 12,
+      "to_margin": 9,
+      "margin_src": "contract",
+      "margin_sourced": true,
+      "contested_scope": "none",
+      "margin_ok": {
+       "kind": "margin",
+       "first": 1713,
+       "last": 1790
+      }
+     }
+    ],
+    "soft": [
+     {
+      "id": "soft--era-1700",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Softly Dated Kingdom",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "assessed": true,
+      "why": null,
+      "url": "/region/soft/#era-1700",
+      "from_margin": 2,
+      "to_margin": 7,
+      "margin_src": "contract",
+      "margin_sourced": false,
+      "contested_scope": "none",
+      "margin_ok": {
+       "kind": "margin",
+       "first": 1711,
+       "last": 1787
+      }
+     }
+    ],
+    "edgea": [
+     {
+      "id": "edgea--era-1700",
+      "from": 1700,
+      "to": 1900,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Edge",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "assessed": true,
+      "why": null,
+      "url": "/region/edgea/#era-1700",
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
+     }
+    ],
+    "edgeb": [
+     {
+      "id": "edgeb--era-1700",
+      "from": 1700,
+      "to": 1900,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Edge",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": true,
+      "contested": false,
+      "assessed": true,
+      "why": null,
+      "url": "/region/edgeb/#era-1700",
+      "from_margin": 0,
+      "to_margin": 0,
+      "margin_src": "fallback",
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": {
+       "kind": "approx",
+       "first": 1706,
+       "last": 1894
+      }
+     }
+    ],
+    "edgec": [
+     {
+      "id": "edgec--era-1700",
+      "from": 1700,
+      "to": 1900,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Edge",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": true,
+      "assessed": true,
+      "why": null,
+      "url": "/region/edgec/#era-1700",
+      "from_margin": 1,
+      "to_margin": 1,
+      "margin_src": "contract",
+      "margin_sourced": true,
+      "contested_scope": "regime",
+      "margin_ok": {
+       "kind": "contested",
+       "first": 1706,
+       "last": 1894
+      }
+     }
+    ],
+    "oddscope": [
+     {
+      "id": "oddscope--era-1700",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Oddly Scoped Kingdom",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "assessed": true,
+      "why": null,
+      "url": "/region/oddscope/#era-1700",
+      "from_margin": 0,
+      "to_margin": 0,
+      "margin_src": "contract",
+      "margin_sourced": true,
+      "contested_scope": "regime",
+      "margin_ok": {
+       "kind": "margin",
+       "first": 1706,
+       "last": 1794
+      }
+     }
+    ],
+    "weirdscope": [
+     {
+      "id": "weirdscope--era-1700",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Weirdly Scoped Kingdom",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": true,
+      "assessed": true,
+      "why": null,
+      "url": "/region/weirdscope/#era-1700",
+      "from_margin": 0,
+      "to_margin": 0,
+      "margin_src": "contract",
+      "margin_sourced": true,
+      "contested_scope": "whole",
+      "margin_ok": {
+       "kind": "contested",
+       "first": 1706,
+       "last": 1794
+      }
+     }
+    ],
+    "noneland": [
+     {
+      "id": "noneland--era-1700",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Quietly Contested Kingdom",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": true,
+      "assessed": true,
+      "why": null,
+      "url": "/region/noneland/#era-1700",
+      "from_margin": 0,
+      "to_margin": 0,
+      "margin_src": "contract",
+      "margin_sourced": true,
+      "contested_scope": "none",
+      "margin_ok": {
+       "kind": "contested",
+       "first": 1706,
+       "last": 1794
+      }
+     }
+    ],
+    "feudland": []
+   },
+   "places": {
+    "calabrio": "calabrio",
+    "zeroton": "zeroton",
+    "scopetown": "scoped",
+    "fiumeish": "regimeland",
+    "nowhereton": "noscope",
+    "tamperton": "tamper",
+    "plainton": "plainm",
+    "wideton": "wide",
+    "softton": "soft",
+    "oddton": "oddscope",
+    "weirdton": "weirdscope",
+    "noneton": "noneland",
+    "edge margin town": "edgea",
+    "edge regime town": "edgea",
+    "feudton": "feudland"
+   },
+   "places_silent": {},
+   "edge_neighbours": {
+    "edge margin town": {
+     "kind": "edge",
+     "regions": [
+      "edgeb"
+     ]
+    },
+    "edge regime town": {
+     "kind": "edge",
+     "regions": [
+      "edgec"
+     ]
+    }
+   },
+   "unchecked_edge": [],
+   "dropped": [
+    {
+     "region": "feudland",
+     "id": "feudland--era-1000",
+     "from": 1000,
+     "to": 1700,
+     "reason": "regime is the project's own shorthand, not a state"
+    }
+   ],
+   "quality": {
+    "counts": {
+     "gaps": 0,
+     "overlaps": 0
+    },
+    "gaps": [],
+    "overlaps": []
+   }
+  },
+  "margin_n0": {
+   "version": 4,
+   "built": "2026-01-01",
+   "contract": {
+    "name": "recordatlas-context",
+    "version": "1.10.0",
+    "generated": "2026-01-01",
+    "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+   },
+   "atlas": {
+    "base": "https://atlas.example.test",
+    "rings_source": "contract",
+    "rings_sha256": null
+   },
+   "policy": {
+    "unassessed": "refuse",
+    "boundary": "newer",
+    "recent_from": 1990,
+    "edge_km": 15,
+    "edge": "agree",
+    "approx": "margin",
+    "contested": "scope",
+    "margin_years": 0,
+    "margins": {}
+   },
+   "regions": {
+    "calabrio": [
+     {
+      "id": "calabrio--era-1815",
+      "from": 1815,
+      "to": 1861,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of the Two Realms",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": true,
+      "contested": false,
+      "assessed": true,
+      "why": "The start is a lower bound.",
+      "url": "/region/calabrio/#era-1815",
+      "from_margin": 0,
+      "to_margin": 0,
+      "margin_src": "fallback",
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": {
+       "kind": "approx",
+       "first": 1815,
+       "last": 1860
+      }
+     },
+     {
+      "id": "calabrio--era-1861",
+      "from": 1861,
+      "to": null,
+      "present": true,
+      "regime": "kingdom",
+      "label": "Union of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": true,
+      "contested": false,
+      "assessed": true,
+      "why": null,
+      "url": "/region/calabrio/#era-1861",
+      "from_margin": 0,
+      "to_margin": null,
+      "margin_src": "fallback",
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": {
+       "kind": "approx",
+       "first": 1861,
+       "last": null
+      }
+     }
+    ],
+    "zeroton": [
+     {
+      "id": "zeroton--era-1800",
+      "from": 1800,
+      "to": 1850,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Old Duchy",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": true,
+      "contested": false,
+      "assessed": true,
+      "why": null,
+      "url": "/region/zeroton/#era-1800",
+      "from_margin": 0,
+      "to_margin": 0,
+      "margin_src": "contract",
+      "margin_sourced": true,
+      "contested_scope": "none",
+      "margin_ok": {
+       "kind": "approx",
+       "first": 1800,
+       "last": 1849
+      }
+     },
+     {
+      "id": "zeroton--era-1850",
+      "from": 1850,
+      "to": null,
+      "present": true,
+      "regime": "kingdom",
+      "label": "New Duchy",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": true,
+      "contested": false,
+      "assessed": true,
+      "why": null,
+      "url": "/region/zeroton/#era-1850",
+      "from_margin": 0,
+      "to_margin": null,
+      "margin_src": "contract",
+      "margin_sourced": true,
+      "contested_scope": "none",
+      "margin_ok": {
+       "kind": "approx",
+       "first": 1850,
+       "last": null
+      }
+     }
+    ],
+    "scoped": [
+     {
+      "id": "scoped--era-1816",
+      "from": 1816,
+      "to": 1861,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Realm of the Seven Seats",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": true,
+      "assessed": true,
+      "why": null,
+      "url": "/region/scoped/#era-1816",
+      "from_margin": 1,
+      "to_margin": 1,
+      "margin_src": "contract",
+      "margin_sourced": true,
+      "contested_scope": "bounds",
+      "margin_ok": {
+       "kind": "contested",
+       "first": 1818,
+       "last": 1859
+      }
+     },
+     {
+      "id": "scoped--era-1861",
+      "from": 1861,
+      "to": null,
+      "present": true,
+      "regime": "kingdom",
+      "label": "Union of Ruritania",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "assessed": true,
+      "why": null,
+      "url": "/region/scoped/#era-1861",
+      "from_margin": 1,
+      "to_margin": null,
+      "margin_src": "contract",
+      "margin_sourced": true,
+      "contested_scope": "none",
+      "margin_ok": {
+       "kind": "margin",
+       "first": 1863,
+       "last": null
+      }
+     }
+    ],
+    "regimeland": [
+     {
+      "id": "regimeland--era-1900",
+      "from": 1900,
+      "to": 1950,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Free City",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": true,
+      "assessed": true,
+      "why": null,
+      "url": "/region/regimeland/#era-1900",
+      "from_margin": 1,
+      "to_margin": 1,
+      "margin_src": "contract",
+      "margin_sourced": true,
+      "contested_scope": "regime",
+      "margin_ok": {
+       "kind": "contested",
+       "first": 1902,
+       "last": 1948
+      }
+     },
+     {
+      "id": "regimeland--era-1950",
+      "from": 1950,
+      "to": 2000,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Partitioned Zone",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": true,
+      "assessed": true,
+      "why": null,
+      "url": "/region/regimeland/#era-1950",
+      "from_margin": 1,
+      "to_margin": 1,
+      "margin_src": "contract",
+      "margin_sourced": true,
+      "contested_scope": "part",
+      "margin_ok": {
+       "kind": "contested",
+       "first": 1952,
+       "last": 1998
+      }
+     }
+    ],
+    "noscope": [
+     {
+      "id": "noscope--era-1900",
+      "from": 1900,
+      "to": 1950,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Margraviate of Nowhere",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": true,
+      "assessed": true,
+      "why": null,
+      "url": "/region/noscope/#era-1900",
+      "from_margin": 0,
+      "to_margin": 0,
+      "margin_src": "fallback",
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": {
+       "kind": "contested",
+       "first": 1900,
+       "last": 1949
+      }
+     }
+    ],
+    "tamper": [
+     {
+      "id": "tamper--era-1800",
+      "from": 1800,
+      "to": 1900,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Tampered Kingdom",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": true,
+      "contested": false,
+      "assessed": true,
+      "why": null,
+      "url": "/region/tamper/#era-1800",
+      "from_margin": 0,
+      "to_margin": 0,
+      "margin_src": "fallback",
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": {
+       "kind": "approx",
+       "first": 1800,
+       "last": 1899
+      }
+     },
+     {
+      "id": "tamper--era-1900",
+      "from": 1900,
+      "to": 2000,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Half-Known Kingdom",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": true,
+      "contested": false,
+      "assessed": true,
+      "why": null,
+      "url": "/region/tamper/#era-1900",
+      "from_margin": 0,
+      "to_margin": null,
+      "margin_src": "fallback",
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": {
+       "kind": "approx",
+       "first": 1906,
+       "last": 1999
+      }
+     },
+     {
+      "id": "tamper--era-2000",
+      "from": 2000,
+      "to": 2100,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Unrecorded Kingdom",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": true,
+      "contested": false,
+      "assessed": true,
+      "why": null,
+      "url": "/region/tamper/#era-2000",
+      "from_margin": 0,
+      "to_margin": 0,
+      "margin_src": "fallback",
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
+     }
+    ],
+    "plainm": [
+     {
+      "id": "plainm--era-1700",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Margined Kingdom",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "assessed": true,
+      "why": null,
+      "url": "/region/plainm/#era-1700",
+      "from_margin": 2,
+      "to_margin": 2,
+      "margin_src": "contract",
+      "margin_sourced": true,
+      "contested_scope": "none",
+      "margin_ok": {
+       "kind": "margin",
+       "first": 1703,
+       "last": 1797
+      }
+     }
+    ],
+    "wide": [
+     {
+      "id": "wide--era-1700",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Wide Kingdom",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "assessed": true,
+      "why": null,
+      "url": "/region/wide/#era-1700",
+      "from_margin": 12,
+      "to_margin": 9,
+      "margin_src": "contract",
+      "margin_sourced": true,
+      "contested_scope": "none",
+      "margin_ok": {
+       "kind": "margin",
+       "first": 1713,
+       "last": 1790
+      }
+     }
+    ],
+    "soft": [
+     {
+      "id": "soft--era-1700",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Softly Dated Kingdom",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "assessed": true,
+      "why": null,
+      "url": "/region/soft/#era-1700",
+      "from_margin": 2,
+      "to_margin": 7,
+      "margin_src": "contract",
+      "margin_sourced": false,
+      "contested_scope": "none",
+      "margin_ok": {
+       "kind": "margin",
+       "first": 1703,
+       "last": 1792
+      }
+     }
+    ],
+    "edgea": [
+     {
+      "id": "edgea--era-1700",
+      "from": 1700,
+      "to": 1900,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Edge",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "assessed": true,
+      "why": null,
+      "url": "/region/edgea/#era-1700",
+      "from_margin": null,
+      "to_margin": null,
+      "margin_src": null,
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": null
+     }
+    ],
+    "edgeb": [
+     {
+      "id": "edgeb--era-1700",
+      "from": 1700,
+      "to": 1900,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Edge",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": true,
+      "contested": false,
+      "assessed": true,
+      "why": null,
+      "url": "/region/edgeb/#era-1700",
+      "from_margin": 0,
+      "to_margin": 0,
+      "margin_src": "fallback",
+      "margin_sourced": null,
+      "contested_scope": null,
+      "margin_ok": {
+       "kind": "approx",
+       "first": 1700,
+       "last": 1899
+      }
+     }
+    ],
+    "edgec": [
+     {
+      "id": "edgec--era-1700",
+      "from": 1700,
+      "to": 1900,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Kingdom of Edge",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": true,
+      "assessed": true,
+      "why": null,
+      "url": "/region/edgec/#era-1700",
+      "from_margin": 1,
+      "to_margin": 1,
+      "margin_src": "contract",
+      "margin_sourced": true,
+      "contested_scope": "regime",
+      "margin_ok": {
+       "kind": "contested",
+       "first": 1702,
+       "last": 1898
+      }
+     }
+    ],
+    "oddscope": [
+     {
+      "id": "oddscope--era-1700",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Oddly Scoped Kingdom",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": false,
+      "assessed": true,
+      "why": null,
+      "url": "/region/oddscope/#era-1700",
+      "from_margin": 0,
+      "to_margin": 0,
+      "margin_src": "contract",
+      "margin_sourced": true,
+      "contested_scope": "regime",
+      "margin_ok": {
+       "kind": "margin",
+       "first": 1700,
+       "last": 1799
+      }
+     }
+    ],
+    "weirdscope": [
+     {
+      "id": "weirdscope--era-1700",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Weirdly Scoped Kingdom",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": true,
+      "assessed": true,
+      "why": null,
+      "url": "/region/weirdscope/#era-1700",
+      "from_margin": 0,
+      "to_margin": 0,
+      "margin_src": "contract",
+      "margin_sourced": true,
+      "contested_scope": "whole",
+      "margin_ok": {
+       "kind": "contested",
+       "first": 1700,
+       "last": 1799
+      }
+     }
+    ],
+    "noneland": [
+     {
+      "id": "noneland--era-1700",
+      "from": 1700,
+      "to": 1800,
+      "present": false,
+      "regime": "kingdom",
+      "label": "Quietly Contested Kingdom",
+      "polity": null,
+      "basis": "not-recorded",
+      "seeded_from_archive": false,
+      "approx": false,
+      "contested": true,
+      "assessed": true,
+      "why": null,
+      "url": "/region/noneland/#era-1700",
+      "from_margin": 0,
+      "to_margin": 0,
+      "margin_src": "contract",
+      "margin_sourced": true,
+      "contested_scope": "none",
+      "margin_ok": {
+       "kind": "contested",
+       "first": 1700,
+       "last": 1799
+      }
+     }
+    ],
+    "feudland": []
+   },
+   "places": {
+    "calabrio": "calabrio",
+    "zeroton": "zeroton",
+    "scopetown": "scoped",
+    "fiumeish": "regimeland",
+    "nowhereton": "noscope",
+    "tamperton": "tamper",
+    "plainton": "plainm",
+    "wideton": "wide",
+    "softton": "soft",
+    "oddton": "oddscope",
+    "weirdton": "weirdscope",
+    "noneton": "noneland",
+    "edge margin town": "edgea",
+    "edge regime town": "edgea",
+    "feudton": "feudland"
+   },
+   "places_silent": {},
+   "edge_neighbours": {
+    "edge margin town": {
+     "kind": "edge",
+     "regions": [
+      "edgeb"
+     ]
+    },
+    "edge regime town": {
+     "kind": "edge",
+     "regions": [
+      "edgec"
+     ]
+    }
+   },
+   "unchecked_edge": [],
+   "dropped": [
+    {
+     "region": "feudland",
+     "id": "feudland--era-1000",
+     "from": 1000,
+     "to": 1700,
+     "reason": "regime is the project's own shorthand, not a state"
     }
    ],
    "quality": {
@@ -5342,7 +10927,7 @@
    "year": 1750,
    "why": "snapshot",
    "want": null,
-   "snap": "v4"
+   "snap": "v5"
   },
   {
    "id": "an-empty-snapshot-is-refused",
@@ -5573,6 +11158,691 @@
    "why": "snapshot",
    "want": null,
    "snap": "v2"
+  },
+  {
+   "id": "a-snapshot-of-the-previous-version-3-is-refused",
+   "snap": "v3",
+   "place": "Hentzau",
+   "year": 1750,
+   "why": "snapshot",
+   "want": null
+  },
+  {
+   "id": "margin-approx-1830-in-1815-1861-keeps-its-note",
+   "snap": "margin",
+   "place": "Calabrio",
+   "year": 1830,
+   "why": "ok",
+   "want": {
+    "id": "calabrio--era-1815",
+    "label": "Kingdom of the Two Realms",
+    "approx": true,
+    "contested": false,
+    "boundary": false,
+    "unsourced": false
+   }
+  },
+  {
+   "id": "margin-approx-1820-is-5-years-from-the-start-so-silent",
+   "snap": "margin",
+   "place": "Calabrio",
+   "year": 1820,
+   "why": "margin",
+   "want": null
+  },
+  {
+   "id": "margin-approx-1821-is-6-years-from-the-start",
+   "snap": "margin",
+   "place": "Calabrio",
+   "year": 1821,
+   "why": "ok",
+   "want": {
+    "approx": true
+   }
+  },
+  {
+   "id": "margin-approx-1855-is-6-years-from-the-end",
+   "snap": "margin",
+   "place": "Calabrio",
+   "year": 1855,
+   "why": "ok",
+   "want": {
+    "id": "calabrio--era-1815"
+   }
+  },
+  {
+   "id": "margin-approx-1856-is-5-years-from-the-end-so-silent",
+   "snap": "margin",
+   "place": "Calabrio",
+   "year": 1856,
+   "why": "margin",
+   "want": null
+  },
+  {
+   "id": "margin-approx-1859-is-2-years-from-the-end-so-silent",
+   "snap": "margin",
+   "place": "Calabrio",
+   "year": 1859,
+   "why": "margin",
+   "want": null
+  },
+  {
+   "id": "margin-approx-1861-the-boundary-year-within-the-margin-is-silent",
+   "snap": "margin",
+   "place": "Calabrio",
+   "year": 1861,
+   "why": "margin",
+   "want": null
+  },
+  {
+   "id": "margin-approx-1862-is-silent",
+   "snap": "margin",
+   "place": "Calabrio",
+   "year": 1862,
+   "why": "margin",
+   "want": null
+  },
+  {
+   "id": "margin-approx-1866-is-5-years-from-the-start-of-the-open-era-so-silent",
+   "snap": "margin",
+   "place": "Calabrio",
+   "year": 1866,
+   "why": "margin",
+   "want": null
+  },
+  {
+   "id": "margin-approx-1867-is-allowed-for-the-open-era",
+   "snap": "margin",
+   "place": "Calabrio",
+   "year": 1867,
+   "why": "ok",
+   "want": {
+    "id": "calabrio--era-1861",
+    "label": "Union of Ruritania",
+    "approx": true
+   }
+  },
+  {
+   "id": "margin-approx-1990-in-the-open-era-is-still-the-quiet-rule",
+   "snap": "margin",
+   "place": "Calabrio",
+   "year": 1990,
+   "why": "recent",
+   "want": null
+  },
+  {
+   "id": "margin-margin-0-from-the-atlas-the-floor-still-holds-1800",
+   "snap": "margin",
+   "place": "Zeroton",
+   "year": 1800,
+   "why": "margin",
+   "want": null
+  },
+  {
+   "id": "margin-margin-0-from-the-atlas-the-floor-still-holds-1805",
+   "snap": "margin",
+   "place": "Zeroton",
+   "year": 1805,
+   "why": "margin",
+   "want": null
+  },
+  {
+   "id": "margin-margin-0-from-the-atlas-1806-is-allowed",
+   "snap": "margin",
+   "place": "Zeroton",
+   "year": 1806,
+   "why": "ok",
+   "want": {
+    "id": "zeroton--era-1800",
+    "approx": true
+   }
+  },
+  {
+   "id": "margin-margin-0-from-the-atlas-1844-is-6-years-from-the-end",
+   "snap": "margin",
+   "place": "Zeroton",
+   "year": 1844,
+   "why": "ok",
+   "want": {
+    "id": "zeroton--era-1800"
+   }
+  },
+  {
+   "id": "margin-margin-0-from-the-atlas-1845-is-silent",
+   "snap": "margin",
+   "place": "Zeroton",
+   "year": 1845,
+   "why": "margin",
+   "want": null
+  },
+  {
+   "id": "margin-margin-0-from-the-atlas-the-boundary-year-is-silent-under-the-floor",
+   "snap": "margin",
+   "place": "Zeroton",
+   "year": 1850,
+   "why": "margin",
+   "want": null
+  },
+  {
+   "id": "margin-margin-0-from-the-atlas-1856-is-allowed-for-the-next-era",
+   "snap": "margin",
+   "place": "Zeroton",
+   "year": 1856,
+   "why": "ok",
+   "want": {
+    "id": "zeroton--era-1850",
+    "boundary": false
+   }
+  },
+  {
+   "id": "margin-margin-0-and-a-floor-of-0-is-a-clean-date-1800",
+   "snap": "margin_n0",
+   "place": "Zeroton",
+   "year": 1800,
+   "why": "ok",
+   "want": {
+    "id": "zeroton--era-1800",
+    "approx": true
+   }
+  },
+  {
+   "id": "margin-margin-0-and-a-floor-of-0-1849",
+   "snap": "margin_n0",
+   "place": "Zeroton",
+   "year": 1849,
+   "why": "ok",
+   "want": {
+    "id": "zeroton--era-1800"
+   }
+  },
+  {
+   "id": "margin-margin-0-and-a-floor-of-0-the-boundary-year-takes-the-newer-era",
+   "snap": "margin_n0",
+   "place": "Zeroton",
+   "year": 1850,
+   "why": "ok",
+   "want": {
+    "id": "zeroton--era-1850",
+    "boundary": true,
+    "approx": true
+   }
+  },
+  {
+   "id": "margin-a-margin-of-1-over-a-floor-of-0-holds-1817",
+   "snap": "margin_n0",
+   "place": "Scopetown",
+   "year": 1817,
+   "why": "margin",
+   "want": null
+  },
+  {
+   "id": "margin-a-margin-of-1-over-a-floor-of-0-allows-1818",
+   "snap": "margin_n0",
+   "place": "Scopetown",
+   "year": 1818,
+   "why": "ok",
+   "want": {
+    "contested": true
+   }
+  },
+  {
+   "id": "margin-contested-bounds-1816-first-year-is-silent",
+   "snap": "margin",
+   "place": "Scopetown",
+   "year": 1816,
+   "why": "margin",
+   "want": null
+  },
+  {
+   "id": "margin-contested-bounds-1818-margin-1-is-lifted-to-the-floor-5-so-silent",
+   "snap": "margin",
+   "place": "Scopetown",
+   "year": 1818,
+   "why": "margin",
+   "want": null
+  },
+  {
+   "id": "margin-contested-bounds-1821-is-5-years-from-the-start-so-silent",
+   "snap": "margin",
+   "place": "Scopetown",
+   "year": 1821,
+   "why": "margin",
+   "want": null
+  },
+  {
+   "id": "margin-contested-bounds-1822-is-allowed-under-scope-bounds",
+   "snap": "margin",
+   "place": "Scopetown",
+   "year": 1822,
+   "why": "ok",
+   "want": {
+    "id": "scoped--era-1816",
+    "approx": false,
+    "contested": true
+   }
+  },
+  {
+   "id": "margin-contested-bounds-1855-is-6-years-from-the-end",
+   "snap": "margin",
+   "place": "Scopetown",
+   "year": 1855,
+   "why": "ok",
+   "want": {
+    "contested": true
+   }
+  },
+  {
+   "id": "margin-contested-bounds-1856-is-5-years-from-the-end-so-silent",
+   "snap": "margin",
+   "place": "Scopetown",
+   "year": 1856,
+   "why": "margin",
+   "want": null
+  },
+  {
+   "id": "margin-contested-bounds-1860-is-silent",
+   "snap": "margin",
+   "place": "Scopetown",
+   "year": 1860,
+   "why": "margin",
+   "want": null
+  },
+  {
+   "id": "margin-contested-bounds-1861-boundary-year-within-the-next-eras-reach-is-silent",
+   "snap": "margin",
+   "place": "Scopetown",
+   "year": 1861,
+   "why": "margin",
+   "want": null
+  },
+  {
+   "id": "margin-a-clean-era-with-a-margin-of-1-after-it-is-held-to-the-floor-1863",
+   "snap": "margin",
+   "place": "Scopetown",
+   "year": 1863,
+   "why": "margin",
+   "want": null
+  },
+  {
+   "id": "margin-a-clean-era-with-a-margin-of-1-after-it-1867-is-allowed",
+   "snap": "margin",
+   "place": "Scopetown",
+   "year": 1867,
+   "why": "ok",
+   "want": {
+    "id": "scoped--era-1861",
+    "approx": false,
+    "contested": false
+   }
+  },
+  {
+   "id": "margin-contested-regime-scope-is-silent-whatever-the-margin",
+   "snap": "margin",
+   "place": "Fiumeish",
+   "year": 1925,
+   "why": "contested",
+   "want": null
+  },
+  {
+   "id": "margin-contested-part-scope-is-silent",
+   "snap": "margin",
+   "place": "Fiumeish",
+   "year": 1975,
+   "why": "contested",
+   "want": null
+  },
+  {
+   "id": "margin-contested-with-no-scope-is-silent-under-the-scope-policy",
+   "snap": "margin",
+   "place": "Nowhereton",
+   "year": 1925,
+   "why": "contested",
+   "want": null
+  },
+  {
+   "id": "margin-contested-with-no-scope-is-allowed-10-years-inside-under-the-margin-policy",
+   "snap": "margin_contested_margin",
+   "place": "Nowhereton",
+   "year": 1925,
+   "why": "ok",
+   "want": {
+    "id": "noscope--era-1900",
+    "contested": true,
+    "approx": false
+   }
+  },
+  {
+   "id": "margin-contested-with-no-scope-under-the-margin-policy-is-silent-within-5-years",
+   "snap": "margin_contested_margin",
+   "place": "Nowhereton",
+   "year": 1905,
+   "why": "margin",
+   "want": null
+  },
+  {
+   "id": "margin-contested-with-no-scope-under-the-margin-policy-is-silent-5-years-before-the-end",
+   "snap": "margin_contested_margin",
+   "place": "Nowhereton",
+   "year": 1945,
+   "why": "margin",
+   "want": null
+  },
+  {
+   "id": "margin-contested-regime-scope-is-silent-under-the-margin-policy-too",
+   "snap": "margin_contested_margin",
+   "place": "Fiumeish",
+   "year": 1925,
+   "why": "contested",
+   "want": null
+  },
+  {
+   "id": "margin-contested-part-scope-is-silent-under-the-margin-policy-too",
+   "snap": "margin_contested_margin",
+   "place": "Fiumeish",
+   "year": 1975,
+   "why": "contested",
+   "want": null
+  },
+  {
+   "id": "margin-contested-bounds-is-still-allowed-under-the-margin-policy",
+   "snap": "margin_contested_margin",
+   "place": "Scopetown",
+   "year": 1825,
+   "why": "ok",
+   "want": {
+    "contested": true
+   }
+  },
+  {
+   "id": "margin-contested-refuse-policy-refuses-a-bounds-scope-era",
+   "snap": "margin_contested_refuse",
+   "place": "Scopetown",
+   "year": 1825,
+   "why": "contested",
+   "want": null
+  },
+  {
+   "id": "margin-contested-refuse-policy-leaves-approx-eras-alone",
+   "snap": "margin_contested_refuse",
+   "place": "Calabrio",
+   "year": 1830,
+   "why": "ok",
+   "want": {
+    "approx": true
+   }
+  },
+  {
+   "id": "margin-approx-refuse-policy-refuses-an-approx-era",
+   "snap": "margin_approx_refuse",
+   "place": "Calabrio",
+   "year": 1830,
+   "why": "approx",
+   "want": null
+  },
+  {
+   "id": "margin-approx-refuse-policy-refuses-an-approx-era-with-margin-0-too",
+   "snap": "margin_approx_refuse",
+   "place": "Zeroton",
+   "year": 1825,
+   "why": "approx",
+   "want": null
+  },
+  {
+   "id": "margin-approx-refuse-policy-leaves-contested-bounds-alone",
+   "snap": "margin_approx_refuse",
+   "place": "Scopetown",
+   "year": 1825,
+   "why": "ok",
+   "want": {
+    "contested": true
+   }
+  },
+  {
+   "id": "margin-a-margin-of-12-at-the-start-1712-is-silent",
+   "snap": "margin",
+   "place": "Wideton",
+   "year": 1712,
+   "why": "margin",
+   "want": null
+  },
+  {
+   "id": "margin-a-margin-of-12-at-the-start-1713-is-allowed",
+   "snap": "margin",
+   "place": "Wideton",
+   "year": 1713,
+   "why": "ok",
+   "want": {
+    "approx": false,
+    "contested": false,
+    "unsourced": false
+   }
+  },
+  {
+   "id": "margin-a-margin-of-9-at-the-end-1790-is-allowed",
+   "snap": "margin",
+   "place": "Wideton",
+   "year": 1790,
+   "why": "ok",
+   "want": {
+    "approx": false
+   }
+  },
+  {
+   "id": "margin-a-margin-of-9-at-the-end-1791-is-silent",
+   "snap": "margin",
+   "place": "Wideton",
+   "year": 1791,
+   "why": "margin",
+   "want": null
+  },
+  {
+   "id": "margin-an-unsourced-margin-of-2-needs-5-plus-5-years-1710-is-silent",
+   "snap": "margin",
+   "place": "Softton",
+   "year": 1710,
+   "why": "margin",
+   "want": null
+  },
+  {
+   "id": "margin-an-unsourced-margin-of-2-1711-is-allowed-and-says-it-rests-on-an-unsourced-margin",
+   "snap": "margin",
+   "place": "Softton",
+   "year": 1711,
+   "why": "ok",
+   "want": {
+    "unsourced": true,
+    "approx": false
+   }
+  },
+  {
+   "id": "margin-an-unsourced-margin-of-7-at-the-end-needs-12-years-1787-is-allowed",
+   "snap": "margin",
+   "place": "Softton",
+   "year": 1787,
+   "why": "ok",
+   "want": {
+    "unsourced": true
+   }
+  },
+  {
+   "id": "margin-an-unsourced-margin-of-7-at-the-end-1788-is-silent",
+   "snap": "margin",
+   "place": "Softton",
+   "year": 1788,
+   "why": "margin",
+   "want": null
+  },
+  {
+   "id": "margin-an-unsourced-margin-with-a-floor-of-0-is-the-margin-plus-0-1703",
+   "snap": "margin_n0",
+   "place": "Softton",
+   "year": 1703,
+   "why": "ok",
+   "want": {
+    "unsourced": true
+   }
+  },
+  {
+   "id": "margin-an-unsourced-margin-with-a-floor-of-0-1702-is-silent",
+   "snap": "margin_n0",
+   "place": "Softton",
+   "year": 1702,
+   "why": "margin",
+   "want": null
+  },
+  {
+   "id": "margin-a-regime-scope-on-an-era-that-is-not-flagged-contested-is-still-silent",
+   "snap": "margin",
+   "place": "Oddton",
+   "year": 1750,
+   "why": "contested",
+   "want": null
+  },
+  {
+   "id": "margin-an-unknown-scope-on-a-contested-era-is-silent",
+   "snap": "margin",
+   "place": "Weirdton",
+   "year": 1750,
+   "why": "contested",
+   "want": null
+  },
+  {
+   "id": "margin-a-contested-era-of-scope-none-is-used",
+   "snap": "margin",
+   "place": "Noneton",
+   "year": 1750,
+   "why": "ok",
+   "want": {
+    "contested": true
+   }
+  },
+  {
+   "id": "margin-a-recorded-decision-that-does-not-follow-the-margins-is-silent",
+   "snap": "margin",
+   "place": "Tamperton",
+   "year": 1850,
+   "why": "bad-margin",
+   "want": null
+  },
+  {
+   "id": "margin-a-flagged-era-with-an-unknown-end-margin-is-silent",
+   "snap": "margin",
+   "place": "Tamperton",
+   "year": 1950,
+   "why": "approx",
+   "want": null
+  },
+  {
+   "id": "margin-a-flagged-era-with-no-recorded-decision-is-silent",
+   "snap": "margin",
+   "place": "Tamperton",
+   "year": 2050,
+   "why": "bad-margin",
+   "want": null
+  },
+  {
+   "id": "margin-an-unflagged-era-keeps-the-margin-the-contract-gives-it-1705",
+   "snap": "margin",
+   "place": "Plainton",
+   "year": 1705,
+   "why": "margin",
+   "want": null
+  },
+  {
+   "id": "margin-an-unflagged-era-with-margin-2-1706-is-allowed",
+   "snap": "margin",
+   "place": "Plainton",
+   "year": 1706,
+   "why": "ok",
+   "want": {
+    "approx": false,
+    "contested": false
+   }
+  },
+  {
+   "id": "margin-an-unflagged-era-with-margin-2-1794-is-allowed",
+   "snap": "margin",
+   "place": "Plainton",
+   "year": 1794,
+   "why": "ok",
+   "want": {
+    "approx": false
+   }
+  },
+  {
+   "id": "margin-an-unflagged-era-with-margin-2-1795-is-silent",
+   "snap": "margin",
+   "place": "Plainton",
+   "year": 1795,
+   "why": "margin",
+   "want": null
+  },
+  {
+   "id": "margin-an-edge-place-keeps-its-note-where-the-neighbour-is-approx-but-well-inside-it",
+   "snap": "margin",
+   "place": "Edge Margin Town",
+   "year": 1750,
+   "why": "ok",
+   "want": {
+    "edgeAgree": true,
+    "approx": false
+   }
+  },
+  {
+   "id": "margin-an-edge-place-is-silent-where-the-neighbours-approx-era-is-within-its-margin",
+   "snap": "margin",
+   "place": "Edge Margin Town",
+   "year": 1702,
+   "why": "edge",
+   "want": null
+  },
+  {
+   "id": "margin-an-edge-place-is-silent-where-the-neighbours-era-is-contested-about-its-regime",
+   "snap": "margin",
+   "place": "Edge Regime Town",
+   "year": 1750,
+   "why": "edge",
+   "want": null
+  },
+  {
+   "id": "margin-an-edge-place-is-silent-where-the-neighbour-is-approx-and-the-policy-refuses-it",
+   "snap": "margin_approx_refuse",
+   "place": "Edge Margin Town",
+   "year": 1750,
+   "why": "edge",
+   "want": null
+  },
+  {
+   "id": "margin-a-shorthand-regime-era-is-refused-under-margin",
+   "snap": "margin",
+   "place": "Feudton",
+   "year": 1500,
+   "why": "era-refused",
+   "want": null
+  },
+  {
+   "id": "margin-a-shorthand-regime-era-is-refused-under-margin_contested_margin",
+   "snap": "margin_contested_margin",
+   "place": "Feudton",
+   "year": 1500,
+   "why": "era-refused",
+   "want": null
+  },
+  {
+   "id": "margin-a-shorthand-regime-era-is-refused-under-margin_contested_refuse",
+   "snap": "margin_contested_refuse",
+   "place": "Feudton",
+   "year": 1500,
+   "why": "era-refused",
+   "want": null
+  },
+  {
+   "id": "margin-a-shorthand-regime-era-is-refused-under-margin_approx_refuse",
+   "snap": "margin_approx_refuse",
+   "place": "Feudton",
+   "year": 1500,
+   "why": "era-refused",
+   "want": null
   }
  ],
  "href_cases": [
@@ -5598,7 +11868,7 @@
   }
  ],
  "gate_snapshot": {
-  "version": 3,
+  "version": 4,
   "built": "2026-01-01",
   "contract": {
    "name": "recordatlas-context",
@@ -5616,7 +11886,11 @@
    "boundary": "newer",
    "recent_from": 1990,
    "edge_km": 15,
-   "edge": "agree"
+   "edge": "agree",
+   "approx": "margin",
+   "contested": "scope",
+   "margin_years": 5,
+   "margins": {}
   },
   "regions": {
    "ruritania": [
@@ -5634,7 +11908,13 @@
      "contested": false,
      "url": "/region/ruritania/#era-1700",
      "assessed": true,
-     "why": null
+     "why": null,
+     "from_margin": null,
+     "to_margin": null,
+     "margin_src": null,
+     "margin_sourced": null,
+     "contested_scope": null,
+     "margin_ok": null
     },
     {
      "id": "ruritania--era-1800",
@@ -5650,7 +11930,17 @@
      "contested": false,
      "url": "/region/ruritania/#era-1800",
      "assessed": true,
-     "why": null
+     "why": null,
+     "from_margin": 0,
+     "to_margin": 0,
+     "margin_src": "fallback",
+     "margin_sourced": null,
+     "contested_scope": null,
+     "margin_ok": {
+      "kind": "approx",
+      "first": 1806,
+      "last": 1844
+     }
     },
     {
      "id": "ruritania--era-1850",
@@ -5666,7 +11956,13 @@
      "contested": false,
      "url": "/region/ruritania/#era-1850",
      "assessed": true,
-     "why": null
+     "why": null,
+     "from_margin": null,
+     "to_margin": null,
+     "margin_src": null,
+     "margin_sourced": null,
+     "contested_scope": null,
+     "margin_ok": null
     }
    ],
    "elphberg": [
@@ -5684,7 +11980,13 @@
      "contested": false,
      "url": "/region/elphberg/#era-1900",
      "assessed": true,
-     "why": null
+     "why": null,
+     "from_margin": null,
+     "to_margin": null,
+     "margin_src": null,
+     "margin_sourced": null,
+     "contested_scope": null,
+     "margin_ok": null
     }
    ]
   },

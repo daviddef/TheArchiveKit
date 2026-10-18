@@ -12,6 +12,8 @@
  * a claim about the family: it says where it came from, and the source words are a link to the ERA on the Atlas (the contract's own
  * url). data-era carries the contract's era id. In a year that is a boundary between two eras the line reads "· From that year: <the
  * newer label> per the Record Atlas" (data-era-boundary="1"): true on either side of the change, which a year-only date cannot tell.
+ * An era the Atlas marks approximate (or contested about its bounds) is used only for a year well inside it (rule l of lib/era.js):
+ * the note then carries data-era-approx="1" (and data-era-contested="1"), and its words are the same: no bound of the era in them.
  * The label is the contract's own display label (a bare shorthand such as "Napoleonic" is shown with its polity by erasnap.py).
  *
  * THE PAGE'S RULE, not this component's: never call eraAt for a living, held-out or noindex person. This component cannot know
@@ -31,7 +33,7 @@ const drawCss = note ? claim(Astro.request, ERA_CSS_KEY) : false;
 ---
 {drawCss ? <style is:inline data-era-css set:html={ERA_CSS} /> : null}
 {note ? (
-  <span class="era-note" data-era={note.id} data-era-year={note.year} data-era-boundary={note.boundary === true ? "1" : undefined} data-era-assessed={note.assessed === true ? "1" : "0"} data-era-edge-agree={note.edgeAgree === true ? "1" : undefined}><span class="era-pre">{note.boundary === true ? PRE_BOUNDARY : PRE_NORMAL}</span><span class="era-lab">{note.label}</span>{" "}{note.href
+  <span class="era-note" data-era={note.id} data-era-year={note.year} data-era-boundary={note.boundary === true ? "1" : undefined} data-era-assessed={note.assessed === true ? "1" : "0"} data-era-approx={note.approx === true ? "1" : undefined} data-era-contested={note.contested === true ? "1" : undefined} data-era-margin-unsourced={note.unsourced === true ? "1" : undefined} data-era-edge-agree={note.edgeAgree === true ? "1" : undefined}><span class="era-pre">{note.boundary === true ? PRE_BOUNDARY : PRE_NORMAL}</span><span class="era-lab">{note.label}</span>{" "}{note.href
     ? <a class="era-src" href={note.href} rel="noopener">{note.source || SRC_ATLAS}</a>
     : <span class="era-src">{note.source || SRC_ATLAS}</span>}</span>
 ) : null}

@@ -8,13 +8,14 @@ import math
 import re
 import unicodedata
 
-VERSION = 3
+VERSION = 4
 SRC_ATLAS = "per the Record Atlas"
 SRC_OWN = "per this archive's own research"
 PRE_NORMAL = "· At the time: "
 PRE_BOUNDARY = "· From that year: "
 RECENT_FROM = 1990
 EDGE_KM = 15
+MARGIN_YEARS = 5      # PROVISIONAL: the margin for an approx era whose contract carries none (erasnap.py --margin-years)
 VALID_SILENT = ("edge", "marked-edge", "ring-conflict")
 EDGE_KINDS = ("edge", "ring-conflict")
 ERA_CSS_KEY = "kit:era-css"
@@ -118,6 +119,65 @@ def flag(v):
     return "unassessed" if v is None else "yes"
 
 
+def is_margin(m):
+    """A margin is a whole number of years >= 0 (rule l)."""
+    return isinstance(m, int) and not isinstance(m, bool) and m >= 0
+
+
+MARGIN_KINDS = ("approx", "contested", "both", "margin")
+SCOPES = ("none", "bounds", "regime", "part")
+
+
+def floor_of(pol):
+    """N, the floor of every margin: the snapshot's policy.margin_years, else 5."""
+    return pol["margin_years"] if isinstance(pol, dict) and is_margin(pol.get("margin_years")) else MARGIN_YEARS
+
+
+def _reach(m, n, soft):
+    return max(n, m) + (n if soft else 0) if is_margin(m) else None
+
+
+def margin_span(e, n):
+    """What the era's own margins allow (kit/lib/era.js marginSpan): {kind, first, last} (inclusive years; last None = still running),
+    or None where the era is clean and carries no margin. A year must be MORE than max(N, margin) (+N where marginSourced is false)
+    from each numeric bound."""
+    ap, co = flag(e.get("approx")) == "yes", flag(e.get("contested")) == "yes"
+    soft = e.get("margin_sourced") is False
+    rf = _reach(e.get("from_margin"), n, soft)
+    rt = None if is_open(e) else _reach(e.get("to_margin"), n, soft)
+    if not ap and not co and rf is None and rt is None:
+        return None
+    return {"kind": "both" if ap and co else "approx" if ap else "contested" if co else "margin",
+            "first": e["from"] + (rf + 1 if rf is not None and rf > 0 else 0), "last": None if is_open(e) else e["to"] - 1 - (rt if rt is not None else 0)}
+
+
+def margin_gate(e, year, pol):
+    """Usable in this year as far as flags, scope and margins go? None: yes. Else the reason: "approx" / "contested" (policy or scope
+    refuses the era), "margin" (within the reach of a bound), "bad-margin" (the snapshot's record disagrees with the margins). Same as marginGate."""
+    ap, co = flag(e.get("approx")), flag(e.get("contested"))
+    if ap == "yes" and pol.get("approx") != "margin":
+        return "approx"
+    sc = e.get("contested_scope")
+    if sc in ("regime", "part"):
+        return "contested"
+    if co == "yes":
+        cp = pol.get("contested")
+        if cp not in ("scope", "margin"):
+            return "contested"
+        # only "none" and "bounds" are used; no scope at all only under the explicit what-if policy "margin"
+        if sc not in ("bounds", "none") and not (sc is None and cp == "margin"):
+            return "contested"
+    span = margin_span(e, floor_of(pol))
+    if span is None:
+        return None
+    if (ap == "yes" or co == "yes") and not (is_margin(e.get("from_margin")) and (is_open(e) or is_margin(e.get("to_margin")))):
+        return "approx" if ap == "yes" else "contested"
+    r = e.get("margin_ok")
+    if not isinstance(r, dict) or "last" not in r or r.get("kind") != span["kind"] or r.get("first") != span["first"] or r.get("last") != span["last"]:
+        return "bad-margin"
+    return None if year >= span["first"] and (span["last"] is None or year <= span["last"]) else "margin"
+
+
 def _has_predecessor(snap, region, eras, e):
     if any(o is not e and numeric(o) and o.get("to") == e["from"] for o in eras):
         return True
@@ -140,7 +200,7 @@ def _neighbour_agrees(snap, nb, year, mine, boundary, pol):
     x = covering[0]
     if any(o is not x and numeric(o) and meets(x, o) for o in eras):
         return False
-    if flag(x.get("approx")) == "yes" or flag(x.get("contested")) == "yes":
+    if margin_gate(x, year, pol) is not None:
         return False
     if (flag(x.get("approx")) == "unassessed" or flag(x.get("contested")) == "unassessed") and pol.get("unassessed") != "allow":
         return False
@@ -182,8 +242,7 @@ def _decide(snap, place, year, recent_from=None):
     covering = [e for e in eras if numeric(e) and covers(e, year)]
     if not covering:
         return no("era-refused" if refused else "no-era")
-    if len(covering) > 1 or refused or any(e.get("contested") is True or any(o is not e and numeric(o) and meets(e, o) for o in eras)
-                                           for e in covering):
+    if len(covering) > 1 or refused or any(any(o is not e and numeric(o) and meets(e, o) for o in eras) for e in covering):
         return no("contested")
     e = covering[0]
     if recent_from is None:
@@ -195,10 +254,9 @@ def _decide(snap, place, year, recent_from=None):
         if pol.get("boundary") != "newer":
             return no("boundary")
         boundary = True
-    if flag(e.get("approx")) == "yes":
-        return no("approx")
-    if flag(e.get("contested")) == "yes":
-        return no("contested")
+    mg = margin_gate(e, year, pol)
+    if mg is not None:
+        return no(mg)
     unassessed = flag(e.get("approx")) == "unassessed" or flag(e.get("contested")) == "unassessed"
     if unassessed and pol.get("unassessed") != "allow":
         return no("unassessed")
@@ -233,7 +291,9 @@ def era_at(snap, place, year, recent_from=None):
     return {"region": region, "id": e["id"], "label": _label(e), "from": e["from"], "to": e.get("to"), "year": year,
             "source": SRC_OWN if seeded else SRC_ATLAS, "seeded": seeded, "href": era_href(snap, region, e),
             "boundary": d["boundary"], "unchecked": d["key"] in (snap.get("unchecked_edge") or []),
-            "unassessed": d["unassessed"], "assessed": not d["unassessed"], "edgeAgree": d["edge_agree"], "basis": e.get("basis") if isinstance(e.get("basis"), str) else None}
+            "unassessed": d["unassessed"], "assessed": not d["unassessed"],
+            "approx": flag(e.get("approx")) == "yes", "contested": flag(e.get("contested")) == "yes",
+            "unsourced": e.get("margin_sourced") is False and margin_span(e, floor_of(snap.get("policy"))) is not None, "edgeAgree": d["edge_agree"], "basis": e.get("basis") if isinstance(e.get("basis"), str) else None}
 
 
 # ---- geometry, shared by erasnap.py (the builder) ------------------------------------------------------------------------

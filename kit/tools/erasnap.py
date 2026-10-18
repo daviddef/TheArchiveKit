@@ -52,13 +52,20 @@ WHAT IT REFUSES, and counts (rule b, g; kit/docs/era-notes.md); an era refused i
     a state" (`feudal`, `german`: --refuse-regimes); a regime that is a bare shorthand ("Napoleonic": --qualify-regimes) on an
     era that has no polity to qualify it; an era outside the dates the ring file holds for its regime (`existed`)
   an era the contract's quality block lists in a gap or an overlap
-  an era the contract marks approximate or contested (true), and, unless --unassessed allow, one it has not assessed (null).
+  an era the contract marks approximate (true) under --approx refuse; contested (true) under --contested refuse, or whose contestedScope is
+    regime or part (or, without --contested margin, absent); an era with a margin that is null (unknowable) or not a whole number of years;
+    an era flagged true with no margin to hold the year to (a contested era from a contract with no margin fields); and, unless
+    --unassessed allow, one it has not assessed (null). RULE L (kit/docs/era-notes.md): an approx era, or a contested one about its
+    bounds (contestedScope none or bounds), is KEPT with from_margin / to_margin / margin_sourced / margin_src / contested_scope and
+    the recorded decision margin_ok, and the library uses it only for a year MORE than max(N, margin) from each numeric bound
+    (N = --margin-years, default 5; N more where marginSourced is false). A contract before 1.10.0 has no margin fields: an approx
+    era then gets margin 0 and margin_src "fallback" (the floor N alone: PROVISIONAL, not an Atlas fact). --margins widens, never narrows.
     An era is ASSESSED when neither flag is null; the snapshot carries `assessed` and the contract's `why` on every kept era, the
     note says whether it rests on an assessed era (data-era-assessed) and the gate counts both. In contract 1.7.0 every region era was
     null; from 1.8.0 some regions are assessed. --unassessed allow is a deliberate choice an archive makes, recorded in the
     snapshot's policy, printed by the gate, and refused by the gate's --strict-unassessed.
-It KEEPS, but flags contested, BOTH eras of any pair of eras of one region that overlap: era.js then stays silent about every year
-they touch. The display label is the contract's regimeLabel; for a --qualify-regimes regime (default napo) it is the era's polity
+It KEEPS BOTH eras of any pair of eras of one region that overlap (it does not flag them; era.js stays silent about every year they
+touch). The display label is the contract's regimeLabel; for a --qualify-regimes regime (default napo) it is the era's polity
 (when that already begins with the label) or "<label> - <polity>", never invented.
 A region whose `basis` begins "seeded:" (the Atlas took its bands from this estate's own research) carries seeded_from_archive true
 on every era, so a note says "per this archive's own research" and does not pretend the Atlas is a second source.
@@ -96,6 +103,10 @@ R_GAP = "listed in the contract's quality gaps"
 R_OVERLAP = "listed in the contract's quality overlaps"
 R_APPROX = "marked approximate (true)"
 R_CONTESTED = "marked contested (true)"
+R_CSCOPE = "contested about its regime or a part, not its bounds only (contestedScope)"
+R_CNOSCOPE = "contested (true) with no contestedScope in the contract"
+R_NOMARGIN = "flagged approximate or contested with no margin to hold the year to"
+R_MARGINNULL = "a bound whose margin is unknowable (null) or not a whole number of years"
 R_UNASSESSED = "contested or approx not assessed (null)"
 
 
@@ -207,6 +218,68 @@ def quality_ids(q):
     return gaps, overlaps
 
 
+def _margin(v):
+    """A contract margin: a whole number of years >= 0, else None (absent or unusable: it is then NOT a margin)."""
+    return v if isinstance(v, int) and not isinstance(v, bool) and v >= 0 else None
+
+
+def load_margins(path):
+    """The archive's own wider margins, {era id: years | {"from": n, "to": n}}. -> {era id: (from, to)} (a side may be None)."""
+    if not path:
+        return {}
+    j = json.load(open(path, encoding="utf-8"))
+    if isinstance(j, dict) and isinstance(j.get("margins"), dict):
+        j = j["margins"]
+    if not isinstance(j, dict):
+        raise SystemExit("erasnap: --margins must be a JSON object of era id -> years")
+    out = {}
+    for k, v in j.items():
+        if k.startswith("_"):
+            continue
+        if isinstance(v, dict):
+            pair = (_margin(v.get("from")), _margin(v.get("to")))
+        else:
+            pair = (_margin(v), _margin(v))
+        if pair == (None, None):
+            raise SystemExit("erasnap: --margins: %r is not a number of years" % k)
+        out[k] = pair
+    return out
+
+
+def resolve_margin(e, frm, to, ap, co, scope, a, override):
+    """-> (from_margin, to_margin, margin_src, margin_sourced), or the string R_MARGINNULL.
+    The contract (1.10.0 and later) carries fromMargin/toMargin on every era: a whole number is the margin, 0 means the sources agree on one
+    year, null means the bound is UNKNOWABLE and the era is refused (a bound that is not a whole number of years is no better). The end of an era
+    still running is no bound. The archive may only WIDEN a margin (--margins). A contract with NO margin fields (before 1.10.0) gives an approx
+    era margin 0 on each side with margin_src "fallback" (only the floor N of the library then holds it: PROVISIONAL, not an Atlas fact), and,
+    only under --contested margin, a contested era with no scope the same; any other era has none. marginSourced false (on the era) makes the margin
+    softer in the library (N more), and is carried."""
+    has_keys = "fromMargin" in e or "toMargin" in e
+    sides, src = [], []
+    for i, key in enumerate(("fromMargin", "toMargin")):
+        o = (override or (None, None))[i]
+        if i == 1 and to is None:
+            sides.append(None)
+            continue
+        if has_keys:
+            c = _margin(e.get(key))
+            if c is None:
+                return R_MARGINNULL
+            v, s_ = (o, "archive") if o is not None and o > c else (c, "contract")
+        elif o is not None:
+            v, s_ = o, "archive"
+        elif (ap is True and a.approx == "margin") or (co is True and a.contested == "margin" and scope is None):
+            v, s_ = 0, "fallback"
+        else:
+            v, s_ = None, None
+        sides.append(v)
+        if s_:
+            src.append(s_)
+    rank = {"contract": 0, "archive": 1, "fallback": 2}
+    ms = e.get("marginSourced") if isinstance(e.get("marginSourced"), bool) and has_keys else None
+    return sides[0], sides[1], (max(src, key=rank.get) if src else None), ms
+
+
 def display_label(era, regime_label, qualify):
     """The contract's regimeLabel, or, for a bare-shorthand regime, the label with the era's own polity (never invented)."""
     lab = regime_label.strip()
@@ -240,8 +313,10 @@ def build(contract_path, rings_path, table_path, a, built):
         rings, rings_source = contract_rings(doc, version), "contract"
     all_rings = bool(rings) and all(r["id"] in rings for r in doc["regions"])
     gap_ids, overlap_ids = quality_ids(doc["quality"])
+    overrides = load_margins(a.margins)
 
-    stats = {"eras_in": 0, "eras_kept": 0, "eras_kept_assessed": 0, "eras_kept_unassessed": 0, "eras_flagged_contested_overlap": 0}
+    stats = {"eras_in": 0, "eras_kept": 0, "eras_kept_assessed": 0, "eras_kept_unassessed": 0, "eras_overlapping_another_kept_era": 0,
+             "eras_kept_flagged": 0, "eras_kept_flagged_by_fallback": 0, "eras_kept_with_unsourced_margin": 0}
     drop_by_reason = {}
     drop_by_region = {}
     dropped = []
@@ -298,26 +373,49 @@ def build(contract_path, rings_path, table_path, a, built):
                 drop(rid, e, R_OVERLAP)
                 continue
             ap, co = e.get("approx"), e.get("contested")
-            if ap is True:
+            scope = e.get("contestedScope") if isinstance(e.get("contestedScope"), str) else None
+            if ap is True and a.approx != "margin":
                 drop(rid, e, R_APPROX)
                 continue
-            if co is True:
-                drop(rid, e, R_CONTESTED)
+            if scope in ("regime", "part") or (scope is not None and scope not in eralib.SCOPES):
+                drop(rid, e, R_CSCOPE)
                 continue
-            if (ap is not False or co is not False) and a.unassessed != "allow":
-                drop(rid, e, R_UNASSESSED)
+            if co is True:
+                if a.contested == "refuse":
+                    drop(rid, e, R_CONTESTED)
+                    continue
+                if scope is None and a.contested != "margin":
+                    drop(rid, e, R_CNOSCOPE)
+                    continue
+            if (ap is not True and ap is not False) or (co is not True and co is not False):
+                if a.unassessed != "allow":
+                    drop(rid, e, R_UNASSESSED)
+                    continue
+            rm = resolve_margin(e, frm, to, ap, co, scope, a, overrides.get(e["id"]))
+            if rm == R_MARGINNULL:
+                drop(rid, e, R_MARGINNULL)
+                continue
+            fm, tm, msrc, msd = rm
+            flagged = ap is True or co is True
+            if flagged and (fm is None or (to is not None and tm is None)):
+                drop(rid, e, R_NOMARGIN)
                 continue
             basis = e.get("basis") if isinstance(e.get("basis"), str) else "not-recorded"
             why_text = e.get("why") if isinstance(e.get("why"), str) and e["why"].strip() else None
             kept.append({"id": e["id"], "from": frm, "to": to, "present": to is None, "regime": reg, "label": lab,
                          "polity": e.get("polity") if isinstance(e.get("polity"), str) else None, "basis": basis,
                          "seeded_from_archive": basis.startswith("seeded:"), "approx": ap, "contested": co,
-                         "assessed": ap is not None and co is not None, "why": why_text, "url": e["url"]})
-        for x in kept:
-            if any(y is not x and eralib.meets(x, y) for y in kept):
-                x["contested"] = True
+                         "assessed": ap is not None and co is not None, "why": why_text, "url": e["url"],
+                         "from_margin": fm, "to_margin": tm, "margin_src": msrc, "margin_sourced": msd, "contested_scope": scope})
+            span = eralib.margin_span(kept[-1], a.margin_years)
+            kept[-1]["margin_ok"] = span
+            if msd is False and span is not None:
+                stats["eras_kept_with_unsourced_margin"] += 1
+            if flagged:
+                stats["eras_kept_flagged"] += 1
+                stats["eras_kept_flagged_by_fallback"] += 1 if msrc == "fallback" else 0
         stats["eras_kept"] += len(kept)
-        stats["eras_flagged_contested_overlap"] += sum(1 for x in kept if x["contested"] is True)
+        stats["eras_overlapping_another_kept_era"] += sum(1 for x in kept if any(y is not x and eralib.meets(x, y) for y in kept))
         stats["eras_kept_assessed"] += sum(1 for x in kept if x["assessed"])
         stats["eras_kept_unassessed"] += sum(1 for x in kept if not x["assessed"])
         regions[rid] = kept
@@ -396,7 +494,9 @@ def build(contract_path, rings_path, table_path, a, built):
         "built": built,
         "contract": {"name": CONTRACT_NAME, "version": version, "generated": doc["generated"], "sha256": hashlib.sha256(raw).hexdigest()},
         "atlas": {"base": a.atlas_base, "rings_source": rings_source, "rings_sha256": rings_sha},
-        "policy": {"unassessed": a.unassessed, "boundary": boundary, "recent_from": a.recent_from, "edge_km": a.edge_km, "edge": a.edge},
+        "policy": {"unassessed": a.unassessed, "boundary": boundary, "recent_from": a.recent_from, "edge_km": a.edge_km, "edge": a.edge,
+                   "approx": a.approx, "contested": a.contested, "margin_years": a.margin_years,
+                   "margins": {k: {"from": v[0], "to": v[1]} for k, v in sorted(overrides.items())}},
         "regions": {k: regions[k] for k in sorted(regions) if k in used},
         "places": places,
         "places_silent": silent,
@@ -437,6 +537,18 @@ def main(argv=None):
     ap.add_argument("--qualify-regimes", default=DEFAULT_QUALIFY, help="regimes whose label is a bare shorthand: shown with the era's polity")
     ap.add_argument("--unassessed", choices=("refuse", "allow"), default="refuse",
                     help="what to do with an era whose contested/approx is null (nobody assessed it). Default refuse.")
+    ap.add_argument("--approx", choices=("refuse", "margin"), default="margin",
+                    help="an era the Atlas marks approximate (its BOUNDS are uncertain): margin (default) uses it only for a year more than its margin "
+                         "from each bound; refuse drops it")
+    ap.add_argument("--contested", choices=("refuse", "scope", "margin"), default="scope",
+                    help="an era the Atlas marks contested: scope (default) uses it, with its margins, only where the contract's contestedScope is "
+                         "'bounds' (a scope of regime or part, or none, is refused); margin also accepts a contested era with NO scope (the what-if for a "
+                         "contract before 1.10.0), still never regime or part; refuse drops every contested era")
+    ap.add_argument("--margin-years", type=int, default=eralib.MARGIN_YEARS,
+                    help="N, the FLOOR of every margin (default %d): a note on an era that carries margins needs a year more than max(N, margin) from each bound "
+                         "(N more where marginSourced is false). 0 switches the floor off. For an approx era from a contract with no margins N alone holds it: "
+                         "PROVISIONAL, not an Atlas fact" % eralib.MARGIN_YEARS)
+    ap.add_argument("--margins", default=None, help="JSON {era id: years | {from, to}}: margins an archive WIDENS (never narrows) for single eras")
     ap.add_argument("--recent-from", type=int, default=eralib.RECENT_FROM,
                     help="the quiet rule: an event in the era still running from this year is silent (default %d)" % eralib.RECENT_FROM)
     ap.add_argument("--edge-km", type=float, default=eralib.EDGE_KM)
@@ -454,6 +566,9 @@ def main(argv=None):
         return 2
     if not (isinstance(a.recent_from, int) and 1 <= a.recent_from <= 9999):
         print("erasnap: --recent-from must be a year", file=sys.stderr)
+        return 2
+    if not (isinstance(a.margin_years, int) and 0 <= a.margin_years <= 100):
+        print("erasnap: --margin-years must be a whole number of years, 0 to 100", file=sys.stderr)
         return 2
     built = a.built or datetime.date.today().isoformat()
     snap, stats, report = build(a.contract, a.rings, a.places, a, built)

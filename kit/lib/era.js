@@ -39,16 +39,38 @@
         neighbour's ring and not its own). Where every neighbour agrees the note is drawn and says so (edgeAgree, data-era-edge-agree).
         If the year is not a boundary of the own era, a neighbour whose era begins that year must have had the same label just
         before it too (the event could be on either side of that neighbour's change).
+   l  BOUNDARY MARGIN. The Atlas marks an era `approx` when its start or end is uncertain (a lower bound, a founding date, sources that
+        differ, de facto and de jure changes more than a year apart) and `contested` when its dates or its regime are disputed. That
+        uncertainty is about the BOUNDS, not the middle: an event in 1830 in a region that became the Two Sicilies in 1816 and Italy
+        in 1861 is under the Two Sicilies whichever of 1815 or 1816 is right. Since contract 1.10.0 every assessed era carries
+        fromMargin / toMargin (whole years of uncertainty on its start and end; 0 = the sources agree on one year; null = unknowable),
+        contestedScope (none | bounds | regime | part) and marginSourced (false: the margin rests on dates the assessor knew but did
+        not find in a fetched page). A note on such an era is allowed only for a year MORE than the reach from EACH numeric bound (the
+        start; the end only if the era is closed):
+            year - from > max(N, fromMargin)   and   to - year > max(N, toMargin)
+        where N is the snapshot's policy.margin_years (default 5; 0 switches the floor off) and, where marginSourced is false, N is
+        added again: a softer margin, PROVISIONAL, and counted apart (data-era-margin-unsourced). A null margin on a bound means the
+        bound is unknowable, and the builder refuses the era. An approx era from a contract with no margins at all (before 1.10.0)
+        gets margin 0 on each side, recorded as margin_src "fallback": only the floor N holds it (PROVISIONAL, not an Atlas fact).
+        `contested` is used only where contestedScope is "none" or "bounds" (policy.contested = "scope", the default); "regime" and
+        "part" are silent (a part cannot be told from the ring), and so is a contested era with NO scope, unless policy.contested =
+        "margin" (the what-if for a contract before 1.10.0). policy.contested = "refuse" refuses every contested era; policy.approx =
+        "refuse" refuses every approx era. The snapshot records each decision in the era's margin_ok {kind, first, last} (the first and
+        last year a note may use) and the library recomputes it from the margins and N: a record that does not agree is silence
+        (whyNot "bad-margin"). Within the reach the reason is "margin". A note on an approx or contested era says so (data-era-approx /
+        data-era-contested), and its words are unchanged: the regime label and "per the Record Atlas", no bound of the era in them.
    Rule c is the PAGE's. Rule i is prepared by the snapshot builder, which has the place's coordinates; this file reads the result.
 
-   THE SNAPSHOT (JSON; version 3)
-     version        3
+   THE SNAPSHOT (JSON; version 4)
+     version        4
      built          the day it was built, YYYY-MM-DD
      contract       { name, version, generated, sha256 }   the contract the snapshot was cut from (sha256 of the file's bytes)
      atlas          { base: "https://recordatlas.org", rings_source: "contract"|"file"|"none", rings_sha256: <sha of the file>|null }
-     policy         { unassessed: "refuse"|"allow", boundary: "newer"|"silent", recent_from: 1990, edge_km: 15, edge: "agree"|"strict" }
+     policy         { unassessed: "refuse"|"allow", boundary: "newer"|"silent", recent_from: 1990, edge_km: 15, edge: "agree"|"strict",
+                      approx: "refuse"|"margin", contested: "refuse"|"scope"|"margin", margin_years: 5, margins: { <era id>: years } }
      regions        { <region id>: [ { id, from, to|null, present, regime, label, polity, basis, seeded_from_archive, approx,
-                                       contested, assessed, why, url } ] }
+                                       contested, assessed, why, url, from_margin, to_margin, margin_src, contested_scope,
+                                       margin_ok } ] }
      places         { <folded place key>: <region id> }   fold() of the place as the archive prints it
      places_silent  { <folded place key>: "edge"|"marked-edge"|"ring-conflict" }   places the builder refused, so they can be counted
      edge_neighbours { <folded place key>: { kind: "edge"|"ring-conflict", regions: [ <region id> ] } }   mapped places that lie near
@@ -60,7 +82,7 @@
                     a region of this snapshot (the lookup is silent there)
    No import: this runs in node as it does in a build, so the kit can test it without Astro. */
 
-export const VERSION = 3;
+export const VERSION = 4;
 export const SRC_ATLAS = "per the Record Atlas";
 export const SRC_OWN = "per this archive's own research";
 export const PRE_NORMAL = "· At the time: ";
@@ -138,6 +160,55 @@ const meets = (a, b) => a.from < (b.to === null ? Infinity : b.to) && b.from < (
 /* "yes", "no" or "unassessed" for a flag the contract carries as true, false or null */
 const flag = (v) => (v === true ? "yes" : v === false ? "no" : v === null || v === undefined ? "unassessed" : "yes");
 
+/* Rule l. A margin is a whole number of years >= 0. */
+const isMargin = (m) => Number.isInteger(m) && m >= 0;
+export const MARGIN_KINDS = ["approx", "contested", "both", "margin"];
+export const SCOPES = ["none", "bounds", "regime", "part"];
+export const MARGIN_YEARS = 5;
+/* N, the floor of every margin: the snapshot's policy.margin_years, else 5. */
+const floorOf = (pol) => (pol && isMargin(pol.margin_years) ? pol.margin_years : MARGIN_YEARS);
+
+/* How far from a bound a year must be, at the least, for the era to be used: max(N, the Atlas's margin), and N more where the margin is
+   not sourced (marginSourced false: the assessor knew the date but did not find it in a fetched page). null: the side has no margin. */
+function reach(m, n, soft) {
+  return isMargin(m) ? Math.max(n, m) + (soft ? n : 0) : null;
+}
+
+/* What the era's own margins allow: the first and last year (inclusive) a note may use, and the kind of reason the era has one.
+   null where the era is clean and carries no margin (nothing to record). `last` null: the era is still running (no end bound).
+   A year must be MORE than the reach from each numeric bound: year - from > reach, to - year > reach (a reach of 0 is a clean date). */
+export function marginSpan(e, n) {
+  const ap = flag(e.approx) === "yes", co = flag(e.contested) === "yes";
+  const soft = e.margin_sourced === false;
+  const rf = reach(e.from_margin, n, soft), rt = e.to === null ? null : reach(e.to_margin, n, soft);
+  if (!ap && !co && rf === null && rt === null) return null;
+  return { kind: ap && co ? "both" : ap ? "approx" : co ? "contested" : "margin",
+           first: e.from + (rf !== null && rf > 0 ? rf + 1 : 0), last: e.to === null ? null : e.to - 1 - (rt !== null ? rt : 0) };
+}
+
+/* Is this era usable in this year as far as its flags, scope and margins go? null: yes. Otherwise the reason: "approx" / "contested"
+   (the policy or the contract's scope refuses the era), "margin" (the year is within the reach of a bound), "bad-margin" (the snapshot's
+   record does not agree with the margins). Pure. */
+export function marginGate(e, year, pol) {
+  const ap = flag(e.approx), co = flag(e.contested);
+  if (ap === "yes" && pol.approx !== "margin") return "approx";
+  /* only a scope of "none" or "bounds" is used (the dispute, if any, is about WHEN the change happened); "regime" and "part" are silent
+     whatever else is true; no scope at all, on a contested era, only under the explicit what-if policy "margin" */
+  if (e.contested_scope === "regime" || e.contested_scope === "part") return "contested";
+  if (co === "yes") {
+    const cp = pol.contested;
+    if (cp !== "scope" && cp !== "margin") return "contested";
+    if (e.contested_scope !== "bounds" && e.contested_scope !== "none" && !((e.contested_scope === null || e.contested_scope === undefined) && cp === "margin")) return "contested";
+  }
+  const n = floorOf(pol);
+  const span = marginSpan(e, n);
+  if (span === null) return null;
+  if ((ap === "yes" || co === "yes") && !(isMargin(e.from_margin) && (e.to === null || isMargin(e.to_margin)))) return ap === "yes" ? "approx" : "contested";
+  const r = e.margin_ok;
+  if (r == null || typeof r !== "object" || r.kind !== span.kind || r.first !== span.first || r.last !== span.last) return "bad-margin";
+  return year >= span.first && (span.last === null || year <= span.last) ? null : "margin";
+}
+
 export const VALID_SILENT = ["edge", "marked-edge", "ring-conflict"];
 export const EDGE_KINDS = ["edge", "ring-conflict"];
 
@@ -158,7 +229,7 @@ function neighbourAgrees(snap, nb, year, mine, boundary, pol) {
   if (covering.length !== 1) return false;
   const x = covering[0];
   if (eras.some((o) => o !== x && numeric(o) && meets(x, o))) return false;
-  if (flag(x.approx) === "yes" || flag(x.contested) === "yes") return false;
+  if (marginGate(x, year, pol) !== null) return false;
   if ((flag(x.approx) === "unassessed" || flag(x.contested) === "unassessed") && pol.unassessed !== "allow") return false;
   if (label(x) !== label(mine)) return false;
   if (!boundary && year === x.from) {
@@ -193,7 +264,7 @@ function decide(snap, place, year, opts) {
   const covering = eras.filter((e) => numeric(e) && covers(e, year));
   if (covering.length === 0) return no(refused.length ? "era-refused" : "no-era");
   /* more than one era (kept or refused) at once, or an era that meets another anywhere: a contested stretch */
-  if (covering.length > 1 || refused.length > 0 || covering.some((e) => e.contested === true || eras.some((o) => o !== e && numeric(o) && meets(e, o)))) return no("contested");
+  if (covering.length > 1 || refused.length > 0 || covering.some((e) => eras.some((o) => o !== e && numeric(o) && meets(e, o)))) return no("contested");
   const e = covering[0];
   const recentFrom = opts && opts.recentFrom !== undefined ? opts.recentFrom : (isYear(pol.recent_from) ? pol.recent_from : RECENT_FROM);
   if (e.to === null && year >= recentFrom) return no("recent");
@@ -202,8 +273,8 @@ function decide(snap, place, year, opts) {
     if (pol.boundary !== "newer") return no("boundary");
     boundary = true;
   }
-  if (flag(e.approx) === "yes") return no("approx");
-  if (flag(e.contested) === "yes") return no("contested");
+  const mg = marginGate(e, year, pol);
+  if (mg !== null) return no(mg);
   const unassessed = flag(e.approx) === "unassessed" || flag(e.contested) === "unassessed";
   if (unassessed && pol.unassessed !== "allow") return no("unassessed");
   if (!label(e)) return no("no-label");
@@ -220,7 +291,7 @@ function decide(snap, place, year, opts) {
 }
 
 /* The era a note may name for this place in this year, or null. The year must already be a plain one (plainYear).
-   -> { region, id, label, from, to, year, source, seeded, href, boundary, unchecked, unassessed, assessed, edgeAgree, basis } */
+   -> { region, id, label, from, to, year, source, seeded, href, boundary, unchecked, unassessed, assessed, approx, contested, edgeAgree, basis } */
 export function eraAt(snap, place, year, opts) {
   const d = decide(snap, place, year, opts);
   if (d.why !== "ok") return null;
@@ -230,7 +301,7 @@ export function eraAt(snap, place, year, opts) {
     region, id: e.id, label: label(e), from: e.from, to: e.to, year,
     source: seeded ? SRC_OWN : SRC_ATLAS, seeded, href: eraHref(snap, region, e),
     boundary: d.boundary, unchecked: Array.isArray(snap.unchecked_edge) && snap.unchecked_edge.includes(d.key),
-    unassessed: d.unassessed, assessed: !d.unassessed, edgeAgree: d.edgeAgree, basis: typeof e.basis === "string" ? e.basis : null,
+    unassessed: d.unassessed, assessed: !d.unassessed, approx: flag(e.approx) === "yes", contested: flag(e.contested) === "yes", unsourced: e.margin_sourced === false && marginSpan(e, floorOf(snap.policy)) !== null, edgeAgree: d.edgeAgree, basis: typeof e.basis === "string" ? e.basis : null,
   };
 }
 
@@ -244,6 +315,6 @@ export function renderEra(era) {
     : `<span class="era-src">${esc(era.source)}</span>`;
   const b = era.boundary === true;
   return `<span class="era-note" data-era="${esc(era.id)}" data-era-year="${esc(era.year)}"${b ? ' data-era-boundary="1"' : ""}`
-    + ` data-era-assessed="${era.assessed === true ? "1" : "0"}"${era.edgeAgree === true ? ' data-era-edge-agree="1"' : ""}>`
+    + ` data-era-assessed="${era.assessed === true ? "1" : "0"}"${era.approx === true ? ' data-era-approx="1"' : ""}${era.contested === true ? ' data-era-contested="1"' : ""}${era.unsourced === true ? ' data-era-margin-unsourced="1"' : ""}${era.edgeAgree === true ? ' data-era-edge-agree="1"' : ""}>`
     + `<span class="era-pre">${b ? PRE_BOUNDARY : PRE_NORMAL}</span><span class="era-lab">${esc(era.label)}</span> ${src}</span>`;
 }

@@ -12,8 +12,15 @@ template: a template that is right can still be fed a wrong year) and the era sn
   noindex    a note on a page that says noindex (a living, held-out or withheld person's page: rule c)
   living     a note on a page marked data-living, or listed in --living-urls (the archive's own living list)
   unknown    a note whose data-era is not an era id the snapshot holds (the contract's id: <region>--era-<from>)
-  ineligible a note on an era the snapshot flags approximate or contested (true), that overlaps another era of its region, whose
-             label is empty, or (unless the snapshot's policy says unassessed = allow) that the Atlas has not assessed (null)
+  ineligible a note on an era that the snapshot's policy refuses (approximate under approx = refuse; contested under contested =
+             refuse, or without contestedScope "bounds" under contested = scope, or of scope regime or part), that overlaps another
+             era of its region, whose label is empty, or (unless the snapshot's policy says unassessed = allow) that the Atlas has not
+             assessed (null)
+  margin     a note whose year is not MORE THAN max(N, margin) from each of the era's bounds (rule l: year - from > max(N, from_margin)
+             and to - year > max(N, to_margin), the end only for a closed era; N = the policy's margin_years, and N more where
+             margin_sourced is false), or on an era whose recorded margin_ok disagrees with its margins
+  approx     a note that is, or is not, marked data-era-approx="1" / data-era-contested="1" / data-era-margin-unsourced="1" where the
+             snapshot's era is, or is not, flagged approximate / contested / carries a margin the Atlas did not source
   year       a note whose data-era-year is missing, not a whole number, or outside the era: from <= year < to (to null: no end)
   recent     a note on the still-running era for a year at or after the snapshot's recent_from (the quiet rule)
   boundary   a note that is, or is not, marked data-era-boundary="1" and worded "From that year" when its year is, or is not, the
@@ -81,7 +88,7 @@ class Page(HTMLParser):
         part = None
         if "data-era" in a:
             note = {"id": a["data-era"], "year": a.get("data-era-year"), "boundary": a.get("data-era-boundary"),
-                    "assessed": a.get("data-era-assessed"), "edge_agree": a.get("data-era-edge-agree"), "pres": [], "labs": [],
+                    "assessed": a.get("data-era-assessed"), "approx": a.get("data-era-approx"), "contested": a.get("data-era-contested"), "unsourced": a.get("data-era-margin-unsourced"), "edge_agree": a.get("data-era-edge-agree"), "pres": [], "labs": [],
                     "srcs": [], "hrefs": []}
             self.notes.append(note)
             self.cur = note
@@ -157,6 +164,10 @@ def check_snapshot(snap):
             and eralib.is_year(pol.get("recent_from")) and isinstance(pol.get("edge_km"), (int, float))
             and pol.get("edge") in ("agree", "strict")):
         bad.append("policy missing or not understood")
+    elif not (pol.get("approx") in ("refuse", "margin") and pol.get("contested") in ("refuse", "scope", "margin")
+              and eralib.is_margin(pol.get("margin_years")) and isinstance(pol.get("margins"), dict)):
+        bad.append("policy has no approx / contested / margin_years / margins (rule l)")
+        pol = {}
     if not isinstance(snap.get("regions"), dict) or not isinstance(snap.get("places"), dict):
         return bad + ["regions or places missing"]
     silent = snap.get("places_silent")
@@ -196,6 +207,7 @@ def check_snapshot(snap):
     q = snap.get("quality")
     if not (isinstance(q, dict) and isinstance(q.get("counts"), dict) and isinstance(q.get("gaps"), list) and isinstance(q.get("overlaps"), list)):
         bad.append("the contract's quality block is missing")
+    pol = pol if isinstance(pol, dict) else {}
     for rid, eras in snap["regions"].items():
         if not isinstance(eras, list):
             bad.append("a region's eras are not a list")
@@ -215,6 +227,29 @@ def check_snapshot(snap):
             if e.get("assessed") is not (e.get("approx") is not None and e.get("contested") is not None) or not (
                     e.get("why") is None or (isinstance(e["why"], str) and e["why"].strip())):
                 bad.append("an era whose assessed flag does not follow its contested and approx, or whose why is not text or null")
+            if not all(e.get(k) is None or eralib.is_margin(e.get(k)) for k in ("from_margin", "to_margin")) \
+                    or e.get("margin_src") not in (None, "contract", "archive", "fallback") \
+                    or e.get("margin_sourced") not in (None, True, False) \
+                    or e.get("contested_scope") not in (None,) + eralib.SCOPES:
+                bad.append("an era with a margin, margin source or contested scope that is not understood")
+            elif eralib.margin_span(e, eralib.floor_of(pol)) is not None:
+                # the recorded decision follows the margins, the margins exist where the era is flagged, and the policy allows the flag
+                needs_to = not eralib.is_open(e)
+                if (eralib.flag(e.get("approx")) == "yes" or eralib.flag(e.get("contested")) == "yes") and not (
+                        eralib.is_margin(e.get("from_margin")) and (not needs_to or eralib.is_margin(e.get("to_margin")))):
+                    bad.append("a flagged era with no margin")
+                sp = eralib.margin_span(e, eralib.floor_of(pol))
+                if e.get("margin_ok") != sp:
+                    bad.append("an era whose margin_ok does not follow its margins")
+            elif e.get("margin_ok") is not None:
+                bad.append("a clean era with a margin_ok")
+            if e.get("contested_scope") in ("regime", "part"):
+                bad.append("an era kept although its contested scope is regime or part")
+            if eralib.flag(e.get("approx")) == "yes" and pol.get("approx") != "margin":
+                bad.append("an approximate era kept although the policy refuses it")
+            if eralib.flag(e.get("contested")) == "yes" and (pol.get("contested") not in ("scope", "margin") or e.get("contested_scope") in ("regime", "part")
+                                                         or (e.get("contested_scope") is None and pol.get("contested") != "margin")):
+                bad.append("a contested era kept although the policy or its scope refuses it")
     return bad
 
 
@@ -276,11 +311,13 @@ def judge(note, snap):
     lab = lab.strip()
     overlapped = any(o is not era and eralib.numeric(o) and eralib.meets(era, o) for o in eras)
     unassessed = eralib.flag(era.get("approx")) == "unassessed" or eralib.flag(era.get("contested")) == "unassessed"
-    if (eralib.flag(era.get("approx")) == "yes" or eralib.flag(era.get("contested")) == "yes" or overlapped or not lab
-            or (unassessed and pol["unassessed"] != "allow")):
-        out.append("ineligible")
     y = note["year"]
     yi = int(y) if isinstance(y, str) and re.fullmatch(r"\d{1,4}", y) else None
+    mg = eralib.margin_gate(era, yi if yi is not None else era["from"], pol)
+    if (mg in ("approx", "contested") or overlapped or not lab or (unassessed and pol["unassessed"] != "allow")):
+        out.append("ineligible")
+    if mg == "bad-margin" or (mg == "margin" and yi is not None):
+        out.append("margin")
     if yi is None or not eralib.covers(era, yi):
         out.append("year")
     elif era["to"] is None and yi >= pol["recent_from"]:
@@ -297,6 +334,10 @@ def judge(note, snap):
         out.append("label")
     if note.get("assessed") != ("1" if era.get("assessed") is True else "0"):
         out.append("assessed")
+    if (note.get("approx") != ("1" if eralib.flag(era.get("approx")) == "yes" else None)
+            or note.get("contested") != ("1" if eralib.flag(era.get("contested")) == "yes" else None)
+            or note.get("unsourced") != ("1" if era.get("margin_sourced") is False and eralib.margin_span(era, eralib.floor_of(pol)) is not None else None)):
+        out.append("approx")
     if note.get("edge_agree") not in (None, "1") or (note.get("edge_agree") == "1" and not any(
             snap["places"].get(k) == region for k in (snap.get("edge_neighbours") or {}))):
         out.append("edge")
@@ -358,6 +399,7 @@ def main(argv=None):
     boundary_notes = 0
     assessed_notes = 0
     edge_notes = 0
+    approx_notes = contested_notes = provisional_notes = unsourced_notes = 0
     css_pages = 0
     for p in pages:
         n_pages += 1
@@ -398,18 +440,30 @@ def main(argv=None):
                             boundary_notes += 1
                         if note.get("edge_agree") == "1":
                             edge_notes += 1
+                        if eralib.flag(e.get("approx")) == "yes":
+                            approx_notes += 1
+                        if eralib.flag(e.get("contested")) == "yes":
+                            contested_notes += 1
+                        if e.get("margin_src") == "fallback":
+                            provisional_notes += 1
+                        if note.get("unsourced") == "1":
+                            unsourced_notes += 1
     if outdir.fingerprint(dist) != before:
         print("  --    era       THE BUILD CHANGED WHILE THIS RAN (another build in flight). Results would be noise, so nothing is reported.")
         return 2
     print("  ..    era       %d page(s) read, %d with a note, %d note(s) (%d on an era the Atlas has assessed, %d on one it has not; %d on a "
-          "seeded region, %d on a boundary year, %d at an edge where every neighbour agrees); %d page(s) carry the era style, one each; "
+          "seeded region, %d on a boundary year, %d at an edge where every neighbour agrees; %d on an approximate era and %d on a contested one, "
+          "each more than max(N, margin) from the era's bounds with N = %d year(s): %d of them on the PROVISIONAL floor alone (the Atlas gave that era no margin: "
+          "not an Atlas fact), %d resting on an UNSOURCED margin (the assessor knew the date but did not find it in a page: softer, N more)); "
+          "%d page(s) carry the era style, one each; "
           "snapshot: contract %s of %s, rings from the %s, %d region(s), %d place(s) (%d not edge-checked, %d at an edge), built %s; policy: "
-          "unassessed %s, boundary %s, recent from %s, edge %s" % (n_pages, n_with, n_notes, assessed_notes, unassessed_notes, seeded_notes,
-                                                                 boundary_notes, edge_notes, css_pages, snap["contract"]["version"],
+          "unassessed %s, boundary %s, recent from %s, edge %s, approx %s, contested %s" % (n_pages, n_with, n_notes, assessed_notes, unassessed_notes, seeded_notes,
+                                                                 boundary_notes, edge_notes, approx_notes, contested_notes,
+                                                                 snap["policy"]["margin_years"], provisional_notes, unsourced_notes, css_pages, snap["contract"]["version"],
                                                                  snap["contract"]["generated"], snap["atlas"]["rings_source"], len(snap["regions"]),
                                                                  len(snap["places"]), len(snap["unchecked_edge"]), len(snap["edge_neighbours"]),
                                                                  snap.get("built", "?"), snap["policy"]["unassessed"], snap["policy"]["boundary"],
-                                                                 snap["policy"]["recent_from"], snap["policy"]["edge"]))
+                                                                 snap["policy"]["recent_from"], snap["policy"]["edge"], snap["policy"]["approx"], snap["policy"]["contested"]))
     if a.strict_unassessed and snap["policy"]["unassessed"] == "allow":
         fail("unassessed-policy")
     if n_notes < a.min_notes:

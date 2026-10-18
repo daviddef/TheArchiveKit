@@ -101,9 +101,33 @@ FAULTS = [
      "an-era-with-null-flags-is-allowed-when-the-snapshot-says-so"),
     ("a flag that is neither true, false nor null counts as false", 'return "unassessed" if v is None else "yes"', 'return "unassessed" if v is None else "no"',
      "a-flag-that-is-neither-true-false-nor-null-is-silent-even-when-allowing"),
-    ("an approximate era gets a note", 'if flag(e.get("approx")) == "yes":\n        return no("approx")', 'if False:\n        return no("approx")', "an-approximate-era-is-silent"),
-    ("an era that overlaps another is not contested", "or any(e.get(\"contested\") is True or any(o is not e and numeric(o) and meets(e, o) for o in eras)\n                                           for e in covering)",
-     "or any(e.get(\"contested\") is True for e in covering)", "an-era-that-overlaps-another-is-silent-even-where-it-stands-alone"),
+    ("an approximate era is noted under the refuse policy", 'if ap == "yes" and pol.get("approx") != "margin":\n        return "approx"', "", "margin-approx-refuse-policy-refuses-an-approx-era"),
+    ("an approximate era with no margin gets a note", 'if (ap == "yes" or co == "yes") and not (is_margin(e.get("from_margin")) and (is_open(e) or is_margin(e.get("to_margin")))):\n        return "approx" if ap == "yes" else "contested"',
+     "", "margin-a-flagged-era-with-an-unknown-end-margin-is-silent"),
+    ("a contested era is noted under the refuse policy", 'if cp not in ("scope", "margin"):\n            return "contested"', "", "margin-contested-refuse-policy-refuses-a-bounds-scope-era"),
+    ("a regime scope on an unflagged era is used", 'sc = e.get("contested_scope")\n    if sc in ("regime", "part"):\n        return "contested"', 'sc = e.get("contested_scope")', "margin-a-regime-scope-on-an-era-that-is-not-flagged-contested-is-still-silent"),
+    ("a contested era of an unknown scope is noted", 'if sc not in ("bounds", "none") and not', "if False and not", "margin-an-unknown-scope-on-a-contested-era-is-silent"),
+    ("a contested era of scope none is refused", 'if sc not in ("bounds", "none") and not', 'if sc != "bounds" and not', "margin-a-contested-era-of-scope-none-is-used"),
+    ("the floor is not applied", "max(n, m) + (n if soft else 0)", "m + (n if soft else 0)", "margin-margin-0-from-the-atlas-the-floor-still-holds-1805"),
+    ("an unsourced margin is not softer", "max(n, m) + (n if soft else 0)", "max(n, m) + 0", "margin-an-unsourced-margin-of-2-1711-is-allowed-and-says-it-rests-on-an-unsourced-margin"),
+    ("the snapshot's floor is ignored", 'pol["margin_years"] if isinstance(pol, dict) and is_margin(pol.get("margin_years")) else MARGIN_YEARS', "MARGIN_YEARS", "margin-margin-0-and-a-floor-of-0-is-a-clean-date-1800"),
+    ("the unsourced mark is not carried on the era", '"unsourced": e.get("margin_sourced") is False and', '"unsourced": False and', "margin-an-unsourced-margin-of-2-1711-is-allowed-and-says-it-rests-on-an-unsourced-margin"),
+    ("a contested era with no scope is noted under the scope policy", 'not (sc is None and cp == "margin")', "not (sc is None)", "margin-contested-with-no-scope-is-silent-under-the-scope-policy"),
+    ("a contested era with no scope is never noted", 'not (sc is None and cp == "margin")', "True", "margin-contested-with-no-scope-is-allowed-10-years-inside-under-the-margin-policy"),
+    ("the start margin is not applied", 'return None if year >= span["first"] and (span["last"] is None or year <= span["last"]) else "margin"',
+     'return None if (span["last"] is None or year <= span["last"]) else "margin"', "margin-approx-1820-is-5-years-from-the-start-so-silent"),
+    ("the end margin is not applied", 'return None if year >= span["first"] and (span["last"] is None or year <= span["last"]) else "margin"',
+     'return None if year >= span["first"] else "margin"', "margin-approx-1856-is-5-years-from-the-end-so-silent"),
+    ("a year AT the margin is allowed (at least, not more than)", '"first": e["from"] + (rf + 1 if rf is not None and rf > 0 else 0)', '"first": e["from"] + (rf if rf is not None else 0)', "margin-approx-1820-is-5-years-from-the-start-so-silent"),
+    ("the end margin counts a year too few", '"last": None if is_open(e) else e["to"] - 1 - (rt if rt is not None else 0)', '"last": None if is_open(e) else e["to"] - (rt if rt is not None else 0)', "margin-approx-1856-is-5-years-from-the-end-so-silent"),
+    ("a margin of 0 is silent in the first year", '"first": e["from"] + (rf + 1 if rf is not None and rf > 0 else 0)', '"first": e["from"] + (rf + 1 if rf is not None else 0)', "margin-margin-0-and-a-floor-of-0-is-a-clean-date-1800"),
+    ("an unflagged era's own margin is ignored", "if not ap and not co and rf is None and rt is None:", "if not ap and not co:", "margin-an-unflagged-era-keeps-the-margin-the-contract-gives-it-1705"),
+    ("the recorded decision is not held to the margins", 'if not isinstance(r, dict) or "last" not in r or r.get("kind") != span["kind"] or r.get("first") != span["first"] or r.get("last") != span["last"]:\n        return "bad-margin"',
+     "", "margin-a-recorded-decision-that-does-not-follow-the-margins-is-silent"),
+    ("a missing record is accepted", 'if not isinstance(r, dict) or "last" not in r or', 'if r is None:\n        return None\n    if not isinstance(r, dict) or "last" not in r or', "margin-a-flagged-era-with-no-recorded-decision-is-silent"),
+    ("the approx mark is not carried on the era", '"approx": flag(e.get("approx")) == "yes",', '"approx": False,', "margin-approx-1830-in-1815-1861-keeps-its-note"),
+    ("the contested mark is not carried on the era", '"contested": flag(e.get("contested")) == "yes",\n', '"contested": False,\n', "margin-contested-bounds-1822-is-allowed-under-scope-bounds"),
+    ("an era that overlaps another is not contested", "any(any(o is not e and numeric(o) and meets(e, o) for o in eras) for e in covering)", "False", "an-era-that-overlaps-another-is-silent-even-where-it-stands-alone"),
     ("a refused era overlapping a kept one is ignored", "if len(covering) > 1 or refused or any(", "if len(covering) > 1 or any(", "a-refused-era-overlapping-a-kept-one-is-silent"),
     ("an empty label is allowed", 'if not _label(e):\n        return no("no-label")', 'if False:\n        return no("no-label")', "an-empty-regime-label-is-silent"),
     ("an era whose id is not the contract's is allowed", 'if e.get("id") != era_id(region, e["from"]):\n        return no("bad-id")', 'if False:\n        return no("bad-id")',
@@ -132,12 +156,18 @@ FAULTS = [
     ("a neighbour with a refused era over the year is trusted", "if any(covers(d, year) for d in dropped):\n        return False", "", "a-neighbour-with-a-refused-era-over-the-year-is-silent"),
     ("a neighbour with no era for the year is trusted", "if len(covering) != 1:\n        return False\n    x = covering[0]", "if len(covering) > 1:\n        return False\n    x = covering[0] if covering else mine",
      "a-place-near-an-edge-is-silent-where-its-neighbour-has-no-era-for-the-year"),
-    ("a neighbour era that overlaps another elsewhere is trusted", "if any(o is not x and numeric(o) and meets(x, o) for o in eras):\n        return False\n    if flag(x.get(\"approx\"))",
-     "if flag(x.get(\"approx\"))", "a-neighbour-era-that-overlaps-another-anywhere-is-silent"),
-    ("a neighbour era marked approximate is trusted", 'if flag(x.get("approx")) == "yes" or flag(x.get("contested")) == "yes":\n        return False', 'if flag(x.get("contested")) == "yes":\n        return False',
+    ("a neighbour era that overlaps another elsewhere is trusted", "if any(o is not x and numeric(o) and meets(x, o) for o in eras):\n        return False\n    if margin_gate(",
+     "if margin_gate(", "a-neighbour-era-that-overlaps-another-anywhere-is-silent"),
+    ("a neighbour era marked approximate is trusted", 'if margin_gate(x, year, pol) is not None:\n        return False', 'if flag(x.get("contested")) == "yes" and margin_gate(x, year, pol) is not None:\n        return False',
      "a-place-near-an-edge-is-silent-where-its-neighbour-era-is-approximate"),
-    ("a neighbour era marked contested is trusted", 'if flag(x.get("approx")) == "yes" or flag(x.get("contested")) == "yes":\n        return False', 'if flag(x.get("approx")) == "yes":\n        return False',
+    ("a neighbour era marked contested is trusted", 'if margin_gate(x, year, pol) is not None:\n        return False', 'if flag(x.get("approx")) == "yes" and margin_gate(x, year, pol) is not None:\n        return False',
      "a-neighbour-marked-contested-is-silent"),
+    ("a neighbour era's margins are ignored", 'if margin_gate(x, year, pol) is not None:\n        return False', 'if flag(x.get("approx")) == "yes" or flag(x.get("contested")) == "yes":\n        return False',
+     "margin-an-edge-place-keeps-its-note-where-the-neighbour-is-approx-but-well-inside-it"),
+    ("a neighbour era within its margin is trusted", 'if margin_gate(x, year, pol) is not None:\n        return False', "",
+     "margin-an-edge-place-is-silent-where-the-neighbours-approx-era-is-within-its-margin"),
+    ("a neighbour era contested about its regime is trusted", 'if margin_gate(x, year, pol) is not None:\n        return False', 'if flag(x.get("approx")) == "yes" and margin_gate(x, year, pol) is not None:\n        return False',
+     "margin-an-edge-place-is-silent-where-the-neighbours-era-is-contested-about-its-regime"),
     ("a neighbour the Atlas has not assessed is trusted whatever the policy says", 'and pol.get("unassessed") != "allow":\n        return False\n    if _label(x)', "and False:\n        return False\n    if _label(x)",
      "a-neighbour-the-atlas-has-not-assessed-is-unknown-under-the-refuse-policy"),
     ("a neighbour the Atlas has not assessed is never allowed", 'and pol.get("unassessed") != "allow":\n        return False\n    if _label(x)', "and True:\n        return False\n    if _label(x)",
@@ -265,18 +295,19 @@ TABLE = {"places": {
 tp = os.path.join(tmp, "places.json")
 json.dump(TABLE, open(tp, "w"))
 out = os.path.join(tmp, "snap.json")
-base = ["--contract", cp, "--places", tp, "--out", out, "--built", "2026-01-02"]           # the rings come from the contract
-base_file = ["--contract", cp, "--rings", rp, "--places", tp, "--out", out, "--built", "2026-01-02"]   # ... or from an override file
+base = ["--contract", cp, "--approx", "refuse", "--places", tp, "--out", out, "--built", "2026-01-02"]           # the rings come from the contract
+base_file = ["--contract", cp, "--approx", "refuse", "--rings", rp, "--places", tp, "--out", out, "--built", "2026-01-02"]   # ... or from an override file
 rep = os.path.join(tmp, "report.json")
 c, o = run("erasnap.py", base + ["--unassessed", "allow", "--report", rep])
 snap = json.load(open(out)) if c == 0 else {}
-case("it builds a version 3 snapshot from the contract (its rings and bboxes) and an archive's place table", c == 0 and snap.get("version") == 3, o)
+case("it builds a version 4 snapshot from the contract (its rings and bboxes) and an archive's place table", c == 0 and snap.get("version") == 4, o)
 want_sha = hashlib.sha256(open(cp, "rb").read()).hexdigest()
 case("it records the contract's version, its generated stamp and the sha256 of the file's bytes",
      snap.get("contract") == {"name": "recordatlas-context", "version": "1.8.0", "generated": "2026-01-01", "sha256": want_sha}, snap.get("contract"))
 case("it records where the rings came from: the contract (no second file, so no second hash)", snap.get("atlas") == {"base": "https://recordatlas.org", "rings_source": "contract", "rings_sha256": None}, snap.get("atlas"))
 case("it records its policy: unassessed, boundary (from the contract's rule), quiet-rule year, edge km",
-     snap.get("policy") == {"unassessed": "allow", "boundary": "newer", "recent_from": 1990, "edge_km": 15.0, "edge": "agree"}, snap.get("policy"))
+     snap.get("policy") == {"unassessed": "allow", "boundary": "newer", "recent_from": 1990, "edge_km": 15.0, "edge": "agree",
+                            "approx": "refuse", "contested": "scope", "margin_years": 5, "margins": {}}, snap.get("policy"))
 case("only the regions the archive's table uses (and the neighbours of its edge places) are kept", sorted(snap.get("regions", {})) == ["badids", "eastland", "elphberg", "gapped", "nullr", "ruritania", "unknownbasis"], list(snap.get("regions", {})))
 R = snap.get("regions", {}).get("ruritania", [])
 case("the kept eras of a region carry the contract's id, its url, its label and its basis",
@@ -301,7 +332,7 @@ case("a bare shorthand regime is shown with its polity (never invented); one wit
      [e["label"] for e in R if e["from"] == 1950] == ["Napoleonic — Fake Provinces"]
      and [e["label"] for e in snap["regions"]["elphberg"]] == ["Kingdom of Ruritania", "Napoleonic — French Illyria"]
      and any(d["region"] == "elphberg" and d["from"] == 1800 and d["reason"].startswith("bare shorthand") for d in snap["dropped"]), snap["regions"]["elphberg"])
-case("two overlapping eras are both kept and both flagged contested", [e["contested"] for e in R if e["from"] in (1950, 1980)] == [True, True], R)
+case("two overlapping eras are both kept; the library (not a flag the contract never set) keeps every year they touch silent", [e["contested"] for e in R if e["from"] in (1950, 1980)] == [False, False] and "eras_overlapping_another_kept_era" in o, R)
 case("an era's contested/approx null is carried as null when the policy allows it", [(e["approx"], e["contested"]) for e in snap["regions"]["nullr"]] == [(None, None), (False, None), (None, False)])
 case("basis is carried, and seeded_from_archive follows it (only a basis that starts 'seeded:')",
      all(e["seeded_from_archive"] for e in snap["regions"]["elphberg"]) and not any(e["seeded_from_archive"] for e in R)
@@ -447,6 +478,192 @@ case("two spellings of one place, one of them on the edge: the refusal wins", c2
 json.dump(TABLE, open(tp, "w"))
 json.dump(snap, open(out, "w"))
 
+# ---------------------------------------------------------------- 2b. erasnap.py: rule l, the boundary margins
+print("erasnap.py: approx and contested eras are kept with margins (rule l); a synthetic contract 1.10.0 exercises the margin fields the Atlas is adding")
+
+
+def ring_at(lat):
+    return [[lat, 10], [lat, 20], [lat + 10, 20], [lat + 10, 10]]
+
+
+def mk_region(rid, lat, eras):
+    r_ = {"id": rid, "label": rid, "alt": [], "countries": [], "url": "/region/%s/" % rid, "eras": eras, "ring": ring_at(lat)}
+    r_["bbox"] = [lat, 10, lat + 10, 20]
+    return r_
+
+
+# the contract 1.9.0 shape: flags and a `why`, no margins and no scope
+C19 = copy.deepcopy(CONTRACT)
+C19["contract"]["version"] = "1.9.0"
+C19["quality"] = {"gaps": [], "overlaps": []}
+C19["regions"] = [
+    mk_region("calabrio", 0, [ce("calabrio", 1815, 1861, regime="kingdom", label="Kingdom of the Two Realms", approx=True, why="The start is a lower bound."),
+                              ce("calabrio", 1861, None, regime="union", label="Union of Ruritania", approx=True, why="Annexation took more than a year.")]),
+    mk_region("scoped", 10, [ce("scoped", 1816, 1861, regime="kingdom", label="Realm of the Seven Seats", contested=True, why="Garibaldi 1860 or annexation 1861."),
+                             ce("scoped", 1861, None, regime="union", label="Union of Ruritania")]),
+    mk_region("flat", 20, [ce("flat", 1900, 1950, regime="city", label="Free City", contested=True, why="The regime itself is disputed."),
+                           ce("flat", 1950, 2000, regime="zone", label="Partitioned Zone", contested=True, why="A part of it is disputed.")]),
+    mk_region("feud", 30, [ce("feud", 1000, 1700, regime="feudal", label="Dukes and Counts", approx=True, why="We do not know."),
+                           ce("feud", 1700, 1800, regime="kingdom", label="Kingdom of Feud", contested=True, why="Bounds disputed.")]),
+    mk_region("plain", 40, [ce("plain", 1700, 1800, regime="kingdom", label="Kingdom of Plain"), ce("plain", 1800, 1900, regime="duchy", label="Duchy of Plain")]),
+]
+TABLE19 = {"places": {"Calabrio": "calabrio", "Scopetown": "scoped", "Flatville": "flat", "Feudton": "feud", "Plainton": "plain"}}
+
+
+def contract_with(fn, name):
+    d_ = copy.deepcopy(C19)
+    fn(d_)
+    p_ = os.path.join(tmp, name)
+    json.dump(d_, open(p_, "w"))
+    return p_
+
+
+def build19(contract, name, args=(), table=TABLE19):
+    tp_ = os.path.join(tmp, "t19.json")
+    json.dump(table, open(tp_, "w"))
+    o_ = os.path.join(tmp, name)
+    c_, t_ = run("erasnap.py", ["--contract", contract, "--no-rings", "--places", tp_, "--out", o_, "--built", "2026-01-02"] + list(args))
+    return c_, t_, (json.load(open(o_)) if c_ == 0 else {})
+
+
+def era19(sn, region, frm):
+    return next((e for e in sn.get("regions", {}).get(region, []) if e["from"] == frm), None)
+
+
+def why19(sn, region, frm):
+    return next((d["reason"] for d in sn.get("dropped", []) if d["region"] == region and d["from"] == frm), None)
+
+
+p19 = contract_with(lambda d_: None, "c190.json")
+c_, o_, s19 = build19(p19, "s190.json")
+cal = era19(s19, "calabrio", 1815)
+case("contract 1.9.0 (flags, no margin fields), DEFAULT policy: an approx era is kept with margin 0 on each side, recorded as the PROVISIONAL fallback "
+     "(only the floor N = 5 then holds it: first usable year 1821, last 1855)",
+     c_ == 0 and cal and (cal["approx"], cal["from_margin"], cal["to_margin"], cal["margin_src"], cal["margin_sourced"]) == (True, 0, 0, "fallback", None)
+     and cal["margin_ok"] == {"kind": "approx", "first": 1821, "last": 1855} and s19["policy"]["approx"] == "margin" and s19["policy"]["contested"] == "scope"
+     and s19["policy"]["margin_years"] == 5, o_)
+cal2 = era19(s19, "calabrio", 1861)
+case("...an approx era still running has only a start margin (no end bound), and its last allowed year is null (running on)",
+     cal2 and (cal2["from_margin"], cal2["to_margin"], cal2["margin_ok"]) == (0, None, {"kind": "approx", "first": 1867, "last": None}), cal2)
+case("...a contested era with NO contestedScope is refused by default (a contract before 1.10.0 does not say whether it is about the bounds), with its own counted reason",
+     era19(s19, "scoped", 1816) is None and why19(s19, "scoped", 1816).startswith("contested (true) with no contestedScope"), s19.get("dropped"))
+case("...the same for the regime-level and part-level eras (no scope)", era19(s19, "flat", 1900) is None and era19(s19, "flat", 1950) is None, s19.get("dropped"))
+case("...a shorthand regime (feudal) is refused whatever its flags say; the contested era after it is refused for want of a scope",
+     era19(s19, "feud", 1000) is None and why19(s19, "feud", 1000).startswith("regime is the project's own shorthand") and era19(s19, "feud", 1700) is None, s19.get("dropped"))
+case("...an era the contract flags neither way carries no margin and no margin_ok (a contract with no margin fields gives it none)",
+     era19(s19, "plain", 1700)["margin_ok"] is None and era19(s19, "plain", 1700)["from_margin"] is None)
+snc = s19
+case("what it built answers as the library does: 1830 keeps its note (rests on an approx era), 1820, 1856, 1859, 1861, 1862 and 1866 are silent, 1821, 1855 and 1867 are allowed",
+     (eralib.era_at(snc, "Calabrio", 1830) or {}).get("approx") is True and [eralib.why_not(snc, "Calabrio", y) for y in (1820, 1856, 1859, 1861, 1862, 1866)] == ["margin"] * 6
+     and eralib.why_not(snc, "Calabrio", 1821) == "ok" and eralib.why_not(snc, "Calabrio", 1855) == "ok" and eralib.why_not(snc, "Calabrio", 1867) == "ok", [eralib.why_not(snc, "Calabrio", y) for y in (1820, 1856, 1867)])
+import checkera  # noqa: E402
+case("...and the gate accepts the snapshot's shape", checkera.check_snapshot(s19) == [], checkera.check_snapshot(s19))
+c_, o_, sr_ = build19(p19, "s190r.json", ["--approx", "refuse"])
+case("--approx refuse drops an approx era again (counted)", c_ == 0 and era19(sr_, "calabrio", 1815) is None and why19(sr_, "calabrio", 1815) == "marked approximate (true)" and sr_["policy"]["approx"] == "refuse", o_)
+c_, o_, sm_ = build19(p19, "s190m.json", ["--contested", "margin", "--margin-years", "8"])
+sc_ = era19(sm_, "scoped", 1816)
+case("--contested margin (the what-if for a contract with no scope) keeps a contested era with no scope, on the fallback; --margin-years moves the floor N (first usable 1824, last 1852)",
+     sc_ and (sc_["contested_scope"], sc_["from_margin"], sc_["to_margin"], sc_["margin_src"]) == (None, 0, 0, "fallback") and sc_["margin_ok"] == {"kind": "contested", "first": 1825, "last": 1852}
+     and era19(sm_, "calabrio", 1815)["margin_ok"] == {"kind": "approx", "first": 1824, "last": 1852}
+     and sm_["policy"]["contested"] == "margin" and sm_["policy"]["margin_years"] == 8, (sc_, o_))
+case("...but never a shorthand: 'feud' 1000 is refused, and its contested 1700 era is kept only because the what-if says so",
+     era19(sm_, "feud", 1000) is None and era19(sm_, "feud", 1700) is not None and era19(sm_, "flat", 1900) is not None, sm_.get("dropped"))
+c_, o_, sx_ = build19(p19, "s190x.json", ["--contested", "refuse"])
+case("--contested refuse drops every contested era", all(era19(sx_, r_, f_) is None for r_, f_ in (("scoped", 1816), ("flat", 1900), ("feud", 1700))) and why19(sx_, "scoped", 1816) == "marked contested (true)", o_)
+c_, o_, _ = build19(p19, "bad.json", ["--margin-years", "-1"])
+case("--margin-years -1 is refused (exit 2)", c_ == 2, o_)
+pb = contract_with(lambda d_: d_["regions"][1]["eras"][0].update(contestedScope="bounds"), "cb.json")
+c_, o_, sb_ = build19(pb, "sb.json")
+case("a bounds-contested era from a contract that gives no margins is refused: the fallback is for an approx era only", era19(sb_, "scoped", 1816) is None
+     and why19(sb_, "scoped", 1816).startswith("flagged approximate or contested with no margin"), sb_.get("dropped"))
+
+
+# the contract 1.10.0 shape: every era carries fromMargin / toMargin / contestedScope / marginSourced (null where nobody assessed it)
+def to110(d_):
+    d_["contract"]["version"] = "1.10.0"
+    by = {r_["id"]: r_ for r_ in d_["regions"]}
+    for r_ in d_["regions"]:
+        for e_ in r_["eras"]:
+            e_.update(fromMargin=0, toMargin=0 if e_["to"] is not None else None, contestedScope="none", marginSourced=True)
+    cal_ = by["calabrio"]["eras"]
+    cal_[0].update(fromMargin=1, toMargin=1)                                  # approx, with the Atlas's own margins (below the floor of 5)
+    cal_[1].update(fromMargin=2)
+    by["scoped"]["eras"][0].update(contestedScope="bounds", fromMargin=8, toMargin=3)
+    by["scoped"]["eras"][1].update(fromMargin=1)
+    by["flat"]["eras"][0].update(contestedScope="regime", fromMargin=1, toMargin=1)
+    by["flat"]["eras"][1].update(contestedScope="part", fromMargin=1, toMargin=1)
+    by["feud"]["eras"][0].update(contestedScope="bounds")
+    by["feud"]["eras"][1].update(contestedScope="bounds")
+    by["plain"]["eras"][0].update(fromMargin=3, toMargin=3, marginSourced=False)
+    by["plain"]["eras"][1].update(fromMargin=None)                            # an unknowable start
+
+
+p110 = contract_with(to110, "c1100.json")
+c_, o_, s110 = build19(p110, "s1100.json")
+cal = era19(s110, "calabrio", 1815)
+case("synthetic contract 1.10.0: the Atlas's own fromMargin/toMargin are used (margin_src contract), the floor N = 5 lifts margins below it (first usable 1821, last 1855), "
+     "and the version is recorded",
+     c_ == 0 and (cal["from_margin"], cal["to_margin"], cal["margin_src"], cal["margin_sourced"]) == (1, 1, "contract", True)
+     and cal["margin_ok"] == {"kind": "approx", "first": 1821, "last": 1855}
+     and s110["contract"]["version"] == "1.10.0" and era19(s110, "calabrio", 1861)["margin_ok"] == {"kind": "approx", "first": 1867, "last": None}, cal)
+sic = era19(s110, "scoped", 1816)
+case("...a contested era whose contestedScope is 'bounds' is kept under the default (scope) policy; a margin ABOVE the floor is the reach (8 at the start, floor 5 at the end)",
+     sic and (sic["contested"], sic["contested_scope"], sic["margin_src"], sic["margin_ok"]) == (True, "bounds", "contract", {"kind": "contested", "first": 1825, "last": 1855})
+     and era19(s110, "scoped", 1861)["margin_ok"] == {"kind": "margin", "first": 1867, "last": None}, sic)
+case("...a Fiume-like era (scope 'regime') and a 'part' era are refused whatever their margins, each with its own reason",
+     era19(s110, "flat", 1900) is None and era19(s110, "flat", 1950) is None and why19(s110, "flat", 1900).startswith("contested about its regime or a part")
+     and why19(s110, "flat", 1950).startswith("contested about its regime or a part"), s110.get("dropped"))
+case("...a shorthand (feudal) era is refused even with a scope of bounds; the era after it is kept (first usable 1706, last 1794)",
+     era19(s110, "feud", 1000) is None and era19(s110, "feud", 1700)["margin_ok"] == {"kind": "contested", "first": 1706, "last": 1794}, s110.get("dropped"))
+pl = era19(s110, "plain", 1700)
+case("...an unsourced margin (marginSourced false) is carried and makes the reach N more (3 -> 5 + 5: first usable 1711, last 1789), and is counted",
+     pl and (pl["margin_sourced"], pl["margin_ok"]) == (False, {"kind": "margin", "first": 1711, "last": 1789}) and "eras_kept_with_unsourced_margin" in o_, pl)
+case("...an era whose start margin is null (unknowable) is refused, with its own reason; the open end of an era still running needs no margin",
+     era19(s110, "plain", 1800) is None and why19(s110, "plain", 1800).startswith("a bound whose margin is unknowable") and era19(s110, "calabrio", 1861) is not None, s110.get("dropped"))
+case("...the answers on it: Calabrio 1830 noted, 1820 silent, 1821 noted; Scopetown 1824 silent, 1825 noted, 1855 noted, 1856 silent; Plainton 1710 silent, 1711 noted "
+     "(rests on an unsourced margin), 1789 noted, 1790 silent; Feudton 1705 silent, 1706 noted; Fiumeish and Feudton 1500 silent",
+     eralib.why_not(s110, "Calabrio", 1830) == "ok" and eralib.why_not(s110, "Calabrio", 1820) == "margin" and eralib.why_not(s110, "Calabrio", 1821) == "ok"
+     and [eralib.why_not(s110, "Scopetown", y) for y in (1824, 1825, 1855, 1856)] == ["margin", "ok", "ok", "margin"]
+     and [eralib.why_not(s110, "Plainton", y) for y in (1710, 1711, 1789, 1790)] == ["margin", "ok", "ok", "margin"]
+     and (eralib.era_at(s110, "Plainton", 1711) or {}).get("unsourced") is True and (eralib.era_at(s110, "Scopetown", 1825) or {}).get("unsourced") is False
+     and [eralib.why_not(s110, "Feudton", y) for y in (1705, 1706)] == ["margin", "ok"] and eralib.why_not(s110, "Flatville", 1925) == "era-refused"
+     and eralib.why_not(s110, "Feudton", 1500) == "era-refused", [eralib.why_not(s110, "Scopetown", y) for y in (1824, 1825)])
+# a shorthand regime is refused under EVERY policy
+for pol_ in (["--contested", "refuse"], ["--contested", "scope"], ["--contested", "margin"], ["--approx", "refuse"], ["--approx", "margin", "--contested", "margin"]):
+    c_, o_, sp_ = build19(p110, "s1100p.json", pol_)
+    case("a shorthand (feudal) era is refused under %s" % " ".join(pol_), c_ == 0 and era19(sp_, "feud", 1000) is None and why19(sp_, "feud", 1000).startswith("regime is the project's own shorthand"), o_)
+# the regime and part scopes are refused under every policy, margin included
+c_, o_, sp_ = build19(p110, "s1100m.json", ["--contested", "margin"])
+case("a contestedScope of regime or part is refused even under --contested margin", era19(sp_, "flat", 1900) is None and era19(sp_, "flat", 1950) is None and era19(sp_, "scoped", 1816) is not None, o_)
+c_, o_, sp_ = build19(p110, "s1100r.json", ["--contested", "refuse"])
+case("--contested refuse drops a bounds-scope era too", era19(sp_, "scoped", 1816) is None, o_)
+# the archive may widen an era's margin, never narrow it
+mp_ = os.path.join(tmp, "margins.json")
+json.dump({"calabrio--era-1815": 9, "scoped--era-1816": {"from": 2, "to": 6}, "_note": "x"}, open(mp_, "w"))
+c_, o_, sw_ = build19(p110, "s1100w.json", ["--margins", mp_])
+cal, sic = era19(sw_, "calabrio", 1815), era19(sw_, "scoped", 1816)
+case("--margins widens a margin the contract gave (1 -> 9, src archive), and cannot narrow it (contract 8 keeps 8 where the file says 2; 3 -> 6); the policy records the file",
+     (cal["from_margin"], cal["to_margin"], cal["margin_src"]) == (9, 9, "archive") and (sic["from_margin"], sic["to_margin"], sic["margin_src"]) == (8, 6, "archive")
+     and sw_["policy"]["margins"] == {"calabrio--era-1815": {"from": 9, "to": 9}, "scoped--era-1816": {"from": 2, "to": 6}}, (cal, sic))
+c_, o_, sw_ = build19(p19, "s190w.json", ["--margins", mp_])
+cal = era19(sw_, "calabrio", 1815)
+case("...on a contract with no margins the archive's figure replaces the fallback for that era (src archive) and the other eras keep the fallback",
+     (cal["from_margin"], cal["to_margin"], cal["margin_src"]) == (9, 9, "archive") and era19(sw_, "calabrio", 1861)["margin_src"] == "fallback", cal)
+pn = contract_with(lambda d_: (to110(d_), d_["regions"][0]["eras"][0].update(fromMargin=-3, toMargin="two")), "cn2.json")
+c_, o_, sn2_ = build19(pn, "sn2.json")
+case("a margin that is not a whole number of years >= 0 is no margin: the era is refused as unknowable (never replaced by the fallback)", era19(sn2_, "calabrio", 1815) is None
+     and why19(sn2_, "calabrio", 1815).startswith("a bound whose margin is unknowable"), sn2_.get("dropped"))
+pnn = contract_with(lambda d_: (to110(d_), d_["regions"][0]["eras"][0].update(toMargin=None)), "cn3.json")
+c_, o_, sn3_ = build19(pnn, "sn3.json")
+case("a null toMargin on a CLOSED era is unknowable: refused", era19(sn3_, "calabrio", 1815) is None, sn3_.get("dropped"))
+pnu = contract_with(lambda d_: (to110(d_), d_["regions"][0]["eras"][0].update(approx=None, contested=None, fromMargin=None, toMargin=None)), "cn4.json")
+c_, o_, sn4_ = build19(pnu, "sn4.json", ["--unassessed", "allow"])
+case("an unassessed era (flags null, margins null) is refused as unknowable even under --unassessed allow", era19(sn4_, "calabrio", 1815) is None
+     and why19(sn4_, "calabrio", 1815).startswith("a bound whose margin is unknowable"), sn4_.get("dropped"))
+case("the snapshots built from 1.10.0 pass the gate's shape check", checkera.check_snapshot(s110) == [] and checkera.check_snapshot(sw_) == [] and checkera.check_snapshot(sp_) == [], checkera.check_snapshot(s110))
+c_, o_, _ = build19(p110, "s1100.json", ["--check"])
+case("--check passes on the rebuilt margin snapshot", c_ == 0, o_)
+
 # ---------------------------------------------------------------- 3. checkera.py
 print("checkera.py: a planted fault for each rule")
 CLEAN = CASES["gate_snapshot"]
@@ -454,10 +671,10 @@ ERA_URL = "https://atlas.example.test/region/%s/#era-%s"
 
 
 def note(id_="ruritania--era-1700", year="1750", label="Kingdom of Ruritania", src="per the Record Atlas", href=ERA_URL % ("ruritania", 1700), boundary=False,
-         pre=None, assessed="1", edge=False):
+         pre=None, assessed="1", edge=False, approx=False, contested=False, unsourced=False):
     a = '<a class="era-src" href="%s" rel="noopener">%s</a>' % (href, src) if href else '<span class="era-src">%s</span>' % src
     b = ' data-era-boundary="1"' if boundary else ""
-    m = (' data-era-assessed="%s"' % assessed if assessed is not None else "") + (' data-era-edge-agree="1"' if edge else "")
+    m = (' data-era-assessed="%s"' % assessed if assessed is not None else "") + (' data-era-approx="1"' if approx else "") + (' data-era-contested="1"' if contested else "") + (' data-era-margin-unsourced="1"' if unsourced else "") + (' data-era-edge-agree="1"' if edge else "")
     pre = pre if pre is not None else ("· From that year: " if boundary else "· At the time: ")
     return ('<span class="era-note" data-era="%s" data-era-year="%s"%s%s><span class="era-pre">%s</span>'
             '<span class="era-lab">%s</span> %s</span>' % (id_, year, b, m, pre, label, a))
@@ -519,9 +736,40 @@ fails("an id that is not an era the snapshot holds", {P: page(note("ruritania--e
 fails("a region the snapshot lacks", {P: page(note("narnia--era-1700"))}, "unknown 1")
 fails("the old id shape region--year is not the contract's id", {P: page(note("ruritania--1700"))}, "unknown 1")
 fails("a data-era with no shape at all", {P: page(note("ruritania"))}, "unknown 1")
-fails("an era the snapshot flags approximate", {P: page(note("ruritania--era-1800", "1820", "Occupied Ruritania", href=ERA_URL % ("ruritania", 1800)))}, "ineligible 1")
+APX = lambda y, **k: page(note("ruritania--era-1800", str(y), "Occupied Ruritania", href=ERA_URL % ("ruritania", 1800), approx=True, **k))
+c, o = gate({P: APX(1825)})
+case("control: a note on an approximate era, well inside it and marked approx, passes and is counted as resting on an approximate era, on the PROVISIONAL floor",
+     c == 0 and "1 on an approximate era and 0 on a contested one" in o and "1 of them on the PROVISIONAL floor alone" in o and "0 resting on an UNSOURCED margin" in o, o)
+fails("a note on an approximate era that does not say so (no data-era-approx) fails (approx)", {P: page(note("ruritania--era-1800", "1825", "Occupied Ruritania", href=ERA_URL % ("ruritania", 1800)))}, "approx 1")
+fails("a note marked approx on an era the snapshot does not flag fails (approx)", {P: page(note(approx=True))}, "approx 1")
+fails("a note on an approximate era within the margin of its start (5 years: not MORE than 5) fails (margin)", {P: APX(1805)}, "margin 1")
+fails("...and 1806 passes", {P: APX(1806)}, "1 note(s)", code=0)
+fails("a note on an approximate era within the margin of its end (1845: 5 years) fails (margin)", {P: APX(1845)}, "margin 1")
+fails("...and 1844 passes", {P: APX(1844)}, "1 note(s)", code=0)
+fails("a note on an approximate era in the boundary year (a boundary year is within any margin) fails (margin)", {P: page(note("ruritania--era-1800", "1800", "Occupied Ruritania", href=ERA_URL % ("ruritania", 1800), approx=True, boundary=True))}, "margin 1")
+s = copy.deepcopy(CLEAN); s["policy"]["approx"] = "refuse"
+fails("an approximate era in a snapshot whose policy refuses approximate eras (malformed snapshot)", {P: APX(1825)}, "malformed", s)
+s = copy.deepcopy(CLEAN); s["regions"]["ruritania"][1]["margin_ok"] = {"kind": "approx", "first": 1800, "last": 1849}
+fails("an era whose recorded margin_ok does not follow its margins (malformed snapshot)", {P: APX(1825)}, "malformed", s)
+s = copy.deepcopy(CLEAN); s["regions"]["ruritania"][1]["to_margin"] = None; s["regions"]["ruritania"][1]["margin_ok"] = None
+fails("a flagged era with a margin missing (malformed snapshot)", {P: APX(1825)}, "malformed", s)
 s = copy.deepcopy(CLEAN); s["regions"]["ruritania"][0]["contested"] = True
-fails("an era the snapshot flags contested", {P: page(note())}, "ineligible 1", s)
+fails("a contested era the policy would refuse (scope with no scope; malformed snapshot)", {P: page(note())}, "malformed", s)
+s = copy.deepcopy(CLEAN); e_ = s["regions"]["ruritania"][0]; e_.update(contested=True, contested_scope="regime", from_margin=1, to_margin=1); e_["margin_ok"] = eralib.margin_span(e_, 5)
+fails("a contested era of scope regime kept in the snapshot (malformed snapshot)", {P: page(note(year="1760", contested=True))}, "malformed", s)
+s = copy.deepcopy(CLEAN); e_ = s["regions"]["ruritania"][0]; e_.update(contested=True, contested_scope="bounds", from_margin=1, to_margin=1, margin_src="contract"); e_["margin_ok"] = eralib.margin_span(e_, 5)
+c, o = gate({P: page(note(year="1760", contested=True))}, s)
+case("control: a note on an era contested about its bounds, well inside it and marked contested, passes and is counted", c == 0 and "0 on an approximate era and 1 on a contested one" in o, o)
+fails("...a note on it within its margin of the start (1701) fails (margin)", {P: page(note(year="1701", contested=True))}, "margin 1", s)
+fails("...a note on it that does not say it is contested fails (approx)", {P: page(note(year="1760"))}, "approx 1", s)
+s = copy.deepcopy(CLEAN); e_ = s["regions"]["ruritania"][0]; e_.update(from_margin=3, to_margin=3, margin_src="contract", margin_sourced=False); e_["margin_ok"] = eralib.margin_span(e_, 5)
+c, o = gate({P: page(note(year="1760", unsourced=True))}, s)
+case("control: a note on a clean era whose margin the Atlas did not source (reach 3 -> 5 + 5), well inside it and marked, passes and is counted as resting on an unsourced margin",
+     c == 0 and "1 resting on an UNSOURCED margin" in o, o)
+fails("...a note on it that does not say so (no data-era-margin-unsourced) fails (approx)", {P: page(note(year="1760"))}, "approx 1", s)
+fails("...a note on it at 1710 (10 years from the start: not MORE than 5 + 5) fails (margin)", {P: page(note(year="1710", unsourced=True))}, "margin 1", s)
+fails("...and 1711 passes", {P: page(note(year="1711", unsourced=True))}, "1 note(s)", s, code=0)
+fails("a note marked unsourced on an era whose margin the Atlas sourced fails (approx)", {P: page(note(year="1760", unsourced=True))}, "approx 1")
 s = unassess(copy.deepcopy(CLEAN))
 fails("an era the Atlas has not assessed (null) under the refuse policy", {P: page(note())}, "ineligible 1", s)
 s = copy.deepcopy(s); s["policy"]["unassessed"] = "allow"
