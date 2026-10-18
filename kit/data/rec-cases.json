@@ -1,0 +1,61 @@
+{
+  "about": "Invented records table and cases for kit/lib/rec.js (kit/tools/rec_logic.mjs). Nothing here is a real person or record.",
+  "records": [
+    {"id": "deed-12", "url": "https://archive.example.test/ark:/1/12", "label": "The deed of 1898, act 12", "kind": "act", "key": ["12/1898", "act 12 1898"], "plate": "1898-act12.jpg", "show": true, "w": 640, "h": 480},
+    {"id": "deed-13", "url": "/sources/deed-13/", "label": "The deed of 1898, act 13", "kind": "act", "key": "13/1898", "plate": "1898-act13.jpg", "show": false},
+    {"id": "deed-14", "url": "https://archive.example.test/ark:/1/14", "label": "Act 14", "key": "14/1898", "show": true},
+    {"id": "deed-15", "url": "https://archive.example.test/ark:/1/15", "label": "Act 15", "key": "15/1898", "plate": "1898-act15.jpg", "show": "true"},
+    {"id": "esc-1", "url": "https://archive.example.test/a?b=1&c=2", "label": "<b>\"Q\" & 'R'</b>", "kind": "a\"b", "key": "escape"},
+    {"id": "alive-1", "url": "https://archive.example.test/ark:/1/99", "label": "A living person's record", "key": "99/1990", "plate": "1990-act99.jpg", "show": true, "living": true},
+    {"id": "held-1", "url": "https://archive.example.test/ark:/1/98", "label": "A record the archive holds back", "key": "98/1990", "plate": "1990-act98.jpg", "show": true, "hold": true},
+    {"id": "alive-2", "label": "Flagged with a string and no url", "living": "yes", "key": "97/1990"},
+    {"id": "sub-1", "url": "/sources/sub/", "label": "A plate in a folder", "plate": "set one/1899-act1.jpg", "show": true, "key": "1/1899"}
+  ],
+  "cases": [
+    {"id": "by-id", "props": {"id": "deed-14"}, "want": {"state": "ok", "href": "https://archive.example.test/ark:/1/14", "external": true, "plate": null}},
+    {"id": "by-locator", "props": {"act": "13/1898"}, "want": {"state": "ok", "id": "deed-13", "href": "/sources/deed-13/", "external": false}},
+    {"id": "locator-folds-punctuation", "props": {"act": "13 - 1898"}, "want": {"state": "ok", "id": "deed-13"}},
+    {"id": "locator-folds-case", "props": {"act": "ACT 12 1898"}, "want": {"state": "ok", "id": "deed-12"}},
+    {"id": "second-spelling-of-a-key", "props": {"act": "12/1898"}, "want": {"state": "ok", "id": "deed-12"}},
+    {"id": "root-relative-address-is-mapped", "props": {"id": "deed-13"}, "opts": {"root": "/base"}, "want": {"href": "/base/sources/deed-13/"}},
+    {"id": "https-address-is-not-mapped", "props": {"id": "deed-14"}, "opts": {"root": "/base"}, "want": {"href": "https://archive.example.test/ark:/1/14"}},
+    {"id": "unknown-id-stops-the-build", "props": {"id": "nope"}, "want": {"throws": "no such record"}},
+    {"id": "unknown-locator-stops-the-build", "props": {"act": "1/1"}, "want": {"throws": "no such record"}},
+    {"id": "unknown-with-soft-is-plain-text", "props": {"id": "nope"}, "opts": {"soft": true}, "want": {"state": "plain"}},
+    {"id": "both-id-and-locator", "props": {"id": "deed-12", "act": "12/1898"}, "want": {"throws": "exactly one"}},
+    {"id": "neither-id-nor-locator", "props": {}, "want": {"throws": "exactly one"}},
+    {"id": "living-by-id-draws-nothing", "props": {"id": "alive-1"}, "opts": {"thumb": true}, "want": {"state": "blocked"}},
+    {"id": "living-by-locator-draws-nothing", "props": {"act": "99/1990"}, "want": {"state": "blocked"}},
+    {"id": "hold-draws-nothing-whatever-show-says", "props": {"id": "held-1"}, "opts": {"thumb": true}, "want": {"state": "blocked"}},
+    {"id": "a-string-flag-with-no-url-blocks-too", "props": {"id": "alive-2"}, "want": {"state": "blocked"}},
+    {"id": "blocked-beats-soft", "props": {"id": "alive-1"}, "opts": {"soft": true}, "want": {"state": "blocked"}},
+    {"id": "thumb-where-allowed", "props": {"id": "deed-12"}, "opts": {"thumb": true}, "want": {"state": "ok", "plate": {"src": "/plates/1898-act12.jpg", "anchor": "plate-1898-act12", "alt": "The deed of 1898, act 12", "w": 640, "h": 480}}},
+    {"id": "no-thumb-unless-asked", "props": {"id": "deed-12"}, "want": {"plate": null}},
+    {"id": "show-false-is-link-only", "props": {"id": "deed-13"}, "opts": {"thumb": true}, "want": {"state": "ok", "plate": null}},
+    {"id": "no-plate-is-link-only", "props": {"id": "deed-14"}, "opts": {"thumb": true}, "want": {"state": "ok", "plate": null}},
+    {"id": "show-must-be-exactly-true", "props": {"id": "deed-15"}, "opts": {"thumb": true}, "want": {"state": "ok", "plate": null}},
+    {"id": "plate-base-and-root", "props": {"id": "deed-12"}, "opts": {"thumb": true, "plateBase": "/scans", "root": "/base"}, "want": {"plate": {"src": "/base/scans/1898-act12.jpg"}}},
+    {"id": "plate-base-may-be-a-host", "props": {"id": "deed-12"}, "opts": {"thumb": true, "plateBase": "https://cdn.example.test/p/"}, "want": {"plate": {"src": "https://cdn.example.test/p/1898-act12.jpg"}}},
+    {"id": "plate-base-must-be-safe", "props": {"id": "deed-12"}, "opts": {"thumb": true, "plateBase": "javascript:/"}, "want": {"throws": "plateBase"}},
+    {"id": "plate-in-a-folder", "props": {"id": "sub-1"}, "opts": {"thumb": true}, "want": {"plate": {"src": "/plates/set one/1899-act1.jpg", "anchor": "plate-set-one-1899-act1"}}}
+  ],
+  "bad_tables": [
+    {"id": "unsafe-scheme", "rows": [{"id": "a", "url": "javascript:alert(1)"}], "throws": "url"},
+    {"id": "data-scheme", "rows": [{"id": "a", "url": "data:text/html,x"}], "throws": "url"},
+    {"id": "protocol-relative", "rows": [{"id": "a", "url": "//evil.example.test/x"}], "throws": "url"},
+    {"id": "relative", "rows": [{"id": "a", "url": "sources/x/"}], "throws": "url"},
+    {"id": "whitespace-in-url", "rows": [{"id": "a", "url": "https://a.example.test/x y"}], "throws": "url"},
+    {"id": "no-url", "rows": [{"id": "a"}], "throws": "url"},
+    {"id": "duplicate-id", "rows": [{"id": "a", "url": "/x/"}, {"id": "a", "url": "/y/"}], "throws": "used twice"},
+    {"id": "shared-key", "rows": [{"id": "a", "url": "/x/", "key": "1/1"}, {"id": "b", "url": "/y/", "key": "1-1"}], "throws": "shared"},
+    {"id": "no-id", "rows": [{"url": "/x/"}], "throws": "no id"},
+    {"id": "plate-traversal", "rows": [{"id": "a", "url": "/x/", "plate": "../secret.jpg"}], "throws": "plate"},
+    {"id": "plate-absolute", "rows": [{"id": "a", "url": "/x/", "plate": "/etc/passwd"}], "throws": "plate"},
+    {"id": "not-a-table", "rows": "nope", "throws": "array"}
+  ],
+  "ok_tables": [
+    {"id": "a-blocked-row-needs-no-url", "rows": [{"id": "a", "living": true}]},
+    {"id": "the-object-form", "rows": {"records": [{"id": "a", "url": "/x/"}]}},
+    {"id": "one-record-two-equal-keys", "rows": [{"id": "a", "url": "/x/", "key": ["1/1", "1-1"]}]}
+  ]
+}

@@ -409,12 +409,272 @@ case("include may be a pattern: /* takes every narrative page but never an entry
      c == 0 and set(cn) == {"/story/", "/notes/"}, (c, cn))
 shutil.rmtree(t, ignore_errors=True)
 
+# ------------------------------------------------------------------------------------------------ the second round (18 Oct 2026)
+print("standard 2: keys folded, plates keyed from the archive's data, quotations, single words, never_complete, tables")
+
+
+def scenario(story="", cfg=None, pages=None, files=None, index=None, living=LIVING, extra=None, marker="<!--END2-->", cfg_fn=None):
+    """A fresh copy of the fixture with `story` planted at `marker`, the config changed by `cfg_fn(cfg, tmpdir)`, other pages
+    set by `pages` ({rel: html or fn(old)}) and extra files written into the temp dir by `files` ({name: json-able}).
+    Returns (the /story/ counts, exit code, output)."""
+    t, d = fresh()
+    if story:
+        s0 = page(d, "story")
+        put(d, "story", s0.replace(marker, story + marker, 1))
+    for rel, h in (pages or {}).items():
+        old = page(d, rel) if os.path.exists(os.path.join(d, rel, "index.html")) else ""
+        put(d, rel, h(old) if callable(h) else h)
+    for name, data in (files or {}).items():
+        json.dump(data, open(os.path.join(t, name), "w", encoding="utf-8"))
+    c = json.loads(json.dumps(CFG if cfg is None else cfg))
+    if cfg_fn:
+        cfg_fn(c, t)
+    cp = os.path.join(t, "standard.json")
+    json.dump(c, open(cp, "w", encoding="utf-8"))
+    kw = {}
+    if index is not None:
+        ip = os.path.join(t, "ix.json"); json.dump(index, open(ip, "w", encoding="utf-8")); kw["index"] = ip
+    if isinstance(living, dict):
+        lp = os.path.join(t, "lv.json"); json.dump(living, open(lp, "w", encoding="utf-8")); living = lp
+    code, out = gate(d, extra, config=cp, living=living, **kw)
+    shutil.rmtree(t, ignore_errors=True)
+    return counts(out).get("/story/"), code, out
+
+
+def delta(label, got, want):
+    exp = dict(BASE)
+    for k, v in want.items():
+        exp[k] += v
+    case(label, got == exp, "got %s want %s" % (got, exp))
+
+
+PLATES_PLUS = lambda old: old.replace("</main>", '<figure><img src="/plates/orchard-deed.jpg" alt="f"></figure>\n<figure><img src="/plates/deed-a.jpg" alt="g"></figure>\n<figure><img src="/plates/orchard.jpg" alt="h"></figure>\n</main>')
+
+
+def lit_cfg(c, t):
+    c["citations"]["patterns"].append({"id": "deed", "flags": "i", "regex": "\\bthe Orchard deed\\b", "key": "Orchard-Deed"})
+    c["scans"]["image_patterns"].append({"regex": "/plates/(?P<s>[a-z]+-deed)\\.", "key": "{s}"})
+
+
+# 1. keys and aliases fold the way text folds
+print("1. keys and aliases are folded; a configured key that matches nothing is counted and can fail the gate")
+got, code, out = scenario('<p>The Orchard deed <a href="/sources/x/">says so</a>.</p>', pages={"plates": PLATES_PLUS}, cfg_fn=lit_cfg)
+delta("1: a literal key written 'Orchard-Deed' meets the plate 'orchard-deed' (case and hyphen folded): L4 +1", got, {"L4": 1})
+got, code, out = scenario('<p>The Orchard deed <a href="/sources/x/">says so</a>.</p><img src="/plates/orchard-deed.jpg" alt="">',
+                          pages={"plates": PLATES_PLUS}, cfg_fn=lit_cfg)
+delta("1 control: with the plate in the same section the same passage counts 0", got, {})
+got, code, out = scenario("", cfg_fn=lambda c, t: c["scans"].update(aliases={"zzz unseen": "1900-5"}))
+case("1: an alias that matches no citation and no plate is a count-only warning, not a failure",
+     code == 0 and "warning: 1 configured scan keys matched no citing passage and no held plate" in out and "zzz" not in out, out)
+got, code, out = scenario("", cfg_fn=lambda c, t: c["scans"].update(aliases={"zzz unseen": "1900-5"}), extra=["--strict-config"])
+case("1: ... and --strict-config makes it a failure (exit 1), still without the key", code == 1 and "config: 1 configured scan keys matched" in out and "zzz" not in out, out)
+got, code, out = scenario("", cfg_fn=lambda c, t: c["scans"].update(aliases={"1902": "1902"}), extra=["--strict-config"])
+case("1 control: an alias the run did apply (a year some citation and plate carry) is not a warning; strict passes", code == 0 and "warning" not in out, out)
+got, code, out = scenario("", cfg_fn=lambda c, t: c["scans"].update(aliases={"ZZZ  Unseen": "x"}), extra=["--strict-config"])
+case("1: the alias key is folded like text (case, double space) before it is compared", code == 1, out)
+got, code, out = scenario("", cfg_fn=lambda c, t: c["citations"]["patterns"].append({"id": "ghost", "regex": "zzzzqqq", "key": "ghost-1"}), extra=["--strict-config"])
+case("1: a literal pattern key whose pattern hits nothing and whose plate is held nowhere is counted", code == 1 and "1 configured scan keys" in out, out)
+got, code, out = scenario("", extra=["--strict-config"])
+case("1 control: the clean fixture has nothing unmatched; --strict-config passes", code == 0 and "warning" not in out, out)
+t, d = fresh()
+cfgz = json.loads(json.dumps(CFG)); cfgz["scans"]["aliases"] = {"zzz": "x"}
+json.dump(cfgz, open(os.path.join(t, "cz.json"), "w"))
+c1, out1 = gate(d, ["--write-floor", "--strict-config"], config=os.path.join(t, "cz.json"))
+case("1: --write-floor refuses while --strict-config has a problem", c1 == 1 and "NOT WRITTEN" in out1 and not os.path.exists(os.path.join(t, "floor.json")), out1)
+shutil.rmtree(t, ignore_errors=True)
+
+# 2. plates whose file names carry no locator
+print("2. plates keyed from the archive's own data (aliases_file, manifest)")
+CITE_A = '<p>Act 11 of 1904 is <a href="/sources/x/">quoted here</a>.</p>'
+
+
+def aliases_cfg(c, t):
+    c["scans"]["aliases_file"] = "aliases.json"
+
+
+files_a = {"aliases.json": {"deed-a": ["1904-11"]}}
+got, code, out = scenario(CITE_A, pages={"plates": PLATES_PLUS}, files=files_a, cfg_fn=aliases_cfg)
+delta("2: a plate named 'deed-a.jpg' is keyed 1904-11 by the archive's aliases file: held but not in the passage's section, L4 +1", got, {"L4": 1})
+got, code, out = scenario(CITE_A + '<img src="/plates/deed-a.jpg" alt="">', pages={"plates": PLATES_PLUS}, files=files_a, cfg_fn=aliases_cfg)
+delta("2 control: the plate in the section counts 0", got, {})
+got, code, out = scenario(CITE_A, pages={"plates": PLATES_PLUS})
+delta("2 control: without the aliases file nothing keys that plate, so L4 stays 0", got, {})
+got, code, out = scenario(CITE_A, pages={"plates": PLATES_PLUS}, files={"aliases.json": {"deed-a.jpg": "1904 11"}}, cfg_fn=aliases_cfg)
+delta("2: the plate id may carry its extension and the keys may be a single string (any spelling that folds alike)", got, {"L4": 1})
+got, code, out = scenario(CITE_A, pages={"plates": PLATES_PLUS}, files={"aliases.json": {"deed-a": ["1904-11"], "ghost-plate": ["1990-1"]}},
+                          cfg_fn=aliases_cfg, extra=["--strict-config"])
+case("2: a plate id in the file that no image carries and no citation reaches is counted as unmatched", code == 1 and "1 configured scan keys" in out, out)
+
+
+def manifest_cfg(c, t):
+    c["scans"]["manifest"] = {"file": "plates.json", "id_field": "plate", "key_field": "cites"}
+
+
+files_m = {"plates.json": [{"plate": "deed-a.jpg", "cites": ["1904-11"], "title": "x"}, {"plate": "orchard.jpg", "cites": None}]}
+got, code, out = scenario(CITE_A, pages={"plates": PLATES_PLUS}, files=files_m, cfg_fn=manifest_cfg)
+delta("2: a plates manifest (id_field, key_field) keys the same plate; a manifest row with no key is ignored", got, {"L4": 1})
+got, code, out = scenario(CITE_A, pages={"plates": PLATES_PLUS}, files=files_m, cfg_fn=lambda c, t: c["scans"].update(manifest={"file": "plates.json", "id_field": "plate"}))
+case("2: a manifest without a key_field is refused", code == 2 and "scans.manifest" in out, out)
+got, code, out = scenario(CITE_A, files={"aliases.json": ["not", "an", "object"]}, cfg_fn=aliases_cfg)
+case("2: an aliases file that is not an object is refused", code == 2 and "aliases_file" in out, out)
+got, code, out = scenario(CITE_A, cfg_fn=lambda c, t: c["scans"].update(aliases_file="missing.json"))
+case("2: an aliases file that cannot be read is refused", code == 2 and "aliases_file" in out, out)
+
+# 3. quotations
+print("3. names.skip_quotes: names inside a quoted transcription are not the archive's claims")
+
+
+def sq(c, t, sel=None, pairs=None):
+    c["names"]["skip_quotes"] = True
+    if sel:
+        c["names"]["skip_selectors"] = sel
+    if pairs:
+        c["names"]["quote_pairs"] = pairs
+
+
+QREC = '<div class="rec"><div class="v">The witness was «Elio Quill, a carter», they say.</div></div>'
+got, code, out = scenario(QREC)
+delta("3 control: a name inside « » in a record-reading row is counted as L2 when quotations are not skipped", got, {"L2": 1})
+got, code, out = scenario(QREC, cfg_fn=sq)
+delta("3: ... and not counted with names.skip_quotes", got, {})
+got, code, out = scenario('<p>He wrote «Elio Quill and <strong>Marta Quill</strong>» here.</p>', cfg_fn=sq)
+delta("3: bold inside « » is skipped too", got, {})
+got, code, out = scenario('<p>He wrote «<em>Elio Quill</em> and <strong>Marta Quill</strong>» and Pavel went.</p>', cfg_fn=sq)
+delta("3: a quotation that runs through inline elements is skipped whole, and the text after it is read again (Pavel is L5)", got, {"L5": 1})
+got, code, out = scenario('<p>«Elio Quill» then <strong>Marta Quill</strong>.</p>', cfg_fn=sq)
+delta("3: the text outside the marks still counts (Marta Quill in bold: L2 +1)", got, {"L2": 1})
+got, code, out = scenario('<p>An «unclosed quote <strong>Elio Quill</strong></p><p>Signed by <strong>Marta Quill</strong>.</p>', cfg_fn=sq)
+delta("3: an unclosed mark does not swallow the next block", got, {"L2": 1})
+got, code, out = scenario('<blockquote>Signed by <strong>Marta Quill</strong> and Pavel.</blockquote>')
+delta("3 control: a blockquote is read like any prose", got, {"L2": 1, "L5": 1})
+got, code, out = scenario('<blockquote>Signed by <strong>Marta Quill</strong> and Pavel.</blockquote>', cfg_fn=sq)
+delta("3: <blockquote> is a quotation under skip_quotes", got, {})
+got, code, out = scenario('<p>Signed by <q><strong>Marta Quill</strong> and Pavel</q>.</p>', cfg_fn=sq)
+delta("3: so is <q>", got, {})
+got, code, out = scenario('<div class="xlat">Signed by <strong>Marta Quill</strong>.</div>', cfg_fn=lambda c, t: sq(c, t, [".xlat"]))
+delta("3: and an element the config names (names.skip_selectors, here a class)", got, {})
+got, code, out = scenario('<div class="xlat">Signed by <strong>Marta Quill</strong>.</div>', cfg_fn=sq)
+delta("3 control: the class is read when the config does not name it", got, {"L2": 1})
+got, code, out = scenario('<p>Signed by [<strong>Marta Quill</strong>] and Pavel.</p>', cfg_fn=lambda c, t: sq(c, t, pairs=[["[", "]"]]))
+delta("3: the pairs are the config's (square brackets here); the text outside is still read", got, {"L5": 1})
+got, code, out = scenario("", cfg_fn=lambda c, t: c["names"].update(skip_selectors=[".xlat"]))
+case("3: skip_selectors without skip_quotes is refused (it would do nothing)", code == 2 and "skip_quotes" in out, out)
+
+# 4. allow takes single words
+print("4. names.allow takes a bare name; a living name is still refused")
+allow1 = lambda c, t: c["names"]["allow"].append({"phrase": "Pavel", "reason": "the deed gives only this given name"})
+got, code, out = scenario("<p>Then Pavel arrived.</p>", cfg_fn=allow1)
+delta("4: an allowed bare given name is no L5; it is counted in EX instead", got, {"EX": 1})
+got, code, out = scenario("<p>Then Pavel arrived.</p><h2>Later</h2><p>Pavel again.</p>", cfg_fn=allow1)
+delta("4: ... once per section, like any exemption", got, {"EX": 2})
+got, code, out = scenario("<p>Then Pavel Korda arrived, then Pavel.</p>", cfg_fn=allow1)
+delta("4: the allowed word does not hide a full name (Pavel Korda is an unlinked index name: L1 +1)", got, {"L1": 1})
+bare_living = {"living": [{"name": "Livia Vance", "aliases": ["Vance Livia"], "url": "/people/livia-vance/"}, "Pavel"]}
+got, code, out = scenario("", cfg_fn=allow1, living=bare_living)
+case("4: an allow entry for a name the living list holds is still refused (exit 2, no name)", code == 2 and "LIVING: 1 allow entry" in out and "Pavel" not in out, out)
+got, code, out = scenario("", cfg_fn=lambda c, t: c["names"]["allow"].append({"phrase": "Pavel"}))
+case("4: a single-word entry needs its reason too", code == 2 and "reason" in out, out)
+
+# 5. a keyed pattern can be a scan key only
+print("5. citations.patterns[].scan_only: a key for L4 that is not itself a citation for L3")
+
+
+def orch(so):
+    def f(c, t):
+        c["citations"]["patterns"].append(dict({"id": "orch", "flags": "i", "regex": "\\bthe Orchard\\b", "key": "orchard"}, **({"scan_only": True} if so else {})))
+        c["scans"]["image_patterns"].append({"regex": "/plates/(?P<s>orchard)\\.", "key": "{s}"})
+    return f
+
+
+t0 = {"plates": PLATES_PLUS}
+got, code, out = scenario("<p>The Orchard stood there.</p>", cfg_fn=orch(False), pages=t0)
+delta("5 control: a keyed pattern is also a citation: no link, L3 +1 (and L4 +1, the plate is held elsewhere)", got, {"L3": 1, "L4": 1})
+got, code, out = scenario("<p>The Orchard stood there.</p>", cfg_fn=orch(True), pages=t0)
+delta("5: marked scan_only, it is a scan key and not a citation: L3 stays 0, L4 +1 (the held plate is not in its section)", got, {"L4": 1})
+got, code, out = scenario('<p>The Orchard stood there.</p><img src="/plates/orchard.jpg" alt="">', cfg_fn=orch(True), pages=t0)
+delta("5: ... with the plate in the section, 0", got, {})
+got, code, out = scenario('<p data-cite-exempt="the plate is on the plates page by design">The Orchard stood there.</p>', cfg_fn=orch(True), pages=t0)
+delta("5: an exempt passage that would have owed a scan is counted in EX", got, {"EX": 1})
+got, code, out = scenario('<p data-cite-exempt="restates the paragraph above, which carries the link">The Orchard stood there.</p>', cfg_fn=orch(True))
+delta("5: ... and one that owes nothing is not", got, {})
+got, code, out = scenario("", cfg_fn=lambda c, t: c["citations"]["patterns"].append({"id": "orch", "regex": "x", "scan_only": True}))
+case("5: scan_only without a key is refused", code == 2 and "scan_only" in out, out)
+
+# 6. never_complete
+print("6. names.never_complete: bare names that may never be written in full")
+nc = lambda c, t: (c["names"].update(given_names=["Casimir"]), c["names"].update(never_complete=[{"name": "Casimir", "reason": "a living subject whose full name is not shown"}]))
+got, code, out = scenario("<p>Then Casimir arrived.</p>", cfg_fn=lambda c, t: c["names"].update(given_names=["Casimir"]))
+delta("6 control: the bare given name would be L5", got, {"L5": 1})
+got, code, out = scenario("<p>Then Casimir arrived.</p>", cfg_fn=nc)
+delta("6: never_complete counts it in EX, not in L5", got, {"EX": 1})
+case("6: the run says how many mentions it holds, as a count, and not the name",
+     "1 bare name mention held by names.never_complete" in out and "asimir" not in out, out)
+got, code, out = scenario("<p>Then Casimir arrived.</p><h2>Later</h2><p>Casimir again.</p>", cfg_fn=nc)
+delta("6: ... once per section", got, {"EX": 2})
+got, code, out = scenario("<p>Then Casimir arrived.</p>", cfg_fn=nc, living={"living": ["Casimir", {"name": "Livia Vance", "url": "/people/livia-vance/"}]})
+delta("6: a living subject's bare name is exactly what it is for: not refused", got, {"EX": 1})
+got, code, out = scenario("", cfg_fn=lambda c, t: c["names"].update(never_complete=[{"name": "Elio Marn", "reason": "a name the index lists"}]))
+case("6: an entry that is an index name is refused (it would be linkable), without printing it", code == 2 and "never_complete" in out and "Elio" not in out, out)
+got, code, out = scenario("", cfg_fn=lambda c, t: c["names"].update(never_complete=[{"name": "Casimir", "reason": "no"}]))
+case("6: an entry needs a reason of 8 characters", code == 2 and "never_complete" in out, out)
+
+# 7. allow_prefixes and the exemptions
+print("7. allow_prefixes from the config; exemptions counted, and refused without a reason")
+FOUND = {"people": IDX["people"] + [{"name": "Zed Marn", "url": "/found/zed-marn/"}], "ambiguous": IDX["ambiguous"]}
+found_page = {"found/zed-marn": "<!doctype html><html><body><main><h1>x</h1><p>y</p></main></body></html>"}
+got, code, out = scenario("", index=FOUND, pages=found_page)
+case("7 control: an index address outside the prefixes the run knows is refused", code == 2 and "outside the public prefixes" in out, out)
+got, code, out = scenario("", index=FOUND, pages=found_page, cfg_fn=lambda c, t: c.update(allow_prefixes=["/people/", "/who/", "/found/"]))
+case("7: allow_prefixes in the config makes it a CI call of just --config", code == 0 and "ok." in out, out)
+got, code, out = scenario("", index=FOUND, pages=found_page, extra=["--allow-prefix", "/people/", "--allow-prefix", "/who/"],
+                          cfg_fn=lambda c, t: c.update(allow_prefixes=["/found/"]))
+case("7: ... and it adds to the command line's (repeatable) prefixes", code == 0, out)
+got, code, out = scenario("", cfg_fn=lambda c, t: c.update(allow_prefixes=["found"]))
+case("7: a prefix that is not root-relative is refused", code == 2 and "allow_prefixes" in out, out)
+got, code, out = scenario('<p data-name-exempt="  ">Signed by <strong>Marta Quill</strong>.</p>')
+case("7: a data-name-exempt with a blank reason fails (exit 1)", code == 1 and "with no reason" in out, out)
+got, code, out = scenario('<p data-cite-exempt="   ">Act 12 of 1898 says so.</p>')
+case("7: a data-cite-exempt with a blank reason fails (exit 1)", code == 1 and "with no reason" in out, out)
+got, code, out = scenario('<p data-cite-exempt="restates the sentence above">Act 12 of 1898 says so.</p><p data-name-exempt="the deed spells it so">Signed by <strong>Marta Quill</strong>.</p>')
+delta("7: a data-cite-exempt and a data-name-exempt with reasons are both counted in EX", got, {"EX": 2})
+
+# 8. tables
+print("8. tables: narrative | records | skip")
+TAB = "<table><tr><td>Then Pavel read act 12 of 1898.</td></tr></table>"
+tb = lambda mode, blocks=None: (lambda c, t: (c.update(tables=mode), blocks and c["citations"].update(blocks=blocks)))
+got, code, out = scenario(TAB)
+delta("8 control: with no 'tables' switch a table is data: names skipped, a cell is not a passage (as before)", got, {})
+got, code, out = scenario(TAB, cfg_fn=tb("narrative"))
+delta("8: tables: narrative reads names in the cells (L5 Pavel) and each cell is a passage (L3 act 12 of 1898)", got, {"L5": 1, "L3": 1})
+got, code, out = scenario(TAB, cfg_fn=tb("records"))
+delta("8: tables: records skips the names (they are data) and reads each cell as a passage (L3)", got, {"L3": 1})
+got, code, out = scenario(TAB, cfg_fn=tb("skip"))
+delta("8: tables: skip reads nothing in a table", got, {})
+got, code, out = scenario(TAB, cfg_fn=tb("skip", ["p", "li", "dd", "blockquote", "td"]))
+delta("8: ... even when the config's blocks name td", got, {})
+got, code, out = scenario(TAB, cfg_fn=lambda c, t: c["citations"].update(blocks=["p", "li", "dd", "blockquote", "td"]))
+delta("8 control: without the switch a td named in the blocks is a passage (L3)", got, {"L3": 1})
+got, code, out = scenario("<table><tr><td>act 12 of 1898</td><td><a href=\"/sources/x/\">link</a></td></tr></table>", cfg_fn=tb("records", ["p", "li", "dd", "blockquote", "tr"]))
+delta("8: a row named in the blocks (tr) is the passage, so a link in another cell covers it, and the cells are not counted again", got, {})
+got, code, out = scenario("", cfg_fn=tb("loose"))
+case("8: an unknown mode is refused", code == 2 and "tables" in out, out)
+got, code, out = scenario("", cfg_fn=lambda c, t: (c.update(tables="records"), c["names"].update(include_tables=True)))
+case("8: names.include_tables that contradicts the switch is refused", code == 2 and "include_tables" in out, out)
+
+# 9. a record link the archive's component marks
+print("9. a component's own mark")
+DR = '<p>Act 12 of 1898 <a href="/anything/" data-rec="act-12">cite</a>.</p>'
+got, code, out = scenario(DR)
+delta("9 control: data-rec alone is not a mark the gate knows by default (data-cite is)", got, {"L3": 1})
+got, code, out = scenario(DR, cfg_fn=lambda c, t: c["citations"]["record_links"].update(markers=["data-cite", "data-rec"]))
+delta("9: record_links.markers adds the attribute an archive's own component uses", got, {})
+
 # ------------------------------------------------------------------------------------------------ counts only
 print("counts only")
 NAMES = set()
 for r in IDX["people"] + IDX["ambiguous"]:
     NAMES.add(r["name"]); NAMES.update(r.get("aliases", []))
-NAMES |= {"Marta Quill", "Marta Dorin", "Livia Vance", "Elio Quill", "Elio Marnetti", "Casimir"}
+NAMES |= {"Marta Quill", "Marta Dorin", "Livia Vance", "Elio Quill", "Elio Marnetti", "Casimir", "Zed Marn", "Pavel"}
 SLUGS = {r["url"].strip("/").split("/")[-1] for r in IDX["people"]} | {"livia-vance", "gone-person", "nobody-here"}
 leak = [n for n in sorted(NAMES | SLUGS) if any(n.lower() in o.lower() for o in ALL_OUTPUT)]
 case("nothing the tool printed, in %d runs, holds a name, alias or address of anyone in the fixtures or a passage of text" % len(ALL_OUTPUT), not leak, leak)
@@ -426,22 +686,41 @@ MUTATIONS = [
     ("empty-reason exemption off", "bad_exempt += w.bad_exempt", "pass"),
     ("dead index address off", "if dead:", "if False:"),
     ("no-citation refusal off", 'if info_all["citing"] == 0:', "if False:"),
-    ("living allow refusal off", "if any(p in ln for p in cfg.allow):", "if False:"),
+    ("living allow refusal off", "if n_liv:", "if False:"),
     ("EX not ratcheted", "rose = [k for k in KEYS if", "rose = [k for k in RULES if"),
     ("dead plate anchor accepted", "and href[1:] in ids", ""),
     ("any host accepted", 'if any(host == h or host.endswith("." + h) for h in cfg.rl_hosts):', "if True:"),
-    ("write-floor ignores a rise", 'viol = [x for x in viol if x[0] != "new"]\n        if viol:',
-     'viol = [x for x in viol if x[0] not in ("new", "rise")]\n        if viol:'),
+    ("write-floor ignores a rise", 'viol = [x for x in viol if x[0] != "new"] + strict\n        if viol:',
+     'viol = [x for x in viol if x[0] not in ("new", "rise")] + strict\n        if viol:'),
+    ("write-floor ignores --strict-config", 'viol = [x for x in viol if x[0] != "new"] + strict\n        if viol:',
+     'viol = [x for x in viol if x[0] != "new"]\n        if viol:'),
     ("link text does not count as a full name", "self.full_seen.setdefault(sec, set()).update(loose(w) for w in ws)\n            return", "return"),
     ("allow list ignored", "if key in c.allow or f.name_exempt:", "if f.name_exempt:"),
     ("unmatched include not refused", "if unmatched:", "if False:"),
     ("section boundaries off", "if self.n_scope and tag in al.SECTION_TAGS:\n            self.section += 1", "pass"),
     ("link_only ignored", "or pid in cfg.link_only", ""),
-    ("scans held on other pages ignored", "keys.add(k)\n    if cfg.held_keys_file", "pass\n    if cfg.held_keys_file"),
-    ("exempt passage still counted", 'if b.exempt is not None:\n            counts["EX"] += 1', 'if False:\n            counts["EX"] += 1'),
+    ("scans held on other pages ignored", "keys |= image_keys(src, cfg, seen)\n    if cfg.held_keys_file", "pass\n    if cfg.held_keys_file"),
+    ("exempt passage still counted", "if b.exempt is not None:\n            if cite or", "if False:\n            if cite or"),
     ("L2 counted per mention", "self.l2.add(key)", "self.l2.add(key + str(len(self.l2)))"),
     ("entry pages in scope", "and not in_public(u)]", "]"),
     ("a new page is never held to the maximum", "if floor is not None and url in floor:", "if False:"),
+    # the second round
+    ("key not folded", "return loose(template.format(**vals))", "return template.format(**vals)"),
+    ("an alias that matches nothing is not counted", "if k not in seen.gvals:\n            n += 1", "if False:\n            n += 1"),
+    ("--strict-config ignored", 'strict = [("config", None, cfg_line)] if (a.strict_config and n_unmatched) else []', "strict = []"),
+    ("plate keys from the archive's data ignored", "if pid in cfg.plate_keys:\n                out.update", "if False:\n                out.update"),
+    ("unmatched plate id not counted", "if pid not in seen.plate_ids and not any(k in seen.ckeys for k in keys):", "if False:"),
+    ("quotations not skipped", "segs = self._unquoted(F) if self.cfg.skip_quotes else [F]", "segs = [F]"),
+    ("blockquote is not a quotation", 'tag in ("q", "blockquote")', 'tag in ("q",)'),
+    ("a quotation mark never closes", "                if self.guil:\n                    self.guil -= 1", "                pass"),
+    ("a single-word allow entry ignored", "elif f.name_exempt or w in c.allow:", "elif f.name_exempt:"),
+    ("never_complete ignored", "if w in c.never:\n                            self.ex_names += 1", "if False:\n                            self.ex_names += 1"),
+    ("an index name accepted in never_complete", "if n_idx:", "if False:"),
+    ("scan_only still a citation", "cite = [h for h in hits if not h[3]]", "cite = list(hits)"),
+    ("allow_prefixes ignored", "a.allow_prefix + cfg.allow_prefixes", "a.allow_prefix"),
+    ("tables: skip reads tables", 'if c.tables == "skip" and f.table:', "if False:"),
+    ("tables: narrative does not read cells", 'elif c.tables in ("narrative", "records") and tag in ("td", "th")', 'elif False and tag in ("td", "th")'),
+    ("record-link markers ignored", "marked = any(m in a for m in c.rl_markers)", 'marked = "data-cite" in a'),
 ]
 
 

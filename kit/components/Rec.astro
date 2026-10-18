@@ -1,0 +1,53 @@
+---
+/* A citation that can be followed: the author's own words about a record, wrapped in the link to the record, and where the archive may show the scan, a small figure of it.
+ *
+ *   <Rec records={records} id="marriage-1888-63">act 63 of 1888</Rec>
+ *   <Rec records={records} act="63/1888">act 63 of 1888</Rec>
+ *   <Rec records={records} id="marriage-1888-63" thumb>act 63 of 1888</Rec>     (between paragraphs, not inside one)
+ *
+ * The text between the tags is the citation the author already wrote, word for word; this only gives it its link, so the
+ * passage that quotes a record and the record are one click apart (the linking standard's L3), and the scan sits beside
+ * the passage that relies on it (L4). Which records exist, where each lives, which have a scan and whether the archive
+ * may show it all come from the archive's records table (kit/lib/rec.js and kit/docs/linking-standard.md describe its
+ * shape); nothing about an archive is in here.
+ *
+ * WHAT IT DRAWS
+ *   link      <a class="rec" href data-rec="<id>" data-cite data-kind title>text</a>. data-cite is the mark the gate
+ *             (checkstandard.py) reads as "a link to a record", so no host or prefix has to be listed for it.
+ *   thumb     with the prop, and only when the row has a plate and show is true: <figure class="rec-fig" id="plate-...">
+ *             holding the scan's thumbnail (linked to the full file) and a caption with the link above. A figure is a
+ *             block: put it between paragraphs. Without a plate or without permission it is the link alone.
+ *   nothing   for a record flagged living or hold in the table: no link, no figure, no text. Never.
+ *   an id or locator the table does not hold stops the build (a link that is a guess is worse than no link); soft draws
+ *             the author's text unlinked instead, for a list that is allowed to be incomplete.
+ *
+ * PROPS  records  the archive's table (array, or {records: [...]}); the archive imports it and passes it, or wraps this
+ *                 component once in its own src/components/Rec.astro with the import done
+ *        id | act exactly one: a record's id, or a locator its row lists under key
+ *        thumb    draw the figure where allowed
+ *        soft     an unknown record draws as plain text instead of stopping the build
+ *        plateBase  where plates live (default /plates/)
+ * Everything is escaped by the template; the address must be https, http or the archive's own root-relative path.
+ */
+import { u } from "../lib/url.js";
+import { index, describe, claim } from "../lib/rec.js";
+const { records, id, act, thumb = false, soft = false, plateBase = "/plates/" } = Astro.props;
+const d = describe(index(records), { id, act }, { thumb, soft, plateBase, root: u });
+const anchor = d.plate && claim(Astro.request, d.plate.anchor) ? d.plate.anchor : undefined;
+const text = Astro.slots.has("default");
+---
+{d.state === "blocked" ? null
+  : d.state === "plain" ? <slot />
+  : d.plate ? (
+    <figure class="rec-fig" id={anchor}>
+      <a class="rec-fig-img" href={d.plate.full}><img src={d.plate.src} alt={d.plate.alt} width={d.plate.w || undefined} height={d.plate.h || undefined} loading="lazy" decoding="async" /></a>
+      <figcaption><a class="rec" href={d.href} data-rec={d.id} data-cite data-kind={d.kind || undefined} title={d.label || undefined} rel={d.external ? "noopener" : undefined}>{text ? <slot /> : (d.label || d.id)}</a></figcaption>
+    </figure>
+  ) : (
+    <a class="rec" href={d.href} data-rec={d.id} data-cite data-kind={d.kind || undefined} title={d.label || undefined} rel={d.external ? "noopener" : undefined}>{text ? <slot /> : (d.label || d.id)}</a>
+  )}
+<style>
+  .rec-fig { margin: 0.75rem 0; max-width: 14rem; }
+  .rec-fig img { display: block; width: 100%; height: auto; }
+  .rec-fig figcaption { font-size: 0.85em; margin-top: 0.25rem; }
+</style>

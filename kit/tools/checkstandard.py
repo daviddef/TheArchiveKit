@@ -3,7 +3,7 @@
 
     python3 checkstandard.py --dist dist --index names-index.json --config standard.json
                              [--living living.json] [--floor .standardfloor.json] [--write-floor]
-                             [--new-page-max 3] [--allow-prefix /people/ --allow-prefix /who/] [--table]
+                             [--new-page-max 3] [--allow-prefix /people/ --allow-prefix /who/] [--table] [--strict-config]
 
 IT READS THE BUILT SITE, the archive's names index (the one autolink.py reads) and one small config the archive owns
 (standard.json: see the standard's "adopting it"). It counts, for every page the config puts in scope:
@@ -45,6 +45,15 @@ without a reason, a bad regex), an index the living list also holds, a living ph
 passage cites a record at all (the patterns found nothing, so nothing was examined). "A check that examined nothing has
 not passed."
 
+OPTIONS ADDED IN THE SECOND ROUND (every one off unless the config names it; see the standard's "standard.json" table):
+allow_prefixes, tables (narrative | records | skip), names.skip_quotes / skip_selectors / quote_pairs, names.allow with a
+single word, names.never_complete, citations.patterns[].scan_only, record_links.markers, scans.aliases_file, scans.manifest.
+
+CONFIGURATION WARNING (--strict-config makes it a failure). A scan key or alias the config names that matches no citing
+passage and no held plate is a key that reads L4 as 0 for the wrong reason (a typo, a hyphen the matcher folded and the config
+did not). Keys and aliases are folded exactly as the matcher folds text; what is left unmatched is printed as a count:
+"N configured scan keys matched no citing passage and no held plate". Archives run CI with --strict-config.
+
 Prints counts only, never a person's name or a quoted passage. EXIT CODES: 0 pass; 1 fail; 2 refused.
 """
 import os
@@ -66,10 +75,13 @@ import outdir as _outdir  # noqa: E402
 RULES = ("L1", "L2", "L3", "L4", "L5")
 KEYS = RULES + ("EX",)
 FLOOR_VERSION = 1
+TABLE_MODES = ("narrative", "records", "skip")
 
 DEFAULT_BLOCKS = ["p", "li", "dd", "blockquote"]
 AUX_BLOCKS = {"figure"}                      # may be the "next block" that carries the link; never a passage
 BOLD = {"strong", "b"}
+QUOTE_RESET = {"p", "li", "dd", "dt", "td", "th", "tr", "div", "figure", "figcaption", "section", "blockquote", "ul", "ol",
+               "table", "h1", "h2", "h3", "h4", "h5", "h6"}
 VOID = al.VOID
 DEFAULT_PARTICLES = ["de", "di", "del", "della", "dei", "degli", "da", "dal", "dalla", "la", "le", "lo", "li", "van", "von",
                      "der", "den", "ten", "ter", "du"]
@@ -153,8 +165,10 @@ def _rx(s, flags, what):
 
 
 def key_of(template, gd, aliases):
-    """The scan key a pattern's named groups give (case, accents and the config's aliases folded), or None when a group the
-    template uses was not matched."""
+    """The scan key a pattern's named groups give, or None when a group the template uses was not matched. The whole key is
+    folded the way the matcher folds text (case, accents, apostrophes gone, hyphens and punctuation runs to one space), the
+    template's own literal text included, so "{y}-{n}", "Marriage-1911" and a plate named "1888-63" all meet. The config's
+    aliases are applied to each group value first (an alias is a folded group value -> a folded replacement)."""
     vals = {}
     for k, v in gd.items():
         if v is not None:
@@ -164,9 +178,25 @@ def key_of(template, gd, aliases):
         used = [f for (_t, f, _s, _c) in string.Formatter().parse(template) if f]
         if any(u not in vals for u in used):
             return None
-        return template.format(**vals)
+        return loose(template.format(**vals))
     except (KeyError, IndexError, ValueError):
         return None
+
+
+def template_fields(template):
+    try:
+        return [f for (_t, f, _s, _c) in string.Formatter().parse(template) if f]
+    except ValueError:
+        return []
+
+
+class Seen:
+    """What the scan keys of the config met while the run read the site: the folded group values of every citation and image
+    match, the keys the citations gave, the patterns that hit, and the plate ids the images carried. Used to say, as a count,
+    how many configured keys matched nothing."""
+
+    def __init__(self):
+        self.gvals, self.ckeys, self.hit_patterns, self.plate_ids = set(), set(), set(), set()
 
 
 # ----------------------------------------------------------------------------------------------------------- the config
@@ -192,6 +222,14 @@ def load_config(path):
     c.new_page_max = raw.get("new_page_max")
     if c.new_page_max is not None and (not isinstance(c.new_page_max, int) or c.new_page_max < 0):
         raise al.Refusal("config: new_page_max must be a whole number")
+    base_dir = os.path.dirname(os.path.abspath(path))
+    ap_ = raw.get("allow_prefixes") or []
+    if not isinstance(ap_, list) or not all(isinstance(x, str) and x.startswith("/") for x in ap_):
+        raise al.Refusal("config: 'allow_prefixes' must be a list of root-relative prefixes such as \"/who/\"")
+    c.allow_prefixes = ap_
+    c.tables = raw.get("tables")
+    if c.tables is not None and c.tables not in TABLE_MODES:
+        raise al.Refusal("config: 'tables' must be one of %s" % ", ".join('"%s"' % m for m in TABLE_MODES))
     # names -------------------------------------------------------------------------------------------------------
     n = raw.get("names") or {}
     if not isinstance(n, dict):
@@ -200,6 +238,19 @@ def load_config(path):
     c.read_blocks = _sels(n.get("read_blocks") or [], "names.read_blocks")
     c.name_skip = _sels(n.get("skip") or [], "names.skip")
     c.include_tables = bool(n.get("include_tables", False))
+    if c.tables is not None:
+        if "include_tables" in n and bool(n["include_tables"]) != (c.tables == "narrative"):
+            raise al.Refusal("config: names.include_tables contradicts tables: \"%s\" (drop include_tables)" % c.tables)
+        c.include_tables = c.tables == "narrative"
+    c.skip_quotes = bool(n.get("skip_quotes", False))
+    c.skip_selectors = _sels(n.get("skip_selectors") or [], "names.skip_selectors")
+    c.quote_pairs = []
+    for pr in (n.get("quote_pairs") or [["\u00ab", "\u00bb"]]):
+        if not isinstance(pr, list) or len(pr) != 2 or not all(isinstance(x, str) and len(x) == 1 for x in pr) or pr[0] == pr[1]:
+            raise al.Refusal("config: names.quote_pairs must be a list of [open, close] single characters that differ")
+        c.quote_pairs.append((pr[0], pr[1]))
+    if (n.get("skip_selectors") or n.get("quote_pairs")) and not c.skip_quotes:
+        raise al.Refusal("config: names.skip_selectors and names.quote_pairs only apply when names.skip_quotes is true")
     c.particles = {loose(x) for x in (n.get("particles") or DEFAULT_PARTICLES)}
     c.stop = {loose(x) for x in DEFAULT_STOP} | {loose(x) for x in (n.get("stop_words") or [])}
     c.max_words = int(n.get("max_words") or 5)
@@ -219,12 +270,19 @@ def load_config(path):
         if not isinstance(a, dict) or not isinstance(a.get("phrase"), str) or not a["phrase"].strip() \
                 or not isinstance(a.get("reason"), str) or len(a["reason"].strip()) < 8:
             raise al.Refusal("config: every names.allow entry needs a phrase and a reason of at least 8 characters")
-        c.allow.append(loose(a["phrase"]))
+        c.allow.append(loose(a["phrase"]))        # one word (a bare surname or given name) or a phrase
+    c.never = {}
+    for a in (n.get("never_complete") or []):
+        if not isinstance(a, dict) or not isinstance(a.get("name"), str) or not a["name"].strip() \
+                or not isinstance(a.get("reason"), str) or len(a["reason"].strip()) < 8:
+            raise al.Refusal("config: every names.never_complete entry needs a name and a reason of at least 8 characters")
+        c.never[loose(a["name"])] = a["reason"].strip()
     # citations ---------------------------------------------------------------------------------------------------
     ci = raw.get("citations")
     if not isinstance(ci, dict) or not ci.get("patterns"):
         raise al.Refusal("config: 'citations.patterns' is empty: with no pattern for a record citation nothing is examined")
     c.blocks = _sels(ci.get("blocks") or DEFAULT_BLOCKS, "citations.blocks")
+    c.cells_are_passages = not any(sl.tag in ("td", "th", "tr") for sl in c.blocks)
     c.next_max = int(ci.get("next_block_max_chars") or 240)
     c.patterns = []
     seen_ids = set()
@@ -232,7 +290,9 @@ def load_config(path):
         if not isinstance(p, dict) or not isinstance(p.get("id"), str) or not isinstance(p.get("regex"), str) or p["id"] in seen_ids:
             raise al.Refusal("config: each citation pattern needs a unique 'id' and a 'regex'")
         seen_ids.add(p["id"])
-        c.patterns.append((p["id"], _rx(p["regex"], p.get("flags"), "citation pattern"), p.get("key")))
+        if p.get("scan_only") and not isinstance(p.get("key"), str):
+            raise al.Refusal("config: citation pattern %r is scan_only but has no 'key'" % p["id"])
+        c.patterns.append((p["id"], _rx(p["regex"], p.get("flags"), "citation pattern"), p.get("key"), bool(p.get("scan_only"))))
     rl = ci.get("record_links")
     if not isinstance(rl, dict) or not (rl.get("prefixes") or rl.get("hosts") or rl.get("fragments")):
         raise al.Refusal("config: 'citations.record_links' must name what counts as a link to a record (prefixes, hosts, fragments)")
@@ -240,12 +300,14 @@ def load_config(path):
     c.rl_hosts = [h.lower() for h in (rl.get("hosts") or [])]
     c.rl_contains = list(rl.get("url_contains") or [])
     c.rl_fragments = list(rl.get("fragments") or [])
+    c.rl_markers = [str(m).lower() for m in (rl.get("markers") or ["data-cite"])]
     # scans -------------------------------------------------------------------------------------------------------
     sc = raw.get("scans")
     c.scans = None
     c.link_only = set()
     c.aliases = {}
     c.image_patterns = []
+    c.plate_keys = {}                 # folded plate id (file stem) -> [folded scan keys]
     c.held_keys_file = None
     if not isinstance(sc, dict) or not sc:
         raise al.Refusal("config: 'scans' is missing: give image_patterns, or {\"none\": \"why this archive holds no scan to show\"}")
@@ -253,19 +315,68 @@ def load_config(path):
         if not isinstance(sc["none"], str) or len(sc["none"].strip()) < 8:
             raise al.Refusal("config: scans.none needs a reason of at least 8 characters")
     else:
-        if not sc.get("image_patterns"):
-            raise al.Refusal("config: scans.image_patterns is empty")
+        if not (sc.get("image_patterns") or sc.get("aliases_file") or sc.get("manifest")):
+            raise al.Refusal("config: scans needs image_patterns, an aliases_file or a manifest (how a plate is keyed)")
         c.scans = True
         c.aliases = {loose(k): loose(v) for k, v in (sc.get("aliases") or {}).items()}
         c.link_only = set(sc.get("link_only") or [])
-        for p in sc["image_patterns"]:
+        for p in (sc.get("image_patterns") or []):
             if not isinstance(p, dict) or not isinstance(p.get("regex"), str) or not isinstance(p.get("key"), str):
                 raise al.Refusal("config: each scans.image_patterns entry needs a 'regex' and a 'key' template")
             c.image_patterns.append((_rx(p["regex"], p.get("flags"), "image pattern"), p["key"]))
         c.held_keys_file = sc.get("held_keys_file")
-        if not any(k for (_i, _r, k) in c.patterns):
+        if sc.get("aliases_file"):
+            _read_plate_keys(c, _rel(sc["aliases_file"], base_dir), None, None, "scans.aliases_file")
+        man = sc.get("manifest")
+        if man is not None:
+            if not isinstance(man, dict) or not isinstance(man.get("file"), str) or not isinstance(man.get("id_field"), str) \
+                    or not isinstance(man.get("key_field"), str):
+                raise al.Refusal("config: scans.manifest needs a 'file', an 'id_field' and a 'key_field'")
+            _read_plate_keys(c, _rel(man["file"], base_dir), man["id_field"], man["key_field"], "scans.manifest")
+        if not any(p[2] for p in c.patterns):
             raise al.Refusal("config: scans are configured but no citation pattern has a 'key' to match them with")
     return c
+
+
+def _rel(p, base_dir):
+    return p if os.path.isabs(p) else os.path.join(base_dir, p)
+
+
+def _keys_of(v):
+    """A manifest's key field: one key, or a list of keys; anything else is no key."""
+    if isinstance(v, str):
+        v = [v]
+    return [loose(x) for x in v if isinstance(x, str) and loose(x)] if isinstance(v, list) else []
+
+
+def _read_plate_keys(c, path, id_field, key_field, what):
+    """Plates whose file names carry no locator get their scan keys from the archive's own data: either a JSON object
+    {plate id: [keys]} (scans.aliases_file) or a manifest, a JSON list of plate objects (scans.manifest: file, id_field,
+    key_field). A plate id is the file name with or without its extension. Keys are folded like every other key."""
+    try:
+        d = json.load(open(path, encoding="utf-8"))
+    except (OSError, ValueError):
+        raise al.Refusal("config: %s cannot be read as JSON" % what)
+    pairs = []
+    if id_field is None:
+        if not isinstance(d, dict):
+            raise al.Refusal("config: %s must be an object {plate id: [keys]}" % what)
+        pairs = [(k, _keys_of(v)) for k, v in d.items()]
+    else:
+        rows = d.get("plates") if isinstance(d, dict) and isinstance(d.get("plates"), list) else d
+        if isinstance(rows, dict):
+            rows = [dict(v, **{id_field: k}) if isinstance(v, dict) else {id_field: k} for k, v in rows.items()]
+        if not isinstance(rows, list):
+            raise al.Refusal("config: %s must be a JSON list of plate objects" % what)
+        for r in rows:
+            if isinstance(r, dict) and isinstance(r.get(id_field), str):
+                pairs.append((r[id_field], _keys_of(r.get(key_field))))
+    for pid, keys in pairs:
+        base = os.path.basename(pid.strip())
+        stem = loose(os.path.splitext(base)[0] if re.search(r"\.[A-Za-z0-9]{2,5}$", base) else base)
+        if stem and keys:
+            c.plate_keys.setdefault(stem, [])
+            c.plate_keys[stem] += [k for k in keys if k not in c.plate_keys[stem]]
 
 
 def url_match(url, pats):
@@ -282,7 +393,7 @@ class Block:
 
 
 class Frame:
-    __slots__ = ("tag", "attrs", "skip", "bold", "read", "heading", "a", "exempt", "name_exempt", "table", "block")
+    __slots__ = ("tag", "attrs", "skip", "bold", "read", "heading", "a", "exempt", "name_exempt", "table", "block", "quote")
 
     def __init__(self, tag, attrs, parent):
         self.tag, self.attrs = tag, attrs
@@ -295,6 +406,7 @@ class Frame:
         self.exempt = p.exempt if p else None
         self.name_exempt = p.name_exempt if p else False
         self.table = (p.table if p else False) or tag == "table"
+        self.quote = p.quote if p else False
         self.block = None
 
 
@@ -313,10 +425,12 @@ class Walker(HTMLParser):
         self.scope_seen = False
         self.bad_exempt = 0
         # names
+        self.guil = 0                         # depth inside « » (or the config's quote pairs), within one block
         self.l2 = set()                       # distinct loose phrases
         self.l5 = set()                       # (section, form)
         self.full_seen = {}                   # section -> set of loose words written in a full name
         self.ex_names = 0
+        self.ex_never = 0                     # of ex_names: bare names held by names.never_complete
         self.names_seen = 0
 
     # -- structure
@@ -344,6 +458,8 @@ class Walker(HTMLParser):
     def _pop_to(self, k):
         while len(self.stack) > k:
             f = self.stack.pop()
+            if f.tag in QUOTE_RESET:
+                self.guil = 0
             if f.block is not None:
                 self.tick += 1
                 f.block.end = self.tick
@@ -381,11 +497,17 @@ class Walker(HTMLParser):
             f.name_exempt = True
         if any(s.match(tag, a) for s in c.read_blocks):
             f.read = True
+        if c.skip_quotes and (tag in ("q", "blockquote") or any(s.match(tag, a) for s in c.skip_selectors)):
+            f.quote = True
         if "data-cite-exempt" in a:
             if not a["data-cite-exempt"].strip():
                 self.bad_exempt += 1
             f.exempt = a["data-cite-exempt"].strip() or "(none)"
         is_passage = any(s.match(tag, a) for s in c.blocks)
+        if c.tables == "skip" and f.table:
+            is_passage = False                  # a table is neither narrative nor a place the gate reads
+        elif c.tables in ("narrative", "records") and tag in ("td", "th") and not is_passage and c.cells_are_passages:
+            is_passage = True
         if is_passage or tag in AUX_BLOCKS:
             self.tick += 1
             b = Block(tag, self.section, f.exempt, self.tick, is_passage)
@@ -394,8 +516,9 @@ class Walker(HTMLParser):
                 self.open_blocks.append(b)
             f.block = b
         if tag == "a" and "href" in a:
+            marked = any(m in a for m in c.rl_markers)
             for b in self.open_blocks:
-                b.links.append((a["href"], "data-cite" in a))
+                b.links.append((a["href"], marked))
         if tag == "img":
             src = a.get("src") or a.get("data-src") or ""
             if src:
@@ -432,12 +555,37 @@ class Walker(HTMLParser):
             return
         if self.open_blocks:
             self.open_blocks[-1].text.append(data)
+        F = al.fold(data)[0]
+        # the text outside « » (names.skip_quotes): the depth is tracked even where names are not read
+        segs = self._unquoted(F) if self.cfg.skip_quotes else [F]
         if f.skip and not f.a:
             return
-        F = al.fold(data)[0]
-        if not F.strip():
-            return
-        self._names(F, f)
+        for seg in segs:
+            if seg.strip():
+                self._names(seg, f)
+
+    def _unquoted(self, F):
+        """The pieces of one text node that lie outside a quotation mark pair (« » by default), keeping the depth across
+        text nodes, so a quotation that runs through <em> or <a> is skipped whole. One piece when there is no quote."""
+        opens = {o for (o, _c) in self.cfg.quote_pairs}
+        closes = {c_ for (_o, c_) in self.cfg.quote_pairs}
+        if not (opens | closes) & set(F) and not self.guil:
+            return [F]
+        segs, buf = [], []
+        for ch in F:
+            if ch in opens:
+                if self.guil == 0 and buf:
+                    segs.append("".join(buf))
+                    buf = []
+                self.guil += 1
+            elif ch in closes:
+                if self.guil:
+                    self.guil -= 1
+            elif self.guil == 0:
+                buf.append(ch)
+        if buf:
+            segs.append("".join(buf))
+        return segs
 
     def _runs(self, F):
         """Capitalised runs of words in one text node: [(words, start_index_of_first_token, n_tokens_before_trim)]."""
@@ -488,7 +636,7 @@ class Walker(HTMLParser):
             for ws in runs:
                 self.full_seen.setdefault(sec, set()).update(loose(w) for w in ws)
             return
-        if f.heading or f.skip:
+        if f.heading or f.skip or f.quote:
             return
         in_l2 = f.bold or f.read
         for ws in runs:
@@ -500,7 +648,10 @@ class Walker(HTMLParser):
                 if w in self.vocab:
                     self.names_seen += 1
                     if w not in self.full_seen.get(sec, ()):
-                        if f.name_exempt:
+                        if w in c.never:
+                            self.ex_names += 1
+                            self.ex_never += 1
+                        elif f.name_exempt or w in c.allow:
                             self.ex_names += 1
                         else:
                             self.l5.add((sec, "bare:" + w))
@@ -516,6 +667,10 @@ class Walker(HTMLParser):
             if any(r.search(phrase) for r in c.not_names):
                 continue
             self.names_seen += 1
+            if key in c.never:
+                self.ex_names += 1
+                self.ex_never += 1
+                continue
             if key in c.allow or f.name_exempt:
                 self.ex_names += 1
                 continue
@@ -560,14 +715,37 @@ def analyse_page(html, cfg, idx_scan_inputs, known, vocab):
 def citations_of(block, cfg):
     text = squash("".join(block.text))
     hits = []
-    for (pid, rx, tmpl) in cfg.patterns:
+    for (pid, rx, tmpl, scan_only) in cfg.patterns:
         for m in rx.finditer(text):
-            hits.append((pid, tmpl, m.groupdict()))
+            hits.append((pid, tmpl, m.groupdict(), scan_only))
     return text, hits
 
 
-def page_counts(w, sc1, cfg, held, info):
+def image_keys(src, cfg, seen=None):
+    """The scan keys one image address gives: its file name matched by the config's image patterns, and its plate id (the file
+    name, with or without its extension) looked up in the archive's own aliases file or plates manifest."""
+    out = set()
+    for (rx, tmpl) in cfg.image_patterns:
+        m = rx.search(src)
+        if m:
+            if seen is not None:
+                seen.gvals.update(loose(v) for v in m.groupdict().values() if v is not None)
+            k = key_of(tmpl, m.groupdict(), cfg.aliases)
+            if k:
+                out.add(k)
+    if cfg.plate_keys:
+        base = os.path.basename(src.split("?")[0].split("#")[0])
+        for pid in (loose(os.path.splitext(base)[0]), loose(base)):
+            if pid in cfg.plate_keys:
+                out.update(cfg.plate_keys[pid])
+                if seen is not None:
+                    seen.plate_ids.add(pid)
+    return out
+
+
+def page_counts(w, sc1, cfg, held, info, seen=None):
     """L1..L5 and EX for one walked page. `held` = set of scan keys the archive holds."""
+    seen = seen if seen is not None else Seen()
     counts = {k: 0 for k in KEYS}
     counts["L1"] = len(sc1.inserts)
     counts["L2"] = len(w.l2)
@@ -577,12 +755,9 @@ def page_counts(w, sc1, cfg, held, info):
     if cfg.scans:
         for sec, srcs in w.images.items():
             for s in srcs:
-                for (rx, tmpl) in cfg.image_patterns:
-                    m = rx.search(s)
-                    if m:
-                        k = key_of(tmpl, m.groupdict(), cfg.aliases)
-                        if k:
-                            sec_keys.setdefault(sec, set()).add(k)
+                ks = image_keys(s, cfg, seen)
+                if ks:
+                    sec_keys.setdefault(sec, set()).update(ks)
     bl = [b for b in w.blocks]
     texts = {}
     for i, b in enumerate(bl):
@@ -593,12 +768,25 @@ def page_counts(w, sc1, cfg, held, info):
         texts[id(b)] = text
         if not hits:
             continue
-        info["citing"] += 1
+        for (pid, tmpl, gd, _so) in hits:
+            seen.hit_patterns.add(pid)
+            seen.gvals.update(loose(v) for v in gd.values() if v is not None)
+            if tmpl is not None:
+                kk = key_of(tmpl, gd, cfg.aliases)
+                if kk:
+                    seen.ckeys.add(kk)
+        # a pattern marked scan_only gives a scan key and is not itself a citation for L3
+        cite = [h for h in hits if not h[3]]
+        if cite:
+            info["citing"] += 1
         if b.exempt is not None:
-            counts["EX"] += 1
-            info["exempt"] += 1
+            if cite or (cfg.scans and l4_miss(b, hits, cfg, held, sec_keys)[1]):
+                counts["EX"] += 1
+                info["exempt"] += 1
             continue
         linked = any(is_record_link(h, cm, cfg, w.ids) for (h, cm) in b.links)
+        if not cite:
+            linked = True
         if not linked:
             # the next block (in order, after this one closes) in the same section, when it is a short apparatus line or a figure
             nxt = next((x for x in bl[i + 1:] if x.start > (b.end or 0)), None)
@@ -607,23 +795,31 @@ def page_counts(w, sc1, cfg, held, info):
                 nt = squash("".join(nxt.text))
                 if nxt.tag in AUX_BLOCKS or len(nt) <= cfg.next_max:
                     linked = True
-        if linked:
-            info["linked"] += 1
-        else:
-            counts["L3"] += 1
+        if cite:
+            if linked:
+                info["linked"] += 1
+            else:
+                counts["L3"] += 1
         if cfg.scans:
-            miss = False
-            for (pid, tmpl, gd) in hits:
-                if tmpl is None or pid in cfg.link_only:
-                    continue
-                k = key_of(tmpl, gd, cfg.aliases)
-                if k and k in held:
-                    info["held"] += 1
-                    if k not in sec_keys.get(b.section, ()):
-                        miss = True
+            nheld, miss = l4_miss(b, hits, cfg, held, sec_keys)
+            info["held"] += nheld
             if miss:
                 counts["L4"] += 1
     return counts
+
+
+def l4_miss(b, hits, cfg, held, sec_keys):
+    """(how many of the passage's citations key to a held scan, whether one of those scans is missing from its section)."""
+    n, miss = 0, False
+    for (pid, tmpl, gd, _so) in hits:
+        if tmpl is None or pid in cfg.link_only:
+            continue
+        k = key_of(tmpl, gd, cfg.aliases)
+        if k and k in held:
+            n += 1
+            if k not in sec_keys.get(b.section, ()):
+                miss = True
+    return n, miss
 
 
 # ----------------------------------------------------------------------------------------------------------- the build
@@ -653,7 +849,7 @@ def index_vocab(path, cfg):
     return known, vocab, urls
 
 
-def held_keys(dist, pages, cfg):
+def held_keys(dist, pages, cfg, seen=None):
     keys = set()
     if not cfg.scans:
         return keys
@@ -661,19 +857,35 @@ def held_keys(dist, pages, cfg):
         h = al.read_page(p)
         for m in IMG_RE.finditer(h):
             src = m.group(1) or m.group(2) or ""
-            for (rx, tmpl) in cfg.image_patterns:
-                mm = rx.search(src)
-                if mm:
-                    k = key_of(tmpl, mm.groupdict(), cfg.aliases)
-                    if k:
-                        keys.add(k)
+            keys |= image_keys(src, cfg, seen)
     if cfg.held_keys_file:
         try:
             for k in json.load(open(cfg.held_keys_file, encoding="utf-8")):
-                keys.add(str(k).strip().casefold())
+                keys.add(loose(str(k)))
         except (OSError, ValueError, TypeError):
             raise al.Refusal("scans.held_keys_file cannot be read as a JSON list")
     return keys
+
+
+def unmatched_keys(cfg, seen, held):
+    """How many scan keys or aliases the config names that met nothing in this run: no citing passage and no held plate.
+    An alias is met when a citation or an image gave the group value it folds. A key written out in full in a pattern (no
+    {group}) is met by its pattern hitting a passage, or by a plate held under it. A plate id in the archive's aliases file
+    or manifest is met by an image of that plate, or by a citation of one of its keys."""
+    if not cfg.scans:
+        return 0
+    n = 0
+    for k in cfg.aliases:
+        if k not in seen.gvals:
+            n += 1
+    for (pid, _rx, tmpl, _so) in cfg.patterns:
+        if tmpl is not None and not template_fields(tmpl):
+            if pid not in seen.hit_patterns and loose(tmpl) not in held:
+                n += 1
+    for pid, keys in cfg.plate_keys.items():
+        if pid not in seen.plate_ids and not any(k in seen.ckeys for k in keys):
+            n += 1
+    return n
 
 
 def load_floor(path):
@@ -712,6 +924,11 @@ def evaluate(results, floor, new_max):
     return v, s
 
 
+def _render(viol, strict, prefixes):
+    """checklinks' lines for the violations, and the config failure (which is about no page) in its own words."""
+    return cl.render([v for v in viol if v not in strict], prefixes) + ["  - config: " + v[2] for v in strict]
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description="The gate behind the linking standard (see the docstring).")
     ap.add_argument("--dist", default="dist")
@@ -724,17 +941,26 @@ def main(argv=None):
     ap.add_argument("--allow-prefix", action="append", default=[])
     ap.add_argument("--min-words", type=int, default=2)
     ap.add_argument("--table", action="store_true", help="print the counts of every page in scope")
+    ap.add_argument("--strict-config", action="store_true",
+                    help="fail (exit 1) when a configured scan key or alias matched no citing passage and no held plate")
     a = ap.parse_args(argv)
     dist = _outdir.resolve(a.dist)
     try:
         cfg = load_config(a.config)
-        a.allow_prefix = a.allow_prefix or cfg.entry_prefixes
+        # the prefixes an index entry may live under: the command line's, the config's allow_prefixes, else the entry prefixes
+        a.allow_prefix = list(dict.fromkeys(a.allow_prefix + cfg.allow_prefixes)) or cfg.entry_prefixes
         idx, prefixes = al.prepare(a)
         ln, _lu = al.load_living(a.living)
-        if any(p in ln for p in cfg.allow):
+        ln_loose = {loose(x) for x in ln}
+        n_liv = sum(1 for p in cfg.allow if p in ln or p in ln_loose)
+        if n_liv:
             raise al.Refusal("LIVING: %d allow entr%s in the config the living list also holds"
-                             % (sum(1 for p in cfg.allow if p in ln), "y is one" if sum(1 for p in cfg.allow if p in ln) == 1 else "ies are ones"))
+                             % (n_liv, "y is one" if n_liv == 1 else "ies are ones"))
         known, vocab, entry_urls = index_vocab(a.index, cfg)
+        n_idx = sum(1 for p in cfg.never if p in known)
+        if n_idx:
+            raise al.Refusal("config: %d names.never_complete entr%s an index name (it would be linkable: link it, do not exempt it)"
+                             % (n_idx, "y is" if n_idx == 1 else "ies are"))
         if not os.path.isdir(dist) or not al.html_pages(dist):
             raise al.Refusal("no built page under %s: nothing was examined" % dist)
         floor = load_floor(a.floor)
@@ -761,13 +987,15 @@ def main(argv=None):
     if not scoped:
         print("checkstandard: REFUSED. no page is in scope: nothing was examined")
         return 2
+    seen = Seen()
     try:
-        held = held_keys(dist, pages, cfg)
+        held = held_keys(dist, pages, cfg, seen)
     except al.Refusal as e:
         print("checkstandard: REFUSED. %s" % e)
         return 2
     results, info_all = {}, {"citing": 0, "linked": 0, "held": 0, "exempt": 0}
     bad_exempt = 0
+    ex_never = 0
     no_scope = 0
     links = []
     for u in sorted(scoped):
@@ -777,8 +1005,9 @@ def main(argv=None):
             no_scope += 1
             continue
         bad_exempt += w.bad_exempt
+        ex_never += w.ex_never
         info = {"citing": 0, "linked": 0, "held": 0, "exempt": 0}
-        results[u] = page_counts(w, sc1, cfg, held, info)
+        results[u] = page_counts(w, sc1, cfg, held, info, seen)
         for l in sc1.autolinks:
             links.append((u, l["href"], l["text"]))
         for k in info_all:
@@ -795,6 +1024,14 @@ def main(argv=None):
     note = _outdir.note(dist)
     if note:
         print(note)
+    # configuration: scan keys and aliases that met nothing (L4 would read 0 for the wrong reason)
+    n_unmatched = unmatched_keys(cfg, seen, held)
+    cfg_line = "%d configured scan keys matched no citing passage and no held plate" % n_unmatched
+    if n_unmatched:
+        print("checkstandard: warning: " + cfg_line)
+    if ex_never:
+        print("checkstandard: %d bare name mention%s held by names.never_complete (counted in EX; the reasons are in the config)"
+              % (ex_never, "" if ex_never == 1 else "s"))
     # structural failures
     viol = []
     built_paths = {al.norm_url(u).split("?")[0] for u in urls}
@@ -808,6 +1045,7 @@ def main(argv=None):
     viol += lv
     rv, s = evaluate(results, floor, new_max)
     viol += rv
+    strict = [("config", None, cfg_line)] if (a.strict_config and n_unmatched) else []
     tot = {k: sum(c[k] for c in results.values()) for k in KEYS}
     base = ("%d pages, %d in scope; L1 %d, L2 %d, L3 %d, L4 %d, L5 %d, EX %d; %d passages cite a record (%d linked, %d exempt), "
             "%d scan keys held; floor %s"
@@ -819,10 +1057,10 @@ def main(argv=None):
             lab = cl.label(u, prefixes) or u
             print("  %-34s %s" % (lab, "  ".join("%s %d" % (k, results[u][k]) for k in KEYS)))
     if a.write_floor:
-        viol = [x for x in viol if x[0] != "new"]
+        viol = [x for x in viol if x[0] != "new"] + strict
         if viol:
             print("checkstandard: FLOOR NOT WRITTEN, %d problem(s) first:" % len(viol))
-            print("\n".join(cl.render(viol, prefixes)))
+            print("\n".join(_render(viol, strict, prefixes)))
             print("  " + base)
             return 1
         old = floor or {}
@@ -840,9 +1078,10 @@ def main(argv=None):
         print("checkstandard: floor written to %s: %d pages (%d new, %d dropped). %s"
               % (a.floor, len(new), len([u for u in new if u not in old]), dropped, base))
         return 0
+    viol += strict
     if viol:
         print("checkstandard: FAIL (%d)" % len(viol))
-        print("\n".join(cl.render(viol, prefixes)))
+        print("\n".join(_render(viol, strict, prefixes)))
         print("  " + base)
         return 1
     extra = ""

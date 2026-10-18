@@ -15,9 +15,16 @@ This is the standard every archive's narrative pages are held to, and the gate t
 - `kit/tools/checkstandard.py`: reads the **built** site, the archive's names index and a small config the archive owns (`standard.json`),
   prints five counts per narrative page and a floor that may only go down.
 - `kit/tools/checkstandard_selftest.py` with `kit/data/standard-fixtures/`: invented pages with a planted fault for every rule and a
-  control for each; `--mutations` also breaks the tool 21 ways, one at a time, and requires the self-test to notice each.
+  control for each; `--mutations` also breaks the tool, one way at a time, and requires the self-test to notice each.
+- `kit/components/Rec.astro` with `kit/lib/rec.js`, `kit/data/rec-cases.json` and `kit/tools/rec_logic.mjs`: the record link, one tag per
+  citation, that makes L3 and L4 cheap to meet (see "The `Rec` component" below).
 
 It builds on `autolink.py` / `checklinks.py` (names that resolve; see `autolink.md`) and does not replace them: L1 *is* the checklinks count.
+
+**Second round, 18 October 2026**, after the standard was measured on eight archives: scan keys and aliases are folded and a key that
+matches nothing is counted (`--strict-config`); plates keyed from the archive's data (`scans.aliases_file`, `scans.manifest`);
+`names.skip_quotes`; `names.allow` takes single words; `names.never_complete`; `scan_only` patterns; `allow_prefixes`; `tables`;
+`record_links.markers`; and the `Rec` component. Every option is off unless the config names it: an existing config counts what it counted.
 
 ## Words used below
 
@@ -60,7 +67,7 @@ zeros. A page that stops being linked, or a name that stops resolving, is a rise
 - in running text inside `<strong>`/`<b>`, or inside any element matching `names.read_blocks` (the archive's record-reading rows),
 - a run of 2 to 5 capitalised words (a lower-case particle such as *de*, *di*, *della*, *van* may join them), with function words
   (*The*, *Neither*, ...) trimmed off both ends, containing at least one word the archive's index uses as a given name,
-- not inside a link, a heading, a table (unless `names.include_tables`), `<code>`, or a `data-no-autolink` / `data-name-exempt` element,
+- not inside a link, a heading, a table (unless `tables: "narrative"`), `<code>`, a quotation (with `names.skip_quotes`), or a `data-no-autolink` / `data-name-exempt` element,
 - and equal to **no** name or alias in the index.
 
 **L3**, per page: the number of passages that match a citation pattern, are not exempt, and have no record link in the passage, in an
@@ -90,10 +97,13 @@ its section.
 
    ```
    python3 node_modules/@daviddef/archive-kit/kit/tools/checkstandard.py --dist dist --index .autolink/names-index.json \
-       --config standard.json --living ../private/living.json --floor .standardfloor.json
+       --config standard.json --living ../private/living.json --floor .standardfloor.json --strict-config
    ```
 
    It honours `ARCHIVE_OUT` like every kit tool. `--table` prints every page's five counts; `--new-page-max N` overrides the config.
+   The entry prefixes the index may use (`/search/`, `/who/`...) belong in the config's `allow_prefixes`, so the CI call is just
+   `--config`; `--allow-prefix` (repeatable) still works and the two are added together. `--strict-config` turns the configuration
+   warning (a scan key or alias that matched nothing, below) into a failure: use it in CI.
 6. **Commit the floor.** The first time run it with `--write-floor`: every page's counts become its ceiling. After that a page may only go
    down; `--write-floor` after an improvement locks the gain in and refuses to write while anything rose.
 7. **Chip away.** Add an entry for a person (L2), link a citation (L3), move a plate into its section (L4), write a name in full (L5), run
@@ -108,16 +118,21 @@ its section.
   "include": ["/scilla/", "/crossings/"],
   "exclude": [],
   "new_page_max": 3,
+  "allow_prefixes": ["/people/", "/who/", "/search/"],
+  "tables": "records",
   "names": {
     "entry_prefixes": ["/people/", "/who/"],
     "read_blocks": [".rec"],
     "skip": ["table.register"],
+    "skip_quotes": true,
+    "skip_selectors": [".xlat"],
     "stop_words": ["Witnesses", "Act"],
     "given_names": [],
     "given_names_file": "given-names.json",
     "surname_words": [],
     "not_names": ["^(Santa|San) ", "\\b(Island|Street|Church)\\b"],
-    "allow": [{"phrase": "A Name", "reason": "a notary named once in a deed; no page is planned"}]
+    "allow": [{"phrase": "A Name", "reason": "a notary named once in a deed; no page is planned"}],
+    "never_complete": [{"name": "Given", "reason": "the subject of a page about a living person; the full name is not shown"}]
   },
   "citations": {
     "blocks": ["p", "li", "dd", "blockquote", "div.v"],
@@ -130,13 +145,16 @@ its section.
       "prefixes": ["/sources/", "/documents/", "/searched/"],
       "hosts": ["antenati.cultura.gov.it", "familysearch.org"],
       "url_contains": [],
-      "fragments": ["#plate-"]
+      "fragments": ["#plate-"],
+      "markers": ["data-cite"]
     },
     "next_block_max_chars": 240
   },
   "scans": {
     "image_patterns": [{"regex": "/plates/scilla-(?P<t>matr|nati|morti)(?P<y>\\d{4})-atto(?P<n>\\d+)", "key": "{y}-{n}"}],
     "aliases": {},
+    "aliases_file": null,
+    "manifest": {"file": "plates.json", "id_field": "id", "key_field": "key"},
     "link_only": ["manifest"],
     "held_keys_file": null
   }
@@ -151,11 +169,33 @@ its section.
 | `names.stop_words`, `particles` | Words trimmed from the ends of a name-like run; words that may sit inside one. The tool has English and Italian defaults; the archive adds its own. |
 | `names.given_names`, `given_names_file`, `surname_words` | The given-name vocabulary is the index's own given names (every word but the last of a name). Add names the index lacks (a register's), and mark a word that is a surname so it is never a bare given name. A word that ends three or more index names is taken for a surname (`auto_surname_min`). |
 | `names.not_names` | Regular expressions for phrases that are not people ("Santa Maria", "Ellis Island"). This is where a false positive is cured. |
-| `names.allow` | A phrase with a **reason of at least 8 characters**. Counted in EX. A living person's name is refused (exit 2). |
+| `names.allow` | A phrase **or a single word** (a bare surname or given name) with a **reason of at least 8 characters**. Counted in EX (once per section for a bare name). A name the living list holds is refused (exit 2), whatever its length. |
+| `names.never_complete` | Bare names (each with a reason of 8+ characters) that can never be written in full: the subject of a page about a living person, or of a one-person page whose every sentence is about them. Never counted in L2 or L5; counted in EX (once per section) and reported as one number, "N bare name mentions held by names.never_complete". An entry that is an index name is refused (exit 2): it would be linkable, so link it. A living subject's name is exactly what this is for, and it is not refused. |
+| `names.skip_quotes` | `true` stops L2 and L5 reading names inside a quoted transcription: text between `«` and `»` (any `[open, close]` pairs in `names.quote_pairs`), `<q>`, `<blockquote>`, and elements matching `names.skip_selectors` (selectors: `.xlat`, `blockquote.cite`...). The names in a transcription are the document's, not the archive's claims. An unclosed mark ends with its block. `skip_selectors` and `quote_pairs` without `skip_quotes` are refused (they would do nothing). `data-no-autolink` still does the same for one element. |
+| `tables` | (top level) How the gate treats table cells: `"narrative"` (names in cells are read, and each `td`/`th` is a passage), `"records"` (names in cells are data and skipped, each cell is a passage: a register row that cites an act must link it), `"skip"` (nothing in a table is read: no names, no passages, even if `citations.blocks` names `td`). Absent: the older behaviour (names skipped, cells passages only if `citations.blocks` names them). If `citations.blocks` names `tr`, `td` or `th` the gate does not add cells itself. `names.include_tables` is the older spelling of `"narrative"`; a contradiction is refused. A mode changes L3 and L5 a good deal (Booyzen and Lerena moved L3 by 100 to 146 on it), so it is the archive's decision, made once and written down. L1 is autolink's count and does not depend on it. |
+| `allow_prefixes` | (top level) Address prefixes an index entry may live under (`/search/`, `/who/`...), added to any `--allow-prefix` given on the command line. Without either, the entry prefixes are used. |
 | `citations.blocks` | Selectors for passages. Default `p, li, dd, blockquote`. |
-| `citations.patterns` | `id`, `regex` (named groups allowed), `flags` (`i`), and optionally `key`, a template over the named groups (`{y}-{n}`) that names the scan this citation depends on. |
-| `citations.record_links` | What counts as a link to a record: `prefixes` (root-relative), `hosts` (with subdomains) and optionally `url_contains` (e.g. `/ark:`), `fragments` (in-page `#plate-` anchors; the id must exist on the page). A link marked `data-cite` also counts. |
-| `scans` | Required. Either `image_patterns` (regex over an `<img src>` with a `key` template over its groups; `aliases` fold spellings, `link_only` lists pattern ids the archive may not show, `held_keys_file` is a JSON list of keys the archive holds and the gate expects shown) or `{"none": "reason"}` for an archive with nothing to show. |
+| `citations.patterns` | `id`, `regex` (named groups allowed), `flags` (`i`), and optionally `key`, a template over the named groups (`{y}-{n}`) that names the scan this citation depends on, and `scan_only: true`. **A pattern with a `key` is a citation for L3 as well as a scan key for L4**; give it a locator inside the regex or it flags every sentence that mentions a town and a year. `scan_only` (requires a `key`) makes it a scan key and nothing else: a passage that matches only scan-only patterns is not a citing passage, owes no link, and is asked only for its scan. |
+| `citations.record_links` | What counts as a link to a record: `prefixes` (root-relative), `hosts` (with subdomains) and optionally `url_contains` (e.g. `/ark:`), `fragments` (in-page `#plate-` anchors; the id must exist on the page), and `markers`: the attributes with which an archive's own component marks its record links (default `["data-cite"]`; the kit's `Rec` carries `data-cite`, an archive whose own component carries only `data-rec` adds it here). |
+| `scans` | Required. Either `image_patterns` (regex over an `<img src>` with a `key` template over its groups; `aliases` fold spellings, `link_only` lists pattern ids the archive may not show, `held_keys_file` is a JSON list of keys the archive holds and the gate expects shown) or `{"none": "reason"}` for an archive with nothing to show. For plates whose file names carry no locator: `aliases_file` (a JSON object `{plate id: [keys]}` the archive generates) and/or `manifest` (`{"file": ..., "id_field": ..., "key_field": ...}`: a JSON list of plate objects, each with an id and a key or list of keys). A plate id is the file name with or without its extension. Paths are relative to the config. |
+
+### Scan keys are folded, and a key that matches nothing is counted
+
+A key is a string such as `1888-63`. The gate **folds** every key the way it folds text (case and accents folded, apostrophes
+removed, every run of punctuation and spaces one space), on both sides and including the literal text of a template, an alias, a
+held-keys list, an aliases file and a manifest, so `Orchard-Deed`, `orchard deed` and a plate named `orchard-deed.jpg` meet. Before
+this, an unfolded literal key silently never matched and L4 read 0 for the wrong reason (Falco and Lerena both hit it).
+
+What cannot meet is counted. After the run the gate prints, as a count and never a key,
+
+```
+checkstandard: warning: N configured scan keys matched no citing passage and no held plate
+```
+
+for each alias no citation or image gave a value for, each literal pattern key whose pattern hit no passage and whose plate is held
+nowhere, and each plate id in the aliases file or manifest that no image carries and no citation reaches. It is a warning; with
+`--strict-config` it is a failure (exit 1, and `--write-floor` refuses). An archive that has scans configured and sees L4 at 0
+should look at this line before it believes the 0.
 
 ### Marking an exception
 
@@ -165,7 +205,9 @@ its section.
 <div data-no-autolink> ... a transcription ... </div>                                                      <!-- L1 (and L2, L5) -->
 ```
 
-An exemption with no reason is a failure, whatever the floor says. Each one raises EX, and EX may not rise.
+An exemption with no reason (an empty or blank attribute) is a failure, whatever the floor says. Each one with a reason raises EX, and
+EX may not rise. For a name that can never be completed, `names.never_complete` says so once for the whole archive instead of an
+attribute on every element.
 
 ## The second source of names (what makes L2 passable)
 
@@ -197,14 +239,62 @@ same living rule applies to both. This is the archive's work; the kit's proposal
 | Exit | Meaning |
 |---|---|
 | 0 | pass |
-| 1 | fail: a rise, a new page over the maximum, an index address that is not a built page, a stale or living `data-autolink` link, an exemption without a reason |
-| 2 | refused: no built page, no page in scope, an `include` entry that matches nothing, an unreadable, empty or invalid config, a floor that is not valid, a living conflict, and a run in which no passage matches a citation pattern (nothing was examined) |
+| 1 | fail: a rise, a new page over the maximum, an index address that is not a built page, a stale or living `data-autolink` link, an exemption without a reason, and under `--strict-config` a scan key or alias that matched nothing |
+| 2 | refused: no built page, no page in scope, an `include` entry that matches nothing, an unreadable, empty or invalid config (an unreadable aliases file or manifest, a `never_complete` entry that is an index name, `skip_selectors` without `skip_quotes`...), a floor that is not valid, a living conflict, and a run in which no passage matches a citation pattern (nothing was examined) |
 
 A check that examined nothing has not passed.
 
-## Components the standard implies (proposed, not built)
+## The `Rec` component (L3 and L4 in one tag)
 
-- A `Cite`/`Rec` element: takes a record id (and optionally a locator) and renders the record link, a short chip and, where the archive's
-  rule allows it, a scan thumbnail linking to the plate. It emits `data-cite` on its link so the gate recognises it. L3 and L4 become one
-  tag per passage instead of a link and a figure typed twice.
+`kit/components/Rec.astro` renders the record link of a citation the author has already written, from the archive's records table:
+
+```astro
+---
+import Rec from "@daviddef/archive-kit/components/Rec.astro";
+import records from "../data/records.json";
+---
+<p>The groom was of age. The act is <Rec records={records} act="63/1888">act 63 of 1888</Rec>.</p>
+<Rec records={records} id="marriage-1888-63" thumb>act 63 of 1888</Rec>     <!-- a figure: between paragraphs, not inside one -->
+```
+
+An archive that uses it often wraps it once (`src/components/Rec.astro` imports the table and passes it on).
+
+**The records table** (JSON, an array of rows or `{"records": [...]}`; the archive generates it from the data it already holds):
+
+| Field | Meaning |
+|---|---|
+| `id` | Unique. What `<Rec id="...">` names, and what the link carries in `data-rec`. |
+| `url` | Where the record is: `https://...`, `http://...`, or a root-relative address of the archive's own. Nothing else is accepted (no `javascript:`, `data:`, `//host`, relative address). Required unless the row is flagged `living` or `hold`. |
+| `label` | A short human name. The tooltip, the figure's alt text, and the link text when the author wrote none. |
+| `kind` | Optional: `act`, `ark`, `census`... Carried as `data-kind`. |
+| `key` | Optional: the locator an author may cite it by (`"63/1888"`), a string or a list. Compared folded, so `63/1888`, `63-1888` and `63 / 1888` are one key; two records may not share one. `<Rec act="...">` looks a row up by it. |
+| `plate` | Optional: the scan the archive holds, a plain file name or path under the plates base (no `..`). |
+| `show` | `true` where the archive's own rules let it show that scan. Exactly `true`; any other value means "do not show". |
+| `living`, `hold` | `true` for a record about a person who is or may be living (`living`) or one the archive withholds for any other reason (`hold`). Any value but an unmistakable "no" counts. A flagged row is **never drawn**: no link, no figure, no text, and its plate is never read. The archive's own living gate decides what to flag; `Rec` only honours the flag. |
+| `w`, `h` | Optional: the plate's pixel size, to stop the page jumping. |
+
+**What it draws.**
+
+- A link: `<a class="rec" href data-rec="<id>" data-cite data-kind title [rel="noopener"]>the author's words</a>`. With no words, the label.
+- With the `thumb` prop, and only when the row has a `plate` and `show` is `true`: `<figure class="rec-fig" id="plate-<name>">` holding the
+  scan's thumbnail (linked to the full file) and a caption that carries the link. Otherwise the link alone (link-only). The first figure
+  of a plate on a page takes the `id`, so `#plate-...` fragments resolve; a second keeps its figure and gives up the `id`.
+- Nothing, for a flagged row. An id or locator the table does not hold **stops the build**; `soft` draws the author's words unlinked.
+- Everything the author or the table supplies is escaped; addresses are checked as above. `plateBase` (default `/plates/`) says where plates live.
+
+**How the gate recognises it.** The link carries `data-cite`, the mark `checkstandard` has always counted as a record link, so no host or
+prefix has to be configured for the records it points to (an L3 satisfied by the component, not by a lucky URL). The figure's caption link
+covers the passage before it (the next block, a figure), and its image, named by the plate, is the scan L4 asks for: configure the plate
+names in `scans.image_patterns` (or key them with `scans.manifest` / `scans.aliases_file`). An archive whose own component marks links
+only with `data-rec` adds `"markers": ["data-cite", "data-rec"]` to `citations.record_links`. `Rec` is the writing half; the gate is
+unchanged by it and remains the check that every citing passage does carry one.
+
+Adopting: (1) generate the records table from the data the archive already holds; (2) wrap each citation the gate counts in L3 in a
+`<Rec>`, passage by passage, running the gate to watch the number fall; (3) add `thumb` where a plate is held and may be shown and the
+passage's section has none; (4) keep the table's `living` and `hold` flags generated from the archive's living gate, never typed by hand.
+The logic is tested without Astro in `kit/tools/rec_logic.mjs` (shared cases in `kit/data/rec-cases.json`, planted faults, and a run of
+the gate over the markup it draws).
+
+## Still proposed, not built
+
 - A names-index generator that takes persons read from records as a second source, as above.
