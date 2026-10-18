@@ -12,7 +12,7 @@
  * shape); nothing about an archive is in here.
  *
  * WHAT IT DRAWS
- *   link      <a class="rec" href data-rec="<id>" data-cite data-kind title>text</a>. data-cite is the mark the gate
+ *   link      <a class="lk-rec" href data-rec="<id>" data-cite data-kind title>text</a>. data-cite is the mark the gate
  *             (checkstandard.py) reads as "a link to a record", so no host or prefix has to be listed for it.
  *   thumb     with the prop, and only when the row has a plate and show is true: <figure class="rec-fig" id="plate-...">
  *             holding the scan's thumbnail (linked to the full file) and a caption with the link above. A figure is a
@@ -41,10 +41,10 @@ const text = Astro.slots.has("default");
   : d.plate ? (
     <figure class="rec-fig" id={anchor}>
       <a class="rec-fig-img" href={d.plate.full}><img src={d.plate.src} alt={d.plate.alt} width={d.plate.w || undefined} height={d.plate.h || undefined} loading="lazy" decoding="async" /></a>
-      <figcaption><a class="rec" href={d.href} data-rec={d.id} data-cite data-kind={d.kind || undefined} title={d.label || undefined} rel={d.external ? "noopener" : undefined}>{text ? <slot /> : (d.label || d.id)}</a></figcaption>
+      <figcaption><a class="lk-rec" href={d.href} data-rec={d.id} data-cite data-kind={d.kind || undefined} title={d.label || undefined} rel={d.external ? "noopener" : undefined}>{text ? <slot /> : (d.label || d.id)}</a></figcaption>
     </figure>
   ) : (
-    <a class="rec" href={d.href} data-rec={d.id} data-cite data-kind={d.kind || undefined} title={d.label || undefined} rel={d.external ? "noopener" : undefined}>{text ? <slot /> : (d.label || d.id)}</a>
+    <a class="lk-rec" href={d.href} data-rec={d.id} data-cite data-kind={d.kind || undefined} title={d.label || undefined} rel={d.external ? "noopener" : undefined}>{text ? <slot /> : (d.label || d.id)}</a>
   )}
 <style>
   .rec-fig { margin: 0.75rem 0; max-width: 14rem; }

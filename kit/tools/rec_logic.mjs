@@ -34,7 +34,7 @@ function failing(lib) {
   // what is drawn
   const rr = (props, opts, text) => lib.renderRec(lib.describe(lib.index(FIX.records), props, opts || {}), text);
   const html = rr({ id: "deed-14" }, {}, "act 14 of 1898");
-  if (!(html.includes('class="rec"') && html.includes('data-rec="deed-14"') && /\sdata-cite[\s>]/.test(html) && html.includes('href="https://archive.example.test/ark:/1/14"')
+  if (!(html.includes('class="lk-rec"') && html.includes('data-rec="deed-14"') && /\sdata-cite[\s>]/.test(html) && html.includes('href="https://archive.example.test/ark:/1/14"')
         && html.includes('rel="noopener"') && html.includes(">act 14 of 1898</a>"))) out.push("render:link");
   if (rr({ id: "deed-13" }, {}, "x").includes("rel=")) out.push("render:internal-link-has-no-rel");
   if (rr({ id: "alive-1" }, { thumb: true }, "the living person's act") !== "") out.push("render:blocked-is-empty");
@@ -42,7 +42,7 @@ function failing(lib) {
   const e = rr({ id: "esc-1" }, {}, "<script>alert(1)</script> & \"q\"");
   if (/<script|<b>|"Q"|\sc="/.test(e) || !e.includes("&lt;script&gt;") || !e.includes("&amp;") || !e.includes("&quot;")) out.push("render:escapes");
   const fig = rr({ id: "deed-12" }, { thumb: true }, "act 12");
-  if (!(fig.startsWith('<figure class="rec-fig" id="plate-1898-act12">') && fig.includes('<img src="/plates/1898-act12.jpg"') && fig.includes("<figcaption><a class=\"rec\"")
+  if (!(fig.startsWith('<figure class="rec-fig" id="plate-1898-act12">') && fig.includes('<img src="/plates/1898-act12.jpg"') && fig.includes("<figcaption><a class=\"lk-rec\"")
         && fig.includes('width="640"') && fig.includes('loading="lazy"'))) out.push("render:figure");
   if (rr({ id: "deed-12" }, { thumb: true }, "x") .includes("alive")) out.push("render:no-leak");
   // one figure id per page
@@ -97,7 +97,7 @@ for (const [label, from, to, must, extra] of faults) {
 
 // the component draws what the library describes: its template carries the attributes the gate and the tests rely on
 const astro = fs.readFileSync(path.join(kit, "components", "Rec.astro"), "utf8");
-for (const needle of ['class="rec"', "data-rec={d.id}", "data-cite", 'class="rec-fig"', "describe(index(records)", "d.state === \"blocked\" ? null", "claim(Astro.request"]) {
+for (const needle of ['class="lk-rec"', "data-rec={d.id}", "data-cite", 'class="rec-fig"', "describe(index(records)", "d.state === \"blocked\" ? null", "claim(Astro.request"]) {
   ok("Rec.astro carries " + needle, astro.includes(needle));
 }
 ok("Rec.astro imports nothing of an archive's", !/from\s+["'](?!\.\.\/lib\/(url|rec)\.js)/.test(astro));

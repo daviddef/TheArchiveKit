@@ -147,7 +147,7 @@ export function renderRec(d, text = "", anchor = true) {
   if (d.state === "blocked") return "";
   const t = esc(text);
   if (d.state === "plain") return t;
-  const a = `<a class="rec" href="${esc(d.href)}" data-rec="${esc(d.id)}" data-cite${d.kind ? ` data-kind="${esc(d.kind)}"` : ""}`
+  const a = `<a class="lk-rec" href="${esc(d.href)}" data-rec="${esc(d.id)}" data-cite${d.kind ? ` data-kind="${esc(d.kind)}"` : ""}`
     + `${d.label ? ` title="${esc(d.label)}"` : ""}${d.external ? ' rel="noopener"' : ""}>${t || esc(d.label || d.id)}</a>`;
   if (!d.plate) return a;
   const p = d.plate;

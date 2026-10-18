@@ -275,7 +275,7 @@ An archive that uses it often wraps it once (`src/components/Rec.astro` imports 
 
 **What it draws.**
 
-- A link: `<a class="rec" href data-rec="<id>" data-cite data-kind title [rel="noopener"]>the author's words</a>`. With no words, the label.
+- A link (the class is `lk-rec`, namespaced because archives already own a `.rec` class of their own: Falco's is a grid and Luwinski's was a bare rule): `<a class="lk-rec" href data-rec="<id>" data-cite data-kind title [rel="noopener"]>the author's words</a>`. With no words, the label.
 - With the `thumb` prop, and only when the row has a `plate` and `show` is `true`: `<figure class="rec-fig" id="plate-<name>">` holding the
   scan's thumbnail (linked to the full file) and a caption that carries the link. Otherwise the link alone (link-only). The first figure
   of a plate on a page takes the `id`, so `#plate-...` fragments resolve; a second keeps its figure and gives up the `id`.
