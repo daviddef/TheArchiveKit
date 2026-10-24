@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""The end-to-end test all seven archives share.
+"""The end-to-end test all the family archives share.
 
 Every check here exists because the thing it tests actually broke on a LIVE
 site at least once. None of them reads the source: they read site/dist, which
@@ -34,8 +34,6 @@ import outdir as _outdir  # ARCHIVE_OUT beats --dist; see kit/tools/outdir.py
 
 
 CANON = {"documented", "probable", "inferred", "family", "disputed"}
-RING = ["TheDefranceski", "TheFalco", "TheBooyzen", "TheDArcy",
-        "TheBlazevic", "TheMazza", "TheLerena"]
 ASSET = (".css", ".js", ".mjs", ".png", ".jpg", ".jpeg", ".svg", ".xml", ".ico",
          ".webp", ".json", ".pdf", ".txt", ".gif", ".avif", ".woff", ".woff2", ".mp4")
 
@@ -312,20 +310,42 @@ def main():
                 F("searchindex", "/searchindex.json", f"not valid JSON — {e}")
 
     # ---- the sibling ring --------------------------------------------------
-    # Only <a href> counts. A canonical tag, an og:url and the sitemap all name
-    # the site's own address quite properly, and counting those reported every
-    # archive as "linking to itself".
-    me = base.strip("/")
-    linked = set()
-    for src in pages.values():
-        for m in re.findall(r'<a\b[^>]*href="https://daviddef\.github\.io/(The\w+)', src):
-            linked.add(m)
-    if me in RING:
-        missing = [x for x in RING if x != me and x not in linked]
+    # The row at the foot of every page (SiblingArchives.astro) is drawn from
+    # kit/data/archives.json, so that file is the list: every archive in it except
+    # this one, then the children's site and each of its `links`. This used to look
+    # for github.io project addresses (TheFalco ...), which no archive has had since
+    # they moved to their own domains, and it only ran when the base was one of
+    # those names, so it passed on everything and read nothing. Only <a href> inside
+    # <section class="ring"> counts: a canonical tag, an og:url and the sitemap all
+    # name the site's own address quite properly. An archive that draws no ring at
+    # all (Luwinski stays outside it) has nothing to check.
+    try:
+        ringdata = json.load(open(os.path.join(os.path.dirname(os.path.dirname(
+            os.path.abspath(__file__))), "data", "archives.json"), encoding="utf-8"))
+    except (OSError, ValueError):
+        ringdata = None
+    origin = lambda u: (re.match(r"https?://[^/]+", u or "") or [""])[0].lower()
+    ring_hrefs = {}
+    for u, src in pages.items():
+        for sec in re.findall(r'<section class="ring[ "].*?</section>', src, flags=re.S):
+            ring_hrefs[u] = [origin(h) for h in re.findall(r'<a\b[^>]*\bhref="([^"]+)"', sec)]
+    if ringdata and ring_hrefs:
+        cfg = os.path.join(os.path.dirname(os.path.abspath(a.dist.rstrip("/"))), "astro.config.mjs")
+        ms = re.search(r"\bsite:\s*['\"]([^'\"]+)", open(cfg, encoding="utf-8").read()) \
+            if os.path.exists(cfg) else None
+        me = origin(ms.group(1)) if ms else ""
+        want = [origin(x["url"]) for x in ringdata["archives"] if origin(x["url"]) != me]
+        want += [origin(x["url"]) for x in [ringdata.get("children")] + list(ringdata.get("links", [])) if x]
+        have = set(ring_hrefs.get("/", []))
+        missing = [w for w in want if w not in have]
         if missing:
-            W("ring", "(site)", "never links to " + ", ".join(missing))
-        if me in linked:
-            W("ring", "(site)", f"links to itself ({me})")
+            W("ring", "/", "the ring never links to " + ", ".join(m.replace("https://", "") for m in missing))
+        if me:
+            selfs = sorted(u for u, hs in ring_hrefs.items() if me in hs)
+            if selfs:
+                W("ring", selfs[0], f"the ring links to itself ({me.replace('https://', '')}) on {len(selfs)} page(s)")
+        if "/" not in ring_hrefs:
+            W("ring", "/", "the home page draws no ring while other pages do")
 
     # ---- the confidence vocabulary ----------------------------------------
     words = collections.Counter()

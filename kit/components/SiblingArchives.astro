@@ -1,38 +1,155 @@
 ---
-/* The ring. A set of archives that were, until this existed, almost unaware of
-   each other: two of them linked to nobody at all. This renders every archive
-   except the one you are standing in, from a file that is identical in all of
-   them, so the list cannot drift apart. The count is read from the file rather
-   than written into the prose, because it was wrong within a fortnight of being
-   written there. */
+/* The ring, as one line of small cards. It used to be a heading, a paragraph and
+   a grid of large cards (name, where, a sentence and the surnames) at the foot of
+   every page, which made the foot of a page about the length of a page. It is now
+   a quiet label and a single row: one small card for every archive except the one
+   you are standing in, then, set apart at the end, the children's site, the Record
+   Atlas and the home page.
+
+   Everything comes from archives.json, which is identical in all of them, so the
+   list cannot drift apart. Nothing is counted in the prose any more (it said "one
+   of seven" for as long as there were eight); the number of cards is whatever the
+   file holds, less the archive being built.
+
+   LAYOUT. From 1100px the row is ONE line and never wraps: the cards size to their
+   names and shrink (the place, which truncates, first) if the line is tight. Below
+   1100px the same cards wrap: two lines on a tablet, three on a phone, because ten
+   links do not fit in two lines of 358px. `npm test` (kit/tools/ring_logic.mjs)
+   reads this file and fails if the nowrap at 1100px is lost.
+
+   STYLE. The stylesheet is this component's own, so an archive does not need to
+   carry rules for it. The older archives still carry the previous `.ring h2`,
+   `.ring ul`, `.ring li`, `.rn`/`.rw`/`.rl`/`.rs` rules in their styles.css; the
+   elements below use other class names, and every property those rules set on
+   `ul`/`li`/`a` is set again here, so they do nothing and can be deleted on the
+   next pass over an archive's stylesheet. Colour comes from the archive's own
+   tokens (--ink --ink-3 --rule --panel --accent --sans --serif) with fallbacks,
+   and the accent bar from --ring-l / --ring-d, light and dark, as before. No
+   images, no requests. */
 import ring from "../data/archives.json";
 import { whoami } from "../lib/ring.js";
+import { ringCards, cardLabel as label } from "../lib/ringcards.js";
 
 const here = (import.meta.env.BASE_URL || "/").replace(/\/$/, "");
 const mine = whoami(here);
-const others = ring.archives.filter(a => a !== mine);
-const WORDS = ["", "one", "two", "three", "four", "five", "six", "seven", "eight",
-  "nine", "ten", "eleven", "twelve"];
-const howMany = WORDS[ring.archives.length] || String(ring.archives.length);
+const { others, tail } = ringCards(ring, mine);
 ---
-<section class="ring" aria-label="The other family archives">
-  <h2>The other archives</h2>
-  <p>{mine ? mine.name : "This archive"} is one of {howMany}, each following a different line of the
-  same family. They use the same method and the same five words for how sure a thing is.</p>
-
-  <ul>
-    {others.map(a => (
-      <li style={`--ring-l:${a.accent};--ring-d:${a.accentDark}`}>
-        <a href={a.url}>
-          <span class="rn">{a.name}</span>
-          <span class="rw">{a.where}</span>
-          <span class="rl">{a.line}</span>
-          <span class="rs">{a.surnames.join(" · ")}</span>
-        </a>
-      </li>
-    ))}
-  </ul>
-
-  <p class="rkids">And for children: <a href={ring.children.url}>{ring.children.name}</a> —
-  {ring.children.line}</p>
+<section class="ring" aria-label="The other family archives" data-archives={others.length}>
+  <h2 class="rr-label">The other archives</h2>
+  <div class="rr-row">
+    <ul class="rr-list">
+      {others.map(a => (
+        <li class="rr-card" style={`--ring-l:${a.accent};--ring-d:${a.accentDark}`}>
+          <a href={a.url} title={`${a.name} — ${a.where}`} aria-label={`${a.name}, ${a.where}`}>
+            <span class="rr-n">{label(a)}</span>
+            <span class="rr-w" aria-hidden="true">{a.where}</span>
+          </a>
+        </li>
+      ))}
+    </ul>
+    <ul class="rr-links">
+      {tail.map(l => (
+        <li class="rr-link">
+          <a href={l.url} title={l.line ? `${l.name} — ${l.line}` : l.name}
+             aria-label={l.why ? `${l.name}, ${l.why}` : l.name}>{label(l)}</a>
+        </li>
+      ))}
+    </ul>
+  </div>
 </section>
+
+<style>
+  .ring {
+    --rr-ink: var(--ink, #1b1a17);
+    --rr-ink3: var(--ink-3, #6b675f);
+    --rr-rule: var(--rule, #ddd7cb);
+    --rr-panel: var(--panel, transparent);
+    --rr-accent: var(--accent, #7a2e1f);
+    margin-top: 40px;
+    padding-top: 14px;
+    margin-bottom: 20px;
+    border-top: 1px solid var(--rr-rule);
+  }
+  .rr-label {
+    font: 600 10.5px/1.2 var(--sans, system-ui, sans-serif);
+    letter-spacing: .09em;
+    text-transform: uppercase;
+    color: var(--rr-ink3);
+    margin: 0 0 8px;
+  }
+  .rr-row { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: flex-start; }
+  .rr-list, .rr-links {
+    list-style: none; margin: 0; padding: 0;
+    display: flex; flex-wrap: wrap; gap: 6px; align-items: stretch;
+    min-width: 0;
+  }
+  .rr-list li, .rr-links li { margin: 0; padding: 0; }
+
+  .rr-card {
+    --ring-accent: var(--ring-l);
+    min-width: 0;
+    border: 1px solid var(--rr-rule);
+    border-left: 3px solid var(--ring-accent);
+    border-radius: 4px;
+    background: var(--rr-panel);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .rr-card { --ring-accent: var(--ring-d); }
+  }
+  :root[data-theme="dark"] .rr-card { --ring-accent: var(--ring-d); }
+
+  .rr-card a, .rr-link a {
+    display: block; box-sizing: border-box; height: 100%;
+    text-decoration: none; color: var(--rr-ink);
+    border-radius: 3px;
+  }
+  .rr-card a { padding: 5px 9px 5px 8px; min-height: 30px; }
+  .rr-card a:hover, .rr-link a:hover { background: var(--panel-2, var(--rr-rule)); }
+  .rr-card a:focus-visible, .rr-link a:focus-visible {
+    outline: 2px solid var(--rr-accent); outline-offset: 2px;
+  }
+  .rr-n {
+    display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    font: 600 15px/1.25 var(--serif, Georgia, serif);
+    color: var(--rr-ink);
+  }
+  /* The place is for wide screens only; hidden below 1100px. */
+  .rr-w { display: none; }
+
+  .rr-link { border: 1px solid var(--rr-rule); border-radius: 999px; background: transparent; }
+  .rr-link a {
+    padding: 5px 12px; min-height: 30px; white-space: nowrap;
+    font: 500 13px/1.25 var(--sans, system-ui, sans-serif);
+    color: var(--rr-ink);
+    display: flex; align-items: center;
+  }
+
+  /* From 1100px: one line, never wrapped. The cards are as wide as their names,
+     share what is left equally, and shrink if the line is tight. */
+  @media (min-width: 1100px) {
+    .rr-row { flex-wrap: nowrap; gap: 0 14px; align-items: stretch; }
+    .rr-list { flex: 1 1 auto; flex-wrap: nowrap; gap: 6px; }
+    .rr-card { flex: 1 1 auto; }
+    .rr-card a { padding: 6px 9px 6px 8px; }
+    .rr-links {
+      flex: 0 0 auto; flex-wrap: nowrap; gap: 6px; align-items: center;
+      padding-left: 14px; border-left: 1px solid var(--rr-rule);
+    }
+    .rr-w {
+      display: block; width: 0; min-width: 100%;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      font: 500 10.5px/1.3 var(--sans, system-ui, sans-serif);
+      color: var(--rr-ink3); margin-top: 1px;
+    }
+  }
+
+  /* Small screens: smaller type and tighter cards, so that ten links take as few
+     lines as they can. */
+  @media (max-width: 679px) {
+    .rr-card a { padding: 4px 6px 4px 5px; min-height: 28px; }
+    .rr-n { font-size: 13.5px; }
+    .rr-link a { padding: 4px 10px; min-height: 28px; font-size: 12.5px; }
+    .rr-list, .rr-links { gap: 4px; }
+    .rr-row { gap: 6px; }
+  }
+</style>

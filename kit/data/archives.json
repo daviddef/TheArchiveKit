@@ -1,10 +1,11 @@
 {
- "note": "The seven family archives, and the children's index that fronts them. One copy of this file lives in each site so the ring can never disagree with itself. Edit it once, copy it everywhere. The `counter` field is each archive's GoatCounter site code — the subdomain, not a key. Empty means no counter is shown at all.",
+ "note": "The family archives, and the sites that sit around them: the children's index, the Record Atlas and the home page. One copy of this file lives in each site so the ring can never disagree with itself. Edit it once, copy it everywhere. `short` is the surname alone, for the small cards at the foot of every page. The `counter` field is each archive's GoatCounter site code — the subdomain, not a key. Empty means no counter is shown at all.",
  "archives": [
   {
    "key": "defranceski",
    "base": "",
    "name": "The Defranceschi Archive",
+   "short": "Defranceschi",
    "url": "https://archive.defranceski.com/",
    "accent": "#1F5C6B",
    "where": "Istria · Kvarner · Carnia",
@@ -22,6 +23,7 @@
    "key": "falco",
    "base": "",
    "name": "The Falco Archive",
+   "short": "Falco",
    "url": "https://falco.defranceski.com/",
    "accent": "#8A2B16",
    "where": "Arienzo, near Naples",
@@ -43,6 +45,7 @@
    "key": "blazevic",
    "base": "",
    "name": "The Blažević Archive",
+   "short": "Blažević",
    "url": "https://blazevic.defranceski.com/",
    "accent": "#8E2456",
    "where": "Senj and the Krmpotska mountains",
@@ -61,6 +64,7 @@
    "key": "booyzen",
    "base": "",
    "name": "The Booyzen Archive",
+   "short": "Booyzen",
    "url": "https://booyzen.defranceski.com/",
    "accent": "#3E6B4A",
    "where": "Graaff-Reinet · Cradock · Johannesburg",
@@ -81,6 +85,7 @@
    "key": "lerena",
    "base": "",
    "name": "The Lerena Archive",
+   "short": "Lerena",
    "url": "https://lerena.defranceski.com/",
    "accent": "#5B3A96",
    "where": "Rosario · the Cape · the Rand",
@@ -96,6 +101,7 @@
    "key": "darcy",
    "base": "",
    "name": "The D'Arcy Archive",
+   "short": "D'Arcy",
    "url": "https://darcy.defranceski.com/",
    "accent": "#23507D",
    "where": "England and Ireland · Parramatta · Brisbane",
@@ -116,6 +122,7 @@
    "key": "mazza",
    "base": "",
    "name": "The Mazza Archive",
+   "short": "Mazza",
    "url": "https://mazza.defranceski.com/",
    "accent": "#975A1B",
    "where": "Sicily and Calabria · Brisbane",
@@ -128,11 +135,46 @@
    ],
    "accentDark": "#E0A85F",
    "counter": "themazza"
+  },
+  {
+   "key": "luwinski",
+   "base": "",
+   "name": "The Luwinski Archive",
+   "short": "Luwinski",
+   "url": "https://luwinski.defranceski.com/",
+   "accent": "#6B6B14",
+   "where": "East Prussia · Berlin · Lourenço Marques · Johannesburg",
+   "line": "Out of East Prussia and Mozambique, into one Johannesburg marriage: a family put together from court files, ships' manifests and DNA.",
+   "surnames": [
+    "Luwinski",
+    "Leibholz",
+    "Wear",
+    "Thimm",
+    "Figueiredo",
+    "Schmul"
+   ],
+   "accentDark": "#CBC768",
+   "counter": "theluwinski"
   }
  ],
  "children": {
   "name": "Our Family",
+  "short": "Our Family",
   "url": "https://ourfamily.defranceski.com/",
   "line": "The same ten families, told for a six-year-old."
- }
+ },
+ "links": [
+  {
+   "name": "Record Atlas",
+   "url": "https://recordatlas.org/",
+   "short": "Record Atlas",
+   "line": "Every place your people came from, and who holds the paper."
+  },
+  {
+   "name": "defranceski.com",
+   "url": "https://defranceski.com/",
+   "short": "defranceski.com",
+   "line": "Family histories, record tools and apps: the home page."
+  }
+ ]
 }

@@ -44,7 +44,7 @@ what it replaced, and what it refused to flatten on the way.
 | `Search` | One search box for seven archives. | 7 — Falco, Defranceski, Booyzen, D'arcy, Blazevic, Mazza, Lerena | — |
 | `Searched` | What has been read, and what it did not turn up. | 6 — Falco, Defranceski, Booyzen, D'arcy, Blazevic, Mazza | — |
 | `Shotlist` | What somebody standing in the right place should photograph. | 3 — Defranceski, Blazevic, Lerena | — |
-| `SiblingArchives` | The ring. | 7 — Falco, Defranceski, Booyzen, D'arcy, Blazevic, Mazza, Lerena | — |
+| `SiblingArchives` | The ring, as one line of small cards. | 7 — Falco, Defranceski, Booyzen, D'arcy, Blazevic, Mazza, Lerena (it draws EIGHT archives, less the one it stands in: Luwinski is in `archives.json` but renders no ring of its own) | — |
 | `SkipLink` | Skip to the content. | 7 — Falco, Defranceski, Booyzen, D'arcy, Blazevic, Mazza, Lerena | — |
 | `SocialHead` | The head tags that decide what an archive looks like when somebody shares it. | 7 — Falco, Defranceski, Booyzen, D'arcy, Blazevic, Mazza, Lerena | — |
 | `SourceBlock` | What this page rests on — and a way to actually get there. | — | — |

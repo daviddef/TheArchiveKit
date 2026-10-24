@@ -11,13 +11,13 @@ so they cannot quietly drift apart.
 | File | Lands at | What it is |
 |---|---|---|
 | `kit/components/Evidence.astro` | `site/src/components/` | The five-word evidence ladder: documented, probable, inferred, family, disputed. Every older label each archive used is folded in as an alias, so nothing breaks. |
-| `kit/components/SiblingArchives.astro` | `site/src/components/` | The ring — every archive except the one you are standing in, worked out from `BASE_URL`. |
-| `kit/data/archives.json` | `site/src/data/` | The seven archives: name, address, accent light and dark, where, one line, surnames. The single source of truth for the ring, and for the children's site. |
+| `kit/components/SiblingArchives.astro` | `site/src/components/` | The ring, as one line of small cards — every archive except the one you are standing in (worked out from `BASE_URL`), then Our Family, the Record Atlas and defranceski.com. Carries its own CSS. |
+| `kit/data/archives.json` | `site/src/data/` | The eight archives: name, `short` (the surname alone), address, accent light and dark, where, one line, surnames; the children's site (`children`) and the other sites the ring links to (`links`). The single source of truth for the ring. |
 | `kit/tools/sitemap.py` | `tools/` | Writes `sitemap.xml` from the built HTML, skipping anything that noindexes itself — so living people's pages can never be handed to a search engine by accident. |
 
 CSS is **not** copied. Each archive's stylesheet is its own; the kit only
 checks that the blocks it needs are present (`.ev-documented`, `.ladder`,
-`.ring`, `--ev-inferred`) and says so when one is missing.
+`.ring`, `--ev-inferred`) and says so when one is missing. (The ring now carries its own CSS in the component; the older `.ring` block in an archive's styles.css does nothing and may be deleted, but `sync.py` still looks for the marker, so remove it from `CSS_MARKERS` in the same step.)
 
 ## The work list
 
