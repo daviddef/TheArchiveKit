@@ -174,7 +174,7 @@ export function treeAlt(tree, title) {
   };
   /* inside a group the words "X's children" already say they are living-or-not family, so a living node is its name only */
   const sayKid = (p) => (p.living ? (p.name === "living" ? "a living person" : p.name) : say(p));
-  const joined = (ns, f) => ns.map(f).join(ns.some((p) => !p.living) ? "; " : ", ");
+  const joined = (ns, f) => { const t = ns.map(f).join(ns.some((p) => !p.living) ? "; " : ", "); return t.endsWith(".") ? t.slice(0, -1) : t; };   // "A., M" + the sentence's stop
   const byRow = new Map(grandchildGroups(tree).map((g) => [g.index, g]));
   const rows = (tree.rows || []).map((r, i) => {
     if (r.kind === "gap") return `${r.text}.`;

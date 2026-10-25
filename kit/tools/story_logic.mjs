@@ -120,7 +120,7 @@ eq("the stem to the last child ends at Stefanie, not at the last grandchild", LS
 eq("the picture is tall enough for the last grandchild", LS.H > ste.sub[ste.sub.length - 1].y, true);
 const alt = S.treeAlt(sisters, "Us");
 eq("the description says whose children they are", [alt.includes("Cristina's children: A., M."), alt.includes("Stefanie's children: R., M.")], [true, true]);
-eq("...and has no date in it", S.hasDate(alt), false);
+eq("...and has no date in it, and no doubled stop after an initial", [S.hasDate(alt), alt.includes("..")], [false, false]);
 const mixed = { rows: [{ kind: "children", nodes: [{ id: "a", name: "Anna", years: "1820\u20131824", grade: "doc" }, { id: "b", name: "Bea", years: "1822", grade: "doc" }, { id: "c", name: "Cy", years: "1825", grade: "inf" }] },
   { kind: "grandchildren", nodes: [{ id: "x", name: "Xan", years: "1850", grade: "doc", of: "c" }] }] };
 const LM = S.layoutTree(mixed).rows[0].kids;
