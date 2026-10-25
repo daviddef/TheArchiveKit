@@ -53,6 +53,11 @@ With a note, the note replaces the default words (`origin inferred`, `origin not
 a dashed one ending in an open ring, a family-lore lane a dashed spine. A reader sees the tier without reading it.
 The old free string `conf` is drawn only when a lane has no `status`; beside a status it is ignored (and the gate warns).
 
+**A lane known only from an index** (Falco's valle Caudina, Blazevic's unopened Dalmatian lines: records harvested, never
+read) has no document to put a span on. Say it as `origin-unknown` with **no span** and the note that says so
+(`"statusNote": "index only, never opened"`), and give its nodes `"evidence": "indexed"`. It prints as the note alone,
+and claims no *Documented* year.
+
 ### A node (a dot on the lane)
 
 ```jsonc
