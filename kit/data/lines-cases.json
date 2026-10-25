@@ -1,0 +1,171 @@
+{
+ "note": "Shared by kit/tools/lines_logic.mjs (kit/lib/lines.js statusLine) and kit/tools/checklines.py (status_line): the same lane gives the same words in the drawing and in the gate. Invented lanes except where a case names the archive it was taken from.",
+ "status": [
+  {
+   "id": "documented, with a span",
+   "lane": {
+    "status": "documented",
+    "span": [
+     1628,
+     1791
+    ]
+   },
+   "text": "Documented 1628–1791"
+  },
+  {
+   "id": "documented, from a year",
+   "lane": {
+    "status": "documented",
+    "span": [
+     1584,
+     null
+    ]
+   },
+   "text": "Documented from 1584"
+  },
+  {
+   "id": "documented, no span, no note",
+   "lane": {
+    "status": "documented"
+   },
+   "text": "Documented"
+  },
+  {
+   "id": "documented, one year",
+   "lane": {
+    "status": "documented",
+    "span": [
+     1743,
+     1743
+    ]
+   },
+   "text": "Documented 1743"
+  },
+  {
+   "id": "documented, with a note",
+   "lane": {
+    "status": "documented",
+    "span": [
+     1694,
+     1826
+    ],
+    "statusNote": "not this family"
+   },
+   "text": "Documented 1694–1826 · not this family"
+  },
+  {
+   "id": "inferred, the note names the origin (Svetvinčenat)",
+   "lane": {
+    "status": "inferred",
+    "span": [
+     1628,
+     1791
+    ],
+    "statusNote": "origin inferred Carnian"
+   },
+   "text": "Documented 1628–1791 · origin inferred Carnian"
+  },
+  {
+   "id": "inferred, no note says so itself",
+   "lane": {
+    "status": "inferred",
+    "span": [
+     1755,
+     1902
+    ]
+   },
+   "text": "Documented 1755–1902 · origin inferred"
+  },
+  {
+   "id": "inferred, no span: the word Documented is not claimed",
+   "lane": {
+    "status": "inferred",
+    "statusNote": "Kastav is the candidate"
+   },
+   "text": "Kastav is the candidate"
+  },
+  {
+   "id": "origin unknown (Ližnjan)",
+   "lane": {
+    "status": "origin-unknown",
+    "span": [
+     1628,
+     null
+    ],
+    "statusNote": "at Ližnjan from 1815 · origin still not found"
+   },
+   "text": "Documented from 1628 · at Ližnjan from 1815 · origin still not found"
+  },
+  {
+   "id": "origin unknown, no note",
+   "lane": {
+    "status": "origin-unknown",
+    "span": [
+     1823,
+     null
+    ]
+   },
+   "text": "Documented from 1823 · origin not found"
+  },
+  {
+   "id": "origin unknown, no span, no note",
+   "lane": {
+    "status": "origin-unknown"
+   },
+   "text": "origin not found"
+  },
+  {
+   "id": "family lore",
+   "lane": {
+    "status": "family-lore"
+   },
+   "text": "Family lore · not documented"
+  },
+  {
+   "id": "family lore with its own words",
+   "lane": {
+    "status": "family-lore",
+    "statusNote": "told at a reunion"
+   },
+   "text": "Family lore · told at a reunion"
+  },
+  {
+   "id": "markup in a note is stripped",
+   "lane": {
+    "status": "documented",
+    "span": [
+     1700,
+     1800
+    ],
+    "statusNote": "**the** line this archive «descends» from"
+   },
+   "text": "Documented 1700–1800 · the line this archive descends from"
+  },
+  {
+   "id": "no status: the old conf string, untouched",
+   "lane": {
+    "conf": "DOCUMENTED · NOT CONNECTED"
+   },
+   "text": "DOCUMENTED · NOT CONNECTED"
+  },
+  {
+   "id": "an unknown status falls back to conf",
+   "lane": {
+    "status": "mostly",
+    "conf": "old words"
+   },
+   "text": "old words"
+  },
+  {
+   "id": "a span given as strings",
+   "lane": {
+    "status": "documented",
+    "span": [
+     "1628",
+     "1791"
+    ]
+   },
+   "text": "Documented 1628–1791"
+  }
+ ]
+}
