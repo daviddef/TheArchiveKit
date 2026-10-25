@@ -42,6 +42,26 @@
    where each went, gets the drawing. What it must not do is invent a lane to
    fill the picture: an empty band is a true statement, a guessed one is not.
 
+   WHAT A LANE AND A PEN CARRY (2nd round, 25 October 2026; every field is optional and data written for the older
+   component draws as it did). Defranceschi's page was the best of the eight archives' because it said, for every lane,
+   how far its evidence reaches and, for every pen, what was in it and why; the other archives drew the same figure
+   and said neither. The full contract is kit/docs/lines.md and the words are made in kit/lib/lines.js.
+
+     lane   status      documented | inferred | origin-unknown | family-lore, drawn as a small mark and a line of
+                        small capitals under the lane title («Documented 1628–1791 · origin inferred Carnian»);
+                        `conf`, the old free string, is drawn only when a lane has no status
+            statusNote  the words after the tier;  span  [first, last] documented year;  members  people slugs
+     node   { place, year, why, person, evidence } or the old [place, year, why]. `person` makes the dot link to the
+            person, not to the top of a page; `evidence` (read | indexed | scanned | tree | inferred | disputed |
+            none) draws a node that is not read from a document hollow and dashed, like a soft ending
+     pens   [{ id, kind, head, note, items, members, count }]  kind is not-yet-placed or different-stock. A pen's
+            heading carries a count derived from the data («8 households · 31 people»), its `note` is printed
+            under it, and its members are listed, each linked to a person page, beneath the drawing. The old
+            `unplaced` / `loose` still work and become two pens; `unplacedNote` is new.
+     props  personBase (default /people/), names ({slug: name}) for the member lists
+
+   Nothing here decides a status or a count for an archive: tools/checklines.py holds the data to its own claims.
+
    A BRIDGE IS THE HONEST THIRD STATE BETWEEN THOSE TWO. Asked for by the
    Defranceschi session, which had a real one to draw: Kobler's letter puts a
    Giovanni Battista De Franceschi in Fiume from the County of Pazin «intorno
@@ -63,6 +83,8 @@ import { u } from "../lib/url.js";
    asterisk asterisk 1931 is the year he DIED…" with its brackets and hrefs
    intact. plain() is in the next file along and exists for exactly this. */
 import { plain } from "../lib/md.js";
+import { statusLine, TIER_WORD, node as normNode, evidenceOf, personPath, slugName, member as normMember,
+         pensOf, penCount, wrap, clip, lanePeople, ledger, KIND_WORD } from "../lib/lines.js";
 
 /* THE CAPTION IS THE ARCHIVE'S, NOT THE KIT'S.
    This component was promoted out of Defranceschi and its caption came with
@@ -79,32 +101,41 @@ import { plain } from "../lib/md.js";
    archive that renames its lanes has no way to correct it, and nobody sees an
    accessible name in a page diff. It is a prop now, defaulting to the string
    that was hardcoded so no adopting archive changes. */
-const { rivers, caption, title } = Astro.props;
+const { rivers, caption, title, personBase = "/people/", names = {} } = Astro.props;
 const LANES = rivers?.lanes ?? [];
 /* TWO FIGURES ON ONE PAGE MUST NOT SHARE AN ID. riversttl and riverread were fixed strings, so a page with two drawings
    pointed both SVGs at the first title and let the first figure's panel answer the second's clicks (found by Luwinski's
    18 Oct 2026 corrections). The id is derived from the lanes, so it is distinct per drawing and the same on every build. */
 const uid = (() => { let h = 0; for (const c of LANES.map((l) => l.key + "|" + l.label).join("~")) h = (h * 31 + c.charCodeAt(0)) >>> 0; return h.toString(36); })();
-const UNPLACED = rivers?.unplaced ?? [];
-const LOOSE = rivers?.loose ?? [];
 const BRIDGES = rivers?.bridges ?? [];
 
 const W = 1040;
 const BH = 140, BGAP = 152;
-/* HOW FAR DOWN THE UNPLACED BLOCK PUSHES WHATEVER FOLLOWS IT: the 22px gap
-   above its rule, its two headings and the loose row (124 between them), and
-   26 more for every row of households past the first. */
-const HAS_U = UNPLACED.length > 0, HAS_L = LOOSE.length > 0;
-const UROWS = Math.max(1, Math.ceil(UNPLACED.length / 3));
-/* The pens are drawn only when they hold something. With both present these come to exactly the numbers they always
-   were (second heading at +80, its row at +100, the block 124 tall, each extra row of households 26 more). */
-const U_H = HAS_U ? 60 + (UROWS - 1) * 26 : 0;        // from the first heading to the second heading
-const L_HEAD = 20 + U_H;                                // the second heading, below the rule
-const END = HAS_L ? L_HEAD + 44 : HAS_U ? 40 + (UROWS - 1) * 26 + 24 : 0;
-const BLOCK = HAS_U || HAS_L ? 22 + END : 0;
-const HEAD_U = rivers?.unplacedHead ?? "Real households of the name — not yet placed on any of these lines";
-const HEAD_L = rivers?.looseHead ?? "Attached to no line here — a different stock of a very common name";
-const LOOSE_NOTE = rivers?.looseNote ?? "";
+/* THE PENS, LAID OUT BELOW THE RULE. They are drawn only when they hold something (an empty heading is a claim the
+   archive has looked and found nothing). Each pen is a heading (20 below its top), its households in rows of three
+   (the first row 40 below the top, 26 between rows), then its note, wrapped, 15 a line. The next pen starts 20 below
+   the last thing in this one, and the block ends 24 below the last thing of all. With the two old lists and no notes
+   these come to exactly the numbers they always were: second heading at +80, its row at +100, the block 124 tall,
+   each extra row of households 26 more. */
+const PENS = pensOf(rivers);
+const HAS_PENS = PENS.length > 0;
+const COLX = (i) => 110 + (i % 3) * 310;
+const NOTE_CHARS = 150, NOTE_LH = 15;
+let cursor = 0;
+const PL = PENS.map((p) => {
+  const t = cursor;
+  const rows = Math.ceil(p.items.length / 3);
+  const itemsY0 = t + 40;
+  let last = p.items.length ? itemsY0 + (rows - 1) * 26 : t + 20;
+  const noteLines = p.note ? wrap(p.note, NOTE_CHARS) : [];
+  const noteY0 = last + (p.items.length ? 26 : 22);
+  if (noteLines.length) last = noteY0 + (noteLines.length - 1) * NOTE_LH;
+  cursor = last + 20;
+  return { ...p, t, rows, itemsY0, noteLines, noteY0, last };
+});
+const END = HAS_PENS ? PL[PL.length - 1].last + 24 : 0;
+const BLOCK = HAS_PENS ? 22 + END : 0;
+const LED = ledger(rivers);
 
 /* WHERE THE BLOCK SITS IN THE STACK, AND WHY IT IS NO LONGER ALWAYS LAST.
    It began at the foot, because "everything not yet placed" belongs after
@@ -117,7 +148,7 @@ const LOOSE_NOTE = rivers?.looseNote ?? "";
    nothing, or naming a lane that is not drawn, leaves it at the foot exactly
    where it was, so no archive that does not ask for this sees any change. */
 let CUT = LANES.length;
-if (rivers?.unplacedAfter && (HAS_U || HAS_L)) {
+if (rivers?.unplacedAfter && HAS_PENS) {
   const ci = LANES.findIndex((l) => l.key === rivers.unplacedAfter);
   if (ci > -1) CUT = ci + 1;
 }
@@ -139,9 +170,11 @@ const X0 = 150, X1 = 700, XE = 902;
 const anchor = (key) => {
   const li = LANES.findIndex((l) => l.key === key);
   if (li > -1) return { x: X0, y: BANDS[li].sp, lane: true };
-  const ui = UNPLACED.findIndex((l) => l[0] === key);
-  if (ui > -1) return { x: 110 + (ui % 3) * 310,
-                        y: LOOSE_Y + 40 + Math.floor(ui / 3) * 26, lane: false };
+  for (const p of PL) {
+    if (p.kind !== "not-yet-placed") continue;
+    const ui = p.items.findIndex((l) => l.name === key);
+    if (ui > -1) return { x: COLX(ui), y: LOOSE_Y + p.itemsY0 + Math.floor(ui / 3) * 26, lane: false };
+  }
   return null;
 };
 /* A bridge naming something that is not on the drawing is dropped rather than
@@ -193,63 +226,125 @@ const labelY = (y) => {
 const BR = BRIDGES.map((b) => ({ ...b, a: anchor(b.from), b: anchor(b.to) }))
                   .filter((x) => x.a && x.b);
 const BR_LOST = BRIDGES.length - BR.length;
+
+/* ------------------------------------------------------------------ words and links, made once */
+const peopleWord = (n) => `${n} ${n === 1 ? "person" : "people"}`;
+const pHref = (person) => u(personPath(person, personBase));
+const nameOf = (m) => m.name || names[m.person] || slugName(m.person);
+const TIER_N = LED.tiers;
+const DESC = [
+  `${LED.lanes} ${LED.lanes === 1 ? "line" : "lines"}`
+    + (LED.lanes - LED.unstated > 0
+        ? " (" + ["documented", "inferred", "origin-unknown", "family-lore"].filter((k) => TIER_N[k]).map((k) => `${TIER_N[k]} ${TIER_WORD[k]}`).join(", ") + ")"
+        : ""),
+  ...PL.map((p) => `${penCount(p)} ${KIND_WORD[p.kind]}`),
+  BR.length ? `${BR.length} candidate ${BR.length === 1 ? "join" : "joins"}, on evidence short of a document` : "",
+].filter(Boolean).join("; ") + ".";
+/* every lane, ready to draw: its words, its people and its nodes in the one shape */
+const LV = LANES.map((lane) => {
+  const st = statusLine(lane);
+  const ppl = lanePeople(lane);
+  const nodes = (lane.nodes ?? []).map((n) => { const o = normNode(n); return { ...o, ev: evidenceOf(o.evidence) }; });
+  const ends = (lane.ends ?? []).map((n) => { const o = normNode(n, "end"); return { ...o, ev: evidenceOf(o.evidence) }; });
+  return { lane, st, ppl, nodes, ends, members: (lane.members ?? []).map(normMember) };
+});
+const WITH_MEMBERS = PL.filter((p) => p.members.length > 0);
+const LANE_MEMBERS = LV.filter((v) => v.members.length > 0);
 ---
-<figure class="rivers">
-  <svg viewBox={`0 0 1040 ${VH}`} role="img" aria-labelledby={`rt-${uid}`}>
+<figure class="rivers" data-lanes={LED.lanes} data-households={LED.households} data-other-stock={LED.otherStock}>
+  <a class="rivers-skip" href={`#rr-end-${uid}`}>Skip the drawing</a>
+  <svg viewBox={`0 0 1040 ${VH}`} role="group" aria-labelledby={`rt-${uid}`} aria-describedby={`rd-${uid}`}>
     <title id={`rt-${uid}`}>{title ?? `The lines of this name: ${LANES.length} ${LANES.length === 1 ? "lane" : "lanes"}, and the road each of them took`}</title>
-    {LANES.map((lane, li) => {
+    <desc id={`rd-${uid}`}>{DESC}</desc>
+    {LV.map(({ lane, st, ppl, nodes, ends }, li) => {
       const b = BANDS[li];
-      const n = lane.nodes.length;
+      const n = nodes.length;
       const step = n > 2 ? (X1 - X0) / (n - 1) : (X1 - X0) / 2;
       const lineEnd = X0 + step * (n - 1);
-      const ends = lane.ends;
       const spread = Math.min(b.h / 2 - 18, 16 + ends.length * 13);
+      const spineEnd = Math.max(lineEnd, X1);
+      const lore = st.tier === "family-lore";
       return (
-        <g>
+        <g role="group" data-lane-key={lane.key} data-status={st.tier ?? ""}
+           aria-label={`${lane.label}. ${st.text}. ${n} ${n === 1 ? "place" : "places"}, ${ends.length} ${ends.length === 1 ? "destination" : "destinations"}${ppl.length ? ", " + peopleWord(ppl.length) : ""}.`}>
           <rect x="0" y={b.y0} width={W} height={b.h} rx="10"
                 fill={lane.colour} opacity={lane.parallel ? 0.04 : 0.055}
                 stroke={lane.parallel ? lane.colour : "none"}
                 stroke-dasharray={lane.parallel ? "5 5" : ""} stroke-opacity="0.4" />
           <text x="12" y={b.y0 + 21} class="lane-label" fill={lane.colour}>{lane.label}</text>
-          <text x="12" y={b.y0 + 37} class="lane-conf">{lane.conf}</text>
+          {st.tier && (
+            <g class="tier" aria-hidden="true">
+              {st.tier === "documented" && <circle cx="17" cy={b.y0 + 33.5} r="4.2" fill={lane.colour} />}
+              {st.tier === "inferred" && <>
+                <circle cx="17" cy={b.y0 + 33.5} r="4.2" fill="none" stroke={lane.colour} stroke-width="1.4" />
+                <path d={`M 17 ${b.y0 + 29.3} A 4.2 4.2 0 0 1 17 ${b.y0 + 37.7} Z`} fill={lane.colour} />
+              </>}
+              {st.tier === "origin-unknown" && <circle cx="17" cy={b.y0 + 33.5} r="4.2" fill="none" stroke={lane.colour} stroke-width="1.4" />}
+              {st.tier === "family-lore" && <circle cx="17" cy={b.y0 + 33.5} r="4.2" fill="none" stroke={lane.colour} stroke-width="1.4" stroke-dasharray="1.6 1.8" />}
+            </g>
+          )}
+          <text x={st.tier ? 28 : 12} y={b.y0 + 37} class="lane-conf" data-status-line>{st.text}</text>
+          {ppl.length > 0 && <text x="12" y={b.y0 + b.h - 26} class="lane-people">{peopleWord(ppl.length)} on this line</text>}
           <a href={u(lane.href)} class="lane-link"><text x="12" y={b.y0 + b.h - 9} class="lane-read" fill={lane.colour}>{lane.read}</text></a>
 
-          <line x1={X0} y1={b.sp} x2={Math.max(lineEnd, X1)} y2={b.sp} stroke={lane.colour}
+          <line x1={X0} y1={b.sp} x2={spineEnd} y2={b.sp} stroke={lane.colour}
                 stroke-width="5" stroke-linecap="round" opacity="0.34"
-                stroke-dasharray={lane.parallel ? "12 7" : ""} />
+                stroke-dasharray={lane.parallel || lore ? "12 7" : ""} />
+          {st.tier === "inferred" && (
+            <line class="lead-in" x1={X0 - 64} y1={b.sp} x2={X0 - 12} y2={b.sp} stroke={lane.colour}
+                  stroke-width="3" stroke-linecap="round" opacity="0.4" stroke-dasharray="1 7" />
+          )}
+          {st.tier === "origin-unknown" && (
+            <g class="lead-in">
+              <line x1={X0 - 56} y1={b.sp} x2={X0 - 12} y2={b.sp} stroke={lane.colour}
+                    stroke-width="3" stroke-linecap="round" opacity="0.4" stroke-dasharray="6 6" />
+              <circle cx={X0 - 60} cy={b.sp} r="3.2" fill="none" stroke={lane.colour} stroke-width="1.4" opacity="0.5" />
+            </g>
+          )}
 
-          {ends.map(([e, ehref, ewhy], ei) => {
+          {ends.map((nd, ei) => {
             const y = ends.length === 1 ? b.sp
               : b.sp - spread + (ei * (spread * 2) / (ends.length - 1));
-            const soft = e.endsWith("?");
+            const soft = nd.place.endsWith("?") || (nd.ev && nd.ev.soft);
+            const e = nd.place.replace("?", "");
+            const href = nd.person ? pHref(nd.person) : u(nd.href || lane.href);
             return (
               <g class="node end" tabindex="0" role="button"
-                 data-place={e.replace("?","")} data-year={soft ? "unverified" : ""}
-                 data-why={ewhy} data-lane={lane.label}
-                 data-href={u(ehref)} data-read={`Read the ${e.replace("?","")} story`}>
-                <title>{e.replace("?","")} — {plain(ewhy)}</title>
-                <path d={`M ${Math.max(lineEnd, X1)} ${b.sp} C ${X1 + 90} ${b.sp}, ${XE - 90} ${y}, ${XE} ${y}`}
+                 aria-label={`${e}${nd.place.endsWith("?") ? ", not verified" : ""}${nd.ev ? ", " + nd.ev.label : ""}. ${nd.person ? "Opens the person's page." : "Opens the page that tells it."}`}
+                 data-place={e} data-year={soft ? "unverified" : ""}
+                 data-why={plain(nd.why)} data-lane={lane.label} data-ev={nd.ev ? nd.ev.label : ""}
+                 data-href={href} data-read={nd.person ? "Open the person's page" : `Read the ${e} story`}>
+                <title>{e} — {plain(nd.why)}{nd.ev ? ` [${nd.ev.label}]` : ""}</title>
+                <path d={`M ${spineEnd} ${b.sp} C ${X1 + 90} ${b.sp}, ${XE - 90} ${y}, ${XE} ${y}`}
                       fill="none" stroke={lane.colour} stroke-width="1.6" opacity="0.5"
                       stroke-dasharray={soft ? "3 4" : ""} />
                 <circle cx={XE} cy={y} r="6.5" fill="transparent" />
                 <circle cx={XE} cy={y} r="3.4" fill={lane.colour}
                         fill-opacity={soft ? 0.35 : 1} />
-                <text x={XE + 9} y={y + 4} class={soft ? "endlab soft" : "endlab"}>{e.replace("?","")}</text>
+                <text x={XE + 9} y={y + 4} class={soft ? "endlab soft" : "endlab"}>{e}</text>
+                <circle class="ring" cx={XE} cy={y} r="11" />
               </g>
             );
           })}
 
-          {lane.nodes.map(([place, year, why], i) => {
+          {nodes.map((nd, i) => {
             const x = X0 + i * step;
+            const soft = !!(nd.ev && nd.ev.soft);
+            const href = nd.person ? pHref(nd.person) : u(lane.href);
+            const yTxt = nd.year;
             return (
-              <g class="node" tabindex="0" role="button"
-                 data-place={place} data-year={year} data-why={why} data-lane={lane.label}
-                 data-href={u(lane.href)} data-read={lane.read.replace(" →","")}>
-                <title>{place}{year !== "—" ? ` · ${year}` : ""} — {plain(why)}</title>
-                <circle cx={x} cy={b.sp} r="8.5" fill="var(--panel)" stroke={lane.colour} stroke-width="2.6" />
-                <circle cx={x} cy={b.sp} r="3" fill={lane.colour} />
-                <text x={x} y={b.sp - 19} class="place">{place}</text>
-                <text x={x} y={b.sp + 27} class="year" fill={lane.colour}>{year}</text>
+              <g class={soft ? "node soft" : "node"} tabindex="0" role="button"
+                 aria-label={`${nd.place}${nd.year && nd.year !== "—" ? ", " + nd.year : ""}${nd.ev ? ", " + nd.ev.label : ""}. ${nd.person ? "Opens the person's page." : "Opens the page that tells this line."}`}
+                 data-place={nd.place} data-year={nd.year} data-why={plain(nd.why)} data-lane={lane.label}
+                 data-ev={nd.ev ? nd.ev.label : ""} data-person={nd.person ?? ""}
+                 data-href={href} data-read={nd.person ? "Open the person's page" : (lane.read ?? "").replace(" →","")}>
+                <title>{nd.place}{nd.year && nd.year !== "—" ? ` · ${nd.year}` : ""} — {plain(nd.why)}{nd.ev ? ` [${nd.ev.label}]` : ""}</title>
+                <circle cx={x} cy={b.sp} r="8.5" fill="var(--panel)" stroke={lane.colour} stroke-width="2.6"
+                        stroke-dasharray={soft ? "3.4 2.6" : ""} />
+                <circle cx={x} cy={b.sp} r="3" fill={lane.colour} fill-opacity={soft ? 0.3 : 1} />
+                <text x={x} y={b.sp - 19} class="place">{nd.place}</text>
+                <text x={x} y={b.sp + 27} class="year" fill={lane.colour}>{yTxt}</text>
+                <circle class="ring" cx={x} cy={b.sp} r="14" />
               </g>
             );
           })}
@@ -266,82 +361,113 @@ const BR_LOST = BRIDGES.length - BR.length;
       const dash = br.conf === "lore" ? "2 6" : "3 5";
       return (
         <g class="bridge node" tabindex="0" role="button"
+           aria-label={`A candidate join, on evidence short of a document${br.label ? ": " + plain(br.label) : ""}`}
            data-place={br.label || "A candidate join"}
            data-year={br.conf === "lore" ? "testimony" : "inferred"}
-           data-why={br.label || null} data-lane="A candidate join, not a document"
+           data-why={br.label ? plain(br.label) : null} data-lane="A candidate join, not a document"
            data-href={br.href ? u(br.href) : ""} data-read="Where this join is argued">
-          <title>{br.label ? br.label + " — " : ""}a candidate join, on evidence short of a document</title>
+          <title>{br.label ? plain(br.label) + " — " : ""}a candidate join, on evidence short of a document</title>
           <path d={`M ${a.x} ${a.y} C ${a.x - bow} ${a.y}, ${z.x - bow} ${z.y}, ${z.x} ${z.y}`}
                 fill="none" stroke="var(--ink-2)" stroke-width="1.2"
                 stroke-dasharray={dash} opacity={br.conf === "lore" ? 0.34 : 0.48} />
           <circle cx={a.x} cy={a.y} r="2.6" fill="var(--ink-2)" opacity="0.5" />
           <circle cx={z.x} cy={z.y} r="2.6" fill="var(--ink-2)" opacity="0.5" />
           {br.label && (
-            <text x={Math.max(8, mx + 8)} y={labelY(my) + 3} class="bridge-label">{br.label}</text>
+            <text x={Math.max(8, mx + 8)} y={labelY(my) + 3} class="bridge-label">{plain(br.label)}</text>
           )}
         </g>
       );
     })}
-    {(HAS_U || HAS_L) && (
+    {HAS_PENS && (
     <g>
       <line x1="12" y1={LOOSE_Y} x2={W - 12} y2={LOOSE_Y} stroke="var(--rule-strong)" stroke-width="1" stroke-dasharray="2 4" />
-      {HAS_U && <text x="12" y={LOOSE_Y + 20} class="loose-head">{HEAD_U}</text>}
-      {UNPLACED.map((l, i) => (
-        <g class="node" tabindex="0" role="button"
-           data-place={l[0]} data-year="unplaced" data-why={l[2]}
-           data-lane="Not yet placed on a line" data-href={u(l[1])} data-read={`Where ${l[0]} is written up`}>
-          <title>{l[0]} — {plain(l[2])}</title>
-          <circle cx={110 + (i % 3) * 310} cy={LOOSE_Y + 40 + Math.floor(i / 3) * 26} r="7" fill="transparent" />
-          <circle cx={110 + (i % 3) * 310} cy={LOOSE_Y + 40 + Math.floor(i / 3) * 26} r="4.5" fill="none" stroke="var(--ink-2)" stroke-width="1.8" />
-          <text x={122 + (i % 3) * 310} y={LOOSE_Y + 44 + Math.floor(i / 3) * 26} class="loose">{l[0]}</text>
+      {PL.map((p) => {
+        const other = p.kind === "different-stock";
+        return (
+        <g class="pen" data-kind={p.kind} data-count={p.items.length} role="group" aria-label={`${plain(p.head)}. ${penCount(p)}.`}>
+          <text x="12" y={LOOSE_Y + p.t + 20} class="loose-head">{plain(p.head)}<tspan class="pen-count" dx="10">· {penCount(p)}</tspan></text>
+          {p.items.map((it, i) => {
+            const cx = COLX(i), cy = LOOSE_Y + p.itemsY0 + Math.floor(i / 3) * 26;
+            const href = it.person && !it.href ? pHref(it.person) : u(it.href);
+            return (
+            <g class="node" tabindex="0" role="button"
+               aria-label={`${it.name}, ${KIND_WORD[p.kind]}. Opens where it is written up.`}
+               data-place={it.name} data-year={other ? "—" : "unplaced"} data-why={plain(it.why)}
+               data-lane={other ? "Attached to no line here" : "Not yet placed on a line"} data-href={href}
+               data-read={`Where ${it.name} is written up`}>
+              <title>{it.name} — {plain(it.why)}</title>
+              <circle cx={cx} cy={cy} r="7" fill="transparent" />
+              <circle cx={cx} cy={cy} r="4.5" fill="none" stroke={other ? "var(--ink-3)" : "var(--ink-2)"}
+                      stroke-width={other ? 1.6 : 1.8} stroke-dasharray={other ? "2 2" : ""} />
+              <text x={cx + 12} y={cy + 4} class="loose">{clip(it.name, 38)}</text>
+              <circle class="ring" cx={cx} cy={cy} r="12" />
+            </g>
+            );
+          })}
+          {p.noteLines.length > 0 && (
+            <text x="12" y={LOOSE_Y + p.noteY0} class="loose-note" data-pen-note={p.id}>
+              {p.noteLines.map((ln, k) => <tspan x="12" dy={k ? NOTE_LH : 0}>{ln}</tspan>)}
+            </text>
+          )}
         </g>
-      ))}
-
-      {HAS_L && <text x="12" y={LOOSE_Y + L_HEAD} class="loose-head">{HEAD_L}</text>}
-      {LOOSE.map((l, i) => (
-        <g class="node" tabindex="0" role="button"
-           data-place={l[0]} data-year="—" data-why={l[2]}
-           data-lane="Attached to no line here" data-href={u(l[1])} data-read={`Where ${l[0]} is written up`}>
-          <title>{l[0]} — {plain(l[2])}</title>
-          <circle cx={150 + i * 200} cy={LOOSE_Y + L_HEAD + 20} r="7" fill="transparent" />
-          <circle cx={150 + i * 200} cy={LOOSE_Y + L_HEAD + 20} r="4.5" fill="none" stroke="var(--ink-3)" stroke-width="1.6" stroke-dasharray="2 2" />
-          <text x={162 + i * 200} y={LOOSE_Y + L_HEAD + 24} class="loose">{l[0]}</text>
-        </g>
-      ))}
-      {HAS_L && LOOSE_NOTE && <text x={760} y={LOOSE_Y + L_HEAD + 24} class="loose-note">{LOOSE_NOTE}</text>}
+        );
+      })}
     </g>
     )}
   </svg>
   {/* THE PHONE READS A LIST, NOT A SHRUNK DRAWING. At 390px the drawing was 660px wide in a sideways scroll with labels near
-      7px. Under 700px the drawing is hidden and this list, the same lanes in the same order with the same links, is shown. */}
+      7px. Under 700px the drawing is hidden and this list, the same lanes in the same order with the same links, is shown.
+      It says what the drawing says: the status of every lane, the people counted on it, the count in every pen and the
+      note under it. */}
   <div class="rivers-list">
-    {LANES.map((lane) => (
-      <section class="rl-lane" style={`--lc:${lane.colour}`}>
+    {LV.map(({ lane, st, ppl, nodes, ends }) => (
+      <section class="rl-lane" style={`--lc:${lane.colour}`} data-status={st.tier ?? ""}>
         <h3>{lane.label}</h3>
-        <p class="rl-conf">{lane.conf}</p>
-        <ol class="rl-nodes">{lane.nodes.map(([place, year]) => (
-          <li><b>{place}</b>{year && year !== "—" ? <span> · {year}</span> : null}</li>
+        <p class="rl-conf">{st.tier && <span class="rl-tier" aria-hidden="true" data-tier={st.tier}></span>}{st.text}</p>
+        {ppl.length > 0 && <p class="rl-people">{peopleWord(ppl.length)} on this line</p>}
+        <ol class="rl-nodes">{nodes.map((nd) => (
+          <li>{nd.person ? <a href={pHref(nd.person)}><b>{nd.place}</b></a> : <b>{nd.place}</b>}{nd.year && nd.year !== "—" ? <span> · {nd.year}</span> : null}{nd.ev && nd.ev.soft ? <i class="rl-ev"> ({nd.ev.label})</i> : null}</li>
         ))}</ol>
-        {lane.ends.length > 0 && <p class="rl-ends"><span>Went on to</span> {lane.ends.map(([e]) => e.replace("?", "")).join(" · ")}</p>}
+        {ends.length > 0 && <p class="rl-ends"><span>Went on to</span> {ends.map((e) => e.place.replace("?", "")).join(" · ")}</p>}
         <a class="rl-read" href={u(lane.href)}>{lane.read}</a>
       </section>
     ))}
     {BR.length > 0 && <section class="rl-pen"><h3>Candidate joins, not documents</h3>
-      <ul>{BR.map((br) => <li>{br.label || "A candidate join"}{br.href ? <> · <a href={u(br.href)}>where it is argued</a></> : null}</li>)}</ul></section>}
-    {HAS_U && <section class="rl-pen"><h3>{HEAD_U}</h3>
-      <ul>{UNPLACED.map((l) => <li><a href={u(l[1])}>{l[0]}</a></li>)}</ul></section>}
-    {HAS_L && <section class="rl-pen"><h3>{HEAD_L}</h3>
-      <ul>{LOOSE.map((l) => <li><a href={u(l[1])}>{l[0]}</a></li>)}</ul>{LOOSE_NOTE && <p class="rl-note">{LOOSE_NOTE}</p>}</section>}
+      <ul>{BR.map((br) => <li>{br.label ? plain(br.label) : "A candidate join"}{br.href ? <> · <a href={u(br.href)}>where it is argued</a></> : null}</li>)}</ul></section>}
+    {PL.map((p) => (
+      <section class="rl-pen" data-kind={p.kind} aria-labelledby={`pn-${uid}-${p.id}`}>
+        <h3 id={`pn-${uid}-${p.id}`}>{plain(p.head)} <span class="rl-count">· {penCount(p)}</span></h3>
+        {p.items.length > 0 && <ul>{p.items.map((l) => <li><a href={l.person && !l.href ? pHref(l.person) : u(l.href)}>{l.name}</a></li>)}</ul>}
+        {p.note && <p class="rl-note">{plain(p.note)}</p>}
+      </section>
+    ))}
   </div>
   <div class="riverread" id={`rr-${uid}`} aria-live="polite">
     <b>Click or tab any dot</b> — the stops tell you what the document behind them says, and the destinations on the right tell their own story and link to it. Click a second time to go there.
   </div>
   {caption && <figcaption set:html={caption} />}
+  {(WITH_MEMBERS.length > 0 || LANE_MEMBERS.length > 0) && (
+    <div class="rivers-members" data-members>
+      {LANE_MEMBERS.map(({ lane, members }) => (
+        <details class="rm" data-lane-key={lane.key}>
+          <summary>{lane.label} — {peopleWord(members.length)} on this line</summary>
+          <ul>{members.map((m) => <li><a href={pHref(m.person)}>{nameOf(m)}</a>{m.reason ? <span class="rm-why"> — {plain(m.reason)}</span> : null}</li>)}</ul>
+        </details>
+      ))}
+      {WITH_MEMBERS.map((p) => (
+        <details class="rm" data-pen={p.id}>
+          <summary>{plain(p.head)} — {peopleWord(p.members.length)}</summary>
+          <ul>{p.members.map((m) => <li><a href={pHref(m.person)}>{nameOf(m)}</a>{m.reason ? <span class="rm-why"> — {plain(m.reason)}</span> : null}</li>)}</ul>
+        </details>
+      ))}
+    </div>
+  )}
   {BR_LOST > 0 && (
     <p class="rivers-note">{BR_LOST === 1
       ? "One candidate join names a lane or household that is not on this drawing, and is not drawn."
       : BR_LOST + " candidate joins name a lane or household that is not on this drawing, and are not drawn."}</p>
   )}
+  <span class="rivers-end" id={`rr-end-${uid}`} tabindex="-1"></span>
 </figure>
 
 <script is:inline>
@@ -356,9 +482,12 @@ const BR_LOST = BRIDGES.length - BR.length;
       var place = g.getAttribute("data-place"), year = g.getAttribute("data-year"),
           why = g.getAttribute("data-why"), lane = g.getAttribute("data-lane");
       var href = g.getAttribute("data-href"), read = g.getAttribute("data-read");
+      var ev = g.getAttribute("data-ev");
       host.innerHTML = '<span class="rr-lane"></span><b class="rr-place"></b>'
         + '<span class="rr-year"></span><span class="rr-why"></span>'
+        + (ev ? '<span class="rr-ev"></span>' : '')
         + (href ? '<a class="rr-go" href="' + href + '"></a>' : '');
+      if (ev) host.querySelector(".rr-ev").textContent = "Rests on: " + ev;
       host.querySelector(".rr-lane").textContent = lane;
       host.querySelector(".rr-place").textContent = place;
       host.querySelector(".rr-year").textContent = year && year !== "\u2014" ? year : "";
@@ -375,8 +504,14 @@ const BR_LOST = BRIDGES.length - BR.length;
       });
       g.addEventListener("mouseenter", function () { show(g); });
       g.addEventListener("focus", function () { show(g); });
+      /* Focus has already shown the dot (above), so Enter or Space is the second step: go there. A keyboard reader
+         used to be able to show a dot and never follow it. */
       g.addEventListener("keydown", function (e) {
-        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); show(g); }
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          var href = g.getAttribute("data-href");
+          if (g.classList.contains("sel") && href) window.location.href = href; else show(g);
+        }
       });
     });
   })();
@@ -400,12 +535,25 @@ const BR_LOST = BRIDGES.length - BR.length;
   .loose-head{font-family:var(--mono);font-size:10px;letter-spacing:.14em;
     text-transform:uppercase;fill:var(--ink-3)}
   .loose{font-family:var(--sans);font-size:12.5px;fill:var(--ink-2)}
-  .loose-note{font-family:var(--sans);font-size:11.5px;font-style:italic;fill:var(--ink-3)}
+  .loose-note{font-family:var(--sans);font-size:12px;font-style:italic;fill:var(--ink-3)}
+  .pen-count{fill:var(--ink-2);font-weight:600}
+  .lane-people{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;fill:var(--ink-3)}
+  .rivers .node.soft .place{font-style:italic}
   .rivers .node{cursor:help}
   .rivers .node:hover circle:first-of-type,
   .rivers .node:focus circle:first-of-type{r:11}
   .rivers .node:focus{outline:none}
   .rivers .node:focus .place{fill:var(--accent)}
+  /* a real, visible focus ring for the keyboard (the radius change above is not enough on its own) */
+  .rivers .node .ring{fill:none;stroke:var(--accent);stroke-width:2;opacity:0;pointer-events:none}
+  .rivers .node:focus-visible .ring{opacity:1}
+  .rivers .node:focus-visible .loose,.rivers .node:focus-visible .endlab{fill:var(--ink);text-decoration:underline}
+  .rivers .lane-link:focus-visible .lane-read{text-decoration:underline;outline:2px solid var(--accent);outline-offset:2px}
+  .rivers-skip{position:absolute;left:-9999px;top:auto;font:600 13px var(--sans);padding:6px 10px;background:var(--panel);
+    color:var(--accent);border:1px solid var(--accent);border-radius:6px;z-index:5}
+  .rivers-skip:focus{left:0;top:-34px}
+  .rivers{position:relative}
+  .rivers-end{display:block;height:0;outline:none}
   .rivers .node.sel circle:first-of-type{r:11;stroke-width:3.4}
   .riverread{margin-top:18px;padding:14px 18px;border-left:3px solid var(--accent);
     background:var(--panel-2);border-radius:0 10px 10px 0;font-family:var(--sans);
@@ -415,6 +563,8 @@ const BR_LOST = BRIDGES.length - BR.length;
   .riverread .rr-place{color:var(--ink);font-size:16px}
   .riverread .rr-year{font-family:var(--mono);font-size:12px;color:var(--accent);margin-left:9px}
   .riverread .rr-why{display:block;margin-top:5px}
+  .riverread .rr-ev{display:block;margin-top:6px;font-family:var(--mono);font-size:11px;letter-spacing:.08em;
+    text-transform:uppercase;color:var(--ink-3)}
   .riverread .rr-go{display:inline-block;margin-top:8px;font-weight:600;
     font-size:13px;color:var(--accent);text-decoration:none}
   .riverread .rr-go:hover{text-decoration:underline}
@@ -439,6 +589,25 @@ const BR_LOST = BRIDGES.length - BR.length;
   .rl-ends{margin:0 0 6px;font:13px/1.5 var(--sans);color:var(--ink-2)}
   .rl-ends span{font:11px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)}
   .rl-read{font:600 13px var(--sans);color:var(--accent);text-decoration:none}
+  .rl-people{margin:0 0 6px;font:11px/1.3 var(--mono);letter-spacing:.06em;color:var(--ink-3)}
+  .rl-tier{display:inline-block;width:9px;height:9px;border-radius:50%;border:1.5px solid var(--lc,var(--accent));
+    margin-right:7px;vertical-align:-1px;box-sizing:border-box}
+  .rl-tier[data-tier="documented"]{background:var(--lc,var(--accent))}
+  .rl-tier[data-tier="inferred"]{background:linear-gradient(90deg,transparent 50%,var(--lc,var(--accent)) 50%)}
+  .rl-tier[data-tier="family-lore"]{border-style:dotted}
+  .rl-ev{font:italic 12px var(--sans);color:var(--ink-3)}
+  .rl-count{font:600 11px var(--mono);letter-spacing:.06em;color:var(--ink-3);text-transform:uppercase}
+  .rl-nodes a{color:inherit;text-decoration:underline;text-decoration-color:var(--rule-strong,var(--rule));text-underline-offset:3px}
+  /* the people in a pen, and on a lane: listed, each a link, under the drawing at every width */
+  .rivers-members{margin-top:16px;display:grid;gap:8px}
+  .rivers-members .rm{border:1px solid var(--rule);border-radius:8px;background:var(--panel)}
+  .rivers-members summary{cursor:pointer;padding:9px 14px;font:600 13px/1.4 var(--sans);color:var(--ink-2)}
+  .rivers-members summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+  .rivers-members ul{margin:0;padding:2px 14px 12px 32px;font:14px/1.6 var(--sans);color:var(--ink-2);
+    columns:2 260px;column-gap:28px}
+  .rivers-members li{break-inside:avoid}
+  .rivers-members a{color:var(--accent)}
+  .rm-why{color:var(--ink-3);font-size:12.5px}
   .rl-pen{margin:0 0 18px;padding-top:12px;border-top:1px dotted var(--rule-strong,var(--rule))}
   .rl-pen ul{margin:6px 0 0;padding-left:18px;font:14px/1.6 var(--sans);color:var(--ink-2)}
   .rl-note{margin:6px 0 0;font:italic 12.5px var(--sans);color:var(--ink-3)}

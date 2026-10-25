@@ -13,7 +13,7 @@ what it replaced, and what it refused to flatten on the way.
 | `AncChart` | The ancestor chart, drawn. | 7 — Falco, Defranceski, Booyzen, D'arcy, Blazevic, Mazza, Lerena | — |
 | `Atlas` | The Atlas — every place an archive can put a person in. | 8 — Falco, Defranceski, Booyzen, D'arcy, Blazevic, Mazza, Lerena, Luwinski | — |
 | `Bloodline` | Everyone one person is related to, drawn — parents and children, brothers and sisters, and through them aunts, uncles, cousins and their children, as far as the archive's own records reach. | 8 — Falco, Defranceski, Booyzen, D'arcy, Blazevic, Mazza, Lerena, Luwinski | — |
-| `BranchRivers` | Several families of one surname, drawn as rivers. | 1 — Defranceski | — |
+| `BranchRivers` | Several families of one surname, drawn as rivers: each lane with a stated status (documented, origin inferred, origin unknown, family lore), people-linked nodes, and counted, noted holding pens (contract and gate: [lines.md](lines.md)). | 4 — Defranceski, Blazevic, Luwinski, Falco (through its `Strands` wrapper) | — |
 | `Changes` | What changed, most recent first. | 6 — Falco, Defranceski, Booyzen, D'arcy, Blazevic, Lerena | — |
 | `Corrections` | What this archive got wrong, and what is true instead. | 7 — Falco, Defranceski, Booyzen, D'arcy, Blazevic, Mazza, Lerena | — |
 | `Distribution` | Where a name actually lives: one horizontal bar per place, the first one picked out in the accent because it is almost always the answer. | 4 — Falco, Defranceski, Booyzen, Lerena | — |

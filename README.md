@@ -27,6 +27,12 @@ Eight archives keep one list in one shape — what is being **done**, as opposed
 to what is known. The convention, the two gates, and the reconciliation step
 that sessions keep skipping: **[kit/docs/work-list.md](kit/docs/work-list.md)**.
 
+## The lines page
+
+Every archive's lines of descent are one drawing, `BranchRivers`, fed by one `lines.json`: a status for every lane, the
+people on it, and counted, noted pens for the people who are on none. The contract, the words the reader sees, and the
+gate (`kit/tools/checklines.py`, with the `package.json` line to wire it): **[kit/docs/lines.md](kit/docs/lines.md)**.
+
 ## Using it
 
     python3 sync.py --check     # say what has drifted, change nothing
