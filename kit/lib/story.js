@@ -120,11 +120,71 @@ export function nodeTip(n) {
   if (n.living) return n.name === "living" ? "A living person, drawn without name or dates" : `${n.name}: a living person, with no dates`;
   return `${n.name}${n.years ? ", " + n.years : ""} (${GRADE_WORD[n.grade] || "ungraded"})`;
 }
+/* Who the nodes of each `grandchildren` row belong to. A node says which child it is the child of with `of` (the id of a
+   node in the nearest children row above it). With `of` omitted and exactly ONE child, the child is that one (the old
+   contract, kept). Anything else is unresolved: the gate fails it (T4, T5), and the drawing puts it under the child who
+   carries the thread, or the last child, so that nothing is lost, never silently under a guess the data did not make.
+   Returns one entry per grandchildren row: {index, kids, groups: [{parent, nodes}] in the order of the children,
+   loose: [nodes with no parent]}. */
+export function grandchildGroups(tree) {
+  const out = [];
+  let kids = null;
+  (tree?.rows || []).forEach((r, index) => {
+    if (r.kind === "children") kids = r.nodes || [];
+    else if (r.kind === "grandchildren") {
+      const by = new Map(), loose = [];
+      for (const g of r.nodes || []) {
+        let p = null;
+        if (kids) p = g.of ? kids.find((k) => k.id === g.of) || null : kids.length === 1 ? kids[0] : null;
+        if (p) by.set(p, [...(by.get(p) || []), g]); else loose.push(g);
+      }
+      const groups = (kids || []).filter((k) => by.has(k)).map((k) => ({ parent: k, nodes: by.get(k) }));
+      out.push({ index, kids, groups, loose });
+    }
+  });
+  return out;
+}
+
+/* The faults the gate reports (checkfamilystory.py T4, T5) for the grandchildren rows of a tree, as codes, in reading order:
+   the same answers on the shared cases in kit/data/story-cases.json. T4 a grandchild under a children row of more than one
+   node that does not say whose it is; T5 an `of` that names no node in the children row above. */
+export function grandchildFaults(tree) {
+  const out = [];
+  let kids = null;
+  for (const r of tree?.rows || []) {
+    if (r.kind === "children") kids = r.nodes || [];
+    else if (r.kind === "grandchildren") {
+      const ids = new Set((kids || []).map((k) => k.id).filter(Boolean));
+      for (const n of r.nodes || []) {
+        if ("of" in n) { if (!ids.has(n.of)) out.push("T5"); }
+        else if (kids && kids.length > 1) out.push("T4");
+      }
+    }
+  }
+  return out;
+}
+
+/* "Cristina's children": the possessive of a name, and a nameless living parent as "the living person's". */
+export const possessive = (n) => { const nm = n.living && n.name === "living" ? "the living person" : String(n.name); return /s$/i.test(nm) ? nm + "'" : nm + "'s"; };
+
 export function treeAlt(tree, title) {
-  const rows = (tree.rows || []).map((r) => (r.kind === "gap" ? `${r.text}.` : (r.nodes || []).map((p) => {
+  const say = (p) => {
     if (p.living) return p.name === "living" ? "a living person" : `${p.name}, living`;
     return `${p.name}${p.years ? " " + p.years : ""}, ${GRADE_WORD[p.grade]}${p.id && p.id === tree.thread ? ", who carries the line" : ""}`;
-  }).join("; ") + "."));
+  };
+  /* inside a group the words "X's children" already say they are living-or-not family, so a living node is its name only */
+  const sayKid = (p) => (p.living ? (p.name === "living" ? "a living person" : p.name) : say(p));
+  const joined = (ns, f) => ns.map(f).join(ns.some((p) => !p.living) ? "; " : ", ");
+  const byRow = new Map(grandchildGroups(tree).map((g) => [g.index, g]));
+  const rows = (tree.rows || []).map((r, i) => {
+    if (r.kind === "gap") return `${r.text}.`;
+    if (r.kind === "grandchildren" && byRow.has(i)) {
+      const G = byRow.get(i);
+      return [...G.groups.map((g) => `${possessive(g.parent)} children: ${joined(g.nodes, sayKid)}.`),
+        ...(G.loose.length ? [`Grandchildren, of a parent the data does not name: ${joined(G.loose, sayKid)}.`] : [])].join(" ");
+    }
+    return (r.nodes || []).map(say).join("; ") + ".";
+  });
   return `Family tree for ${title}. ${rows.join(" ")}`;
 }
 
@@ -132,15 +192,22 @@ export function treeAlt(tree, title) {
      above         one person above the couple (a parent, or the earliest name the papers give)
      couple        two people in a box
      children      a column of ticks off the stem
-     grandchildren a column off the child who carries the thread
+     grandchildren each node hangs under ITS OWN parent (`of`), straight below that child: a short stem from the child's
+                   own node, the grandchildren ticked off it. A child with none has no stem. (With no `of` and one child
+                   they all hang under that child; see grandchildGroups.) A grandchildren row with no children row
+                   above it is drawn as a column of its own.
      gap           a break the papers have not closed
    The thread (tree.thread, a node id) is the coloured line down the stem to the child who carries the line on into the
    next chapter. Returns the picture's size and the positions; the component only draws. */
 export function layoutTree(tree, hasNext = false) {
   const W = 360, X0 = 22, KX = 46;
   const rows = [];
+  const GR = new Map(grandchildGroups(tree).map((g) => [g.index, g]));
+  const consumed = new Set();
   let y = 14, stemTop = null, lineKid = null, aboveThread = null;
-  for (const r of tree.rows || []) {
+  const src = tree.rows || [];
+  src.forEach((r, ri) => {
+    if (consumed.has(ri)) return;
     if (r.kind === "above") {
       const n = r.nodes[0];
       rows.push({ kind: "above", n, y: y + 12 });
@@ -152,20 +219,40 @@ export function layoutTree(tree, hasNext = false) {
       if (stemTop == null) stemTop = y;
       y += 84;
     } else if (r.kind === "children") {
-      const kids = r.nodes.map((n, i) => ({ n, y: y + 10 + i * 27, line: !!tree.thread && n.id === tree.thread }));
+      /* the grandchildren row that belongs to this row: the next one before another children row */
+      let gi = -1;
+      for (let j = ri + 1; j < src.length && src[j].kind !== "children"; j++) if (src[j].kind === "grandchildren") { gi = j; break; }
+      const G = gi >= 0 ? GR.get(gi) : null;
+      if (G) consumed.add(gi);
+      const under = new Map((G ? G.groups : []).map((g) => [g.parent, [...g.nodes]]));
+      if (G && G.loose.length) {
+        const fb = r.nodes.find((n) => tree.thread && n.id === tree.thread) || r.nodes[r.nodes.length - 1];
+        under.set(fb, [...(under.get(fb) || []), ...G.loose]);
+      }
+      let yy = y + 10;
+      const kids = r.nodes.map((n) => {
+        const k = { n, y: yy, line: !!tree.thread && n.id === tree.thread, sub: [] };
+        yy += 27;
+        const gs = under.get(n) || [];
+        if (gs.length) {
+          k.sub = gs.map((g, j) => ({ n: g, y: k.y + 30 + j * 27 }));
+          yy = k.sub[k.sub.length - 1].y + 30;
+        }
+        return k;
+      });
       rows.push({ kind: "children", kids });
       const lk = kids.find((k) => k.line);
       if (lk) lineKid = lk;
-      y += 10 + r.nodes.length * 27;
+      y = yy;
     } else if (r.kind === "grandchildren") {
       const g = r.nodes.map((n, i) => ({ n, y: y + 10 + i * 27 }));
-      rows.push({ kind: "grand", g, from: lineKid ? lineKid.y : y });
+      rows.push({ kind: "grand", g, from: y });
       y += 10 + r.nodes.length * 27;
     } else if (r.kind === "gap") {
       rows.push({ kind: "gap", text: r.text, y: y + 8 });
       y += 30;
     }
-  }
+  });
   const H = y + (hasNext ? 30 : 8);
   const stemEnds = rows.filter((r) => r.kind !== "grand" && r.kind !== "gap")
     .flatMap((r) => (r.kind === "children" ? r.kids.map((k) => k.y) : [r.y + (r.kind === "couple" ? 64 : 0)]));

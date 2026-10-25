@@ -11,6 +11,8 @@
 
    props
      tree      {glyph, note, thread, rows: [{kind: above|couple|children|grandchildren|gap, nodes, text}]}  (kit/docs/story.md)
+               a node in a grandchildren row says whose child it is with `of` (the id of a node in the children row above);
+               each such group hangs on a short stem from its own parent, and a child with none has no stem
      title     the chapter's title, for the picture's description
      next      the id of the chapter the thread goes on into, or null
      nextTitle that chapter's title
@@ -18,7 +20,7 @@
 
    Every node with a person page links to it. The thread is drawn down the stem to the child who carries the line. */
 import "../styles/story.css";
-import { layoutTree, GLYPHS, nodeTip, nodeYears, treeAlt } from "../lib/story.js";
+import { layoutTree, GLYPHS, nodeTip, nodeYears, treeAlt, possessive } from "../lib/story.js";
 const { tree, title = "", next = null, nextTitle = "", personHref = (s) => `/people/${s}/`, u = (p) => p } = Astro.props;
 const L = layoutTree(tree, !!next);
 const { W, H, X0, KX, rows, stemTop, lastY, gaps, kidsTop, lineKid, aboveThread } = L;
@@ -47,9 +49,9 @@ const cls = (n) => (n.living ? "living" : n.grade);
         <g>
           <line class="st-stem" x1={KX} y1={r.from + 7} x2={KX} y2={r.g[r.g.length - 1].y} />
           {r.g.map((k) => (
-            <a data-node={cls(k.n)} href={href(k.n)} aria-label={nodeTip(k.n)}>
+            <a data-node={cls(k.n)} data-id={k.n.id} href={href(k.n)} aria-label={nodeTip(k.n)}>
               <title>{nodeTip(k.n)}</title>
-              <line class="st-tick" x1={KX} y1={k.y} x2={KX + 17} y2={k.y} />
+              <line class={`st-tick st-e-${cls(k.n)}`} x1={KX} y1={k.y} x2={KX + 17} y2={k.y} />
               <circle class={`st-n st-${cls(k.n)}`} cx={KX + 24} cy={k.y} r="6" />
               <text class="st-name" x={KX + 37} y={k.y + 4}>{k.n.name}</text>
             </a>
@@ -72,12 +74,27 @@ const cls = (n) => (n.living ? "living" : n.grade);
       return (
         <g>
           {r.kids.map((k) => (
-            <a data-node={cls(k.n)} href={href(k.n)} aria-label={nodeTip(k.n) + (k.line ? ", who carries the line" : "")}>
-              <title>{nodeTip(k.n) + (k.line ? ", who carries the line" : "")}</title>
-              <line class={`st-tick st-e-${cls(k.n)}${k.line ? " st-on" : ""}`} x1={X0} y1={k.y} x2={KX - 7} y2={k.y} />
-              <circle class={`st-n st-${cls(k.n)}${k.line ? " st-lc" : ""}`} cx={KX} cy={k.y} r="6" />
-              <text class={`st-name${k.line ? " st-ln" : ""}`} x={KX + 13} y={k.y + 4}>{k.n.name}{nodeYears(k.n) && <tspan class="st-yr" dx="6">{nodeYears(k.n)}</tspan>}</text>
-            </a>
+            <>
+              <a data-node={cls(k.n)} data-id={k.n.id} href={href(k.n)} aria-label={nodeTip(k.n) + (k.line ? ", who carries the line" : "")}>
+                <title>{nodeTip(k.n) + (k.line ? ", who carries the line" : "")}</title>
+                <line class={`st-tick st-e-${cls(k.n)}${k.line ? " st-on" : ""}`} x1={X0} y1={k.y} x2={KX - 7} y2={k.y} />
+                <circle class={`st-n st-${cls(k.n)}${k.line ? " st-lc" : ""}`} cx={KX} cy={k.y} r="6" />
+                <text class={`st-name${k.line ? " st-ln" : ""}`} x={KX + 13} y={k.y + 4}>{k.n.name}{nodeYears(k.n) && <tspan class="st-yr" dx="6">{nodeYears(k.n)}</tspan>}</text>
+              </a>
+              {k.sub.length > 0 && (
+                <g class="st-sub" data-of={k.n.id} role="group" aria-label={`${possessive(k.n)} children`}>
+                  <line class="st-stem" x1={KX} y1={k.y + 7} x2={KX} y2={k.sub[k.sub.length - 1].y} />
+                  {k.sub.map((s) => (
+                    <a data-node={cls(s.n)} data-id={s.n.id} href={href(s.n)} aria-label={nodeTip(s.n)}>
+                      <title>{nodeTip(s.n)}</title>
+                      <line class={`st-tick st-e-${cls(s.n)}`} x1={KX} y1={s.y} x2={KX + 17} y2={s.y} />
+                      <circle class={`st-n st-${cls(s.n)}`} cx={KX + 24} cy={s.y} r="6" />
+                      <text class="st-name" x={KX + 37} y={s.y + 4}>{s.n.name}{nodeYears(s.n) && <tspan class="st-yr" dx="6">{nodeYears(s.n)}</tspan>}</text>
+                    </a>
+                  ))}
+                </g>
+              )}
+            </>
           ))}
         </g>);
     })}

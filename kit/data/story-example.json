@@ -54,6 +54,10 @@
           { "kind": "children", "nodes": [
             { "id": "anna", "name": "Anna", "years": "1820–1824", "grade": "doc" },
             { "id": "pieter", "name": "Pieter", "years": "1822", "grade": "inf", "person": "pieter-arden-1822" }
+          ] },
+          { "kind": "grandchildren", "nodes": [
+            { "id": "jan-w", "name": "Jan", "years": "1849–1921", "grade": "doc", "of": "pieter" },
+            { "id": "lise-w", "name": "Lise", "years": "1852", "grade": "doc", "of": "pieter" }
           ] }
         ]
       },
@@ -96,6 +100,11 @@
           { "kind": "children", "nodes": [
             { "id": "jan", "name": "Jan", "years": "1849–1921", "grade": "doc" },
             { "id": "lise", "name": "Lise", "years": "1852", "grade": "doc" }
+          ] },
+          { "kind": "grandchildren", "nodes": [
+            { "id": "pieter-s", "name": "Pieter", "years": "1877–1950", "grade": "doc", "of": "jan" },
+            { "id": "hanne", "name": "Hanne", "years": "1883", "grade": "lore", "of": "jan" },
+            { "id": "anke", "name": "Anke", "years": "1880–1962", "grade": "inf", "of": "lise" }
           ] }
         ]
       },

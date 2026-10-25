@@ -44,12 +44,38 @@ The archive's layout draws the title, eyebrow and dek; the component draws every
 
 1. **Ribbon**: one card per generation, all the same fields: `name, years, origin, originGrade, spouse, spouseOrigin, atPlace, atYear, living` (and `chapter`, the card's link). Empty string where a field does not apply.
 2. **Chapters**: `id, numeral, title, place, years, paragraphs[{text, grade doc|inf|lore, register people|world, worldSource archive|history, evidence[], tbc}], tree, quote{text, source}, hardLimit, plates[], papers[]`; every chapter ends with at least one `papers` link.
-3. **Tree**: `rows` of kind `above | couple | children | grandchildren | gap`, each node `{id, name, years, grade, person}` or `{living, minor}`; `thread` names the node who carries the line on.
+3. **Tree**: `rows` of kind `above | couple | children | grandchildren | gap`, each node `{id, name, years, grade, person}` or `{living, minor}`; `thread` names the node who carries the line on. A node in a `grandchildren` row carries `of`, the id of its parent in the children row above (see "Whose child" below).
 4. **Maps**: `{id, title, extent, chapter, places[{id, name, lat, lon, chapter}], legs[{from, to, grade, years, chapter, routeKnown}]}`; `extent` is a name or a box.
 5. **Closing**: `{unknown{items}, papers{links}, after?, notes?, mapNote?}`, and `conflicts[{chapter, note}]` where two of the archive's own sources disagree.
 
 `data/story-schema.json` is the authority for every field, its type and what is required. `data/story-example.json` is the
 quickest way to see them all.
+
+## Whose child: `of`
+
+A tree is rows, and a row of grandchildren by itself does not say which child each belongs to. So **a node in a `grandchildren`
+row says whose it is**: `of: "<id of its parent in the children row above>"`.
+
+```json
+{ "kind": "children", "nodes": [{ "id": "cristina", "name": "Cristina", "living": true }, { "id": "stefanie", "name": "Stefanie", "living": true }] },
+{ "kind": "grandchildren", "nodes": [
+  { "id": "a", "name": "A.", "living": true, "minor": true, "of": "cristina" },
+  { "id": "m", "name": "M.", "living": true, "minor": true, "of": "cristina" },
+  { "id": "r", "name": "R.", "living": true, "minor": true, "of": "stefanie" } ] }
+```
+
+* **Drawing.** Each group hangs under its own parent, straight below that child: a short stem from the child's own node, the
+  grandchildren ticked off it, in the same outlines (solid, dashed, dotted; living filled; minors by initials). A child with no
+  children has no stem, so a children row where only some have descendants reads correctly. The thread still runs to the child
+  who carries the line.
+* **Text.** The picture's description says "Cristina's children: A., M." for each group, and each group is a labelled
+  `<g role="group" data-of="cristina">` in the SVG.
+* **Gate.** `T4` fails a grandchildren row that follows a children row of **more than one** node when any grandchild has no `of`
+  (the drawing would otherwise have to guess, and a wrong guess states a wrong family relationship). `T5` fails an `of` that names
+  no node in the children row above, or sits on a node outside a grandchildren row. `V7` reads the built page back and fails a
+  grandchild hung under another parent.
+* **Backward compatible.** With exactly one child, `of` may be left out: every grandchild is that child's. With several children
+  and no `of` the old data still draws (under the child who carries the thread, else the last) but the gate fails it; add `of`.
 
 ## The evidence grammar
 
@@ -112,7 +138,7 @@ references; a grade on every paragraph and a source on every world paragraph; ev
 card's fields; the living rule on nodes, cards, minors, maps and prose; every place inside its extent, every leg's endpoints,
 one coordinate per place; every person and internal link against the built site; and then **reads the built page back**,
 independently of the component: the chapters in order, each paragraph with the grade or source the data gives it, a ribbon card
-per generation with the same parts, no date on a living node, every map dot inside its picture. `--selftest` plants some sixty faults
+per generation with the same parts, no date on a living node, every grandchild in the group of its own parent, every map dot inside its picture. `--selftest` plants some seventy faults
 in `story-example.json`, one at a time, and requires each to be caught under its own code; `node kit/tools/story_logic.mjs`
 holds the small rules to cases shared with the gate.
 

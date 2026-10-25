@@ -7,7 +7,7 @@
 //   prose     a link is made from [words](target); person: goes through the archive's own address; rec: is left to its
 //             renderer; nothing the data holds can inject markup
 //   living    the layout prints no year for a node, a card or an at-line flagged living, whatever the data holds
-//   tree      the thread, the stem, the height
+//   tree      the thread, the stem, the height; each grandchild hangs under its own parent (`of`), a child with none has no stem
 //   proof     the date rule is shown to fail when it is broken
 import fs from "fs"; import path from "path"; import { fileURLToPath } from "url";
 import * as S from "../lib/story.js";
@@ -23,6 +23,10 @@ const near = (label, got, want, tol = 0.06) => { n++; const ok = Math.abs(got - 
 console.log("the shared cases");
 eq("dates", CASES.dates.filter((c) => S.hasDate(c.text) !== c.date).map((c) => c.text), []);
 eq("initials", CASES.initials.filter((c) => S.isInitial(c.name) !== c.initial).map((c) => c.name), []);
+eq("whose child a grandchild is (the gate's T4, T5)", CASES.grandchildren.filter((c) => {
+  const rows = (c.children ? [{ kind: "children", nodes: c.children.map((k) => ({ id: k, name: k })) }] : []).concat([{ kind: "grandchildren", nodes: c.grand.map((o, i) => (o === null ? { id: "g" + i, name: "g" } : { id: "g" + i, name: "g", of: o })) }]);
+  return JSON.stringify(S.grandchildFaults({ rows })) !== JSON.stringify(c.codes);
+}).map((c) => c.label), []);
 eq("extents", CASES.extents.filter((c) => (G.resolveExtent(c.extent, PRESETS) !== null) !== c.ok).map((c) => c.extent), []);
 eq("inside", CASES.inside.filter((c) => G.inExtent(G.resolveExtent(c.extent, PRESETS), c.lat, c.lon) !== c.in).map((c) => c), []);
 
@@ -98,12 +102,53 @@ eq("the description of a living tree has no date in it", S.hasDate(S.treeAlt(liv
 eq("...and says who carries the line", S.treeAlt(livingTree, "Us").includes("K., living"), true);
 eq("treeNodes lists every node but not a gap", S.treeNodes(upTree).length, 2);
 
+console.log("the tree: each grandchild hangs under its own parent (`of`)");
+const sisters = { thread: "u-cristina", rows: [
+  { kind: "couple", nodes: [{ id: "u-g", name: "Giuseppina", living: true }, { id: "u-i", name: "Ian", living: true }] },
+  { kind: "children", nodes: [{ id: "u-cristina", name: "Cristina", living: true }, { id: "u-stefanie", name: "Stefanie", living: true }] },
+  { kind: "grandchildren", nodes: [
+    { id: "u-a", name: "A.", living: true, minor: true, of: "u-cristina" }, { id: "u-m", name: "M.", living: true, minor: true, of: "u-cristina" },
+    { id: "u-r", name: "R.", living: true, minor: true, of: "u-stefanie" }, { id: "u-m2", name: "M.", living: true, minor: true, of: "u-stefanie" }] }] };
+const LS = S.layoutTree(sisters, true);
+const kidsOf = LS.rows.find((r) => r.kind === "children").kids;
+const [cri, ste] = kidsOf;
+eq("the sisters' children hang under their own mother", [cri.sub.map((g) => g.n.id), ste.sub.map((g) => g.n.id)], [["u-a", "u-m"], ["u-r", "u-m2"]]);
+eq("...and no row of grandchildren is drawn by itself", LS.rows.filter((r) => r.kind === "grand").length, 0);
+eq("Cristina's children are drawn between Cristina and Stefanie, Stefanie's after her", [cri.sub.every((g) => g.y > cri.y && g.y < ste.y), ste.sub.every((g) => g.y > ste.y)], [true, true]);
+eq("the thread still runs to the sister who carries the line", [LS.lineKid.n.id, LS.lineKid.y === cri.y], ["u-cristina", true]);
+eq("the stem to the last child ends at Stefanie, not at the last grandchild", LS.lastY, ste.y);
+eq("the picture is tall enough for the last grandchild", LS.H > ste.sub[ste.sub.length - 1].y, true);
+const alt = S.treeAlt(sisters, "Us");
+eq("the description says whose children they are", [alt.includes("Cristina's children: A., M."), alt.includes("Stefanie's children: R., M.")], [true, true]);
+eq("...and has no date in it", S.hasDate(alt), false);
+const mixed = { rows: [{ kind: "children", nodes: [{ id: "a", name: "Anna", years: "1820\u20131824", grade: "doc" }, { id: "b", name: "Bea", years: "1822", grade: "doc" }, { id: "c", name: "Cy", years: "1825", grade: "inf" }] },
+  { kind: "grandchildren", nodes: [{ id: "x", name: "Xan", years: "1850", grade: "doc", of: "c" }] }] };
+const LM = S.layoutTree(mixed).rows[0].kids;
+eq("children with none have no stem (and the one with a child is the third)", LM.map((k) => k.sub.length), [0, 0, 1]);
+eq("...and a child with none leaves no gap behind it", [LM[1].y - LM[0].y, LM[2].y - LM[1].y], [27, 27]);
+eq("a dead grandchild's description has the years and the grade", S.treeAlt(mixed, "T").includes("Cy's children: Xan 1850, documented."), true);
+const one = { rows: [{ kind: "children", nodes: [{ id: "a", name: "Ivone", grade: "doc" }] }, { kind: "grandchildren", nodes: [{ id: "h", name: "Henrique", grade: "inf" }, { id: "d", name: "D.", living: true }] }] };
+eq("with one child, `of` may be left out: they hang under that child", S.layoutTree(one).rows[0].kids[0].sub.map((g) => g.n.id), ["h", "d"]);
+const amb = { thread: "b", rows: [{ kind: "children", nodes: [{ id: "a", name: "A", grade: "doc" }, { id: "b", name: "B", grade: "doc" }, { id: "c", name: "C", grade: "doc" }] }, { kind: "grandchildren", nodes: [{ id: "h", name: "H", grade: "doc" }] }] };
+const LA = S.layoutTree(amb).rows[0].kids;
+eq("with several children and no `of` (the gate fails it) the drawing never picks the last child by luck: it uses the thread child", LA.map((k) => k.sub.length), [0, 1, 0]);
+eq("...and the description says the parent is not named", S.treeAlt(amb, "T").includes("a parent the data does not name"), true);
+const dangling = { rows: [{ kind: "children", nodes: [{ id: "a", name: "A", grade: "doc" }, { id: "b", name: "B", grade: "doc" }] }, { kind: "grandchildren", nodes: [{ id: "h", name: "H", grade: "doc", of: "nobody" }] }] };
+eq("an `of` that names no one is not drawn under a guess of its own: it is loose, like the missing one", S.grandchildGroups(dangling)[0].loose.map((g) => g.id), ["h"]);
+eq("a grandchildren row with no children above is a column of its own", S.layoutTree({ rows: [{ kind: "couple", nodes: [{ id: "p", name: "P", grade: "doc" }] }, { kind: "grandchildren", nodes: [{ id: "h", name: "H", grade: "doc" }] }] }).rows.map((r) => r.kind), ["couple", "grand"]);
+eq("a living nameless parent's group is announced without a name", S.possessive({ living: true, name: "living" }), "the living person's");
+eq("a name ending in s takes only the stop", S.possessive({ name: "Lucas" }), "Lucas'");
+
 console.log("proof: the shared cases are shown to fail a broken rule");
 const weakDate = (t) => /\b1[0-9]{3}\b/.test(t);              // four digits, no months, no 20xx
 const anyInitial = (t) => /^[A-Z.]{1,3}$/.test(t);              // lets lower case and a bare stop through, no accents
 const strictExtent = (e) => typeof e === "string" && !!PRESETS[e];  // forgets boxes and {preset}
 eq("a date rule that forgot months and the 2000s is caught by the cases", CASES.dates.some((c) => weakDate(c.text) !== c.date), true);
 eq("an initial rule that forgot accents is caught by the cases", CASES.initials.some((c) => anyInitial(c.name) !== c.initial), true);
+const oldWay = (t) => { const k = t.rows.find((r) => r.kind === "children").nodes; return t.rows.find((r) => r.kind === "grandchildren").nodes.map(() => k[k.length - 1].id); };   // every grandchild under the last child
+eq("the old rule (all under the last child) puts A. under Stefanie, which the `of` layout refuses", oldWay(sisters).join() !== cri.sub.concat(ste.sub).map((g, i) => (i < 2 ? "u-cristina" : "u-stefanie")).join(), true);
+eq("a gate that only looked for a missing `of` is caught by the cases (it lets a dangling one through)", CASES.grandchildren.some((c) => c.codes.includes("T5")), true);
+eq("a gate that forgot a one-child row may omit `of` is caught by the cases", CASES.grandchildren.some((c) => c.children && c.children.length === 1 && c.grand.includes(null) && c.codes.length === 0), true);
 eq("an extent rule that forgot boxes is caught by the cases", CASES.extents.some((c) => strictExtent(c.extent) !== c.ok), true);
 
 console.log(bad ? `\nstory_logic: ${bad} of ${n} FAILED` : `\nstory_logic: ${n}/${n} ok`);

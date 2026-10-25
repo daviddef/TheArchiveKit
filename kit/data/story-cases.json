@@ -54,5 +54,17 @@
     { "extent": { "west": 5, "east": 11, "south": 44, "north": 47 }, "lat": 45, "lon": 11.5, "in": false },
     { "extent": "europe", "lat": 44.4, "lon": 8.9, "in": true },
     { "extent": "europe", "lat": -25.3, "lon": 134, "in": false }
+  ],
+  "grandchildren": [
+    { "label": "two children, every grandchild says whose", "children": ["a", "b"], "grand": ["a", "a", "b"], "codes": [] },
+    { "label": "two children, one grandchild does not say", "children": ["a", "b"], "grand": ["a", null], "codes": ["T4"] },
+    { "label": "two children, none says", "children": ["a", "b"], "grand": [null, null], "codes": ["T4", "T4"] },
+    { "label": "one child, `of` left out (the old contract)", "children": ["a"], "grand": [null, null], "codes": [] },
+    { "label": "one child, `of` given", "children": ["a"], "grand": ["a"], "codes": [] },
+    { "label": "one child, `of` names someone else", "children": ["a"], "grand": ["z"], "codes": ["T5"] },
+    { "label": "two children, `of` names no one", "children": ["a", "b"], "grand": ["a", "z"], "codes": ["T5"] },
+    { "label": "three children, the middle one has none", "children": ["a", "b", "c"], "grand": ["a", "c", "c"], "codes": [] },
+    { "label": "no children row, nothing to be ambiguous about", "children": null, "grand": [null], "codes": [] },
+    { "label": "no children row, `of` names no one", "children": null, "grand": ["a"], "codes": ["T5"] }
   ]
 }

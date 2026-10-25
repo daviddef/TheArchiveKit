@@ -97,7 +97,8 @@
         "person": { "type": "string", "description": "The slug of the person's page in this archive." },
         "href": { "type": "string" },
         "living": { "type": "boolean" },
-        "minor": { "type": "boolean", "description": "A living child: shown by initials only." }
+        "minor": { "type": "boolean", "description": "A living child: shown by initials only." },
+        "of": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$", "description": "Only on a node in a `grandchildren` row: the id of the node in the children row above that this node is the child of. Required when that children row has more than one node (the gate fails a grandchild whose parent would be a guess); with exactly one child it may be left out." }
       },
       "if": { "properties": { "living": { "const": true } }, "required": ["living"] },
       "then": {},

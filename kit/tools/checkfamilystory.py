@@ -37,6 +37,10 @@ Rules (the code is printed with every finding):
   T1  a node flagged living carries no years and no date in its name
   T2  a minor is flagged living, is shown by initials only, has no years and no link to a page
   T3  a tree's thread names a node that is a child of the household (or the person above it)
+  T4  a `grandchildren` row follows a children row of MORE THAN ONE node and a grandchild has no `of`: the drawing would have
+      to guess whose child it is (with exactly one child, `of` may be left out: that child is meant)
+  T5  `of` does not name a node (with an id) in the children row above the grandchildren row, or sits on a node that is not
+      in a grandchildren row
   M1  every place has coordinates inside its map's extent; M2 the extent is a name from story-extents.json or a box
   M3  every leg's endpoints exist in its map; a leg's grade is doc, inf or lore
   M4  one place id has one set of coordinates on every map
@@ -47,6 +51,7 @@ Rules (the code is printed with every finding):
   V3  the built ribbon has a card per generation, all with the same parts, and a living card shows no date
   V4  a built tree shows a living node with no date;  V5 every built map dot is inside its picture
   V6  the built page has a tree for every chapter that has one and a map for every map
+  V7  a built tree hangs every grandchild that has an `of` in a group for that parent (data-of), not under another child
 Exit 0 clean (warnings do not fail unless --strict), 1 on any error, 2 on a file that cannot be read or when nothing was checked.
 """
 import argparse, copy, json, os, re, shutil, subprocess, sys, tempfile
@@ -306,6 +311,32 @@ def tree_nodes(tree):
     return [n for r in (tree or {}).get("rows") or [] if isinstance(r, dict) and r.get("kind") != "gap" for n in (r.get("nodes") or []) if isinstance(n, dict)]
 
 
+def grandchild_faults(tree):
+    """[(code, node, message)] for the grandchildren rows of one tree: T4 a grandchild with no `of` under a children row of
+    more than one node; T5 an `of` that names no node of the children row above, or one outside a grandchildren row."""
+    out = []
+    kids = None
+    for r in (tree or {}).get("rows") or []:
+        if not isinstance(r, dict):
+            continue
+        nodes = [n for n in (r.get("nodes") or []) if isinstance(n, dict)]
+        if r.get("kind") != "grandchildren":
+            if r.get("kind") == "children":
+                kids = nodes
+            for n in nodes:
+                if "of" in n:
+                    out.append(("T5", n, "`of` is only for a node in a grandchildren row"))
+        else:
+            ids = {k.get("id") for k in (kids or []) if k.get("id")}
+            for n in nodes:
+                if "of" in n:
+                    if n["of"] not in ids:
+                        out.append(("T5", n, "`of` %r does not name a node in the children row above it (%s)" % (n["of"], ", ".join(sorted(ids)) or "there is none")))
+                elif kids is not None and len(kids) > 1:
+                    out.append(("T4", n, "is a grandchild of one of %d children and does not say which: give it `of` (the id of its parent)" % len(kids)))
+    return out
+
+
 def prose_strings(story):
     """[(where, text)] of everything that is sentences: where a living person's name must not sit beside a date."""
     out = []
@@ -469,6 +500,8 @@ def check(story, a):
                     R.err("T2", w, "a minor carries years (%r)" % n.get("years"))
                 if n.get("person") or n.get("href"):
                     R.err("T2", w, "a minor links to a page")
+        for code, n, msg in grandchild_faults(tree):
+            R.err(code, "%s node %r" % (w0, n.get("name")), msg)
         th = tree.get("thread")
         if th:
             carriers = [n.get("id") for r in tree.get("rows") or [] if isinstance(r, dict) and r.get("kind") in ("children", "above") for n in (r.get("nodes") or []) if isinstance(n, dict)]
@@ -679,6 +712,19 @@ def check_built(story, a, R, html):
             if not (0 <= x <= w and 0 <= y <= h):
                 R.err("V5", "built map", "place %r is drawn at (%s, %s), outside the %sx%s picture" % (dot.attrs["data-place"], x, y, w, h))
 
+    # V7 a built tree hangs each grandchild under its own parent
+    figs = d.find(lambda n: n.tag == "figure" and "st-tree" in n.cls())
+    tchapters = [c for c in chapters if isinstance(c.get("tree"), dict)]
+    if len(figs) == len(tchapters):
+        for fig, c in zip(figs, tchapters):
+            built = {}
+            for grp in [k for k in fig.walk() if "data-of" in k.attrs]:
+                for a_ in [k for k in grp.walk() if k.tag == "a" and k.attrs.get("data-id")]:
+                    built[a_.attrs["data-id"]] = grp.attrs["data-of"]
+            for n in tree_nodes(c["tree"]):
+                if n.get("of") and n.get("id") and built.get(n["id"]) != n["of"]:
+                    R.err("V7", "built tree of chapter %s" % c.get("id"), "%r should hang under %r, the built page has it under %r" % (n.get("id"), n["of"], built.get(n["id"])))
+
     # V6 counts
     nt = len(d.find(lambda n: n.tag == "figure" and "st-tree" in n.cls()))
     nm = len(d.find(lambda n: n.tag == "figure" and "st-map" in n.cls()))
@@ -752,11 +798,19 @@ def _built_page(story):
                 out.append('<p id="%s" data-register="people" data-grade="%s">x</p>' % (para_id(c["id"], i, p), p.get("grade")))
         if c.get("tree"):
             out.append('<figure class="st-tree"><svg>')
-            for n in tree_nodes(c["tree"]):
+            rws = [r for r in c["tree"].get("rows") or [] if isinstance(r, dict) and r.get("kind") != "gap"]
+            nodes = tree_nodes(c["tree"])
+            parents = [n for r in rws if r.get("kind") != "grandchildren" for n in r.get("nodes") or [] if isinstance(n, dict)]
+            subs_all = [n for r in rws if r.get("kind") == "grandchildren" for n in r.get("nodes") or [] if isinstance(n, dict)]
+            def anchor(n):
                 if n.get("living"):
-                    out.append('<a data-node="living" aria-label="%s: a living person, with no dates"><text>%s</text></a>' % (n["name"], n["name"]))
-                else:
-                    out.append('<a data-node="%s"><text>%s %s</text></a>' % (n.get("grade"), n.get("name"), n.get("years", "")))
+                    return '<a data-node="living" data-id="%s" aria-label="%s: a living person, with no dates"><text>%s</text></a>' % (n.get("id"), n["name"], n["name"])
+                return '<a data-node="%s" data-id="%s"><text>%s %s</text></a>' % (n.get("grade"), n.get("id"), n.get("name"), n.get("years", ""))
+            for n in parents:
+                out.append(anchor(n))
+                subs = [g for g in subs_all if g.get("of") == n.get("id")]
+                if subs:
+                    out.append('<g data-of="%s" role="group">%s</g>' % (n.get("id"), "".join(anchor(g) for g in subs)))
             out.append("</svg></figure>")
         out.append("</section>")
     for m in story.get("maps") or []:
@@ -797,6 +851,13 @@ def selftest():
     ok("what is an initial: %d cases" % len(cases["initials"]), not bad, "wrong for %r" % bad)
     bad = [c["extent"] for c in cases["extents"] if (resolve_extent(c["extent"], presets) is not None) != c["ok"]]
     ok("what is an extent: %d cases" % len(cases["extents"]), not bad, "wrong for %r" % bad)
+    bad = []
+    for c in cases["grandchildren"]:
+        rows = ([{"kind": "children", "nodes": [{"id": k, "name": k} for k in c["children"]]}] if c["children"] is not None else [])
+        rows.append({"kind": "grandchildren", "nodes": [dict({"id": "g%d" % i, "name": "g"}, **({"of": o} if o is not None else {})) for i, o in enumerate(c["grand"])]})
+        if [f[0] for f in grandchild_faults({"rows": rows})] != c["codes"]:
+            bad.append(c["label"])
+    ok("whose child a grandchild is: %d cases" % len(cases["grandchildren"]), not bad, "wrong for %r" % bad)
     bad = []
     for c in cases["inside"]:
         r = resolve_extent(c["extent"], presets)
@@ -882,6 +943,15 @@ def selftest():
         plant("a minor not flagged living", "T2", lambda s: ch(s, 2)["tree"]["rows"][1]["nodes"][0].update(living=False, grade="doc"))
         plant("a minor with a person page", "T2", lambda s: ch(s, 2)["tree"]["rows"][1]["nodes"][0].update(person="pieter-arden-1822"))
         plant("a thread to a node that is not a child", "T3", lambda s: ch(s, 0)["tree"].update(thread="tomas"))
+        plant("a grandchild who does not say whose child (two children above)", "T4", lambda s: ch(s, 1)["tree"]["rows"][4]["nodes"][0].pop("of"))
+        plant("every grandchild of two children without `of`", "T4", lambda s: [n.pop("of") for n in ch(s, 0)["tree"]["rows"][2]["nodes"]])
+        plant("a grandchild `of` that names no one", "T5", lambda s: ch(s, 1)["tree"]["rows"][4]["nodes"][0].update(of="nobody"))
+        plant("a grandchild `of` that names a node in the couple row, not a child", "T5", lambda s: ch(s, 1)["tree"]["rows"][4]["nodes"][0].update(of="greta"))
+        plant("a grandchild `of` that names another grandchild", "T5", lambda s: ch(s, 1)["tree"]["rows"][4]["nodes"][0].update(of="anke"))
+        plant("an `of` on a child, not a grandchild", "T5", lambda s: ch(s, 1)["tree"]["rows"][3]["nodes"][0].update(of="jan"))
+        plant("an `of` that is not an id (S0)", "S0", lambda s: ch(s, 1)["tree"]["rows"][4]["nodes"][0].update(of="Jan Arden"))
+        plant("a living grandchild, a minor, with a full name (still caught under `of`)", "T2", lambda s: ch(s, 1)["tree"]["rows"][4]["nodes"].append({"id": "kira", "name": "Kira Arden", "living": True, "minor": True, "of": "jan"}))
+        plant("a living grandchild with a year (still caught under `of`)", "T1", lambda s: ch(s, 1)["tree"]["rows"][4]["nodes"].append({"id": "kira", "name": "K.", "living": True, "minor": True, "years": "2015", "of": "jan"}))
         plant("a node person with no built page", "H1", lambda s: ch(s, 0)["tree"]["rows"][0]["nodes"][0].update(person="ghost-person"))
         plant("a ribbon person with no built page", "H1", lambda s: s["ribbon"]["cards"][0].update(person="ghost-person"))
         plant("a person: link in prose with no built page", "H1", lambda s: ch(s, 0)["paragraphs"][0].update(text="See [him](person:ghost-person)."))
@@ -929,6 +999,8 @@ def selftest():
         built_fault("a built living card that shows a date", "V3", lambda h: h.replace('<span class="st-rb-n">Rowan Arden</span>', '<span class="st-rb-n">Rowan Arden</span><span class="st-rb-y">b. 1980</span>'))
         built_fault("a built living node that shows a date", "V4", lambda h: h.replace("<text>Mira</text>", "<text>Mira 1981</text>"))
         built_fault("a built map dot outside its picture", "V5", lambda h: h.replace('data-x="100" data-y="100"', 'data-x="900" data-y="100"'))
+        built_fault("a built grandchild hung under another child", "V7", lambda h: h.replace('<g data-of="lise"', '<g data-of="jan"', 1))
+        built_fault("a built grandchild with no group for its parent", "V7", lambda h: h.replace('<g data-of="lise"', '<g', 1))
         built_fault("a built page with a tree fewer", "V6", lambda h: h.replace('<figure class="st-tree">', '<figure class="x">', 1))
         # the missing page is a different shape: remove the file
         s = copy.deepcopy(base)
@@ -951,6 +1023,18 @@ def selftest():
         s["ribbon"]["cards"][1]["years"] = "†"
         rc, out = gate(s)
         ok("a dead card's dagger passes", rc == 0, out)
+        s = copy.deepcopy(base)
+        t = ch(s, 0)["tree"]
+        t["rows"][1]["nodes"] = [t["rows"][1]["nodes"][1]]
+        for n in t["rows"][2]["nodes"]:
+            n.pop("of")
+        rc, out = gate(s)
+        ok("grandchildren under ONE child may leave `of` out (the old contract)", rc == 0, out)
+        s = copy.deepcopy(base)
+        t = ch(s, 1)["tree"]
+        t["rows"][3]["nodes"].append({"id": "mats", "name": "Mats", "years": "1855", "grade": "doc"})
+        rc, out = gate(s)
+        ok("a child with no children of his own, beside children with some, passes", rc == 0, out)
         s = copy.deepcopy(base)
         s["maps"][0]["extent"] = {"preset": "europe"}
         rc, out = gate(s)
