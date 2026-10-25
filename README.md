@@ -14,6 +14,8 @@ so they cannot quietly drift apart.
 | `kit/components/SiblingArchives.astro` | `site/src/components/` | The ring, as one line of small cards — every archive except the one you are standing in (worked out from `BASE_URL`), then Our Family, the Record Atlas and defranceski.com. Carries its own CSS. |
 | `kit/data/archives.json` | `site/src/data/` | The eight archives: name, `short` (the surname alone), address, accent light and dark, where, one line, surnames; the children's site (`children`) and the other sites the ring links to (`links`). The single source of truth for the ring. |
 | `kit/tools/sitemap.py` | `tools/` | Writes `sitemap.xml` from the built HTML, skipping anything that noindexes itself — so living people's pages can never be handed to a search engine by accident. |
+| `kit/tools/living_rule.py`, `kit/lib/person.js` | `node_modules` (imported) | The one definition of who is living, in Python and its JavaScript twin, held to one list of cases (`kit/data/living-rule-cases.json`). The line is `cutoff_year()` = this year minus 80; a public-source citation or a bare death flag never frees anyone born on or after it. See **[kit/docs/living.md](kit/docs/living.md)**. |
+| `kit/tools/checkliving.py`, `kit/tools/livingyears.py` | `tools/` | The living gates. `checkliving.py` guards the dates the data attaches to living people; `--years` adds the **printed-year gate**: no built page or data file may print a year or date on or after the line for a person with no death. |
 
 CSS is **not** copied. Each archive's stylesheet is its own; the kit only
 checks that the blocks it needs are present (`.ev-documented`, `.ladder`,

@@ -187,12 +187,16 @@ export function lifespan(born, died, { years = true } = {}) {
    that pin both are in kit/data/living-rule-cases.json and are read by BOTH
    self-tests (living_rule_selftest.py, checkperson_logic.mjs).
 
-     living       born 80 years ago or less BY YEAR (this year minus the birth year,
-                  80 or less) with no death or burial recorded
-     dead         any recorded death or burial, dated or not
-     not living   a citation from a PUBLIC record source (kit/data/public-sources.json;
-                  FamilySearch always counts, a user-built tree filed under MyHeritage
-                  research does not); and no birth year at all
+     living       born on or after the CUTOFF YEAR (this year minus LIVING_YEARS:
+                  1946 in 2026, boundary included) with no death RECORD
+     dead         any recorded death or burial: a date, a place, a register line.
+                  A bare FLAG (dead: true, "deceased", no date, no place) is NOT a
+                  record for a person born inside the window: they stay living
+     not living   born before the cutoff, or undated with a citation from a PUBLIC
+                  record source (kit/data/public-sources.json; FamilySearch always
+                  counts, a user-built tree filed under MyHeritage research does not).
+                  A public source NEVER frees a person born inside the window: it
+                  shows a birth or an arrival, never a death (25 October 2026)
      a living person shows NAME, RELATIONSHIPS and FULL TOWN AND COUNTRY, nothing else
      held out     (not published at all) an UNDATED person with a living parent, and the
                   people promised privacy, by id. A child with a KNOWN birth year under
@@ -203,6 +207,10 @@ export function lifespan(born, died, { years = true } = {}) {
    that disagrees with the dates is a mistake to be fixed in the data, and a page
    must never be more generous than the rule because an archive said so. */
 export const LIVING_YEARS = 80;
+/* THE LIVING LINE, derived and never typed: this year minus LIVING_YEARS (1946 in 2026). Born in this
+   year or later, with no death record, is living. The one place the line is computed. */
+export function cutoffYear(todayYear = null) { return (todayYear || new Date().getFullYear()) - LIVING_YEARS; }
+export function inWindow(birthYear, todayYear = null) { return birthYear != null && Number(birthYear) >= cutoffYear(todayYear); }
 /* An undated parent whose youngest known child was born this many years ago or less is living (17 Oct 2026). */
 export const CHILD_LIVING_YEARS = 60;
 
@@ -233,22 +241,25 @@ export const livingRule = {
     if (youngestChildYear == null) return false;
     return ((todayYear || new Date().getFullYear()) - Number(youngestChildYear)) <= CHILD_LIVING_YEARS;
   },
-  isLiving(birthYear, recordedDead, citations = [], todayYear = null, sources = null, youngestChildYear = null, saidLiving = false) {
+  /* recordedDead: a death RECORD only. undatedDead: a bare flag (no date, no place, no burial): it is ignored
+     for a person born inside the window and means dead for an undated one. A public source never frees a
+     person born inside the window. */
+  isLiving(birthYear, recordedDead, citations = [], todayYear = null, sources = null, youngestChildYear = null, saidLiving = false, undatedDead = false) {
     if (recordedDead) return false;
-    if (publicSource(citations, sources)) return false;
-    if (birthYear == null) return Boolean(saidLiving) || livingRule.recentChild(youngestChildYear, todayYear);
-    return ((todayYear || new Date().getFullYear()) - Number(birthYear)) <= LIVING_YEARS;
+    if (birthYear != null) return inWindow(birthYear, todayYear);
+    if (publicSource(citations, sources) || undatedDead) return false;
+    return Boolean(saidLiving) || livingRule.recentChild(youngestChildYear, todayYear);
   },
-  possibleMinor(birthYear, recordedDead, citations = [], parentLiving = false, todayYear = null, sources = null, youngestChildYear = null, saidLiving = false) {
-    if (recordedDead || publicSource(citations, sources)) return false;
+  possibleMinor(birthYear, recordedDead, citations = [], parentLiving = false, todayYear = null, sources = null, youngestChildYear = null, saidLiving = false, undatedDead = false) {
+    if (recordedDead || publicSource(citations, sources) || undatedDead) return false;
     if (birthYear != null) return false;
     if (livingRule.recentChild(youngestChildYear, todayYear)) return false;
     if (saidLiving) return false;   /* the archive's own data says living: a known child follows the standard */
     return Boolean(parentLiving);
   },
-  isHeldOut(personId, birthYear, recordedDead, citations = [], parentLiving = false, heldIds = [], todayYear = null, sources = null, youngestChildYear = null, saidLiving = false) {
+  isHeldOut(personId, birthYear, recordedDead, citations = [], parentLiving = false, heldIds = [], todayYear = null, sources = null, youngestChildYear = null, saidLiving = false, undatedDead = false) {
     if (new Set((heldIds || []).map(String)).has(String(personId))) return true;
-    return livingRule.possibleMinor(birthYear, recordedDead, citations, parentLiving, todayYear, sources, youngestChildYear, saidLiving);
+    return livingRule.possibleMinor(birthYear, recordedDead, citations, parentLiving, todayYear, sources, youngestChildYear, saidLiving, undatedDead);
   },
 };
 
@@ -265,16 +276,31 @@ export function yearOf(v) {
    `citations` (strings) and/or `sources` (strings or {provider,url,title}). */
 export function birthYearOf(p) { return p ? (p.birthYear ?? yearOf(p.born)) : null; }
 const NO_DEATH = /^(|living|alive|—|-|–|\?|unknown|none)$/i;
-export function recordedDead(p) {
-  if (!p) return false;
-  if (p.dead === true || p.deathRecorded === true) return true;
+/* A died/buried value that is only a FLAG (no date, no place): twin of FLAG_WORDS in living_rule.py. */
+const FLAG_WORDS = /^(true|yes|y|dead|deceased|died|d\.?|death|buried|\(?deceased\)?|d\.s\.p\.?)$/i;
+/* What the archive holds about a death: "record" (a date, a year, a place, a burial, or deathRecorded: true for a
+   register line with no date), "flag" (dead: true / deceased: true / died: true / the word "deceased" alone: the
+   archive's belief with nothing behind it), or null. Twin of living_rule.death_kind, held to `death_cases`. */
+export function deathKind(p) {
+  if (!p) return null;
+  const kinds = [];
   for (const k of ["died", "buried"]) {
     const v = p[k];
-    if (v === true) return true;
-    if (v != null && v !== false && !NO_DEATH.test(String(v).trim())) return true;
+    if (v == null || v === false) continue;
+    if (v === true) { kinds.push("flag"); continue; }
+    const t = String(v).trim();
+    if (NO_DEATH.test(t)) continue;
+    kinds.push(FLAG_WORDS.test(t) ? "flag" : "record");
   }
-  return Boolean(p.deathPlace && String(p.deathPlace).trim());
+  if (p.deathPlace && String(p.deathPlace).trim()) kinds.push("record");
+  if (p.deathRecorded === true) kinds.push("record");
+  if (p.dead === true || p.deceased === true) kinds.push("flag");
+  return kinds.includes("record") ? "record" : kinds.includes("flag") ? "flag" : null;
 }
+/* A death RECORD: what the rule treats as dead. */
+export function recordedDead(p) { return deathKind(p) === "record"; }
+/* A bare death flag with nothing behind it: not a record for a person born inside the window. */
+export function undatedDeadFlag(p) { return deathKind(p) === "flag"; }
 export function citationsOf(p) {
   if (!p) return [];
   const one = (x) => (x == null ? "" : typeof x === "object" ? [x.provider, x.url, x.title, x.name, x.source, x.label].filter(Boolean).join(" ") : String(x));
@@ -284,13 +310,13 @@ export function citationsOf(p) {
 /* The rule, applied to a person. `now` and `sources` are passed in. */
 export function isLiving(p, { now = null, sources = null } = {}) {
   if (!p) return false;
-  return livingRule.isLiving(birthYearOf(p), recordedDead(p), citationsOf(p), now, sources, p.youngestChildYear ?? null, p.saidLiving === true);
+  return livingRule.isLiving(birthYearOf(p), recordedDead(p), citationsOf(p), now, sources, p.youngestChildYear ?? null, p.saidLiving === true, undatedDeadFlag(p));
 }
 /* Held out of the archive entirely: promised by id, or undated with a living parent.
    `parentLiving` is the caller's knowledge, or the row's own `parentLiving`. */
 export function isHeldOut(p, { now = null, sources = null, heldIds = [], parentLiving = false } = {}) {
   if (!p) return false;
-  return livingRule.isHeldOut(p.id, birthYearOf(p), recordedDead(p), citationsOf(p), parentLiving || p.parentLiving === true, heldIds, now, sources, p.youngestChildYear ?? null, p.saidLiving === true);
+  return livingRule.isHeldOut(p.id, birthYearOf(p), recordedDead(p), citationsOf(p), parentLiving || p.parentLiving === true, heldIds, now, sources, p.youngestChildYear ?? null, p.saidLiving === true, undatedDeadFlag(p));
 }
 /* A relative's row that must not be drawn at all: held out by the rule, flagged by
    the adapter, or the old «withheld» placeholder (which would reveal that a held-out
@@ -419,7 +445,7 @@ export function personAbout(p, opts = {}) {
    sentence, never built from the record, so nothing about them can reach a
    snippet. A living person's title is the name alone and the qualifier is dropped
    (it can hold a spouse and a year). Title and description are what Base.astro takes. */
-export const LIVING_SENTENCE = "A living person (80 or younger, with no death recorded) is named with their relationships and their town and country, and nothing more.";
+export const LIVING_SENTENCE = `A living person (${LIVING_YEARS} or younger, with no death recorded) is named with their relationships and their town and country, and nothing more.`;
 export function personMeta(p, { style = "titleCase", exceptions = {}, siteName = "", ...opts } = {}) {
   const nm = splitQualifier(displayName(p?.name, { style, exceptions }));
   const living = isLiving(p, opts);

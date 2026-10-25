@@ -68,12 +68,20 @@ const N26 = { now: 2026, sources: SRC };
 eq("born 81 years ago is not living", L.isLiving({ born: 1945 }, N26), false);
 eq("born exactly 80 years ago is living", L.isLiving({ born: 1946 }, N26), true);
 eq("a recorded death settles it", L.isLiving({ born: 1990, died: 2020 }, N26), false);
-eq("an UNDATED death settles it (dead: true)", L.isLiving({ born: 1990, dead: true }, N26), false);
+eq("a bare death FLAG (dead: true) is not a death record for a person born in the window (25 Oct 2026)", L.isLiving({ born: 1990, dead: true }, N26), true);
+eq("a bare flag outside the window changes nothing", L.isLiving({ born: 1945, dead: true }, N26), false);
+eq("a bare flag on an undated person means dead", L.isLiving({ name: "x", dead: true, saidLiving: true }, N26), false);
+eq("an undated death RECORD (deathRecorded: true) settles it", L.isLiving({ born: 1990, deathRecorded: true }, N26), false);
+eq("the flag word 'deceased' in died is a flag, not a record", L.isLiving({ born: 1990, died: "deceased" }, N26), true);
+eq("the living line is derived: 1946 in 2026, 1947 in 2027", [L.cutoffYear(2026), L.cutoffYear(2027)], [1946, 1947]);
+eq("born 1946 is living in 2026 and not in 2027", [L.isLiving({ born: 1946 }, { now: 2026, sources: SRC }), L.isLiving({ born: 1946 }, { now: 2027, sources: SRC })], [true, false]);
 eq("a recorded burial settles it", L.isLiving({ born: 1990, buried: "St Mary's" }, N26), false);
 eq("a death place implies a death", L.isLiving({ born: 1990, deathPlace: "Testville" }, N26), false);
 eq("died = 'living' is not a death", L.isLiving({ born: 1990, died: "living" }, N26), true);
-eq("a public source settles it", L.isLiving({ born: 1990, citations: ["FamilySearch"] }, N26), false);
-eq("a source object with a provider counts", L.isLiving({ born: 1990, sources: [{ provider: "Findmypast", title: "1939 Register" }] }, N26), false);
+eq("a public source does NOT free a person born in the window (25 Oct 2026)", L.isLiving({ born: 1990, citations: ["FamilySearch"] }, N26), true);
+eq("a public source on an UNDATED person still means not living", L.isLiving({ name: "x", citations: ["FamilySearch"], saidLiving: true }, N26), false);
+eq("a public source plus a death record is dead", L.isLiving({ born: 1990, died: 2020, citations: ["FamilySearch"] }, N26), false);
+eq("a source object with a provider is a public source, and still does not free a person born in the window", [L.publicSource(L.citationsOf({ sources: [{ provider: "Findmypast", title: "1939 Register" }] }), SRC), L.isLiving({ born: 1990, sources: [{ provider: "Findmypast", title: "1939 Register" }] }, N26)], [true, true]);
 eq("a private tree entry does not", L.isLiving({ born: 1990, sources: ["MyHeritage family tree entry"] }, N26), true);
 eq("a hand-set living:true is NOT read (no dates, not living)", L.isLiving({ name: "x", living: true }, N26), false);
 eq("a hand-set presumedLiving is NOT read", L.isLiving({ name: "x", presumedLiving: true }, N26), false);
@@ -85,8 +93,8 @@ eq("a known child is not held out", L.isHeldOut({ born: 2015 }, { ...N26, parent
 eq("an undated person with a living parent is held out", L.isHeldOut({ name: "x" }, { ...N26, parentLiving: true }), true);
 eq("the row's own parentLiving counts", L.isHeldOut({ name: "x", parentLiving: true }, N26), true);
 eq("held by id", L.isHeldOut({ id: "7", born: 1700, died: 1760 }, { ...N26, heldIds: ["7"] }), true);
-eq("citations without a source list THROW, not guess", (() => { try { L.isLiving({ born: 1990, citations: ["Some Archive"] }, { now: 2026 }); return "no throw"; } catch (e) { return "throws"; } })(), "throws");
-eq("FamilySearch needs no list", L.isLiving({ born: 1990, citations: ["FamilySearch"] }, { now: 2026 }), false);
+eq("citations without a source list THROW, not guess", (() => { try { L.isLiving({ name: "x", citations: ["Some Archive"] }, { now: 2026 }); return "no throw"; } catch (e) { return "throws"; } })(), "throws");
+eq("FamilySearch needs no list", L.publicSource(["FamilySearch"], null), true);
 eq("living person yields NO structured data", L.personAbout({ name: "x", born: 1990 }, N26), null);
 eq("dead person yields iso dates", L.personAbout({ name: "x", born: "13 Dec 1854", died: "1920" }, N26).birthDate, "1854-12-13");
 eq("circa birth is not asserted as an exact date", L.personAbout({ name: "x", born: "c. 1854", died: 1920 }, N26).birthDate, undefined);
@@ -109,20 +117,21 @@ eq("a dead person's undated child is not held out", pd.children.map((r) => r.nam
 
 /* THE SHARED CASES: the same file living_rule_selftest.py asserts against living_rule.py */
 const answers = (rule, c) => {
-  const i = c.in, cit = i.citations || [], y = FIXTURE.today;
+  const i = c.in, cit = i.citations || [], y = i.today ?? FIXTURE.today;
   return {
     public_source: rule.publicSource(cit, SOURCES_JSON),
-    is_living: rule.isLiving(i.birth_year ?? null, i.recorded_dead || false, cit, y, SOURCES_JSON, i.youngest_child_year ?? null, i.said_living || false),
-    possible_minor: rule.possibleMinor(i.birth_year ?? null, i.recorded_dead || false, cit, i.parent_living || false, y, SOURCES_JSON, i.youngest_child_year ?? null, i.said_living || false),
-    is_held_out: rule.isHeldOut(i.id ?? "none", i.birth_year ?? null, i.recorded_dead || false, cit, i.parent_living || false, i.held_ids || [], y, SOURCES_JSON, i.youngest_child_year ?? null, i.said_living || false),
+    is_living: rule.isLiving(i.birth_year ?? null, i.recorded_dead || false, cit, y, SOURCES_JSON, i.youngest_child_year ?? null, i.said_living || false, i.undated_dead || false),
+    possible_minor: rule.possibleMinor(i.birth_year ?? null, i.recorded_dead || false, cit, i.parent_living || false, y, SOURCES_JSON, i.youngest_child_year ?? null, i.said_living || false, i.undated_dead || false),
+    is_held_out: rule.isHeldOut(i.id ?? "none", i.birth_year ?? null, i.recorded_dead || false, cit, i.parent_living || false, i.held_ids || [], y, SOURCES_JSON, i.youngest_child_year ?? null, i.said_living || false, i.undated_dead || false),
   };
 };
-const sharedFailures = (rule, address) => {
+const sharedFailures = (rule, address, kindOf = L.deathKind) => {
   const out = [];
   for (const c of FIXTURE.cases) {
     const got = answers(rule, c);
     for (const [k, v] of Object.entries(c.want)) if (got[k] !== v) out.push(`${c.id}: ${k} got ${got[k]} want ${v}`);
   }
+  for (const dc of FIXTURE.death_cases) if (kindOf(dc.person) !== dc.want) out.push(`death ${dc.id}: got ${kindOf(dc.person)} want ${dc.want}`);
   for (const pc of FIXTURE.place_cases) if (address(pc.place) !== pc.address_like) out.push(`place ${pc.place}: got ${address(pc.place)}`);
   return out;
 };
@@ -130,8 +139,8 @@ const ids = FIXTURE.cases.map((c) => c.id);
 eq("fixture: case ids are unique", new Set(ids).size, ids.length);
 const tags = new Set(FIXTURE.cases.flatMap((c) => c.tags));
 eq("fixture: every required scenario has a case", FIXTURE.required_tags.filter((t) => !tags.has(t)), []);
-eq("fixture: at least 25 rule cases and 10 place cases", FIXTURE.cases.length >= 25 && FIXTURE.place_cases.length >= 10, true);
-eq(`shared cases: all ${FIXTURE.cases.length} rule and ${FIXTURE.place_cases.length} place cases agree with living_rule.py's answers`, sharedFailures(L.livingRule, L.placeIsAddressLike), []);
+eq("fixture: at least 25 rule cases, 10 place cases and 10 death cases", FIXTURE.cases.length >= 25 && FIXTURE.place_cases.length >= 10 && FIXTURE.death_cases.length >= 10, true);
+eq(`shared cases: all ${FIXTURE.cases.length} rule, ${FIXTURE.death_cases.length} death and ${FIXTURE.place_cases.length} place cases agree with living_rule.py's answers`, sharedFailures(L.livingRule, L.placeIsAddressLike), []);
 
 /* THE TEST CAN FAIL: plant the fault in a COPY of person.js (the real one is never touched)
    and require the shared cases to catch it. person.js imports nothing, so one file is a copy. */
@@ -141,13 +150,17 @@ const plant = (from, to) => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "person-fault-"));
   const f = path.join(dir, "person.mjs");
   fs.writeFileSync(f, src.replace(from, to));
-  return import(pathToFileURL(f).href).then((M) => ({ fails: sharedFailures(M.livingRule, M.placeIsAddressLike) })).finally(() => fs.rmSync(dir, { recursive: true, force: true }));
+  return import(pathToFileURL(f).href).then((M) => ({ fails: sharedFailures(M.livingRule, M.placeIsAddressLike, M.deathKind) })).finally(() => fs.rmSync(dir, { recursive: true, force: true }));
 };
 for (const [label, from, to, must] of [
   ["a 100-year bound", "LIVING_YEARS = 80;", "LIVING_YEARS = 100;", "age-81-is-not-living"],
   ["a 79-year bound", "LIVING_YEARS = 80;", "LIVING_YEARS = 79;", "age-80-is-living"],
-  ["a strict < instead of <=", "<= LIVING_YEARS", "< LIVING_YEARS", "age-80-is-living"],
-  ["a recorded death ignored", "    if (recordedDead) return false;\n    if (publicSource(citations, sources)) return false;\n    if (birthYear == null)", "    if (publicSource(citations, sources)) return false;\n    if (birthYear == null)", "recorded-death-means-dead"],
+  ["a strict > instead of >= on the cutoff", "Number(birthYear) >= cutoffYear(todayYear)", "Number(birthYear) > cutoffYear(todayYear)", "age-80-is-living"],
+  ["a cutoff typed as 1946 instead of derived", "return (todayYear || new Date().getFullYear()) - LIVING_YEARS;", "return 1946;", "line-moves-with-the-year-1946-in-2027"],
+  ["a citation that frees a dated person inside the window", "    if (birthYear != null) return inWindow(birthYear, todayYear);\n    if (publicSource(citations, sources) || undatedDead) return false;", "    if (publicSource(citations, sources)) return false;\n    if (birthYear != null) return inWindow(birthYear, todayYear);\n    if (undatedDead) return false;", "citation-does-not-free-born-1946"],
+  ["a bare death flag read as a death record", "if (p.dead === true || p.deceased === true) kinds.push(\"flag\");", "if (p.dead === true || p.deceased === true) kinds.push(\"record\");", "death dead-true-is-a-flag"],
+  ["a flag passed to the rule as a record", "    if (recordedDead) return false;\n    if (birthYear != null) return inWindow(birthYear, todayYear);", "    if (recordedDead || undatedDead) return false;\n    if (birthYear != null) return inWindow(birthYear, todayYear);", "undated-death-flag-born-1950-is-living"],
+  ["a recorded death ignored", "    if (recordedDead) return false;\n    if (birthYear != null) return inWindow(birthYear, todayYear);", "    if (birthYear != null) return inWindow(birthYear, todayYear);", "recorded-death-means-dead"],
   ["a known child held out", "    if (birthYear != null) return false;\n    if (livingRule.recentChild(youngestChildYear, todayYear)) return false;\n    if (saidLiving) return false;   /* the archive's own data says living: a known child follows the standard */\n    return Boolean(parentLiving);", "    return Boolean(parentLiving);", "known-child-is-living-and-not-held-out"],
   ["a 100-year recent-child bound", "CHILD_LIVING_YEARS = 60;", "CHILD_LIVING_YEARS = 100;", "undated-child-boundary-61"],
   ["a 59-year recent-child bound", "CHILD_LIVING_YEARS = 60;", "CHILD_LIVING_YEARS = 59;", "undated-child-boundary-60"],

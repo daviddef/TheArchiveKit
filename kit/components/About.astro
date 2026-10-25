@@ -65,7 +65,7 @@ const has = (x) => x != null && String(x).trim() !== "";
       known rather than witnessed in a record; <b>family</b>, told or remembered and not sourced;
       <b>disputed</b>, two sources disagree and neither has been ruled out.
       <a href={u("/method/")}>The method &rarr;</a></p>
-    <p class="ab-live">{living ?? "Living people are named and nothing more — no dates, no places, no photographs. Anyone whose death is not recorded and who would be under eighty is treated as living."}</p>
+    <p class="ab-live">{living ?? "Living people are named and nothing more — no dates, no places, no photographs. Anyone whose death is not recorded and who is eighty or younger is treated as living."}</p>
   </section>
 
   {has(rests) ? (

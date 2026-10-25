@@ -15,7 +15,14 @@ for names — and they were never duplicates: they enforce different rules.
 
 AND THE AGE RULE, under every policy: anyone more than EIGHTY YEARS OLD is
 treated as deceased. An archive that cannot say whether somebody is alive has
-to presume something, and this is what it presumes.
+to presume something, and this is what it presumes. The eighty is
+living_rule.LIVING_YEARS and the line is living_rule.cutoff_year(): one derived
+number for the whole kit (25 October 2026), not a copy kept in living-words.json.
+
+THE PRINTED-YEAR GATE (25 October 2026): `--years` also runs kit/tools/livingyears.py, which
+fails if any built page or data file prints a YEAR or date on or after that line for a person
+the data says has no death, whatever the person's own flag or citations say. `--years-only`
+runs it alone. See that file, and kit/docs/living.md.
 
 WHO IS LIVING comes from whichever source the archive has, and the archive
 owns that question, not this file:
@@ -60,6 +67,7 @@ import collections
 import os.path as _p, sys as _sys
 _sys.path.insert(0, _p.dirname(_p.abspath(__file__)))
 import outdir as _outdir  # ARCHIVE_OUT beats --dist; see kit/tools/outdir.py
+import living_rule as _lr  # the one definition of the living line (LIVING_YEARS, cutoff_year)
 
 # THE VOCABULARY IS DECLARED, NOT RESTATED. kit/data/living-words.json holds how
 # this estate writes down that somebody is alive, and three separate readers of
@@ -78,7 +86,9 @@ try:
 except Exception:
     _W = {}
 
-PRESUME_DEAD_AFTER = _W.get("presumeDeadAfter", 80)
+# ONE DERIVED CONSTANT. This was read from living-words.json ("presumeDeadAfter": 80) as a second copy of the
+# kit's eighty; there is now only living_rule.LIVING_YEARS, and a presumeDeadAfter in an old data file is ignored.
+PRESUME_DEAD_AFTER = _lr.LIVING_YEARS
 MIN_PHRASE = 7
 
 NAME_KEYS = ("name", "n", "who", "t")
@@ -168,8 +178,9 @@ def first(r, keys):
 
 
 def older_than(born, years, today):
+    """Born before the living line (today's year minus `years`; 1946 is NOT older in 2026)."""
     m = YEAR.search(born or "")
-    return bool(m) and (today.year - int(m.group(1))) > years
+    return bool(m) and int(m.group(1)) < today.year - years
 
 
 UNREADABLE = []          # data files this gate could not parse — see below
@@ -512,9 +523,31 @@ def main():
                     choices=["named-bare", "absent", "declared"])
     ap.add_argument("--declared", default=None)
     ap.add_argument("--quiet", action="store_true")
+    ap.add_argument("--years", action="store_true",
+                    help="also run the printed-year gate (kit/tools/livingyears.py)")
+    ap.add_argument("--years-only", action="store_true", help="run only the printed-year gate")
+    ap.add_argument("--config", default=None, help="standard.json: its living_years block names the registry and prefixes")
+    ap.add_argument("--allow-file", default=None, help="registry of reviewed year exceptions, each with a reason")
+    ap.add_argument("--allow-prefix", action="append", default=[], help="built-file address prefix that is not about people")
+    ap.add_argument("--strict-allow", action="store_true", help="a registry entry that matched nothing is a failure")
+    ap.add_argument("--today-year", type=int, default=None,
+                    help="the year the line is drawn from (default: this year, or $LIVING_TODAY_YEAR)")
     a = ap.parse_args()
     a.dist = _outdir.resolve(a.dist)
+    ty = a.today_year or (int(os.environ["LIVING_TODAY_YEAR"]) if os.environ.get("LIVING_TODAY_YEAR") else None)
+    rc = 0
+    if not a.years_only:
+        rc = main_policy(a, ty)
+    if a.years or a.years_only:
+        import livingyears as _ly
+        rc = max(rc, _ly.run_cli(a.dist, a.data, ty, a.config, a.allow_file, a.allow_prefix, a.strict_allow, a.quiet))
+    return rc
+
+
+def main_policy(a, today_year=None):
     today = datetime.date.today()
+    if today_year:
+        today = today.replace(year=int(today_year), month=1, day=1)
 
     if not os.path.isdir(a.dist):
         print(f"checkliving: no {a.dist} — build first")
