@@ -74,7 +74,7 @@ Three detectors:
 
 A year that is not a living person's birth goes in a **registry** (`data/living-year-allow.json`, named in `standard.json` or by
 `--allow-file`): entries `{text, why}` or `{file, contains, reason}` (the Mazza and Defranceschi, and the Lerena, files are read as they
-stand), each with a reason of at least 8 characters, or the gate refuses to run. The entry's text is removed from what the gate reads; an
+stand; Lerena's `unpublished_deaths` slugs exempt that person's `/people/<slug>/` page and treat the name as a dead person's), each with a reason of at least 8 characters, or the gate refuses to run. The entry's text is removed from what the gate reads; an
 entry that matched nothing is *stale*, counted, and a failure with `--strict-allow`. A built file that is not about people takes
 `--allow-prefix`. In `standard.json`:
 
@@ -90,7 +90,7 @@ fault per detector in a copy of a synthetic build, proves the controls (a dead p
 line, a copyright year, a sitemap date) pass, proves the line moves with the calendar, and proves the gate fails when its cutoff or its
 flag handling is broken.
 
-What it does not do: it cannot see a person who is not in the archive's data (a newspaper's birth notice; the `birth-shape` detector
+What it does not do: it reads a death only AFTER the year (a death word before it, as in «death registration 1983 · born 1948», is not an excuse; put such a line in the registry); it cannot see a person who is not in the archive's data (a newspaper's birth notice; the `birth-shape` detector
 still reads the notice), and it cannot tell two people of one name apart (the namesake subtraction trades a possible miss for no noise).
 
 ## Adopting it (the re-pin)

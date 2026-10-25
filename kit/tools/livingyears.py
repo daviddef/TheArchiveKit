@@ -206,6 +206,7 @@ class Allow:
     def __init__(self):
         self.entries = []        # {text, file, reason, used}
         self.prefixes = []
+        self.dead_slugs = {}     # slug -> reason: the data records a death that no page prints (Lerena's unpublished_deaths)
 
     def add(self, text, reason, file=None):
         self.entries.append({"text": text, "file": file, "reason": reason, "used": 0})
@@ -223,6 +224,14 @@ class Allow:
             if not text or len(why) < 8:
                 raise ValueError("%s: an allow entry needs its text and a reason of at least 8 characters" % path)
             self.add(text, why, e.get("file"))
+        # {"unpublished_deaths": [{"slug", "reason"}]}: the archive's own data records the death but no page prints it.
+        # Their own page is exempt and their name is treated as a dead person's (never a living person's year).
+        for e in (j.get("unpublished_deaths") or []) if isinstance(j, dict) else []:
+            slug, why = str(e.get("slug") or "").strip(), str(e.get("reason") or "").strip()
+            if not slug or len(why) < 8:
+                raise ValueError("%s: an unpublished_deaths entry needs its slug and a reason of at least 8 characters" % path)
+            self.dead_slugs[slug] = why
+            self.prefixes.append("/people/%s/" % slug)
 
     def strip(self, rel, text):
         for e in self.entries:
@@ -246,11 +255,12 @@ class Allow:
 class Finder:
     """The person set reduced to what the detectors need, for one cutoff."""
 
-    def __init__(self, people, today_year):
+    def __init__(self, people, today_year, dead_slugs=()):
         self.today = int(today_year)
+        self.dead_slug_names = {fold(sl.replace("-", " ")) for sl in dead_slugs}
         self.cut = lr.cutoff_year(self.today)
         self.living = [p for p in (people or []) if p.born is not None and p.born >= self.cut and p.born <= self.today
-                       and p.kind != "record"]
+                       and p.kind != "record" and fold(norm(p.name)) not in self.dead_slug_names]
         self.dead_young = [p for p in (people or []) if p.born is not None and p.born >= self.cut and p.kind == "record"]
         dead_phr = set()
         for p in people or []:
@@ -352,6 +362,8 @@ class Finder:
             if isinstance(bv, str) and DEATH.search(bv):
                 continue
             who = norm(str(_first(r, NAME_KEYS) or "")) or "unnamed"
+            if fold(who) in self.dead_slug_names:
+                continue
             out.append((rel, "json-row", "a data row carries a birth year (%d) and no death record (%s)" % (y, who)))
         return out
 
@@ -417,7 +429,7 @@ def run(dist, data_dir, today_year=None, allow=None, quiet=False, min_pages=5, s
     if not ok:
         say("  FAIL  living-years  the gate's own probe failed, so a pass would mean nothing: " + why)
         return 1, [], info
-    finder = Finder(people, today)
+    finder = Finder(people, today, allow.dead_slugs)
     fails = []
     scanned = 0
     for path in sorted(files):
