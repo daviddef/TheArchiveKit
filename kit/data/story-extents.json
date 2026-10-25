@@ -1,0 +1,12 @@
+{
+  "note": "Named map extents for the family story (kit/docs/story.md). A map's `extent` is either one of these names or its own box: {west, east, south, north, projection}. Longitude and latitude in degrees. `projection` is how degrees become a flat picture: 'equirectangular' (the default: x is scaled by the cosine of the middle latitude, so a town does not look stretched), 'plate-carree' (degrees are degrees; honest only near the equator) or 'mercator' (north-up navigation chart; stretches the poles). A name here is only a box and a projection: the coastline for it comes from story-basemap.json when a layer of that name covers the box, and from the 50m outlines in outlines.json when the box is small.",
+  "extents": {
+    "world":            { "west": -180, "east": 180, "south": -58, "north": 84, "projection": "equirectangular", "title": "The world" },
+    "europe":           { "west": -12,  "east": 40,  "south": 34,  "north": 66, "projection": "equirectangular", "title": "Europe" },
+    "mediterranean":    { "west": -10,  "east": 37,  "south": 29,  "north": 47, "projection": "equirectangular", "title": "The Mediterranean" },
+    "british-isles":    { "west": -11,  "east": 2.5, "south": 49.5,"north": 61, "projection": "equirectangular", "title": "The British Isles" },
+    "southern-africa":  { "west": 10,   "east": 42,  "south": -36,  "north": -8, "projection": "equirectangular", "title": "Southern Africa" },
+    "australasia":      { "west": 110,  "east": 180, "south": -48,  "north": -10,"projection": "equirectangular", "title": "Australia and New Zealand" },
+    "south-america-cone": { "west": -78, "east": -34, "south": -56, "north": -18,"projection": "equirectangular", "title": "The south of South America" }
+  }
+}

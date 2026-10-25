@@ -1,0 +1,58 @@
+{
+  "_note": "The one list of cases that both implementations of the story's small rules answer: kit/lib/story.js and kit/lib/mapgeom.js (node kit/tools/story_logic.mjs) and kit/tools/checkfamilystory.py (python3 kit/tools/checkfamilystory.py --selftest). If the two ever disagree about what a date is, what an initial is or what a map's extent is, the page and the gate are not holding the same rule.",
+  "dates": [
+    { "text": "baptised in 1790", "date": true },
+    { "text": "on 4 March", "date": true },
+    { "text": "March 4", "date": true },
+    { "text": "4th of May", "date": false },
+    { "text": "the 1990s", "date": true },
+    { "text": "A.D. 1200", "date": true },
+    { "text": "house 31", "date": false },
+    { "text": "aged 76", "date": false },
+    { "text": "999 men", "date": false },
+    { "text": "1,500 francs", "date": false },
+    { "text": "2100", "date": false },
+    { "text": "born in 2009", "date": true },
+    { "text": "12345", "date": false },
+    { "text": "", "date": false }
+  ],
+  "initials": [
+    { "name": "A.", "initial": true },
+    { "name": "AB", "initial": true },
+    { "name": "A.B.", "initial": true },
+    { "name": "Š.", "initial": true },
+    { "name": "Ž", "initial": true },
+    { "name": "Ann", "initial": false },
+    { "name": "a.", "initial": false },
+    { "name": "A. B. C.", "initial": false },
+    { "name": "A.B.C.D.", "initial": false },
+    { "name": "", "initial": false },
+    { "name": "living", "initial": false },
+    { "name": "A1", "initial": false }
+  ],
+  "extents": [
+    { "extent": "europe", "ok": true },
+    { "extent": "world", "ok": true },
+    { "extent": "atlantis", "ok": false },
+    { "extent": { "preset": "europe" }, "ok": true },
+    { "extent": { "preset": "atlantis" }, "ok": false },
+    { "extent": { "west": 5, "east": 11, "south": 44, "north": 47 }, "ok": true },
+    { "extent": { "west": 5, "east": 11, "south": 44, "north": 47, "projection": "mercator" }, "ok": true },
+    { "extent": { "west": 11, "east": 5, "south": 44, "north": 47 }, "ok": false },
+    { "extent": { "west": 5, "east": 11, "south": 47, "north": 44 }, "ok": false },
+    { "extent": { "west": -190, "east": 11, "south": 44, "north": 47 }, "ok": false },
+    { "extent": { "west": 5, "east": 11, "south": 44, "north": 90 }, "ok": false },
+    { "extent": { "west": 5, "east": 11, "south": 44, "north": 47, "projection": "orthographic" }, "ok": false },
+    { "extent": { "west": 5, "east": 11, "south": 44 }, "ok": false },
+    { "extent": null, "ok": false },
+    { "extent": 7, "ok": false }
+  ],
+  "inside": [
+    { "extent": { "west": 5, "east": 11, "south": 44, "north": 47 }, "lat": 45.9, "lon": 6.2, "in": true },
+    { "extent": { "west": 5, "east": 11, "south": 44, "north": 47 }, "lat": 44, "lon": 5, "in": true },
+    { "extent": { "west": 5, "east": 11, "south": 44, "north": 47 }, "lat": 47.01, "lon": 6, "in": false },
+    { "extent": { "west": 5, "east": 11, "south": 44, "north": 47 }, "lat": 45, "lon": 11.5, "in": false },
+    { "extent": "europe", "lat": 44.4, "lon": 8.9, "in": true },
+    { "extent": "europe", "lat": -25.3, "lon": 134, "in": false }
+  ]
+}

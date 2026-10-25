@@ -1,0 +1,235 @@
+/* The family story: tokens and style, one stylesheet for StoryBook, StoryRibbon, LineTree and StoryMap (kit/docs/story.md).
+ *
+ * TOKENS ONLY. Nothing here names a colour or a typeface. Every value is one of the archive's own tokens (--ink, --ink-2,
+ * --ink-3, --rule, --rule-strong, --panel, --panel-2, --paper, --accent, --accent-2, --accent-wash, --serif, --sans) read
+ * through a --st-* alias, so the story looks like the archive that tells it and follows its light and dark themes without
+ * a second stylesheet. The four colours the story adds are the evidence and the thread, and an archive may set them:
+ *     --ev-inferred  the dashed grade        --ev-family  the dotted grade
+ *     --terra        the thread to the next generation, the heavier leg      --ochre  the glyphs
+ * Each alias carries a fallback for light and for dark, used only where the archive defines no token of that name, under
+ * the same two switches the archives use (prefers-color-scheme unless the page says data-theme="light", and data-theme="dark").
+ *
+ * PHONE. Under 520px the prose is one size down and the world passages indent less; under 900px the ribbon scrolls inside
+ * itself; the two-zone chapter and the map-beside-its-key are for 1100px and up, and below that everything is one column in
+ * reading order.
+ */
+:root {
+  --st-ink: var(--ink, #1f1d1a); --st-ink-2: var(--ink-2, #46423b); --st-ink-3: var(--ink-3, #6b665e);
+  --st-rule: var(--rule, #ddd6ca); --st-rule-strong: var(--rule-strong, #b9b0a0);
+  --st-panel: var(--panel, #fbf8f2); --st-panel-2: var(--panel-2, #f1ece1); --st-paper: var(--paper, #ffffff);
+  --st-accent: var(--accent, #7a2e1f); --st-accent-2: var(--accent-2, var(--accent, #9a4b2b)); --st-accent-wash: var(--accent-wash, #f3e7e2);
+  --st-serif: var(--serif, Georgia, "Times New Roman", serif); --st-sans: var(--sans, system-ui, -apple-system, "Segoe UI", sans-serif);
+  --st-inf: var(--ev-inferred, #7a5200); --st-lore: var(--ev-family, #5f584a);
+  --st-thread: var(--terra, #a8442b); --st-glyph: var(--ochre, #845c15);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --st-ink: var(--ink, #ece8e1); --st-ink-2: var(--ink-2, #cfc9bf); --st-ink-3: var(--ink-3, #a39d91);
+    --st-rule: var(--rule, #3a403f); --st-rule-strong: var(--rule-strong, #5b605c);
+    --st-panel: var(--panel, #1e2830); --st-panel-2: var(--panel-2, #26323b); --st-paper: var(--paper, #17212a);
+    --st-accent: var(--accent, #d98b72); --st-accent-2: var(--accent-2, var(--accent, #e6a58f)); --st-accent-wash: var(--accent-wash, #2c2926);
+    --st-inf: var(--ev-inferred, #e0b45c); --st-lore: var(--ev-family, #b0a796);
+    --st-thread: var(--terra, #d97a5f); --st-glyph: var(--ochre, #d2a24a);
+  }
+}
+:root[data-theme="dark"] {
+  --st-ink: var(--ink, #ece8e1); --st-ink-2: var(--ink-2, #cfc9bf); --st-ink-3: var(--ink-3, #a39d91);
+  --st-rule: var(--rule, #3a403f); --st-rule-strong: var(--rule-strong, #5b605c);
+  --st-panel: var(--panel, #1e2830); --st-panel-2: var(--panel-2, #26323b); --st-paper: var(--paper, #17212a);
+  --st-accent: var(--accent, #d98b72); --st-accent-2: var(--accent-2, var(--accent, #e6a58f)); --st-accent-wash: var(--accent-wash, #2c2926);
+  --st-inf: var(--ev-inferred, #e0b45c); --st-lore: var(--ev-family, #b0a796);
+  --st-thread: var(--terra, #d97a5f); --st-glyph: var(--ochre, #d2a24a);
+}
+
+
+/* The page container's full width, one left edge with the title (David, 25 October 2026); the READING
+   measure is kept on the prose itself, not on the page. */
+.story { max-width: none; margin: 0; }
+.st-p, .st-world, .st-list, .st-text { max-width: 70ch; }
+.st-rib { margin: 0 0 18px; }
+/* Eight cards of one size: the generation, the person, where he came from, where a document later finds the
+   household (only where it differs), and his wife and where she came from. The outline carries the evidence for
+   "from": solid documented, dashed inferred, dotted the family's tree. All eight sit on one row from 900px; below
+   that the strip scrolls inside itself. */
+.st-rib ol { display: flex; gap: 14px; list-style: none; padding: 4px 2px 10px; margin: 0; overflow-x: auto; scrollbar-width: thin; align-items: stretch; }
+.st-rb { flex: 0 0 150px; position: relative; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 3px;
+  padding: 7px 7px 9px; border: 1.6px solid var(--st-accent); border-radius: 6px; background: var(--st-panel); font-family: var(--st-sans); color: var(--st-ink-2); }
+.st-rb + .st-rb::before { content: ""; position: absolute; left: -16px; top: 21px; width: 14px; border-top: 3px solid var(--st-thread); }
+.st-rb-inf { border-style: dashed; border-color: var(--st-inf); }
+.st-rb-lore { border-style: dotted; border-color: var(--st-lore); }
+.st-rb-top { display: flex; flex-direction: column; align-items: center; text-decoration: none; color: inherit; }
+.st-rb-top svg { fill: none; stroke: var(--st-glyph); stroke-width: 1.4; stroke-linejoin: round; stroke-linecap: round; }
+.st-rb-g { font-size: 9.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--st-ink-3); margin-top: 2px; }
+.st-rb-n { font-family: var(--st-serif); font-size: 15px; line-height: 1.15; color: var(--st-ink); }
+.st-rb-n a { color: inherit; text-decoration-color: var(--st-rule-strong); }
+.st-rb-y { font-size: 11px; color: var(--st-ink-3); }
+.st-rb-f { font-size: 11.5px; line-height: 1.3; color: var(--st-ink); }
+.st-rb-q, .st-rb-at { font-size: 10.5px; line-height: 1.3; color: var(--st-ink-3); }
+.st-rb-s { font-size: 10.5px; line-height: 1.3; color: var(--st-ink-2); border-top: 1px dotted var(--st-rule-strong); padding-top: 4px; margin-top: auto; width: 100%; }
+.st-rb-s a { color: var(--st-accent); }
+.st-rb.on, .st-rb:hover { background: var(--st-accent-wash); }
+.st-rb.on { box-shadow: 0 0 0 2px var(--st-thread); }
+.st-rb a:focus-visible { outline: 2px solid var(--st-accent-2); outline-offset: 2px; }
+@media (min-width: 900px) {
+  .st-rib ol { overflow-x: visible; gap: 10px; }
+  .st-rb { flex: 1 1 0; min-width: 0; padding: 7px 5px 9px; }
+  .st-rb + .st-rb::before { left: -12px; width: 10px; }
+}
+@media (min-width: 900px) and (max-width: 1150px) {
+  .st-rb-n { font-size: 13.5px; }
+}
+.st-rb-note { font-family: var(--st-sans); font-size: 12px; color: var(--st-ink-3); margin: 2px 0 0; line-height: 1.5; }
+
+.st-legend { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 22px; font-family: var(--st-sans); font-size: 12.5px; line-height: 1.5;
+  color: var(--st-ink-2); border-top: 1px solid var(--st-rule); border-bottom: 1px solid var(--st-rule); padding: 10px 0; margin: 6px 0 20px; }
+.st-lt { font-weight: 600; letter-spacing: .12em; text-transform: uppercase; font-size: 10.5px; color: var(--st-ink-3); }
+.st-li { display: inline-block; }
+.st-toc { display: grid; grid-template-columns: minmax(0, 1fr); gap: 4px 28px; font-family: var(--st-sans); font-size: 14px; margin: 0 0 8px; }
+@media (min-width: 700px) { .st-toc { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-flow: row; } }
+@media (min-width: 1100px) { .st-toc { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.st-toc a { color: var(--st-accent); text-decoration: none; padding: 2px 0; }
+.st-toc a:hover { text-decoration: underline; }
+.st-tn { display: inline-block; min-width: 2.6em; font-family: var(--st-serif); color: var(--st-ink-3); }
+
+.st-ch { margin: 26px 0 8px; }
+.st-head { text-align: left; margin: 4px 0 26px; }
+/* Two zones from 1100px: the prose at its reading measure on the left; the tree, the old chapter's document cards
+   and the plates on the right; the map across the full width under both. DOM order is unchanged (text, tree, map,
+   cards, plates, papers), so reading and focus order are the same at every width. */
+@media (min-width: 1100px) {
+  .st-chap { display: grid; grid-template-columns: minmax(0, 66ch) minmax(300px, 1fr); grid-template-rows: auto auto auto auto 1fr auto auto; column-gap: 52px; align-items: start; }
+  .st-chap > .st-head { grid-column: 1 / -1; }
+  .st-chap > .st-text { grid-column: 1; grid-row: 2 / 6; }
+  .st-chap > .st-treez { grid-column: 2; grid-row: 2; }
+  .st-chap > .st-cards { grid-column: 2; grid-row: 3; margin-top: 8px; }
+  .st-chap > .st-plates { grid-column: 2; grid-row: 4; }
+  .st-chap > .st-mapz { grid-column: 1 / -1; grid-row: 6; }
+  .st-chap > .st-papers { grid-column: 1 / -1; grid-row: 7; }
+  .st-chap > .st-treez .st-tree { margin-top: 0; }
+}
+.st-num { font-family: var(--st-serif); font-size: 15px; letter-spacing: .3em; color: var(--st-accent); }
+.st-h { font-family: var(--st-serif); font-weight: 500; font-size: clamp(27px, 4.4vw, 36px); line-height: 1.15; margin: 6px 0 0; color: var(--st-ink); }
+.st-pro .st-h, .st-hs2 { font-size: clamp(24px, 3.6vw, 30px); }
+.st-hs { font-size: 22px !important; }
+.st-when { font-family: var(--st-serif); font-variant: small-caps; letter-spacing: .08em; font-size: 17px; color: var(--st-ink-2); margin-top: 8px; }
+.st-gen { font-variant: normal; letter-spacing: 0; font-size: 14px; color: var(--st-ink-3); }
+.st-vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+.st-p { font-family: var(--st-serif); font-size: 20px; line-height: 1.62; color: var(--st-ink); margin: 0 0 16px; hyphens: auto; overflow-wrap: break-word; }
+.st-first::first-letter { float: left; font-size: 3.15em; line-height: .86; padding: 6px 8px 0 0; color: var(--st-accent); font-weight: 500; }
+.st-world { margin: 4px 0 18px; padding: 2px 0 2px 1.4em; border-left: 2px solid var(--st-rule); }
+.st-world .st-p { font-size: 18.5px; color: var(--st-ink-2); margin-bottom: 0; }
+.st-wl { font-variant: small-caps; letter-spacing: .08em; color: var(--st-ink-3); font-weight: 500; }
+
+.st-mk { font-family: var(--st-sans); font-size: 10.5px; font-weight: 600; letter-spacing: .06em; line-height: 0; margin-left: 4px; vertical-align: super; white-space: nowrap; }
+.st-mk a { text-decoration: none; color: inherit; padding: 0 2px; border-radius: 2px; }
+.st-mk a:hover { text-decoration: underline; }
+.st-mk-doc { color: var(--st-accent); }
+.st-mk-inf { color: var(--st-inf); }
+.st-mk-lore { color: var(--st-lore); font-style: italic; }
+.st-mk-archive, .st-mk-history { color: var(--st-ink-3); font-weight: 500; }
+.st-legend .st-mk { line-height: 1; margin-left: 0; }
+.st-tbc { font-family: var(--st-serif); font-variant: small-caps; letter-spacing: .06em; font-size: .82em; color: var(--st-inf); white-space: nowrap; }
+
+.st-cards { margin: 22px 0 6px; }
+.st-cn { font-family: var(--st-sans); font-size: 12px; color: var(--st-ink-3); margin: 0 0 8px; }
+.st-card { background: var(--st-panel); border: 1px solid var(--st-rule); border-left: 3px solid var(--st-accent); border-radius: 2px; padding: 14px 18px 12px; margin: 0 0 12px; }
+.st-ck { font-family: var(--st-sans); font-size: 10.5px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--st-accent); }
+.st-ct { font-family: var(--st-serif); font-size: 18px; color: var(--st-ink); margin-top: 4px; }
+.st-q { font-family: var(--st-serif); font-style: italic; font-size: 18px; line-height: 1.5; color: var(--st-ink); margin: 10px 0 4px; padding-left: 12px; border-left: 2px solid var(--st-rule-strong); }
+.st-qs { font-family: var(--st-sans); font-size: 12.5px; color: var(--st-ink-3); margin: 0; }
+.st-hard { font-family: var(--st-serif); font-size: 16.5px; line-height: 1.5; color: var(--st-ink-2); margin: 10px 0 0; }
+.st-hl { font-variant: small-caps; letter-spacing: .06em; color: var(--st-ink); }
+.st-cf { font-family: var(--st-sans); font-size: 12.5px; line-height: 1.5; color: var(--st-ink-2); margin: 8px 0 0; }
+
+.st-plates { margin: 22px 0 6px; }
+/* the fallback plates (an archive without its own plates component): a grid of figures, the held picture and what it is */
+.st-plates:not(:has(.plates)) { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; align-items: start; }
+.st-plate { margin: 0; background: var(--st-panel); border: 1px solid var(--st-rule); border-radius: 2px; padding: 6px; }
+.st-plate img { display: block; width: 100%; height: auto; }
+.st-plate figcaption { font-family: var(--st-sans); font-size: 11.5px; line-height: 1.35; color: var(--st-ink-2); margin-top: 6px; }
+.st-plt { display: block; color: var(--st-ink); }
+.st-plh { display: block; color: var(--st-ink-3); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.st-papers { font-family: var(--st-sans); font-size: 13.5px; line-height: 1.75; color: var(--st-ink-2); margin: 18px 0 0; padding-top: 10px; border-top: 1px dotted var(--st-rule-strong); }
+.st-papl { display: block; font-variant: small-caps; letter-spacing: .1em; font-size: 14px; color: var(--st-ink-3); }
+.st-papers a { color: var(--st-accent); }
+
+.st-list { font-family: var(--st-serif); font-size: 18.5px; line-height: 1.55; color: var(--st-ink); padding-left: 1.1em; margin: 0; }
+.st-list li { margin: 0 0 12px; }
+.st-more { font-family: var(--st-sans); font-size: 13px; color: var(--st-accent); white-space: nowrap; }
+.st-read a { color: var(--st-accent); }
+.st-rw { color: var(--st-ink-2); font-size: .9em; }
+.st-notes .st-p, .st-wn { font-size: 15.5px; }
+.st-wk { font-family: var(--st-sans); font-size: 11px; font-weight: 600; color: var(--st-ink-3); margin-right: 4px; }
+.story a:focus-visible { outline: 2px solid var(--st-accent-2); outline-offset: 2px; }
+
+@media (max-width: 520px) {
+  .st-p { font-size: 18.5px; line-height: 1.58; }
+  .st-world { padding-left: .9em; }
+  .st-world .st-p { font-size: 17px; }
+  .st-list { font-size: 17px; }
+  .st-q { font-size: 17px; }
+}
+
+
+.st-tree { margin: 22px 0 8px; max-width: 440px; }
+.st-tree svg { display: block; width: 100%; height: auto; overflow: visible; }
+.st-box { fill: var(--st-panel); stroke: var(--st-rule); }
+.st-glyph { fill: none; stroke: var(--st-glyph); stroke-width: 1.4; stroke-linejoin: round; stroke-linecap: round; }
+.st-stem { stroke: var(--st-rule-strong); stroke-width: 2; }
+.st-thread { fill: none; stroke: var(--st-thread); stroke-width: 3; stroke-linecap: round; }
+.st-tick { stroke: var(--st-rule-strong); stroke-width: 1.6; }
+.st-tick.st-on { stroke: var(--st-thread); stroke-width: 3; }
+.st-e-inf { stroke-dasharray: 5 4; }
+.st-e-lore { stroke-dasharray: 1.5 3.5; stroke-linecap: round; }
+.st-n { fill: var(--st-paper); stroke: var(--st-accent); stroke-width: 2; }
+.st-inf { stroke-dasharray: 3.5 2.5; stroke: var(--st-inf); }
+.st-lore { stroke-dasharray: 1 2.6; stroke-linecap: round; stroke: var(--st-lore); }
+.st-living { fill: var(--st-panel-2); stroke: var(--st-ink-3); }
+.st-lc { fill: var(--st-thread); }
+.st-name { font-family: var(--st-serif); font-size: 15px; fill: var(--st-ink); }
+.st-ln { font-weight: 600; }
+.st-yr { font-family: var(--st-sans); font-size: 11.5px; fill: var(--st-ink-3); font-weight: 400; }
+.st-gap { font-family: var(--st-serif); font-style: italic; font-size: 13.5px; fill: var(--st-ink-3); }
+.st-next { font-family: var(--st-sans); font-size: 12px; fill: var(--st-thread); font-weight: 600; }
+.st-tree a:hover .st-name { fill: var(--st-accent); }
+.st-tree a:focus-visible { outline: none; }
+.st-tree a:focus-visible .st-n { stroke: var(--st-accent-2); stroke-width: 4; }
+.st-tree a:focus-visible .st-name { fill: var(--st-accent); text-decoration: underline; }
+.st-cap { font-family: var(--st-sans); font-size: 12.5px; color: var(--st-ink-3); margin-top: 6px; line-height: 1.5; }
+
+
+.st-map { margin: 22px 0 10px; }
+/* At a wide container the map and its key sit side by side, so the map uses the width without growing taller than
+   a screen. Below 1100px the key follows the map. */
+@media (min-width: 1100px) {
+  .st-map { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(240px, 1fr); column-gap: 32px; align-items: start; }
+  .st-map .st-mcap { margin-top: 0; }
+}
+.st-map svg[role="img"] { display: block; width: 100%; height: auto; border: 1px solid var(--st-rule); border-radius: 2px; }
+.st-sea { fill: var(--st-panel); }
+.st-land { fill: var(--st-panel-2); stroke: var(--st-rule-strong); stroke-width: .6; }
+.st-border { fill: none; stroke: var(--st-rule-strong); stroke-width: .6; stroke-dasharray: 2 2; }
+.st-region { fill: var(--st-accent-wash); stroke: var(--st-rule-strong); stroke-width: .8; stroke-dasharray: 1 3; }
+.st-rl { font-family: var(--st-sans); font-size: 10px; letter-spacing: .14em; fill: var(--st-ink-3); }
+.st-leg { fill: none; stroke: var(--st-ink-2); stroke-width: 1.8; }
+.st-mine { stroke: var(--st-thread); stroke-width: 3; }
+.st-dashed { stroke-dasharray: 7 5; }
+.st-dotted { stroke-dasharray: 1.5 4.5; stroke-linecap: round; }
+.st-ah { fill: var(--st-ink-2); }
+.st-ahm { fill: var(--st-thread); }
+.st-ll { font-family: var(--st-sans); font-size: 11px; fill: var(--st-ink-2); paint-order: stroke; stroke: var(--st-panel); stroke-width: 3px; }
+.st-llm { fill: var(--st-thread); font-weight: 600; }
+.st-dot { fill: var(--st-paper); stroke: var(--st-accent); stroke-width: 2; }
+.st-dh { fill: var(--st-accent); }
+.st-ctry { fill: var(--st-paper); stroke: var(--st-accent); stroke-width: 1.6; }
+.st-pl { font-family: var(--st-serif); font-size: 15px; fill: var(--st-ink); paint-order: stroke; stroke: var(--st-panel); stroke-width: 3.5px; }
+.st-map a:focus-visible { outline: none; }
+.st-map a:focus-visible .st-dot, .st-map a:focus-visible .st-ctry, .st-map a:focus-visible .st-leg { stroke: var(--st-accent-2); stroke-width: 4; }
+.st-map a:hover .st-leg { stroke-width: 3.4; }
+.st-mcap { font-family: var(--st-sans); font-size: 12.5px; line-height: 1.6; color: var(--st-ink-2); margin-top: 8px; }
+.st-mtitle { font-weight: 600; color: var(--st-ink); margin-right: 8px; }
+.st-key { display: inline-block; margin-right: 12px; white-space: nowrap; }
+.st-k { stroke: var(--st-ink-2); stroke-width: 2; }
+.st-legs { margin: 6px 0 0; padding-left: 1.2em; }
+.st-legs a { color: var(--st-accent); }

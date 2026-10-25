@@ -1,0 +1,41 @@
+---
+/* The generations in order, as a row of equal cards: who, where they came from, where a document later finds them, and
+   whom they married and where she came from.
+
+   One card to a generation, all the same fields (kit/docs/story.md, "ribbon"), so that a reader sees eight people at once
+   and a missing field is a decision, not an accident: the name, the years, the origin and its evidence, the spouse and the
+   spouse's origin, an optional "at <place> <year>" line, and whether the person is living. The card's OUTLINE carries the
+   evidence for "from": solid documented, dashed inferred, dotted family memory. A living card prints no years and no year
+   on the "at" line, whatever the data holds. All the cards sit on one row from 900px; below that the strip scrolls inside
+   itself. The card for the chapter being read is marked by the page's script; without script the ribbon is a plain list
+   of links to the chapters.
+
+   props
+     ribbon      {note, cards[{name, years, origin, originGrade, spouse, spouseOrigin, atPlace, atYear, living, chapter,
+                  person?, spousePerson?, spouseHref?, spouseGrade?, title?, glyph?}]}
+     personHref  (slug) => address of a person's page, from the archive */
+import "../styles/story.css";
+import { GLYPHS, atLine, yearsLine } from "../lib/story.js";
+const { ribbon, personHref = (s) => `/people/${s}/`, u = (p) => p } = Astro.props;
+const ORDER = ["loom", "field", "stone", "wave", "works", "gable", "ship", "hill"];
+const SUFFIX = { inf: " (inferred)", lore: " (family's tree)" };
+const spouseLink = (c) => (c.spousePerson ? personHref(c.spousePerson) : c.spouseHref ? u(c.spouseHref) : null);
+---
+<nav class="st-rib" aria-label="The generations, in order">
+  <ol>
+    {ribbon.cards.map((c, i) => (
+      <li data-ch={c.chapter} data-living={c.living ? "1" : "0"} class={`st-rb st-rb-${c.originGrade || "doc"}`} title={c.title || undefined}>
+        <a class="st-rb-top" href={`#${c.chapter}`} aria-label={`Generation ${i + 1}: go to the chapter`}>
+          <svg viewBox="-2 -2 28 22" width="26" height="20" aria-hidden="true"><path d={GLYPHS[c.glyph] || GLYPHS[ORDER[i % ORDER.length]]} /></svg>
+          <span class="st-rb-g">Gen. {i + 1}</span>
+        </a>
+        <span class="st-rb-n">{c.person ? <a href={personHref(c.person)}>{c.name}</a> : c.name}</span>
+        {yearsLine(c) && <span class="st-rb-y">{yearsLine(c)}</span>}
+        <span class="st-rb-f">{c.origin ? `from ${c.origin}` : ""}{SUFFIX[c.originGrade] && <span class="st-rb-q">{SUFFIX[c.originGrade]}</span>}</span>
+        {atLine(c) && <span class="st-rb-at">{atLine(c)}</span>}
+        <span class="st-rb-s">{c.spouse ? <>m. {spouseLink(c) ? <a href={spouseLink(c)}>{c.spouse}</a> : c.spouse}{c.spouseOrigin ? `, ${c.spouseOrigin}` : ""}</> : ""}</span>
+      </li>
+    ))}
+  </ol>
+  {ribbon.note && <p class="st-rb-note">{ribbon.note}</p>}
+</nav>

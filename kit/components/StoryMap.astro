@@ -1,0 +1,85 @@
+---
+/* One map of a family's moves, drawn at build time as inline SVG: the coast, the places the papers put the family at, and
+   the legs between them.
+
+   The coast is Natural Earth (public domain, naturalearthdata.com) through kit/data/story-basemap.json or outlines.json,
+   clipped to the picture so a frame that touches Eurasia does not ship Eurasia (kit/lib/storymap.js). A map is a box and a
+   projection (kit/data/story-extents.json names the common ones; any box will do), so a family that never left one county
+   and a family that crossed three oceans use the same component.
+
+   The grammar is the paragraph marks' and the tree's: a SOLID leg has a document at each end, a DASHED leg is inferred, a
+   DOTTED leg is family memory. A leg whose route is not known is not drawn at all: it is listed under the map, in words, as
+   "route not known". A place flagged `country` is a square and a country name, no town: that is how the living generations
+   are placed. The chapter the map sits under draws its own legs heavier. Every dot and leg links to its chapter, and the same
+   legs are listed as text under the map for a reader who cannot see the picture.
+
+   props
+     map    {id, title, extent, places[{id, name, lat, lon, chapter, country?, dx?, dy?, anchor?, note?}],
+             legs[{from, to, grade, years?, chapter, routeKnown?, evidence?, bend?, labelOffset?}], regions[{label, lat, lon, radius?}]}
+     here   the id of the chapter this map is drawn under */
+import "../styles/story.css";
+import { buildMap } from "../lib/storymap.js";
+import { legText } from "../lib/story.js";
+const { map, here = null, u = (p) => p } = Astro.props;
+const M = buildMap(map);
+const { W, H } = M;
+const r1 = (v) => Math.round(v * 10) / 10;
+const listId = `map-${map.id}-legs`;
+const places = Object.values(M.places);
+const dots = places.filter((p) => !p.country);
+const lands = places.filter((p) => p.country);
+const drawn = M.legs.filter((L) => L.known && L.curve);
+const alt = `${map.title}. ` + M.legs.map((L) => `${legText(L)}: ${L.known ? L.word : "route not known"}.`).join(" ");
+const hasCountry = lands.length > 0;
+---
+<figure class="st-map" id={`map-${map.id}`} data-extent={M.extent.name || "box"} data-projection={M.extent.projection} data-basemap={M.source}>
+  <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-labelledby={`map-${map.id}-t`} aria-describedby={listId} data-w={W} data-h={H}>
+    <title id={`map-${map.id}-t`}>{alt}</title>
+    <defs>
+      <marker id={`ah-${map.id}`} viewBox="0 0 10 10" refX="7" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="st-ah" /></marker>
+      <marker id={`ahm-${map.id}`} viewBox="0 0 10 10" refX="7" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="st-ahm" /></marker>
+    </defs>
+    <rect class="st-sea" x="0" y="0" width={W} height={H} />
+    <path class="st-land" d={M.land} />
+    <path class="st-border" d={M.borders} />
+    {M.regions.map((g) => (
+      <g>
+        {g.rx > 0 && <ellipse class="st-region" cx={r1(g.x)} cy={r1(g.y)} rx={r1(g.rx)} ry={r1(g.ry)} />}
+        <text class="st-rl" x={r1(g.x)} y={r1(g.y - (g.ry > 0 ? g.ry + 6 : 0))} text-anchor="middle">{g.label}</text>
+      </g>
+    ))}
+    {drawn.map((L) => {
+      const mine = L.chapter === here;
+      return (
+        <a href={`#${L.chapter}`} data-leg={L.cls} aria-label={`${legText(L)}: ${L.word}. Go to the chapter.`}>
+          <path class={`st-leg st-${L.cls}${mine ? " st-mine" : ""}`} d={L.curve.d} marker-end={`url(#${mine ? "ahm" : "ah"}-${map.id})`} />
+          {L.years && <text class={`st-ll${mine ? " st-llm" : ""}`} x={L.curve.lx} y={L.curve.ly - 6} text-anchor="middle">{L.years}</text>}
+        </a>
+      );
+    })}
+    {dots.map((q) => (
+      <a href={`#${q.chapter}`} data-place={q.id} data-x={r1(q.x)} data-y={r1(q.y)} aria-label={`${q.name}${q.note ? ": " + q.note : ""}. Go to the chapter.`}>
+        <circle class={`st-dot${q.chapter === here ? " st-dh" : ""}`} cx={r1(q.x)} cy={r1(q.y)} r="4.5" />
+        <text class="st-pl" x={r1(q.x + (q.dx ?? 8))} y={r1(q.y + (q.dy ?? -8))} text-anchor={q.anchor || "start"}>{q.name}</text>
+      </a>
+    ))}
+    {lands.map((q) => (
+      <a href={`#${q.chapter}`} data-place={q.id} data-x={r1(q.x)} data-y={r1(q.y)} aria-label={`${q.name}, country only. Go to the chapter.`}>
+        <rect class="st-ctry" x={r1(q.x - 5)} y={r1(q.y - 5)} width="10" height="10" rx="2" />
+        <text class="st-pl" x={r1(q.x + (q.dx ?? 8))} y={r1(q.y + (q.dy ?? -8))} text-anchor={q.anchor || "start"}>{q.name}</text>
+      </a>
+    ))}
+  </svg>
+  <figcaption class="st-mcap">
+    <span class="st-mtitle">{map.title}.</span>
+    <span class="st-key"><svg width="26" height="8" aria-hidden="true"><line x1="1" y1="4" x2="25" y2="4" class="st-k st-solid" /></svg> documented</span>
+    <span class="st-key"><svg width="26" height="8" aria-hidden="true"><line x1="1" y1="4" x2="25" y2="4" class="st-k st-dashed" /></svg> inferred</span>
+    <span class="st-key"><svg width="26" height="8" aria-hidden="true"><line x1="1" y1="4" x2="25" y2="4" class="st-k st-dotted" /></svg> family memory</span>
+    {hasCountry && <span class="st-key"><svg width="12" height="12" aria-hidden="true"><rect x="1" y="1" width="10" height="10" rx="2" class="st-ctry" /></svg> country only, for the living generations</span>}
+    <ol class="st-legs" id={listId}>
+      {M.legs.map((L) => (
+        <li data-leg={L.known ? L.cls : "unknown"}><a href={`#${L.chapter}`}>{L.a ? L.a.name : L.from} → {L.b ? L.b.name : L.to}</a>{L.years ? `, ${L.years}` : ""} · <em>{L.known ? L.word : "route not known"}</em>{L.evidence && <> · <a href={L.evidence.startsWith("#") ? L.evidence : u(L.evidence)}>the evidence</a></>}</li>
+      ))}
+    </ol>
+  </figcaption>
+</figure>

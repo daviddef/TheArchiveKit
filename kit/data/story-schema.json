@@ -1,0 +1,224 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "kit/data/story-schema.json",
+  "title": "The family story: what an archive supplies (kit/docs/story.md)",
+  "description": "The shape of the one data file (an archive's src/data/story.json) that components/StoryBook.astro draws and tools/checkfamilystory.py holds to its rules. This file says what a field IS; the gate says what the fields may not CONTRADICT (a living person with a date, a place outside its map, a link that goes nowhere). Grades: doc (a document says so), inf (the archive reasons it from documents), lore (family memory, a family chart or tree).",
+  "type": "object",
+  "required": ["title", "ribbon", "chapters", "closing"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "_note": { "type": "string" },
+    "title": { "type": "string", "minLength": 1, "description": "The page's title, which the archive's layout draws." },
+    "eyebrow": { "type": "string" },
+    "dek": { "type": "string" },
+    "legend": { "type": "array", "items": { "type": "array", "minItems": 2, "maxItems": 2, "items": { "type": "string" } }, "description": "Optional [[grade, words], ...] to replace the default three." },
+    "cardsNote": { "type": "string", "description": "A line above a chapter's document cards." },
+    "prologue": {
+      "type": "object", "required": ["title", "paragraphs"], "additionalProperties": false,
+      "properties": { "title": { "type": "string", "minLength": 1 }, "paragraphs": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/paragraph" } } }
+    },
+    "ribbon": {
+      "type": "object", "required": ["cards"], "additionalProperties": false,
+      "properties": { "note": { "type": "string" }, "cards": { "type": "array", "minItems": 2, "items": { "$ref": "#/$defs/card" } } }
+    },
+    "chapters": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/chapter" } },
+    "maps": { "type": "array", "items": { "$ref": "#/$defs/map" } },
+    "closing": {
+      "type": "object", "required": ["unknown", "papers"], "additionalProperties": false,
+      "properties": {
+        "after": {
+          "type": "object", "required": ["title", "text"], "additionalProperties": false,
+          "properties": { "title": { "type": "string" }, "text": { "type": "string" }, "links": { "type": "array", "items": { "$ref": "#/$defs/link" } } }
+        },
+        "unknown": {
+          "type": "object", "required": ["title", "items"], "additionalProperties": false,
+          "properties": {
+            "title": { "type": "string", "minLength": 1 }, "lead": { "type": "string" },
+            "items": { "type": "array", "minItems": 1, "items": { "type": "object", "required": ["text"], "additionalProperties": false, "properties": { "text": { "type": "string", "minLength": 1 }, "href": { "type": "string" } } } }
+          }
+        },
+        "papers": {
+          "type": "object", "required": ["title", "links"], "additionalProperties": false,
+          "properties": { "title": { "type": "string", "minLength": 1 }, "lead": { "type": "string" }, "links": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/link" } } }
+        },
+        "notes": {
+          "type": "object", "required": ["title", "items"], "additionalProperties": false,
+          "properties": {
+            "title": { "type": "string" }, "lead": { "type": "string" },
+            "items": { "type": "array", "items": { "type": "object", "required": ["key", "claim", "source"], "additionalProperties": false, "properties": { "key": { "type": "string" }, "claim": { "type": "string" }, "source": { "type": "string" }, "tbc": { "type": "boolean" } } } }
+          }
+        },
+        "mapNote": { "type": "string" }
+      }
+    },
+    "conflicts": {
+      "type": "array",
+      "items": { "type": "object", "required": ["chapter", "note"], "additionalProperties": false, "properties": { "chapter": { "type": "string" }, "note": { "type": "string", "minLength": 1 } } },
+      "description": "Where two of the archive's own sources disagree and the question waits for the researcher. Shown under the chapter, marked to be confirmed; never silently resolved."
+    }
+  },
+  "$defs": {
+    "grade": { "enum": ["doc", "inf", "lore"] },
+    "link": {
+      "type": "object", "required": ["title", "href"], "additionalProperties": false,
+      "properties": { "title": { "type": "string", "minLength": 1 }, "href": { "type": "string", "minLength": 1 }, "why": { "type": "string" } }
+    },
+    "evidence": {
+      "type": "object", "required": ["href"], "additionalProperties": false,
+      "properties": {
+        "href": { "type": "string", "minLength": 1, "description": "Where the claim can be checked: a page of this archive (with #anchor), or person:slug." },
+        "why": { "type": "string", "description": "What is there, in a line: the register, the date, the page." },
+        "kind": { "enum": ["archive", "history"], "description": "World paragraphs only: archive = this archive's own pages, history = general history listed in closing.notes." }
+      }
+    },
+    "paragraph": {
+      "type": "object", "required": ["text"], "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+        "text": { "type": "string", "minLength": 1, "description": "Light markup: *italic*, **bold**, «quoted», [words](/path/#anchor) or [words](person:slug)." },
+        "register": { "enum": ["people", "world"], "description": "people (the default): what the papers say of these people, graded. world: the place and the years around them, sourced, never a claim that these people did or saw it." },
+        "grade": { "$ref": "#/$defs/grade" },
+        "worldSource": { "enum": ["archive", "history"] },
+        "evidence": { "type": "array", "items": { "$ref": "#/$defs/evidence" } },
+        "tbc": { "type": "string", "description": "A claim the archive is not sure of: why it is still to be confirmed." }
+      },
+      "allOf": [
+        { "if": { "properties": { "register": { "const": "world" } }, "required": ["register"] }, "then": { "required": ["worldSource", "evidence"] }, "else": { "required": ["grade"] } }
+      ]
+    },
+    "node": {
+      "type": "object", "required": ["name"], "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+        "name": { "type": "string", "minLength": 1 },
+        "years": { "type": "string", "description": "As the papers give them (1787–1846, farmer; of Krbune). Absent on a living node." },
+        "grade": { "$ref": "#/$defs/grade" },
+        "person": { "type": "string", "description": "The slug of the person's page in this archive." },
+        "href": { "type": "string" },
+        "living": { "type": "boolean" },
+        "minor": { "type": "boolean", "description": "A living child: shown by initials only." }
+      },
+      "if": { "properties": { "living": { "const": true } }, "required": ["living"] },
+      "then": {},
+      "else": { "required": ["grade"] }
+    },
+    "row": {
+      "type": "object", "required": ["kind"], "additionalProperties": false,
+      "properties": {
+        "kind": { "enum": ["above", "couple", "children", "grandchildren", "gap"] },
+        "nodes": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/node" } },
+        "text": { "type": "string" }
+      },
+      "if": { "properties": { "kind": { "const": "gap" } } },
+      "then": { "required": ["text"] },
+      "else": { "required": ["nodes"] }
+    },
+    "tree": {
+      "type": "object", "required": ["rows"], "additionalProperties": false,
+      "properties": {
+        "glyph": { "enum": ["hill", "loom", "field", "stone", "wave", "works", "gable", "ship"] },
+        "note": { "type": "string" },
+        "thread": { "type": "string", "description": "The id of the node who carries the line on into the next chapter." },
+        "rows": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/row" } }
+      }
+    },
+    "quote": {
+      "type": "object", "required": ["text", "source"], "additionalProperties": false,
+      "properties": {
+        "title": { "type": "string" }, "label": { "type": "string", "description": "Year and place, as the card's heading line." },
+        "text": { "type": "string", "minLength": 1 }, "source": { "type": "string", "minLength": 1 },
+        "hardLimit": { "type": "string" }
+      }
+    },
+    "chapter": {
+      "type": "object", "required": ["id", "numeral", "title", "place", "years", "paragraphs", "papers"], "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+        "numeral": { "type": "string", "minLength": 1 },
+        "title": { "type": "string", "minLength": 1 },
+        "place": { "type": "string" },
+        "years": { "type": "string", "description": "The span, as printed: 1773–1805. May be empty for the living." },
+        "generation": { "oneOf": [{ "type": "integer", "minimum": 1 }, { "type": "array", "minItems": 1, "items": { "type": "integer", "minimum": 1 } }] },
+        "paragraphs": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/paragraph" } },
+        "tree": { "$ref": "#/$defs/tree" },
+        "quote": { "oneOf": [{ "$ref": "#/$defs/quote" }, { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/quote" } }] },
+        "hardLimit": { "type": "string" },
+        "plates": { "type": "array", "items": { "type": "string" } },
+        "papers": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/link" } }
+      }
+    },
+    "card": {
+      "type": "object",
+      "required": ["name", "years", "origin", "originGrade", "spouse", "spouseOrigin", "atPlace", "atYear", "living", "chapter"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "years": { "type": "string", "description": "1750–1829; † for a death whose date is not printed; empty for the living." },
+        "origin": { "type": "string", "description": "Where he or she came from; the card reads 'from <origin>'." },
+        "originGrade": { "$ref": "#/$defs/grade" },
+        "spouse": { "type": "string" },
+        "spouseOrigin": { "type": "string", "description": "Written as it should read: 'of Krbune'." },
+        "atPlace": { "type": "string", "description": "Where a document later finds the household, where it differs from the origin. Empty if it does not." },
+        "atYear": { "type": "string", "description": "Empty on a living card." },
+        "living": { "type": "boolean" },
+        "chapter": { "type": "string", "description": "The chapter the card links to." },
+        "person": { "type": "string" },
+        "spousePerson": { "type": "string" },
+        "spouseHref": { "type": "string" },
+        "spouseLiving": { "type": "boolean", "description": "Defaults to the card's own living flag." },
+        "title": { "type": "string" },
+        "glyph": { "enum": ["hill", "loom", "field", "stone", "wave", "works", "gable", "ship"] }
+      }
+    },
+    "extent": {
+      "oneOf": [
+        { "type": "string", "minLength": 1, "description": "A name from kit/data/story-extents.json." },
+        {
+          "type": "object", "additionalProperties": false, "required": ["preset"],
+          "properties": { "preset": { "type": "string", "minLength": 1 }, "projection": { "enum": ["equirectangular", "plate-carree", "mercator"] } },
+          "description": "A name, with its projection overridden."
+        },
+        {
+          "type": "object", "additionalProperties": false, "required": ["west", "east", "south", "north"],
+          "properties": {
+            "west": { "type": "number", "minimum": -180, "maximum": 180 }, "east": { "type": "number", "minimum": -180, "maximum": 180 },
+            "south": { "type": "number", "minimum": -85, "maximum": 85 }, "north": { "type": "number", "minimum": -85, "maximum": 85 },
+            "projection": { "enum": ["equirectangular", "plate-carree", "mercator"] }
+          }
+        }
+      ]
+    },
+    "place": {
+      "type": "object", "required": ["id", "name", "lat", "lon", "chapter"], "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" }, "name": { "type": "string", "minLength": 1 },
+        "lat": { "type": "number" }, "lon": { "type": "number" }, "chapter": { "type": "string" },
+        "country": { "type": "boolean", "description": "A square and a country name, no town: how the living generations are placed." },
+        "living": { "type": "boolean", "description": "Marks a place that stands for living people: it must be a country, and legs to it carry no years." },
+        "dx": { "type": "number" }, "dy": { "type": "number" }, "anchor": { "enum": ["start", "middle", "end"] }, "note": { "type": "string" }
+      }
+    },
+    "leg": {
+      "type": "object", "required": ["from", "to", "grade", "chapter"], "additionalProperties": false,
+      "properties": {
+        "from": { "type": "string" }, "to": { "type": "string" }, "grade": { "$ref": "#/$defs/grade" },
+        "years": { "type": "string" }, "chapter": { "type": "string" },
+        "routeKnown": { "type": "boolean", "description": "false: the papers say where they came from, not how they went. The leg is listed, not drawn." },
+        "evidence": { "type": "string" }, "bend": { "type": "number" }, "labelOffset": { "type": "array", "minItems": 2, "maxItems": 2, "items": { "type": "number" } },
+        "living": { "type": "boolean" }
+      }
+    },
+    "map": {
+      "type": "object", "required": ["id", "title", "extent", "chapter", "places", "legs"], "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" }, "title": { "type": "string", "minLength": 1 },
+        "extent": { "$ref": "#/$defs/extent" },
+        "chapter": { "type": "string", "description": "The chapter the map is drawn under (its legs for that chapter are heavier)." },
+        "places": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/place" } },
+        "legs": { "type": "array", "items": { "$ref": "#/$defs/leg" } },
+        "regions": { "type": "array", "items": { "type": "object", "required": ["label", "lat", "lon"], "additionalProperties": false, "properties": { "label": { "type": "string" }, "lat": { "type": "number" }, "lon": { "type": "number" }, "radius": { "type": "number", "minimum": 0 } } } }
+      }
+    }
+  }
+}

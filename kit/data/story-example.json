@@ -1,0 +1,188 @@
+{
+  "_note": "A complete, valid story for an invented family (the Ardens of Valmora), small enough to read in a minute. It is the kit's own fixture: checkfamilystory.py --selftest builds a site around it and plants faults in it. Copy it to src/data/story.json and replace every word; do not keep a sentence of it. The people are invented and long dead, except the three living ones at the end, who show how the living are drawn: by relationship and place, with no dates, and a child by an initial.",
+  "title": "Down from Valmora",
+  "eyebrow": "The story · three generations · Valmora to Port Alder",
+  "dek": "An invented family, told once as a short book: a weaver on a hill, a ship, a harbour town.",
+  "prologue": {
+    "title": "Start here",
+    "paragraphs": [
+      {
+        "id": "p-1", "grade": "doc",
+        "text": "This is the short version of a long archive: three generations of one family, told in order. Every paragraph says how well it is known.",
+        "evidence": [{ "href": "/direct-line/", "why": "The direct line, a table and the document under each generation" }]
+      }
+    ]
+  },
+  "ribbon": {
+    "note": "Each card names that generation's person and where he came from, with the place a document later finds the household where it differs, and his wife and where she came from. The outline carries the evidence for where he came from: solid documented, dashed inferred, dotted family memory.",
+    "cards": [
+      { "name": "Tomas Arden", "years": "1790–1861", "origin": "Valmora", "originGrade": "doc", "spouse": "Ilse née Brandt", "spouseOrigin": "of Hollin", "atPlace": "", "atYear": "", "living": false, "chapter": "weaver", "person": "tomas-arden-1790", "spousePerson": "ilse-arden-nee-brandt-1795", "title": "Born at Valmora, baptised 1790; weaver there until his death" },
+      { "name": "Pieter Arden", "years": "1822–1898", "origin": "Valmora", "originGrade": "inf", "spouse": "Greta Voss", "spouseOrigin": "place not known", "atPlace": "Port Alder", "atYear": "1851", "living": false, "chapter": "ship", "person": "pieter-arden-1822", "title": "Born at Valmora by inference from the 1851 census; documented at Port Alder" },
+      { "name": "Rowan Arden", "years": "", "origin": "Port Alder", "originGrade": "doc", "spouse": "Mira", "spouseOrigin": "of Port Alder", "atPlace": "Port Alder", "atYear": "", "living": true, "chapter": "harbour", "spouseLiving": true, "title": "Living: named with a relationship and a town, nothing more" }
+    ]
+  },
+  "chapters": [
+    {
+      "id": "weaver", "numeral": "I", "title": "The weaver of Valmora", "place": "Valmora", "years": "1790–1861",
+      "paragraphs": [
+        {
+          "id": "w-1", "grade": "doc",
+          "text": "On 4 March 1790 the priest of Valmora baptised a boy, [Tomas Arden](person:tomas-arden-1790), son of a weaver. The register gives the trade of the father and nothing of the mother's family.",
+          "evidence": [{ "href": "/valmora-line/#baptism1790", "why": "Valmora baptisms, 4 March 1790" }]
+        },
+        {
+          "id": "w-2", "register": "world", "worldSource": "history",
+          "text": "Valmora lay in the county of Hollin, a day's walk from the river. The weavers of such hill villages worked wool from the common pasture and sold their cloth at the autumn fair.",
+          "evidence": [{ "kind": "history", "href": "#world-H1", "why": "General history of the hill weavers" }],
+          "tbc": "The fair's date is from a regional history, not from a document about this village."
+        },
+        {
+          "id": "w-3", "grade": "lore",
+          "text": "The family says the first Arden came over the pass with his loom on his back. No paper says so.",
+          "evidence": [{ "href": "/direct-line/#loom", "why": "The family's tree, which tells it so" }]
+        }
+      ],
+      "tree": {
+        "glyph": "loom",
+        "note": "The thread to the next chapter is dashed: the boy of 1822 is the shipwright of the next chapter by inference.",
+        "thread": "pieter",
+        "rows": [
+          { "kind": "couple", "nodes": [
+            { "id": "tomas", "name": "Tomas Arden", "years": "1790–1861, weaver", "grade": "doc", "person": "tomas-arden-1790" },
+            { "id": "ilse", "name": "Ilse née Brandt", "years": "1795–1870", "grade": "doc", "person": "ilse-arden-nee-brandt-1795" }
+          ] },
+          { "kind": "children", "nodes": [
+            { "id": "anna", "name": "Anna", "years": "1820–1824", "grade": "doc" },
+            { "id": "pieter", "name": "Pieter", "years": "1822", "grade": "inf", "person": "pieter-arden-1822" }
+          ] }
+        ]
+      },
+      "quote": {
+        "label": "1790 · Valmora", "title": "A baptism at Valmora",
+        "text": "Thomas, filius legitimus Joannis textoris et Mariae.",
+        "source": "Valmora baptisms, 4 March 1790, folio 31 verso",
+        "hardLimit": "The entry does not name the mother's family, and no other paper does."
+      },
+      "plates": [],
+      "papers": [
+        { "title": "The baptism of 1790", "href": "/valmora-line/#baptism1790" },
+        { "title": "Tomas Arden", "href": "person:tomas-arden-1790" }
+      ]
+    },
+    {
+      "id": "ship", "numeral": "II", "title": "Down to the sea", "place": "Valmora · Port Alder", "years": "1822–1898",
+      "paragraphs": [
+        {
+          "id": "s-1", "grade": "inf",
+          "text": "By the census of 1851 a shipwright called Pieter Arden, aged twenty-nine, lived at Port Alder with a wife, Greta, and two small children. The archive reads him as the boy of 1822 from Valmora, and says so plainly: it is inference.",
+          "evidence": [{ "href": "/valmora-line/#census1851", "why": "The 1851 census, Port Alder, schedule 112" }],
+          "tbc": "The identification of the shipwright with the boy of 1822 is still inference."
+        },
+        {
+          "id": "s-2", "register": "world", "worldSource": "archive",
+          "text": "Port Alder in those years was a harbour of some forty ships and a population that doubled in a generation; the archive's own page on the harbour lists the yards.",
+          "evidence": [{ "kind": "archive", "href": "/port-alder/", "why": "The archive's page on the harbour" }]
+        }
+      ],
+      "tree": {
+        "glyph": "ship", "thread": "jan",
+        "rows": [
+          { "kind": "above", "nodes": [{ "id": "tomas-up", "name": "Tomas", "years": "† 1861", "grade": "doc", "person": "tomas-arden-1790" }] },
+          { "kind": "gap", "text": "no paper joins them" },
+          { "kind": "couple", "nodes": [
+            { "id": "pieter2", "name": "Pieter Arden", "years": "1822–1898, shipwright", "grade": "inf", "person": "pieter-arden-1822" },
+            { "id": "greta", "name": "Greta Voss", "years": "1826", "grade": "doc" }
+          ] },
+          { "kind": "children", "nodes": [
+            { "id": "jan", "name": "Jan", "years": "1849–1921", "grade": "doc" },
+            { "id": "lise", "name": "Lise", "years": "1852", "grade": "doc" }
+          ] }
+        ]
+      },
+      "quote": [
+        { "label": "1851 · Port Alder", "title": "The census", "text": "Arden, Pieter, 29, shipwright; Greta, 25; Jan, 2; Lise, infant.", "source": "Census of 1851, Port Alder, schedule 112" }
+      ],
+      "hardLimit": "The census gives an age, not a birthplace; Valmora is the archive's reading.",
+      "plates": [],
+      "papers": [
+        { "title": "The census of 1851", "href": "/valmora-line/#census1851" },
+        { "title": "The harbour", "href": "/port-alder/" }
+      ]
+    },
+    {
+      "id": "harbour", "numeral": "III", "title": "And then it is us", "place": "Port Alder", "years": "",
+      "paragraphs": [
+        {
+          "id": "h-1", "grade": "doc",
+          "text": "Jan's great-grandson Rowan lives at Port Alder with his wife Mira. By this archive's rule the living are named with their relationships and their towns and nothing more; their daughter, by her initial only.",
+          "evidence": [{ "href": "/direct-line/", "why": "The direct line, the last generation, as the archive publishes it" }]
+        }
+      ],
+      "tree": {
+        "glyph": "gable",
+        "note": "Living people are drawn as filled nodes: the adults by first name or as living, the child by her initial only, with no dates.",
+        "thread": "k",
+        "rows": [
+          { "kind": "couple", "nodes": [
+            { "id": "rowan", "name": "Rowan", "living": true },
+            { "id": "mira", "name": "Mira", "living": true }
+          ] },
+          { "kind": "children", "nodes": [{ "id": "k", "name": "K.", "living": true, "minor": true }] }
+        ]
+      },
+      "papers": [{ "title": "The direct line", "href": "/direct-line/" }]
+    }
+  ],
+  "maps": [
+    {
+      "id": "valmora", "title": "Down from the hill", "extent": { "west": 5.0, "east": 11.0, "south": 44.0, "north": 47.0, "projection": "equirectangular" },
+      "chapter": "ship",
+      "places": [
+        { "id": "valmora", "name": "Valmora", "lat": 45.9, "lon": 6.2, "chapter": "weaver", "dx": 8, "dy": -8, "note": "the weaver's village, 1790" },
+        { "id": "hollin", "name": "Hollin", "lat": 45.2, "lon": 7.6, "chapter": "weaver", "dx": 8, "dy": 14 },
+        { "id": "port-alder", "name": "Port Alder", "lat": 44.4, "lon": 8.9, "chapter": "ship", "dx": -8, "dy": 14, "anchor": "end", "note": "the shipwright's yard, 1851" }
+      ],
+      "legs": [
+        { "from": "valmora", "to": "hollin", "grade": "lore", "chapter": "weaver", "years": "told", "routeKnown": false, "evidence": "/direct-line/#loom" },
+        { "from": "valmora", "to": "port-alder", "grade": "inf", "chapter": "ship", "years": "1822 → 1851", "evidence": "/valmora-line/#census1851", "bend": -0.2 }
+      ],
+      "regions": [{ "label": "COUNTY OF HOLLIN", "lat": 45.5, "lon": 6.9, "radius": 0 }]
+    },
+    {
+      "id": "world", "title": "Out into the world", "extent": "europe", "chapter": "harbour",
+      "places": [
+        { "id": "port-alder", "name": "Port Alder", "lat": 44.4, "lon": 8.9, "chapter": "ship", "dx": -8, "dy": 14, "anchor": "end" },
+        { "id": "norway", "name": "Norway", "lat": 61.0, "lon": 9.0, "chapter": "harbour", "country": true, "living": true, "dx": 8, "dy": -8 }
+      ],
+      "legs": [
+        { "from": "port-alder", "to": "norway", "grade": "doc", "chapter": "harbour", "living": true, "evidence": "/direct-line/", "bend": 0.2 }
+      ]
+    }
+  ],
+  "closing": {
+    "unknown": {
+      "title": "What we do not know",
+      "lead": "Every chapter has its silences. These are the ones a single letter or an afternoon in a reading room could break.",
+      "items": [
+        { "text": "**Whether the shipwright of 1851 is the boy of 1822.** A Valmora burial or a Port Alder marriage naming the father would settle it.", "href": "/valmora-line/#census1851" }
+      ]
+    },
+    "papers": {
+      "title": "Read the papers",
+      "lead": "This book is the front door. The evidence is behind it.",
+      "links": [
+        { "title": "The direct line", "href": "/direct-line/", "why": "the generations, a table and the document under each" },
+        { "title": "The Valmora line", "href": "/valmora-line/", "why": "the registers, read page by page" }
+      ]
+    },
+    "notes": {
+      "title": "Where the world comes from",
+      "lead": "Passages marked history draw on general history; these are the claims, and where they can be checked.",
+      "items": [{ "key": "H1", "claim": "The hill weavers sold their cloth at an autumn fair.", "source": "A regional history of the wool trade." }]
+    },
+    "mapNote": "The maps: coastlines and borders from Natural Earth (public domain, naturalearthdata.com), simplified and clipped for this page. Town dots stand at this archive's own gazetteer coordinates and only where a document puts the family. Countries, not towns, mark the living generations, with no dates. A solid leg has a document at each end; a dashed leg is inferred; a dotted leg is family memory; a route nobody has recorded is listed and not drawn."
+  },
+  "conflicts": [
+    { "chapter": "ship", "note": "The shipwright died in October 1898 on the 3rd or the 13th: the archive's own files give both." }
+  ]
+}

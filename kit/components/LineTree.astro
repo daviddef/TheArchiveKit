@@ -1,0 +1,91 @@
+---
+/* A chapter's household as a small family tree on a stem, drawn at build time as inline SVG.
+
+   The story's trees are not the archive's charts. They show one household at a time, the people a chapter is about,
+   so that a reader who has not met them can see who the couple were, who their children were and which child carries
+   the line into the next chapter. The node's OUTLINE is its evidence, the same grammar as the paragraph marks and the
+   map legs: solid = documented, dashed = inferred, dotted = family memory or the family's tree. A living person is a
+   filled node that says "living" or a first name and carries no dates at all (a minor, an initial only); the layout
+   refuses to print a date for a node flagged living, whatever the data holds, and kit/tools/checkfamilystory.py fails
+   the data that holds one.
+
+   props
+     tree      {glyph, note, thread, rows: [{kind: above|couple|children|grandchildren|gap, nodes, text}]}  (kit/docs/story.md)
+     title     the chapter's title, for the picture's description
+     next      the id of the chapter the thread goes on into, or null
+     nextTitle that chapter's title
+     personHref (slug) => address of that person's page, from the archive (default /people/<slug>/)
+
+   Every node with a person page links to it. The thread is drawn down the stem to the child who carries the line. */
+import "../styles/story.css";
+import { layoutTree, GLYPHS, nodeTip, nodeYears, treeAlt } from "../lib/story.js";
+const { tree, title = "", next = null, nextTitle = "", personHref = (s) => `/people/${s}/`, u = (p) => p } = Astro.props;
+const L = layoutTree(tree, !!next);
+const { W, H, X0, KX, rows, stemTop, lastY, gaps, kidsTop, lineKid, aboveThread } = L;
+const href = (n) => (n.person ? personHref(n.person) : n.href ? u(n.href) : undefined);
+const cls = (n) => (n.living ? "living" : n.grade);
+---
+<figure class="st-tree">
+  <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={treeAlt(tree, title)}>
+    {stemTop != null && (gaps.length
+      ? gaps.map((g, i) => <>
+          <line class="st-stem" x1={X0} y1={i === 0 ? stemTop : gaps[i - 1].y + 14} x2={X0} y2={g.y - 12} />
+          <line class="st-stem" x1={X0} y1={g.y + 14} x2={X0} y2={lastY} />
+        </>)
+      : <line class="st-stem" x1={X0} y1={stemTop} x2={X0} y2={lastY} />)}
+    {lineKid && <path class="st-thread" d={`M${X0} ${stemTop}V${kidsTop}`} />}
+    {lineKid && <path class={`st-thread st-e-${cls(lineKid.n)}`} d={`M${X0} ${kidsTop}V${lineKid.y}H${KX - 8}`} />}
+    {!lineKid && aboveThread != null && <path class="st-thread st-e-doc" d={`M${X0} ${aboveThread}V${H - 6}`} />}
+    {rows.map((r) => {
+      if (r.kind === "above") return (
+        <a data-node={cls(r.n)} href={href(r.n)} aria-label={nodeTip(r.n)}>
+          <title>{nodeTip(r.n)}</title>
+          <circle class={`st-n st-${cls(r.n)}`} cx={X0} cy={r.y} r="7" />
+          <text class="st-name" x={X0 + 16} y={r.y + 4}>{r.n.name}{nodeYears(r.n) && <tspan class="st-yr" dx="6">{nodeYears(r.n)}</tspan>}</text>
+        </a>);
+      if (r.kind === "grand") return (
+        <g>
+          <line class="st-stem" x1={KX} y1={r.from + 7} x2={KX} y2={r.g[r.g.length - 1].y} />
+          {r.g.map((k) => (
+            <a data-node={cls(k.n)} href={href(k.n)} aria-label={nodeTip(k.n)}>
+              <title>{nodeTip(k.n)}</title>
+              <line class="st-tick" x1={KX} y1={k.y} x2={KX + 17} y2={k.y} />
+              <circle class={`st-n st-${cls(k.n)}`} cx={KX + 24} cy={k.y} r="6" />
+              <text class="st-name" x={KX + 37} y={k.y + 4}>{k.n.name}</text>
+            </a>
+          ))}
+        </g>);
+      if (r.kind === "gap") return <text class="st-gap" x={X0 - 4} y={r.y + 4}>⋯ {r.text}</text>;
+      if (r.kind === "couple") return (
+        <g>
+          <rect class="st-box" x="6" y={r.y} width={W - 12} height={r.b ? 64 : 36} rx="5" />
+          <path class="st-glyph" d={GLYPHS[tree.glyph] || GLYPHS.hill} transform={`translate(${W - 40} ${r.y + 8})`} />
+          {[r.a, r.b].filter(Boolean).map((p, i) => (
+            <a data-node={cls(p)} href={href(p)} aria-label={nodeTip(p)}>
+              <title>{nodeTip(p)}</title>
+              <circle class={`st-n st-${cls(p)}`} cx={X0} cy={r.y + 18 + i * 28} r="6.5" />
+              <text class="st-name" x={X0 + 15} y={r.y + 16 + i * 28}>{(i === 1 ? "= " : "") + p.name}</text>
+              {nodeYears(p) && <text class="st-yr" x={X0 + 15 + (i === 1 ? 14 : 0)} y={r.y + 29 + i * 28}>{nodeYears(p)}</text>}
+            </a>
+          ))}
+        </g>);
+      return (
+        <g>
+          {r.kids.map((k) => (
+            <a data-node={cls(k.n)} href={href(k.n)} aria-label={nodeTip(k.n) + (k.line ? ", who carries the line" : "")}>
+              <title>{nodeTip(k.n) + (k.line ? ", who carries the line" : "")}</title>
+              <line class={`st-tick st-e-${cls(k.n)}${k.line ? " st-on" : ""}`} x1={X0} y1={k.y} x2={KX - 7} y2={k.y} />
+              <circle class={`st-n st-${cls(k.n)}${k.line ? " st-lc" : ""}`} cx={KX} cy={k.y} r="6" />
+              <text class={`st-name${k.line ? " st-ln" : ""}`} x={KX + 13} y={k.y + 4}>{k.n.name}{nodeYears(k.n) && <tspan class="st-yr" dx="6">{nodeYears(k.n)}</tspan>}</text>
+            </a>
+          ))}
+        </g>);
+    })}
+    {next && (
+      <a href={`#${next}`} aria-label={`The line continues in the chapter ${nextTitle}`}>
+        <text class="st-next" x={W - 8} y={H - 10} text-anchor="end">the line goes on: {nextTitle} ↓</text>
+      </a>
+    )}
+  </svg>
+  {tree.note && <figcaption class="st-cap">{tree.note}</figcaption>}
+</figure>
