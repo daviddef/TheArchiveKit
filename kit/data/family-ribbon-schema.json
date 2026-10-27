@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/daviddef/TheArchiveKit/kit/data/family-ribbon-schema.json",
+  "title": "src/data/family-lines.json: the family ribbons of an archive's family pages",
+  "description": "One entry for each family page. A family is drawn by components/FamilyRibbon.astro: its own line of generations as mini cards, and under them how our direct line connects. See kit/docs/family-ribbon.md.",
+  "type": "object",
+  "required": ["families"],
+  "additionalProperties": false,
+  "properties": {
+    "_note": { "type": "string" },
+    "families": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/family" } }
+  },
+  "$defs": {
+    "grade": { "enum": ["doc", "inf", "lore"], "description": "doc: a document says so (solid). inf: the archive reasons it from documents (dashed). lore: family memory or the family's tree (dotted)." },
+    "status": { "enum": ["documented", "inferred", "origin-unknown", "family-lore"], "description": "How far back this family's evidence reaches; the lines page's four tiers, in the same words (kit/lib/lines.js)." },
+    "relation": { "enum": ["married", "son of", "daughter of", "child of", "father of", "mother of", "parent of", "brother of", "sister of", "sibling of", "godparent of", "godchild of", "witness for"], "description": "OUR person's relation to THEIR person: Ljubomir (ours) 'married' Milka Papić (theirs); Hedviga (ours) 'daughter of' Milka. godparent of, godchild of and witness for are said only of a documented relation (grade doc)." },
+    "card": {
+      "type": "object",
+      "required": ["name", "years", "origin", "originGrade", "spouse", "spouseOrigin", "atPlace", "atYear", "living"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "years": { "type": "string", "description": "1750–1829; † for a death whose date is not printed; empty for the living." },
+        "origin": { "type": "string", "description": "Where this person came from; the card reads 'from <origin>'." },
+        "originGrade": { "$ref": "#/$defs/grade" },
+        "spouse": { "type": "string" },
+        "spouseOrigin": { "type": "string", "description": "Written as it should read: 'of Senj'." },
+        "atPlace": { "type": "string" },
+        "atYear": { "type": "string", "description": "Empty on a living card." },
+        "living": { "type": "boolean" },
+        "minor": { "type": "boolean", "description": "A living child: an initial for a name, no years, no link." },
+        "person": { "type": "string", "description": "A person page (slug)." },
+        "spousePerson": { "type": "string" },
+        "spouseHref": { "type": "string" },
+        "title": { "type": "string" }
+      }
+    },
+    "connection": {
+      "type": "object",
+      "required": ["ourSlug", "ourGeneration", "theirSlug", "theirName", "relation", "grade", "storyHref"],
+      "additionalProperties": false,
+      "properties": {
+        "ourSlug": { "type": "string", "description": "A person in direct-line.json (people or partners)." },
+        "ourGeneration": { "type": "integer", "minimum": 1, "description": "That person's generation in the story ribbon; must equal direct-line.json's." },
+        "ourName": { "type": "string", "description": "Optional; the name direct-line.json holds is used otherwise." },
+        "theirSlug": { "type": "string", "description": "A person on this family's cards (person or spousePerson), or a person page." },
+        "theirName": { "type": "string", "minLength": 1 },
+        "theirOrigin": { "type": "string", "description": "'of Senj'. Optional." },
+        "relation": { "$ref": "#/$defs/relation" },
+        "grade": { "$ref": "#/$defs/grade" },
+        "storyHref": { "type": "string", "description": "The chapter, in the story: /story/#sailor. Must resolve in the built site." },
+        "note": { "type": "string" }
+      }
+    },
+    "family": {
+      "type": "object",
+      "required": ["id", "title", "page", "status"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "title": { "type": "string", "minLength": 1 },
+        "page": { "type": "string", "description": "Where the family page is built: /papic/." },
+        "cards": { "type": "array", "items": { "$ref": "#/$defs/card" }, "description": "The family's own generations, earliest first. Or give `lane`." },
+        "lane": { "type": "object", "required": ["key"], "additionalProperties": false, "properties": { "set": { "type": "string" }, "key": { "type": "string" } }, "description": "A lane of lines.json to derive the cards from (kit/lib/familyribbon.js cardsFromLane)." },
+        "status": { "$ref": "#/$defs/status" },
+        "statusNote": { "type": "string" },
+        "span": { "type": "array", "items": { "type": ["integer", "null"] }, "minItems": 2, "maxItems": 2 },
+        "connections": { "type": "array", "items": { "$ref": "#/$defs/connection" } },
+        "notConnected": { "type": "object", "required": ["why"], "additionalProperties": false, "properties": { "why": { "type": "string", "minLength": 1 } } }
+      }
+    }
+  }
+}

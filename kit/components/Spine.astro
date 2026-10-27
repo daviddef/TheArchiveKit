@@ -59,6 +59,8 @@
    resolves to whichever came first. Defaults to the old value, so no archive that
    does not pass it sees any change. */
 import RING from "../data/archives.json";
+import "../styles/ours.css";
+import { directMap, OURS_LEGEND } from "../lib/directline.js";
 import { surnameDoors } from "../lib/offpage.js";
 import { tidyPlace } from "../lib/place.js";
 
@@ -103,7 +105,13 @@ const {
      cannot quietly merge two men. `full` is where the anchors live. */
   compact = false,
   full = "/direct-line/",
+  /* directLine: the archive's src/data/direct-line.json. A row with a `person` slug that is in it is tinted (`is-ours`,
+     data-ours). The spine is, by its nature, the direct line, so an archive that passes the file and a `person` on each row
+     sees the whole column tinted; a row it cannot name a person for is left plain, never guessed (kit/docs/family-ribbon.md). */
+  directLine = null,
 } = Astro.props;
+const DM = directMap(directLine);
+const oursRow = (g) => (g.person && DM.has(String(g.person)) ? String(g.person) : undefined);
 // A homepage ladder shows a YEAR, not a paragraph. Falco's `born` reads
 // "about 1747 — «annorum 55 circiter» at his death", which is the right
 // thing to keep and the wrong thing to print in a 6rem column.
@@ -250,7 +258,7 @@ const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;");
       ].filter(Boolean);
       return (<>
       {g.via ? <li class="sp-cvia"><span>{g.via}</span></li> : null}
-      <li class={"sp-cg" + (g.weak ? " sp-cweak" : "")}>
+      <li class={"sp-cg" + (g.weak ? " sp-cweak" : "") + (oursRow(g) ? " is-ours" : "")} data-ours={oursRow(g)}>
         <span class="sp-cn mono">{(label[0] || "g").toLowerCase()}{g.gen}</span>
         <span class="sp-cnames">
           <a class="sp-cl" href={u(`${full}#${idPrefix}${g.gen}`)}>{g.name}</a>
@@ -311,7 +319,7 @@ const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;");
 ) : (
 <ol class="sp">
   {ordered.map((g) => (
-    <li class={"sp-g" + (g.weak ? " sp-weak" : "")} id={idPrefix + g.gen}>
+    <li class={"sp-g" + (g.weak ? " sp-weak" : "") + (oursRow(g) ? " is-ours" : "")} data-ours={oursRow(g)} id={idPrefix + g.gen}>
       <div class="sp-n"><span class="mono">{label} {g.gen}</span></div>
       <div class="sp-b">
         <h3 class="sp-h">
@@ -391,6 +399,7 @@ const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;");
   ))}
 </ol>
 )}
+{ordered.some(oursRow) && <p class="ours-leg"><span class="ours-sw"></span>{OURS_LEGEND}</p>}
 
 <style is:global>
   /* Compact: one generation per line, for a front page. Deliberately not a

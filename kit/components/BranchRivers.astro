@@ -101,7 +101,14 @@ import { statusLine, TIER_WORD, node as normNode, evidenceOf, personPath, slugNa
    archive that renames its lanes has no way to correct it, and nobody sees an
    accessible name in a page diff. It is a prop now, defaulting to the string
    that was hardcoded so no adopting archive changes. */
-const { rivers, caption, title, personBase = "/people/", names = {} } = Astro.props;
+import "../styles/ours.css";
+import { directMap, OURS_LEGEND } from "../lib/directline.js";
+/* directLine: the archive's src/data/direct-line.json. A NODE of a person in it is filled with the tint (`is-ours`,
+   data-ours); a LANE the archive marks `ours: true` has a tinted band under its colour (data-ours="lane:<key>"). Nothing is
+   tinted without the file (kit/docs/family-ribbon.md). */
+const { rivers, caption, title, personBase = "/people/", names = {}, directLine = null } = Astro.props;
+const DM = directMap(directLine);
+const nodeOurs = (nd) => !!(nd.person && DM.has(String(nd.person).replace(/^\/people\//, "").replace(/\/+$/, "")));
 const LANES = rivers?.lanes ?? [];
 /* TWO FIGURES ON ONE PAGE MUST NOT SHARE AN ID. riversttl and riverread were fixed strings, so a page with two drawings
    pointed both SVGs at the first title and let the first figure's panel answer the second's clicks (found by Luwinski's
@@ -265,8 +272,9 @@ const LANE_MEMBERS = LV.filter((v) => v.members.length > 0);
       const spineEnd = Math.max(lineEnd, X1);
       const lore = st.tier === "family-lore";
       return (
-        <g role="group" data-lane-key={lane.key} data-status={st.tier ?? ""}
+        <g role="group" data-lane-key={lane.key} data-status={st.tier ?? ""} class={lane.ours && directLine ? "is-ours-lane" : undefined} data-ours={lane.ours && directLine ? `lane:${lane.key}` : undefined}
            aria-label={`${lane.label}. ${st.text}. ${n} ${n === 1 ? "place" : "places"}, ${ends.length} ${ends.length === 1 ? "destination" : "destinations"}${ppl.length ? ", " + peopleWord(ppl.length) : ""}.`}>
+          {lane.ours && directLine && <rect class="lane-ours" x="0" y={b.y0} width={W} height={b.h} rx="10" />}
           <rect x="0" y={b.y0} width={W} height={b.h} rx="10"
                 fill={lane.colour} opacity={lane.parallel ? 0.04 : 0.055}
                 stroke={lane.parallel ? lane.colour : "none"}
@@ -333,7 +341,7 @@ const LANE_MEMBERS = LV.filter((v) => v.members.length > 0);
             const href = nd.person ? pHref(nd.person) : u(lane.href);
             const yTxt = nd.year;
             return (
-              <g class={soft ? "node soft" : "node"} tabindex="0" role="button"
+              <g class={(soft ? "node soft" : "node") + (nodeOurs(nd) ? " is-ours" : "")} data-ours={nodeOurs(nd) ? String(nd.person).replace(/^\/people\//, "").replace(/\/+$/, "") : undefined} tabindex="0" role="button"
                  aria-label={`${nd.place}${nd.year && nd.year !== "—" ? ", " + nd.year : ""}${nd.ev ? ", " + nd.ev.label : ""}. ${nd.person ? "Opens the person's page." : "Opens the page that tells this line."}`}
                  data-place={nd.place} data-year={nd.year} data-why={plain(nd.why)} data-lane={lane.label}
                  data-ev={nd.ev ? nd.ev.label : ""} data-person={nd.person ?? ""}
@@ -446,6 +454,7 @@ const LANE_MEMBERS = LV.filter((v) => v.members.length > 0);
     <b>Click or tab any dot</b> — the stops tell you what the document behind them says, and the destinations on the right tell their own story and link to it. Click a second time to go there.
   </div>
   {caption && <figcaption set:html={caption} />}
+  {directLine && (LV.some(({ lane, nodes }) => (lane.ours) || nodes.some(nodeOurs))) && <p class="ours-leg"><span class="ours-sw"></span>{OURS_LEGEND}</p>}
   {(WITH_MEMBERS.length > 0 || LANE_MEMBERS.length > 0) && (
     <div class="rivers-members" data-members>
       {LANE_MEMBERS.map(({ lane, members }) => (

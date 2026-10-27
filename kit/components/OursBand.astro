@@ -1,0 +1,15 @@
+---
+/* The quiet band under a person's name on a page of someone on our direct line: "On our direct line · generation 7", with a
+   link to the chapter in the story. For an archive whose person page is its own (PersonPage draws this itself); the kit's
+   gate (checkfamilyribbon.py O3) requires it on the page of everyone in src/data/direct-line.json and on no other.
+
+     directLine  the archive's src/data/direct-line.json       slug  this page's person
+     storyHref   where the story is (default /story/)           u     the archive's path helper
+
+   Draws nothing for anyone who is not on the line. Tinted (--ours-soft), not coloured text alone: it says it in words. */
+import "../styles/ours.css";
+import { oursOf, bandText, storyLink } from "../lib/directline.js";
+const { directLine = null, slug = null, storyHref = "/story/", u = (p) => p } = Astro.props;
+const ours = oursOf(directLine, slug);
+---
+{ours && <p class="ours-band is-ours" data-ours={slug} data-generation={ours.generation}><b>{bandText(ours, directLine)}</b><a href={u(storyLink(ours, storyHref))}>in the story →</a></p>}

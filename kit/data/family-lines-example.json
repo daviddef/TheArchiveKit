@@ -1,0 +1,27 @@
+{
+  "_note": "Two family pages of the invented Ardens of Valmora (kit/data/story-example.json): the Brandts, whom the direct line married into, and the Harrows, whom it does not touch. The kit's own fixture: checkfamilyribbon.py --selftest builds a site around it and plants faults in it. Copy to src/data/family-lines.json and replace every word.",
+  "families": [
+    {
+      "id": "brandt", "title": "Brandt", "page": "/brandt/",
+      "status": "inferred", "statusNote": "Hollin; the generation before Ilse is from the Valmora marriage entry of 1818 only",
+      "span": [1818, null],
+      "cards": [
+        { "name": "Heinrich Brandt", "years": "1760–1821", "origin": "Hollin", "originGrade": "inf", "spouse": "Anna", "spouseOrigin": "place not known", "atPlace": "", "atYear": "", "living": false, "title": "Named as Ilse's father in the 1818 marriage entry; no register of his own read" },
+        { "name": "Ilse Brandt", "years": "1795–1860", "origin": "Hollin", "originGrade": "inf", "spouse": "Tomas Arden", "spouseOrigin": "of Valmora", "atPlace": "Valmora", "atYear": "1818", "living": false, "person": "ilse-arden-nee-brandt-1795", "spousePerson": "tomas-arden-1790" },
+        { "name": "Anselm Brandt", "years": "", "origin": "Hollin", "originGrade": "lore", "spouse": "", "spouseOrigin": "", "atPlace": "", "atYear": "", "living": true }
+      ],
+      "connections": [
+        { "ourSlug": "tomas-arden-1790", "ourGeneration": 1, "theirSlug": "ilse-arden-nee-brandt-1795", "theirName": "Ilse Brandt", "theirOrigin": "of Hollin", "relation": "married", "grade": "doc", "storyHref": "/story/#weaver", "note": "The Valmora marriage entry of 1818." },
+        { "ourSlug": "pieter-arden-1822", "ourGeneration": 2, "theirSlug": "ilse-arden-nee-brandt-1795", "theirName": "Ilse Brandt", "theirOrigin": "of Hollin", "relation": "son of", "grade": "inf", "storyHref": "/story/#ship", "note": "By the 1851 census, which names her as his mother; his own baptism is not read." }
+      ]
+    },
+    {
+      "id": "harrow", "title": "Harrow", "page": "/harrow/",
+      "status": "origin-unknown", "statusNote": "at Port Alder from 1851 · origin still not found",
+      "cards": [
+        { "name": "Edric Harrow", "years": "1810–1879", "origin": "Port Alder", "originGrade": "doc", "spouse": "", "spouseOrigin": "", "atPlace": "Port Alder", "atYear": "1851", "living": false }
+      ],
+      "notConnected": { "why": "A Harrow buys Pieter's first boat in the 1851 harbour book; no marriage, baptism or will yet joins the two families." }
+    }
+  ]
+}

@@ -168,6 +168,7 @@
         "spousePerson": { "type": "string" },
         "spouseHref": { "type": "string" },
         "spouseLiving": { "type": "boolean", "description": "Defaults to the card's own living flag." },
+        "spouseDirect": { "type": "boolean", "description": "The spouse is also on our direct line (a mother is): kit/tools/directline.py then lists her as a partner in src/data/direct-line.json." },
         "title": { "type": "string" },
         "glyph": { "enum": ["hill", "loom", "field", "stone", "wave", "works", "gable", "ship"] }
       }

@@ -58,12 +58,19 @@
  *                   via personMeta); never drawn for a living person
  *        nameStyle  "titleCase" (default, RULED) | "asRecorded"
  *        heldIds    ids promised privacy; a person with one of them must not be rendered
- *        now, sources   the living rule's clock and kit/data/public-sources.json
+ *        directLine the archive's src/data/direct-line.json. When this person is in it the page shows a quiet tinted band under
+                   the name, "On our direct line · generation n", with a link into the story; the family chart tints the
+                   relatives who are in it (their rows carry `slug`). Without the file nothing changes.
+        storyHref  where the story is (default /story/); the band links to its chapter
+        slug       this person's slug (default person.slug)
+        now, sources   the living rule's clock and kit/data/public-sources.json
  *        edgeLevel, emptyWhy, emptyText, palette, labels   passed to PersonChart
  * SLOTS  record · sources · namesakes · media · notes · chart-notes · after
  *        (and the unnamed slot, drawn after the six as kind="more" sections)
  */
 import PersonChart from "./PersonChart.astro";
+import "../styles/ours.css";
+import OursBand from "./OursBand.astro";
 import PersonSection from "./PersonSection.astro";
 import PS from "../data/public-sources.json";
 import { isLiving, isHeldOut, displayName, splitQualifier, lifespan, stubReason, livingPlace, LIVING_SENTENCE } from "../lib/person.js";
@@ -71,7 +78,7 @@ import { isLiving, isHeldOut, displayName, splitQualifier, lifespan, stubReason,
 const {
   person = {}, nameHref = null, peopleHref = "/people/", registerHref = null, stubNote = "", lede = person.lede || "",
   nameStyle = "titleCase", edgeLevel = true, emptyWhy = null, emptyText = null, palette = {}, labels = {},
-  now = new Date().getFullYear(), sources = PS, heldIds = [],
+  now = new Date().getFullYear(), sources = PS, heldIds = [], directLine = null, storyHref = "/story/", slug = null,
 } = Astro.props;
 const rule = { now, sources };
 if (isHeldOut(person, { ...rule, heldIds })) {
@@ -83,6 +90,7 @@ const life = living ? "" : lifespan(person.born, person.died, { years: false });
 const place = living ? livingPlace(person) : { text: "", refused: false };
 const stub = living ? null : stubReason(person);
 const has = (k) => !living && Astro.slots.has(k);
+const mySlug = slug || person.slug || null;
 ---
 <article class="ppage" data-person-page="1" data-living={living ? "1" : "0"} data-stub={stub || undefined} data-place-refused={place.refused ? "1" : undefined}>
   <header class="phead">
@@ -91,10 +99,11 @@ const has = (k) => !living && Astro.slots.has(k);
     {life ? <p class="plife">{life}</p> : null}
     {living ? <p class="pliving">{LIVING_SENTENCE}</p> : (lede ? <p class="pdek">{lede}</p> : null)}
     {living && place.text ? <p class="pplace">{place.text}</p> : null}
+    <OursBand {directLine} slug={mySlug} {storyHref} />
   </header>
 
   <PersonSection kind="family">
-    <PersonChart {person} {nameHref} {edgeLevel} {emptyWhy} {emptyText} {palette} {labels} {nameStyle} {now} {sources} {heldIds}>
+    <PersonChart {person} {directLine} {nameHref} {edgeLevel} {emptyWhy} {emptyText} {palette} {labels} {nameStyle} {now} {sources} {heldIds}>
       <Fragment slot="notes"><slot name="chart-notes" /></Fragment>
       <Fragment slot="after"><slot name="after" /></Fragment>
     </PersonChart>

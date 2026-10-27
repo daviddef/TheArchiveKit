@@ -28,6 +28,7 @@ The archive's layout draws the title, eyebrow and dek; the component draws every
 | --- | --- |
 | `components/StoryBook.astro` | the page body: ribbon, legend, contents grid, prologue, chapters, "what we do not know", "read the papers", the world notes |
 | `components/StoryRibbon.astro` | the generations as a row of equal cards |
+| `components/FamilyRibbon.astro`, `styles/ours.css`, `lib/directline.js` | the same ribbon for a family page, how our line connects, and the direct-line tint (`kit/docs/family-ribbon.md`); `StoryBook` takes `directLine` |
 | `components/LineTree.astro` | one household as a small tree on a stem, with the thread to the next chapter |
 | `components/StoryMap.astro` | one map: coast, places, legs, and the legs listed as text |
 | `styles/story.css` | tokens only (`--st-*` read from the archive's own `--ink`, `--accent`, ...), light, dark and phone |

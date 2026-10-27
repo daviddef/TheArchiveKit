@@ -133,7 +133,8 @@ const cls = (r, o = {}) => "node"
   + (o.small || r.small ? " small" : "")
   + (r.gap ? " gap" : "")
   + (o.spouse ? " spouse" : "")
-  + (r.gap || !r.cls ? "" : " " + r.cls);
+  + (r.gap || !r.cls ? "" : " " + r.cls)
+  + (r.ours ? " is-ours" : "");
 
 const sty = Object.entries(palette).map(([k, v]) => `--pt-${k}:${v}`).join(";") || undefined;
 ---
@@ -146,14 +147,14 @@ const sty = Object.entries(palette).map(([k, v]) => `--pt-${k}:${v}`).join(";") 
       <div class="row">
         {parents.map((r) => (
           r.gap
-            ? <div class={cls(r)}><span class="nm">{r.name}</span></div>
+            ? <div class={cls(r)} data-ours={r.ours}><span class="nm">{r.name}</span></div>
             : r.href
-              ? <a class={cls(r)} href={r.href} title={r.title}>
+              ? <a class={cls(r)} data-ours={r.ours} href={r.href} title={r.title}>
                   <span class="nm">{r.name}</span>
                   {r.dates ? <span class="dt">{r.dates}</span> : null}
                   {r.mark ? <span class="via">{r.mark}</span> : null}
                 </a>
-              : <div class={cls(r)}>
+              : <div class={cls(r)} data-ours={r.ours}>
                   <span class="nm">{r.name}</span>
                   {r.dates ? <span class="dt">{r.dates}</span> : null}
                   {r.mark ? <span class="via">{r.mark}</span> : null}
@@ -178,18 +179,18 @@ const sty = Object.entries(palette).map(([k, v]) => `--pt-${k}:${v}`).join(";") 
       </div>
       {spouses.map((r) => (
         r.gap
-          ? <div class={cls(r, { spouse: true })}>
+          ? <div class={cls(r, { spouse: true })} data-ours={r.ours}>
               <span class="mar">{r.mar || "married"}</span>
               <span class="nm">{r.name}</span>
             </div>
           : r.href
-            ? <a class={cls(r, { spouse: true })} href={r.href} title={r.title}>
+            ? <a class={cls(r, { spouse: true })} data-ours={r.ours} href={r.href} title={r.title}>
                 <span class="mar">{r.mar || "married"}</span>
                 <span class="nm">{r.name}</span>
                 {r.dates ? <span class="dt">{r.dates}</span> : null}
                 {r.mark ? <span class="via">{r.mark}</span> : null}
               </a>
-            : <div class={cls(r, { spouse: true })}>
+            : <div class={cls(r, { spouse: true })} data-ours={r.ours}>
                 <span class="mar">{r.mar || "married"}</span>
                 <span class="nm">{r.name}</span>
                 {r.dates ? <span class="dt">{r.dates}</span> : null}
@@ -206,14 +207,14 @@ const sty = Object.entries(palette).map(([k, v]) => `--pt-${k}:${v}`).join(";") 
       <div class="row">
         {g.rows.map((r) => (
           r.gap
-            ? <div class={cls(r)}><span class="nm">{r.name}</span></div>
+            ? <div class={cls(r)} data-ours={r.ours}><span class="nm">{r.name}</span></div>
             : r.href
-              ? <a class={cls(r)} href={r.href} title={r.title}>
+              ? <a class={cls(r)} data-ours={r.ours} href={r.href} title={r.title}>
                   <span class="nm">{r.name}</span>
                   {r.dates ? <span class="dt">{r.dates}</span> : null}
                   {r.mark ? <span class="via">{r.mark}</span> : null}
                 </a>
-              : <div class={cls(r)}>
+              : <div class={cls(r)} data-ours={r.ours}>
                   <span class="nm">{r.name}</span>
                   {r.dates ? <span class="dt">{r.dates}</span> : null}
                   {r.mark ? <span class="via">{r.mark}</span> : null}
@@ -231,13 +232,13 @@ const sty = Object.entries(palette).map(([k, v]) => `--pt-${k}:${v}`).join(";") 
       <div class="row">
         {siblings.map((r) => (
           r.gap
-            ? <div class={cls(r, { small: true })}><span class="nm">{r.name}</span></div>
+            ? <div class={cls(r, { small: true })} data-ours={r.ours}><span class="nm">{r.name}</span></div>
             : r.href
-              ? <a class={cls(r, { small: true })} href={r.href} title={r.title}>
+              ? <a class={cls(r, { small: true })} data-ours={r.ours} href={r.href} title={r.title}>
                   <span class="nm">{r.name}</span>
                   {r.dates ? <span class="dt">{r.dates}</span> : null}
                 </a>
-              : <div class={cls(r, { small: true })}>
+              : <div class={cls(r, { small: true })} data-ours={r.ours}>
                   <span class="nm">{r.name}</span>
                   {r.dates ? <span class="dt">{r.dates}</span> : null}
                 </div>

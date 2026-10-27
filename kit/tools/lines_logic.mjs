@@ -10,6 +10,7 @@
 //   proof    the layout check is shown to fail when the arithmetic is broken
 import fs from "fs"; import path from "path"; import { fileURLToPath } from "url";
 import * as L from "../lib/lines.js";
+import * as DL from "../lib/directline.js";
 import { plain } from "../lib/md.js";
 const here = path.dirname(fileURLToPath(import.meta.url));
 const kit = path.join(here, "..");
@@ -68,7 +69,7 @@ function layout(src, rivers) {
   const a = src.indexOf("---"), b = src.indexOf("\n---", a + 3);
   const body = src.slice(a + 3, b).replace(/^import [\s\S]*?from ["'][^"']+["'];?$/gm, "").replace(/Astro\.props/g, "__props");
   /* the component imports two of these under other names */
-  const env = { ...L, normNode: L.node, normMember: L.member, plain };
+  const env = { ...L, ...DL, normNode: L.node, normMember: L.member, plain };
   const fn = new Function("__props", "u", ...Object.keys(env), `${body}\n return { PL, END, BLOCK, VH, LOOSE_Y, CUT, BANDS };`);
   return fn({ rivers, personBase: "/people/", names: {} }, (x) => x, ...Object.values(env));
 }

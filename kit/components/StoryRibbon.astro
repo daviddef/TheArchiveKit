@@ -13,10 +13,15 @@
    props
      ribbon      {note, cards[{name, years, origin, originGrade, spouse, spouseOrigin, atPlace, atYear, living, chapter,
                   person?, spousePerson?, spouseHref?, spouseGrade?, title?, glyph?}]}
-     personHref  (slug) => address of a person's page, from the archive */
+     personHref  (slug) => address of a person's page, from the archive
+     directLine  the archive's src/data/direct-line.json: a card whose person is in it is tinted (`is-ours`), and a card
+                 whose person is not in it is not. Without the file nothing is tinted (kit/docs/family-ribbon.md). */
 import "../styles/story.css";
+import "../styles/ours.css";
+import { cardEntry, cardKey } from "../lib/directline.js";
 import { GLYPHS, atLine, yearsLine } from "../lib/story.js";
-const { ribbon, personHref = (s) => `/people/${s}/`, u = (p) => p } = Astro.props;
+const { ribbon, personHref = (s) => `/people/${s}/`, u = (p) => p, directLine = null } = Astro.props;
+const oursOf = (c, i) => (directLine ? cardEntry(directLine, c, i) : null);
 const ORDER = ["loom", "field", "stone", "wave", "works", "gable", "ship", "hill"];
 const SUFFIX = { inf: " (inferred)", lore: " (family's tree)" };
 const spouseLink = (c) => (c.spousePerson ? personHref(c.spousePerson) : c.spouseHref ? u(c.spouseHref) : null);
@@ -24,7 +29,7 @@ const spouseLink = (c) => (c.spousePerson ? personHref(c.spousePerson) : c.spous
 <nav class="st-rib" aria-label="The generations, in order">
   <ol>
     {ribbon.cards.map((c, i) => (
-      <li data-ch={c.chapter} data-living={c.living ? "1" : "0"} class={`st-rb st-rb-${c.originGrade || "doc"}`} title={c.title || undefined}>
+      <li data-ch={c.chapter} data-living={c.living ? "1" : "0"} data-person={c.person || undefined} data-ours={oursOf(c, i) ? cardKey(c, i) : undefined} class={`st-rb st-rb-${c.originGrade || "doc"}${oursOf(c, i) ? " is-ours" : ""}`} title={c.title || undefined}>
         <a class="st-rb-top" href={`#${c.chapter}`} aria-label={`Generation ${i + 1}: go to the chapter`}>
           <svg viewBox="-2 -2 28 22" width="26" height="20" aria-hidden="true"><path d={GLYPHS[c.glyph] || GLYPHS[ORDER[i % ORDER.length]]} /></svg>
           <span class="st-rb-g">Gen. {i + 1}</span>

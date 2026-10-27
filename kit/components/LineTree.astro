@@ -17,11 +17,17 @@
      next      the id of the chapter the thread goes on into, or null
      nextTitle that chapter's title
      personHref (slug) => address of that person's page, from the archive (default /people/<slug>/)
+     directLine the archive's src/data/direct-line.json: a node whose person is in it is tinted (`is-ours`) and carries data-ours
 
    Every node with a person page links to it. The thread is drawn down the stem to the child who carries the line. */
 import "../styles/story.css";
+import "../styles/ours.css";
+import { directMap } from "../lib/directline.js";
 import { layoutTree, GLYPHS, nodeTip, nodeYears, treeAlt, possessive } from "../lib/story.js";
-const { tree, title = "", next = null, nextTitle = "", personHref = (s) => `/people/${s}/`, u = (p) => p } = Astro.props;
+const { tree, title = "", next = null, nextTitle = "", personHref = (s) => `/people/${s}/`, u = (p) => p, directLine = null } = Astro.props;
+const dm = directMap(directLine);
+const oc = (n) => (n.person && dm.has(String(n.person)) ? "is-ours" : undefined);
+const os = (n) => (oc(n) ? n.person : undefined);
 const L = layoutTree(tree, !!next);
 const { W, H, X0, KX, rows, stemTop, lastY, gaps, kidsTop, lineKid, aboveThread } = L;
 const href = (n) => (n.person ? personHref(n.person) : n.href ? u(n.href) : undefined);
@@ -40,8 +46,9 @@ const cls = (n) => (n.living ? "living" : n.grade);
     {!lineKid && aboveThread != null && <path class="st-thread st-e-doc" d={`M${X0} ${aboveThread}V${H - 6}`} />}
     {rows.map((r) => {
       if (r.kind === "above") return (
-        <a data-node={cls(r.n)} href={href(r.n)} aria-label={nodeTip(r.n)}>
+        <a data-node={cls(r.n)} class={oc(r.n)} data-ours={os(r.n)} href={href(r.n)} aria-label={nodeTip(r.n)}>
           <title>{nodeTip(r.n)}</title>
+          {oc(r.n) && <circle class="st-halo" cx={X0} cy={r.y} r="12" />}
           <circle class={`st-n st-${cls(r.n)}`} cx={X0} cy={r.y} r="7" />
           <text class="st-name" x={X0 + 16} y={r.y + 4}>{r.n.name}{nodeYears(r.n) && <tspan class="st-yr" dx="6">{nodeYears(r.n)}</tspan>}</text>
         </a>);
@@ -49,9 +56,10 @@ const cls = (n) => (n.living ? "living" : n.grade);
         <g>
           <line class="st-stem" x1={KX} y1={r.from + 7} x2={KX} y2={r.g[r.g.length - 1].y} />
           {r.g.map((k) => (
-            <a data-node={cls(k.n)} data-id={k.n.id} href={href(k.n)} aria-label={nodeTip(k.n)}>
+            <a data-node={cls(k.n)} class={oc(k.n)} data-ours={os(k.n)} data-id={k.n.id} href={href(k.n)} aria-label={nodeTip(k.n)}>
               <title>{nodeTip(k.n)}</title>
               <line class={`st-tick st-e-${cls(k.n)}`} x1={KX} y1={k.y} x2={KX + 17} y2={k.y} />
+              {oc(k.n) && <circle class="st-halo" cx={KX + 24} cy={k.y} r="11" />}
               <circle class={`st-n st-${cls(k.n)}`} cx={KX + 24} cy={k.y} r="6" />
               <text class="st-name" x={KX + 37} y={k.y + 4}>{k.n.name}</text>
             </a>
@@ -63,8 +71,9 @@ const cls = (n) => (n.living ? "living" : n.grade);
           <rect class="st-box" x="6" y={r.y} width={W - 12} height={r.b ? 64 : 36} rx="5" />
           <path class="st-glyph" d={GLYPHS[tree.glyph] || GLYPHS.hill} transform={`translate(${W - 40} ${r.y + 8})`} />
           {[r.a, r.b].filter(Boolean).map((p, i) => (
-            <a data-node={cls(p)} href={href(p)} aria-label={nodeTip(p)}>
+            <a data-node={cls(p)} class={oc(p)} data-ours={os(p)} href={href(p)} aria-label={nodeTip(p)}>
               <title>{nodeTip(p)}</title>
+              {oc(p) && <circle class="st-halo" cx={X0} cy={r.y + 18 + i * 28} r="11.5" />}
               <circle class={`st-n st-${cls(p)}`} cx={X0} cy={r.y + 18 + i * 28} r="6.5" />
               <text class="st-name" x={X0 + 15} y={r.y + 16 + i * 28}>{(i === 1 ? "= " : "") + p.name}</text>
               {nodeYears(p) && <text class="st-yr" x={X0 + 15 + (i === 1 ? 14 : 0)} y={r.y + 29 + i * 28}>{nodeYears(p)}</text>}
@@ -75,9 +84,10 @@ const cls = (n) => (n.living ? "living" : n.grade);
         <g>
           {r.kids.map((k) => (
             <>
-              <a data-node={cls(k.n)} data-id={k.n.id} href={href(k.n)} aria-label={nodeTip(k.n) + (k.line ? ", who carries the line" : "")}>
+              <a data-node={cls(k.n)} class={oc(k.n)} data-ours={os(k.n)} data-id={k.n.id} href={href(k.n)} aria-label={nodeTip(k.n) + (k.line ? ", who carries the line" : "")}>
                 <title>{nodeTip(k.n) + (k.line ? ", who carries the line" : "")}</title>
                 <line class={`st-tick st-e-${cls(k.n)}${k.line ? " st-on" : ""}`} x1={X0} y1={k.y} x2={KX - 7} y2={k.y} />
+                {oc(k.n) && <circle class="st-halo" cx={KX} cy={k.y} r="11" />}
                 <circle class={`st-n st-${cls(k.n)}${k.line ? " st-lc" : ""}`} cx={KX} cy={k.y} r="6" />
                 <text class={`st-name${k.line ? " st-ln" : ""}`} x={KX + 13} y={k.y + 4}>{k.n.name}{nodeYears(k.n) && <tspan class="st-yr" dx="6">{nodeYears(k.n)}</tspan>}</text>
               </a>
@@ -85,9 +95,10 @@ const cls = (n) => (n.living ? "living" : n.grade);
                 <g class="st-sub" data-of={k.n.id} role="group" aria-label={`${possessive(k.n)} children`}>
                   <line class="st-stem" x1={KX} y1={k.y + 7} x2={KX} y2={k.sub[k.sub.length - 1].y} />
                   {k.sub.map((s) => (
-                    <a data-node={cls(s.n)} data-id={s.n.id} href={href(s.n)} aria-label={nodeTip(s.n)}>
+                    <a data-node={cls(s.n)} class={oc(s.n)} data-ours={os(s.n)} data-id={s.n.id} href={href(s.n)} aria-label={nodeTip(s.n)}>
                       <title>{nodeTip(s.n)}</title>
                       <line class={`st-tick st-e-${cls(s.n)}`} x1={KX} y1={s.y} x2={KX + 17} y2={s.y} />
+                      {oc(s.n) && <circle class="st-halo" cx={KX + 24} cy={s.y} r="11" />}
                       <circle class={`st-n st-${cls(s.n)}`} cx={KX + 24} cy={s.y} r="6" />
                       <text class="st-name" x={KX + 37} y={s.y + 4}>{s.n.name}{nodeYears(s.n) && <tspan class="st-yr" dx="6">{nodeYears(s.n)}</tspan>}</text>
                     </a>

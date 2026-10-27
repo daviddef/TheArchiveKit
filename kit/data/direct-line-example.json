@@ -1,0 +1,34 @@
+{
+ "_note": "Made by kit/tools/directline.py from the story's ribbon; do not edit by hand.",
+ "generationLabel": "generation",
+ "people": [
+  {
+   "slug": "tomas-arden-1790",
+   "generation": 1,
+   "storyChapter": "weaver",
+   "name": "Tomas Arden"
+  },
+  {
+   "slug": "pieter-arden-1822",
+   "generation": 2,
+   "storyChapter": "ship",
+   "name": "Pieter Arden"
+  }
+ ],
+ "partners": [
+  {
+   "slug": "ilse-arden-nee-brandt-1795",
+   "generation": 1,
+   "storyChapter": "weaver",
+   "partnerOf": "tomas-arden-1790",
+   "name": "Ilse née Brandt"
+  }
+ ],
+ "unlinked": [
+  {
+   "generation": 3,
+   "storyChapter": "harbour",
+   "name": "Rowan Arden"
+  }
+ ]
+}

@@ -1,0 +1,139 @@
+---
+/* One family's own line of generations, as the story's ribbon draws ours, smaller; and under it HOW OUR LINE CONNECTS.
+   For a family page (Papić, Žubrinić, Zampiello, Sneyd, Kolbe ...): the families an archive keeps a page for are the families
+   the direct line married into or came from, and a reader on one of those pages should see, in a row, the generations the
+   archive holds of that family and the places where our own line touches it. The contract is kit/docs/family-ribbon.md.
+
+   THE CARDS. The story's card, in the mini size (128px from 900px, 116px below, scrolling inside its own container, never
+   the page): "Gen. n", the name (linked), the years (deceased only), "from <origin>" with its grade, and from 560px "m.
+   <spouse>, of <origin>". The OUTLINE is the evidence for "from", exactly the story's: solid documented, dashed inferred,
+   dotted family memory or the family's tree. A living card prints no years and no "at" year; a minor prints an initial and
+   no link (the same rule as the story, applied here again so the data cannot slip past it).
+
+   THE TINT. A card whose person is in direct-line.json is `is-ours` (a fill and a bar along the top, never an outline: the
+   outline is the evidence). A spouse who is herself on our direct line has a small swatch beside her name.
+
+   HOW OUR LINE CONNECTS. One block for each place the direct line touches this family: our person (tinted, with the
+   generation), the relation in a word on the thread between ("married", "daughter of"), their person, and under them the
+   grade (the same solid, dashed or dotted outline), a link into the story and a note. A family the direct line does not touch
+   gets one quiet dotted block that says "Not connected to our line yet" and what is missing.
+
+   props
+     family       {id, title, cards[] | lane:{set,key}, status, statusNote, span?, connections[], notConnected?}
+     directLine   the archive's src/data/direct-line.json
+     lines, people   only for a family given as `lane`: lines.json, and the archive's {slug: {name, years, ...}} (lib/familyribbon.js cardsFromLane)
+     derived      extra connections (marriageConnections() of the story), merged with the family's own; the family's own win
+     personHref   (slug) => address of a person's page            u   the archive's path helper
+     heading      false to draw none, or the heading's words (default "<title>: the line, generation by generation")
+     level        the heading level (default 2)                    legend   false to leave the legend to the page */
+import "../styles/story.css";
+import "../styles/ours.css";
+import "../styles/familyribbon.css";
+import { yearsLine, atLine } from "../lib/story.js";
+import { directMap, OURS_LEGEND } from "../lib/directline.js";
+import { cardsFromLane, findLane, familyStatus, blocksOf, blockSentence, joinsOf, mergeConnections, GRADE_WORD } from "../lib/familyribbon.js";
+const {
+  family, directLine = null, lines = null, people = {}, derived = [], personHref = (s) => `/people/${s}/`, u = (p) => p,
+  heading = null, level = 2, legend = true,
+} = Astro.props;
+const dm = directMap(directLine);
+let cards = family.cards || [];
+let laneNote = "";
+if (!cards.length && family.lane) {
+  const r = cardsFromLane(findLane(lines, family.lane), people);
+  cards = r.cards;
+  if (r.skipped) laneNote = `${r.skipped} dated ${r.skipped === 1 ? "event" : "events"} on this line ${r.skipped === 1 ? "is" : "are"} not people and ${r.skipped === 1 ? "is" : "are"} not drawn as cards.`;
+}
+const merged = { ...family, connections: mergeConnections(family.connections || [], derived), cards };
+const blocks = blocksOf(merged, directLine, { cards });
+const joins = joinsOf(merged);
+const st = familyStatus(family);
+const H = `h${level}`;
+const title = heading === null ? `${family.title}: the line, generation by generation` : heading;
+const SUFFIX = { inf: " (inferred)", lore: " (family's tree)" };
+const addr = (slug) => personHref(slug);
+const spouseLink = (c) => (c.spousePerson ? addr(c.spousePerson) : c.spouseHref ? u(c.spouseHref) : null);
+const uid = String(family.id).replace(/[^a-z0-9]+/gi, "-");
+const safeYears = (c) => (c.minor ? "" : yearsLine(c));
+---
+{cards.length > 0 && (
+<section class="fr" data-family={family.id} data-status={family.status || ""} aria-label={`${family.title}: the line in generations`}>
+  {(heading !== false) && (
+    <div class="fr-head">
+      <H class="fr-h">{title}</H>
+      {st.text && <span class="fr-st">{st.text}</span>}
+    </div>
+  )}
+  <div class="fr-rib" role="group" aria-label={`${family.title}, ${cards.length} ${cards.length === 1 ? "generation" : "generations"}, earliest first`} tabindex="0">
+    <ol>
+      {cards.map((c, i) => {
+        const ours = c.person ? dm.get(String(c.person)) : null;
+        const sOurs = c.spousePerson ? dm.get(String(c.spousePerson)) : null;
+        const j = c.person ? joins.get(String(c.person)) : null;
+        const js = c.spousePerson ? joins.get(String(c.spousePerson)) : null;
+        const gens = [...new Set([...(j || []), ...(js || [])])].sort((a, b) => a - b);
+        const linked = c.person && !c.minor;
+        const bi = blocks.findIndex((b) => b.kind === "link" && (b.theirSlug === c.person || b.theirSlug === c.spousePerson));
+        return (
+          <li class={`fr-c fr-c-${c.originGrade || "doc"}${ours ? " is-ours" : ""}`} data-living={c.living ? "1" : "0"} data-minor={c.minor ? "1" : undefined}
+              data-person={c.person || undefined} data-spouse-person={c.spousePerson || undefined} data-ours={ours ? c.person : undefined}
+              title={ours ? `On our direct line, generation ${ours.generation}` : c.title || undefined}>
+            <span class="fr-g">Gen. {i + 1}</span>
+            <span class="fr-n">{linked ? <a href={addr(c.person)}>{c.name}</a> : c.name}{ours && <span class="st-vh"> (on our direct line, generation {ours.generation})</span>}</span>
+            <span class="fr-y">{safeYears(c)}</span>
+            <span class="fr-f">{c.origin ? `from ${c.origin}` : ""}{SUFFIX[c.originGrade] && <span class="fr-q">{SUFFIX[c.originGrade]}</span>}</span>
+            {atLine(c) && !c.minor && <span class="fr-at">{atLine(c)}</span>}
+            <span class="fr-s">{c.spouse ? <>m. {sOurs && <span class="fr-sw" title={`On our direct line, generation ${sOurs.generation}`} data-ours={c.spousePerson}></span>}{spouseLink(c) ? <a href={spouseLink(c)}>{c.spouse}</a> : c.spouse}{c.spouseOrigin ? `, ${c.spouseOrigin}` : ""}</> : ""}</span>
+            {gens.length > 0 && (bi > -1
+              ? <a class="fr-join" href={`#frb-${uid}-${bi + 1}`} title="How our line meets this person">↔ our gen. {gens.join(", ")}</a>
+              : <span class="fr-join">↔ our gen. {gens.join(", ")}</span>)}
+          </li>
+        );
+      })}
+    </ol>
+  </div>
+  {laneNote && <p class="fr-note">{laneNote}</p>}
+
+  <div class="fr-conn" data-connections={blocks.filter((b) => b.kind === "link").length}>
+    <h3 class="fr-ch">How our line connects</h3>
+    {blocks[0].kind === "none" ? (
+      <p class="fr-nc" data-not-connected="1"><b>Not connected to our line yet.</b>{blocks[0].why ? <>{" "}{blocks[0].why}</> : null}</p>
+    ) : (
+      <ul class="fr-bl">
+        {blocks.map((b, i) => {
+          const theirOurs = dm.get(String(b.theirSlug));
+          return (
+            <li class={`fr-b fr-b-${b.grade}`} id={`frb-${uid}-${i + 1}`} data-grade={b.grade} data-relation={b.relation} data-our={b.ourSlug} data-their={b.theirSlug} data-our-generation={b.ourGeneration} aria-label={blockSentence(b)}>
+              <div class="fr-b-our is-ours" data-ours={b.ourSlug}>
+                <span class="fr-b-k">Our line · Gen. {b.ourGeneration}</span>
+                <span class="fr-b-nm"><a href={addr(b.ourSlug)}>{b.ourName}</a></span>
+              </div>
+              <div class="fr-b-rel"><span class="fr-b-w">{b.word}</span></div>
+              <div class={`fr-b-their${theirOurs ? " is-ours" : ""}`} data-ours={theirOurs ? b.theirSlug : undefined}>
+                <span class="fr-b-k">{theirOurs ? `Our line · Gen. ${theirOurs.generation}` : family.title}</span>
+                <span class="fr-b-nm"><a href={addr(b.theirSlug)}>{b.theirName}</a></span>
+                {b.theirOrigin && <span class="fr-b-o">{b.theirOrigin.replace(/^from /, "of ")}</span>}
+              </div>
+              <p class="fr-b-foot">
+                <span class="fr-b-g">{GRADE_WORD[b.grade]}</span>
+                {b.storyHref && <a href={u(b.storyHref)}>in the story →</a>}
+                {b.note && <span class="fr-b-note">{b.note}</span>}
+              </p>
+            </li>
+          );
+        })}
+      </ul>
+    )}
+  </div>
+
+  {legend && (
+    <p class="fr-leg" aria-label="How to read the cards">
+      <span class="fr-lt">Cards</span>
+      <span><span class="fr-lk"></span>solid: documented</span>
+      <span><span class="fr-lk fr-lk-inf"></span>dashed: inferred</span>
+      <span><span class="fr-lk fr-lk-lore"></span>dotted: family memory or the family's tree</span>
+      <span class="fr-lg-ours"><span class="ours-sw"></span>{OURS_LEGEND}</span>
+    </p>
+  )}
+</section>
+)}

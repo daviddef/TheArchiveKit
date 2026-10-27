@@ -91,6 +91,8 @@
  * --paper to --panel, so an archive that never defined --paper is not left with a
  * transparent node.
  */
+import "../styles/ours.css";
+import { directMap } from "../lib/directline.js";
 import PersonTree from "./PersonTree.astro";
 import PS from "../data/public-sources.json";
 import { readSource, SOURCES, lifespan, isLiving, displayName, splitQualifier, publishedRelations, chartEmptyReason, EMPTY_TEXT } from "../lib/person.js";
@@ -99,18 +101,23 @@ const {
   person = {}, nameHref = null, edgeLevel = true, emptyWhy = null, emptyText = null,
   nameStyle = "titleCase", now = new Date().getFullYear(), sources = PS, heldIds = [],
   palette = {}, labels = {}, keys = [], always = true,
+  /* directLine: the archive's src/data/direct-line.json. A relative whose row carries `slug` and is in it is tinted
+     (`is-ours`, data-ours): the Family cards of a person page show which relatives are on our direct line. */
+  directLine = null,
 } = Astro.props;
+const DM = directMap(directLine);
 const rule = { now, sources, heldIds };
 const rel = publishedRelations({ ...person, relations: Astro.props.relations || person.relations || {} }, rule);
 const selfLiving = isLiving(person, rule);
 
-const used = new Set(); let anyLine = false;
+const used = new Set(); let anyLine = false; let anyOurs = false;
 const row = (r, { spouse = false, small = false } = {}) => {
   const living = isLiving(r, rule);
   const quiet = living || selfLiving;            // no source word, no hover text, no line bar
   const s = readSource(r.source);
   const isLine = !quiet && (s.line || r.line);
   if (isLine) anyLine = true;
+  if (!selfLiving && r.slug && DM.has(String(r.slug))) anyOurs = true;
   if (!quiet) used.add(s.source);
   const word = SOURCES[s.source].label + (s.known ? "" : ` (“${String(r.source)}”)`);
   const mark = quiet ? undefined : r.ambiguous ? "several people of this name — not linked"
@@ -124,6 +131,7 @@ const row = (r, { spouse = false, small = false } = {}) => {
           living ? "is-living" : "", r.ambiguous ? "ambiguous" : !href ? "nopage" : ""].filter(Boolean).join(" "),
     mark: small ? undefined : mark,
     title: quiet ? undefined : "Recorded by: " + word,
+    ours: !selfLiving && r.slug && DM.has(String(r.slug)) ? String(r.slug) : undefined,
     mar: spouse ? (r.mar || "married") : undefined,
     small,
   };
@@ -153,6 +161,7 @@ const sentence = empty ? (emptyText ?? (why && EMPTY_TEXT[why]) ?? EMPTY_TEXT["n
 /* legend: only the words actually drawn, so an empty chart does not imply lines exist;
    none at all on a living person's page */
 const legend = selfLiving ? [] : [...used].filter((k) => k !== "none" || used.size === 1).map((k) => ({ cls: k, label: SOURCES[k].label }));
+if (anyOurs) legend.push({ cls: "is-ours", label: "tinted = our direct line" });
 if (anyLine) legend.push({ cls: "is-line", label: "on the direct line (a bar, not a grade)" });
 const allKeys = empty || selfLiving ? [] : [...legend, ...keys];
 ---

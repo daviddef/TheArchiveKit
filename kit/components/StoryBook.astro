@@ -17,6 +17,7 @@
    script the ribbon is a plain list of links; with it, the card for the chapter being read is marked.
 
    props
+     directLine  the archive's src/data/direct-line.json: the ribbon's cards and the trees' nodes of people on it are tinted (kit/docs/family-ribbon.md)
      book        the story data (kit/docs/story.md). The archive's layout draws the title, eyebrow and dek from book.title etc.
      personHref  (slug) => address of a person's page ("person:slug" links in prose, tree and ribbon nodes). Default /people/<slug>/
      u           (path) => the path with the archive's deployment base. Default: unchanged.
@@ -28,11 +29,13 @@ import { md as kitMd } from "../lib/md.js";
 import Rule from "./Rule.astro";
 import LineTree from "./LineTree.astro";
 import StoryMap from "./StoryMap.astro";
+import "../styles/ours.css";
+import { OURS_LEGEND } from "../lib/directline.js";
 import StoryRibbon from "./StoryRibbon.astro";
 import {
   LEGEND, MARK_TITLE, proseHtml, linkTarget, generationsOf, worldLeads, marksOf, paragraphsOf, quotesOf, conflictsFor,
 } from "../lib/story.js";
-const { book, personHref = (s) => `/people/${s}/`, u = (p) => p, md = kitMd, Plates = null, plateIndex = {} } = Astro.props;
+const { book, personHref = (s) => `/people/${s}/`, u = (p) => p, md = kitMd, Plates = null, plateIndex = {}, directLine = null } = Astro.props;
 const chapters = book.chapters || [];
 const closing = book.closing || {};
 const gens = generationsOf(book);
@@ -45,7 +48,7 @@ const when = (c) => [c.place, c.years].filter(Boolean).join(", ");
 const marksTitle = (m) => `${MARK_TITLE[m.kind]}${m.why ? ": " + m.why : ""}`;
 ---
 <div class="story" data-story>
-  {book.ribbon && <StoryRibbon ribbon={book.ribbon} personHref={personHref} u={u} />}
+  {book.ribbon && <StoryRibbon ribbon={book.ribbon} personHref={personHref} u={u} directLine={directLine} />}
 
   <aside class="st-legend" aria-label="How to read the marks">
     <span class="st-lt">How to read the marks</span>
@@ -54,6 +57,7 @@ const marksTitle = (m) => `${MARK_TITLE[m.kind]}${m.why ? ": " + m.why : ""}`;
     ))}
     <span class="st-li"><span class="st-wl">In the world around them</span> the place and the years, never these people; marked <sup class="st-mk st-mk-archive">archive</sup> or <sup class="st-mk st-mk-history">history</sup></span>
     <span class="st-li">In the trees and maps: <b>solid</b> documented, <b>dashed</b> inferred, <b>dotted</b> family memory</span>
+    {directLine && <span class="st-li st-li-ours"><span class="ours-sw"></span>{OURS_LEGEND}</span>}
   </aside>
 
   <nav class="st-toc" aria-label="Chapters">
@@ -105,7 +109,7 @@ const marksTitle = (m) => `${MARK_TITLE[m.kind]}${m.why ? ": " + m.why : ""}`;
                   ))}{p.tbc && <span class="st-tbc" title={p.tbc}> to be confirmed</span>}</p>
             ))}
           </div>
-          {c.tree && <div class="st-treez"><LineTree tree={c.tree} title={c.title} next={nx ? nx.id : null} nextTitle={nx ? nx.title : ""} personHref={personHref} u={u} /></div>}
+          {c.tree && <div class="st-treez"><LineTree tree={c.tree} title={c.title} next={nx ? nx.id : null} nextTitle={nx ? nx.title : ""} personHref={personHref} u={u} directLine={directLine} /></div>}
           {maps.length > 0 && <div class="st-mapz">{maps.map((m) => <StoryMap map={m} here={c.id} u={u} />)}</div>}
           {(quotes.length > 0 || c.hardLimit || conflicts.length > 0) && (
             <div class="st-cards">

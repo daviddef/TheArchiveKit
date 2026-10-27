@@ -1,0 +1,70 @@
+/* OUR DIRECT LINE: one tint, in one place (kit/docs/family-ribbon.md, "The tint").
+ *
+ * Two tokens and a class. `--ours-soft` is the background of anything that is on our direct line; `--ours` is the stronger
+ * shade for a hairline, a label or a thread; `--ours-ink` reads on the soft one. A card, a node, a row or a band is on our
+ * direct line when it carries `is-ours`, and it carries it only when the person it is about is in the archive's
+ * src/data/direct-line.json (kit/tools/checkfamilyribbon.py holds that both ways).
+ *
+ * WHY THIS HUE. The story already uses colour for three other things: the evidence outline (solid accent, dashed gold,
+ * dotted grey-brown), the thread (terracotta) and the glyphs (ochre). The tint has to be none of those, and it has to be
+ * something a reader can name: "the blue-violet ones are ours". A cool indigo wash is the one hue that no archive uses for
+ * an accent or for any evidence state. It is a FILL, never an outline, so the evidence grammar is untouched: a tinted
+ * card still has a solid, dashed or dotted edge that says how well its origin is known. And it is never the only cue: a
+ * tinted card also has a bar along its top edge, and the legend says "tinted = our direct line".
+ *
+ * CONTRAST (held by kit/tools/familyribbon_logic.mjs, which reads the values below): the ink, ink-2 and ink-3 defaults
+ * of story.css read on --ours-soft at 4.5:1 or better in both themes; --ours-ink at 7:1; --ours against the page at 3:1.
+ *
+ * An archive may set --ours, --ours-soft and --ours-ink in its own :root (every rule here is :where(), so the archive's
+ * value wins whatever the order of the stylesheets). Set the dark ones too, or the light ones show on dark.
+ */
+:where(:root) {
+  --ours: #4a55a8; --ours-soft: #e9ebf8; --ours-ink: #2b3275;
+}
+@media (prefers-color-scheme: dark) {
+  :where(:root:not([data-theme="light"])) { --ours: #a5adf0; --ours-soft: #252a47; --ours-ink: #cdd2fb; }
+}
+:where(:root[data-theme="dark"]) { --ours: #a5adf0; --ours-soft: #252a47; --ours-ink: #cdd2fb; }
+
+/* the generic case: a block is tinted and carries the top bar */
+.is-ours { background-color: var(--ours-soft); box-shadow: inset 0 3px 0 var(--ours); }
+
+/* the story ribbon and the family ribbon: the card's own outline (the evidence) is left alone; the tint is the fill */
+.st-rb.is-ours, .fr-c.is-ours { background: var(--ours-soft); box-shadow: inset 0 3px 0 var(--ours); }
+.st-rb.is-ours:hover, .fr-c.is-ours:hover { background: var(--ours-soft); }
+.st-rb.is-ours.on { box-shadow: inset 0 3px 0 var(--ours), 0 0 0 2px var(--st-thread, var(--ours)); }
+.st-rb.is-ours .st-rb-g, .fr-c.is-ours .fr-g { color: var(--ours-ink); }
+.st-rb.is-ours .st-rb-y, .st-rb.is-ours .st-rb-q, .st-rb.is-ours .st-rb-at, .st-rb.is-ours .st-rb-s,
+.fr-c.is-ours .fr-y, .fr-c.is-ours .fr-s, .fr-c.is-ours .fr-at { color: var(--st-ink-2, var(--ink-2)); }
+
+/* a household tree (LineTree): the node of a person on our line is filled; its outline is still its evidence */
+.st-tree a.is-ours .st-n:not(.st-lc) { fill: var(--ours-soft); stroke-width: 3; }
+.st-halo { fill: var(--ours-soft); stroke: var(--ours); stroke-width: 1; }
+.st-tree a.is-ours .st-name { font-weight: 600; }
+
+/* the lines drawing (BranchRivers): a lane marked ours has a tinted band under its own colour; a node of one of our
+   people is filled with the tint */
+g.node.is-ours > circle:first-of-type { fill: var(--ours-soft); }
+.lane-ours { fill: var(--ours-soft); }
+
+/* the spine: a row of our direct line (the whole spine is, on most archives; the tint is for the row that says so) */
+.sp-g.is-ours, .sp-cg.is-ours { background: var(--ours-soft); box-shadow: inset 4px 0 0 var(--ours); }
+.sp-g.is-ours { padding-left: .8rem; border-radius: 3px; }
+.sp-cg.is-ours { padding-left: .6rem; }
+
+/* a person page: the quiet band under the name, and the chart's relative cards */
+.ours-band { display: flex; flex-wrap: wrap; align-items: baseline; gap: .15rem .9rem; margin: .5rem 0 .2rem; padding: .45rem .8rem .4rem;
+  border-radius: 3px; font-family: var(--st-sans, var(--sans, system-ui, sans-serif)); font-size: 13px; line-height: 1.4; color: var(--ours-ink); max-width: 38rem; }
+.ours-band b { font-weight: 600; letter-spacing: .1em; text-transform: uppercase; font-size: 11px; }
+.ours-band a { color: var(--ours-ink); text-decoration-color: var(--ours); }
+.ptree .sw.is-ours { background: var(--ours-soft); box-shadow: inset 0 3px 0 var(--ours); }
+.ptree .node.is-ours { background: var(--ours-soft); box-shadow: inset 0 3px 0 var(--ours); }
+.ptree .node.is-ours .dt, .ptree .node.is-ours .via { color: var(--ink-2, inherit); }
+
+.ours-leg { font-family: var(--st-sans, var(--sans, system-ui, sans-serif)); font-size: 12px; color: var(--st-ink-2, var(--ink-2)); margin: .5rem 0 0; }
+
+/* the swatch in a legend: tinted = our direct line */
+.ours-sw { display: inline-block; width: 1.9em; height: 1em; vertical-align: -.15em; margin-right: .4em; border-radius: 2px;
+  background: var(--ours-soft); box-shadow: inset 0 3px 0 var(--ours); outline: 1px solid var(--st-rule, var(--rule, #ccc)); outline-offset: -1px; }
+
+@media print { .is-ours, .st-rb.is-ours, .fr-c.is-ours { background: #fff !important; box-shadow: none; } }

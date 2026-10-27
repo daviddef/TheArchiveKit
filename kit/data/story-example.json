@@ -16,7 +16,7 @@
   "ribbon": {
     "note": "Each card names that generation's person and where he came from, with the place a document later finds the household where it differs, and his wife and where she came from. The outline carries the evidence for where he came from: solid documented, dashed inferred, dotted family memory.",
     "cards": [
-      { "name": "Tomas Arden", "years": "1790–1861", "origin": "Valmora", "originGrade": "doc", "spouse": "Ilse née Brandt", "spouseOrigin": "of Hollin", "atPlace": "", "atYear": "", "living": false, "chapter": "weaver", "person": "tomas-arden-1790", "spousePerson": "ilse-arden-nee-brandt-1795", "title": "Born at Valmora, baptised 1790; weaver there until his death" },
+      { "name": "Tomas Arden", "years": "1790–1861", "origin": "Valmora", "originGrade": "doc", "spouse": "Ilse née Brandt", "spouseOrigin": "of Hollin", "atPlace": "", "atYear": "", "living": false, "chapter": "weaver", "person": "tomas-arden-1790", "spousePerson": "ilse-arden-nee-brandt-1795", "spouseDirect": true, "title": "Born at Valmora, baptised 1790; weaver there until his death" },
       { "name": "Pieter Arden", "years": "1822–1898", "origin": "Valmora", "originGrade": "inf", "spouse": "Greta Voss", "spouseOrigin": "place not known", "atPlace": "Port Alder", "atYear": "1851", "living": false, "chapter": "ship", "person": "pieter-arden-1822", "title": "Born at Valmora by inference from the 1851 census; documented at Port Alder" },
       { "name": "Rowan Arden", "years": "", "origin": "Port Alder", "originGrade": "doc", "spouse": "Mira", "spouseOrigin": "of Port Alder", "atPlace": "Port Alder", "atYear": "", "living": true, "chapter": "harbour", "spouseLiving": true, "title": "Living: named with a relationship and a town, nothing more" }
     ]

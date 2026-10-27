@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/daviddef/TheArchiveKit/kit/data/direct-line-schema.json",
+  "title": "src/data/direct-line.json: who is on our direct line",
+  "description": "One file for the archive: the people whose cards, nodes, rows and pages are tinted (is-ours). Produced from the story's ribbon by kit/tools/directline.py and held to it by kit/tools/checkfamilyribbon.py. See kit/docs/family-ribbon.md.",
+  "type": "object",
+  "required": ["people"],
+  "additionalProperties": false,
+  "properties": {
+    "_note": { "type": "string" },
+    "generationLabel": { "type": "string", "description": "The noun in 'On our direct line · generation 7' (default 'generation')." },
+    "people": {
+      "type": "array", "minItems": 2,
+      "items": { "type": "object", "required": ["slug", "generation", "storyChapter"], "additionalProperties": false,
+        "properties": { "slug": { "type": "string", "minLength": 1 }, "generation": { "type": "integer", "minimum": 1 }, "storyChapter": { "type": "string", "minLength": 1 }, "name": { "type": "string" } } },
+      "description": "One for each story ribbon card that has a person, in the ribbon's order; generation is the card's number."
+    },
+    "unlinked": {
+      "type": "array",
+      "items": { "type": "object", "required": ["generation", "storyChapter"], "additionalProperties": false,
+        "properties": { "generation": { "type": "integer", "minimum": 1 }, "storyChapter": { "type": "string", "minLength": 1 }, "name": { "type": "string" } } },
+      "description": "The ribbon cards that name no person page. They are on the line all the same, and are tinted (data-ours gen:N)."
+    },
+    "partners": {
+      "type": "array",
+      "items": { "type": "object", "required": ["slug", "generation", "storyChapter", "partnerOf"], "additionalProperties": false,
+        "properties": { "slug": { "type": "string", "minLength": 1 }, "generation": { "type": "integer", "minimum": 1 }, "storyChapter": { "type": "string", "minLength": 1 }, "partnerOf": { "type": "string" }, "name": { "type": "string" } } },
+      "description": "The spouses on those cards who are themselves direct ancestors (card.spouseDirect)."
+    }
+  }
+}
