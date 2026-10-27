@@ -15,15 +15,21 @@
                   person?, spousePerson?, spouseHref?, spouseGrade?, title?, glyph?}]}
      personHref  (slug) => address of a person's page, from the archive
      directLine  the archive's src/data/direct-line.json: a card whose person is in it is tinted (`is-ours`), and a card
-                 whose person is not in it is not. Without the file nothing is tinted (kit/docs/family-ribbon.md). */
+                 whose person is not in it is not. Without the file nothing is tinted (kit/docs/family-ribbon.md).
+   A card may carry `flags` (kit/tools/ribbonflags.py writes them; kit/docs/ribbon-flags.md): a strip of mini flags in the card's
+   header row (FlagMini: absolutely placed, so the card does not change size), and under the ribbon one line that says what they
+   are and whose art they are. No `flags`: unchanged. */
 import "../styles/story.css";
 import "../styles/ours.css";
 import { cardEntry, cardKey } from "../lib/directline.js";
 import { GLYPHS, atLine, yearsLine } from "../lib/story.js";
+import { hasFlags, FLAG_KEY, FLAG_CREDIT } from "../lib/flags.js";
+import FlagMini from "./FlagMini.astro";
 const { ribbon, personHref = (s) => `/people/${s}/`, u = (p) => p, directLine = null } = Astro.props;
 const oursOf = (c, i) => (directLine ? cardEntry(directLine, c, i) : null);
 const ORDER = ["loom", "field", "stone", "wave", "works", "gable", "ship", "hill"];
 const SUFFIX = { inf: " (inferred)", lore: " (family's tree)" };
+const flagged = hasFlags(ribbon.cards);
 const spouseLink = (c) => (c.spousePerson ? personHref(c.spousePerson) : c.spouseHref ? u(c.spouseHref) : null);
 ---
 <nav class="st-rib" aria-label="The generations, in order">
@@ -34,6 +40,7 @@ const spouseLink = (c) => (c.spousePerson ? personHref(c.spousePerson) : c.spous
           <svg viewBox="-2 -2 28 22" width="26" height="20" aria-hidden="true"><path d={GLYPHS[c.glyph] || GLYPHS[ORDER[i % ORDER.length]]} /></svg>
           <span class="st-rb-g">Gen. {i + 1}</span>
         </a>
+        <FlagMini card={c} />
         <span class="st-rb-n">{c.person ? <a href={personHref(c.person)}>{c.name}</a> : c.name}</span>
         {yearsLine(c) && <span class="st-rb-y">{yearsLine(c)}</span>}
         <span class="st-rb-f">{c.origin ? `from ${c.origin}` : ""}{SUFFIX[c.originGrade] && <span class="st-rb-q">{SUFFIX[c.originGrade]}</span>}</span>
@@ -43,4 +50,5 @@ const spouseLink = (c) => (c.spousePerson ? personHref(c.spousePerson) : c.spous
     ))}
   </ol>
   {ribbon.note && <p class="st-rb-note">{ribbon.note}</p>}
+  {flagged && <p class="st-rb-note st-rb-fl" data-flag-credit="1">{FLAG_KEY} <span class="flag-credit">{FLAG_CREDIT}.</span></p>}
 </nav>

@@ -1,0 +1,1763 @@
+{
+  "about": "The Flags Atlas artwork the ribbon flags can draw: copied by kit/tools/ribbonflags.py --sync-atlas from the Record Atlas (site/public/fl/<id>.svg), only the flags kit/data/regime-flags.json can pick for some year of some region era. The art is David Defranceski's own project's (the Flags Atlas), drawn for him; it is used on his own archive sites with his say, and NO open licence is claimed for it. Credit wherever it is shown: 'Flags: Flags Atlas, by David Defranceski, drawn for this project'.",
+  "credit": "Flags: Flags Atlas, by David Defranceski, drawn for this project",
+  "licence": "No open licence. The Flags Atlas's own art, used on David Defranceski's archive sites with his permission (27 October 2026).",
+  "contract": {
+    "name": "recordatlas-context",
+    "version": "1.13.0",
+    "generated": "2026-10-26",
+    "sha256": "81a0df83787578622d7ec82d5e432f988b24ae189c78755ebcd7a202ce8485b8"
+  },
+  "flags": {
+    "argentina-flags--era-1810": {
+      "file": "argentina-flags--era-1810.svg",
+      "country": "argentina-flags",
+      "from": 1810,
+      "to": 1816,
+      "present": false,
+      "polity": "War of independence / United Provinces (revolutionary period)",
+      "evidence": "attested",
+      "page": "/flags/argentina-flags/#era-1810",
+      "sha256": "c8aa3dd1dda4bc1eb3843aa71abe7b916588e830d095ca7b37c885427579b1d6"
+    },
+    "argentina-flags--era-1816": {
+      "file": "argentina-flags--era-1816.svg",
+      "country": "argentina-flags",
+      "from": 1816,
+      "to": 1820,
+      "present": false,
+      "polity": "United Provinces of the Río de la Plata (independence declared)",
+      "evidence": "attested",
+      "page": "/flags/argentina-flags/#era-1816",
+      "sha256": "d4ded3a4db0af3b01edc69a5c51aba440ef317e12730eb0e3e2a8886d21c70dc"
+    },
+    "argentina-flags--era-1820": {
+      "file": "argentina-flags--era-1820.svg",
+      "country": "argentina-flags",
+      "from": 1820,
+      "to": 1861,
+      "present": false,
+      "polity": "Civil war era / Argentine Confederation",
+      "evidence": "attested",
+      "page": "/flags/argentina-flags/#era-1820",
+      "sha256": "d4ded3a4db0af3b01edc69a5c51aba440ef317e12730eb0e3e2a8886d21c70dc"
+    },
+    "argentina-flags--era-1861": {
+      "file": "argentina-flags--era-1861.svg",
+      "country": "argentina-flags",
+      "from": 1861,
+      "to": null,
+      "present": true,
+      "polity": "Argentine Republic (unified, modern)",
+      "evidence": "attested",
+      "page": "/flags/argentina-flags/#era-1861",
+      "sha256": "d4ded3a4db0af3b01edc69a5c51aba440ef317e12730eb0e3e2a8886d21c70dc"
+    },
+    "australia-flags--era-1901": {
+      "file": "australia-flags--era-1901.svg",
+      "country": "australia-flags",
+      "from": 1901,
+      "to": null,
+      "present": true,
+      "polity": "Commonwealth of Australia",
+      "evidence": "attested",
+      "page": "/flags/australia-flags/#era-1901",
+      "sha256": "eb83b0af99bcf8444680e96edd6634f61c1d62a26ad66a0b87376109f9f552f9"
+    },
+    "austria-flags--era-1804": {
+      "file": "austria-flags--era-1804.svg",
+      "country": "austria-flags",
+      "from": 1804,
+      "to": 1867,
+      "present": false,
+      "polity": "Empire of Austria",
+      "evidence": "attested",
+      "page": "/flags/austria-flags/#era-1804",
+      "sha256": "798d2ae655d74bb139fecde4109e5da57551d06409db8335ee4e84591891ac4d"
+    },
+    "austria-flags--era-1867": {
+      "file": "austria-flags--era-1867.svg",
+      "country": "austria-flags",
+      "from": 1867,
+      "to": 1918,
+      "present": false,
+      "polity": "Austria-Hungary (Cisleithania)",
+      "evidence": "attested",
+      "page": "/flags/austria-flags/#era-1867",
+      "sha256": "798d2ae655d74bb139fecde4109e5da57551d06409db8335ee4e84591891ac4d"
+    },
+    "austria-flags--era-1955": {
+      "file": "austria-flags--era-1955.svg",
+      "country": "austria-flags",
+      "from": 1955,
+      "to": null,
+      "present": true,
+      "polity": "Republic of Austria",
+      "evidence": "attested",
+      "page": "/flags/austria-flags/#era-1955",
+      "sha256": "3be59cb2be7d8a5fd05f3e48ec2a55f65c8605153cf999489aca1c1867dc8c17"
+    },
+    "belarus-flags--era-1995": {
+      "file": "belarus-flags--era-1995.svg",
+      "country": "belarus-flags",
+      "from": 1995,
+      "to": null,
+      "present": true,
+      "polity": "Republic of Belarus (current flag)",
+      "evidence": "attested",
+      "page": "/flags/belarus-flags/#era-1995",
+      "sha256": "06f521fe0be8da9aead04e58df2daa6ed09a1e8e91d8980b423654c402b6e84a"
+    },
+    "belgium-flags--era-1830": {
+      "file": "belgium-flags--era-1830.svg",
+      "country": "belgium-flags",
+      "from": 1830,
+      "to": 1914,
+      "present": false,
+      "polity": "Kingdom of Belgium (founding era)",
+      "evidence": "attested",
+      "page": "/flags/belgium-flags/#era-1830",
+      "sha256": "5a0c6c35322b041090aeca09986f000619e2aa138021ad8cd902498a2fbec4d4"
+    },
+    "belgium-flags--era-1918": {
+      "file": "belgium-flags--era-1918.svg",
+      "country": "belgium-flags",
+      "from": 1918,
+      "to": 1940,
+      "present": false,
+      "polity": "Kingdom of Belgium (interwar)",
+      "evidence": "attested",
+      "page": "/flags/belgium-flags/#era-1918",
+      "sha256": "5a0c6c35322b041090aeca09986f000619e2aa138021ad8cd902498a2fbec4d4"
+    },
+    "belgium-flags--era-1944": {
+      "file": "belgium-flags--era-1944.svg",
+      "country": "belgium-flags",
+      "from": 1944,
+      "to": null,
+      "present": true,
+      "polity": "Kingdom of Belgium",
+      "evidence": "attested",
+      "page": "/flags/belgium-flags/#era-1944",
+      "sha256": "5a0c6c35322b041090aeca09986f000619e2aa138021ad8cd902498a2fbec4d4"
+    },
+    "bosnia-flags--era-1992": {
+      "file": "bosnia-flags--era-1992.svg",
+      "country": "bosnia-flags",
+      "from": 1992,
+      "to": 1998,
+      "present": false,
+      "polity": "Republic of Bosnia and Herzegovina (war-era flag)",
+      "evidence": "attested",
+      "page": "/flags/bosnia-flags/#era-1992",
+      "sha256": "a3dcb53670f41da8a3688506653c94ce2ba32a4f31c57e4d4122753c1d22c49c"
+    },
+    "bosnia-flags--era-1998": {
+      "file": "bosnia-flags--era-1998.svg",
+      "country": "bosnia-flags",
+      "from": 1998,
+      "to": null,
+      "present": true,
+      "polity": "Republic of Bosnia and Herzegovina",
+      "evidence": "attested",
+      "page": "/flags/bosnia-flags/#era-1998",
+      "sha256": "df30ca44f62b1c8b28943889d550e545c257a37e65b192e862b94832c52677e2"
+    },
+    "brazil-flags--era-1822": {
+      "file": "brazil-flags--era-1822.svg",
+      "country": "brazil-flags",
+      "from": 1822,
+      "to": 1889,
+      "present": false,
+      "polity": "Empire of Brazil",
+      "evidence": "attested",
+      "page": "/flags/brazil-flags/#era-1822",
+      "sha256": "bfa336bb042563f508e1735e53b5cb825ccd6c33cbe87b878a5c059e610f5180"
+    },
+    "brazil-flags--era-1889": {
+      "file": "brazil-flags--era-1889.svg",
+      "country": "brazil-flags",
+      "from": 1889,
+      "to": null,
+      "present": true,
+      "polity": "Federative Republic of Brazil",
+      "evidence": "attested",
+      "page": "/flags/brazil-flags/#era-1889",
+      "sha256": "8759598f6ecf3cfe143e9aa68575fed309ebf0ecd01c9ccf345994fb07372267"
+    },
+    "canada-flags--era-1867": {
+      "file": "canada-flags--era-1867.svg",
+      "country": "canada-flags",
+      "from": 1867,
+      "to": 1921,
+      "present": false,
+      "polity": "Dominion of Canada",
+      "evidence": "attested",
+      "page": "/flags/canada-flags/#era-1867",
+      "sha256": "37fd5f31328b8db6f4e682a0e8e0a276aeb1b1467ddb6d4566cc8ee420463911"
+    },
+    "canada-flags--era-1921": {
+      "file": "canada-flags--era-1921.svg",
+      "country": "canada-flags",
+      "from": 1921,
+      "to": 1957,
+      "present": false,
+      "polity": "Canadian Red Ensign (1921 arms)",
+      "evidence": "attested",
+      "page": "/flags/canada-flags/#era-1921",
+      "sha256": "c43472817bd20e30f01e6924c8d9f1e1c0e9264ebe8b959b9c027c83d99f3c53"
+    },
+    "canada-flags--era-1957": {
+      "file": "canada-flags--era-1957.svg",
+      "country": "canada-flags",
+      "from": 1957,
+      "to": 1965,
+      "present": false,
+      "polity": "Canadian Red Ensign (1957 arms)",
+      "evidence": "attested",
+      "page": "/flags/canada-flags/#era-1957",
+      "sha256": "55829624322d4d3c4134d747b2130cb38a5f4e99bf3df4066b9590d94380f181"
+    },
+    "canada-flags--era-1965": {
+      "file": "canada-flags--era-1965.svg",
+      "country": "canada-flags",
+      "from": 1965,
+      "to": null,
+      "present": true,
+      "polity": "Canada (Maple Leaf flag)",
+      "evidence": "attested",
+      "page": "/flags/canada-flags/#era-1965",
+      "sha256": "8fa8efb1021678d990348bca115e31d77c513bd2d76d8d0da804a6823ad02414"
+    },
+    "chile-flags--era-1990": {
+      "file": "chile-flags--era-1990.svg",
+      "country": "chile-flags",
+      "from": 1990,
+      "to": null,
+      "present": true,
+      "polity": "Republic of Chile (democratic, modern)",
+      "evidence": "attested",
+      "page": "/flags/chile-flags/#era-1990",
+      "sha256": "3970c864019788de0ddaefe40fcc9f95f5fac5144b84a2bcd9b4bf51a797b834"
+    },
+    "croatia-flags--era-1420": {
+      "file": "croatia-flags--era-1420.svg",
+      "country": "croatia-flags",
+      "from": 1420,
+      "to": 1797,
+      "present": false,
+      "polity": "Venetian Dalmatia",
+      "evidence": "symbolic",
+      "page": "/flags/croatia-flags/#era-1420",
+      "sha256": "38b8b918d7c435fb7ab7bd0691a960dd19e39d99b1e537428c90dcce6e5bfad8"
+    },
+    "croatia-flags--era-1943": {
+      "file": "croatia-flags--era-1943.svg",
+      "country": "croatia-flags",
+      "from": 1943,
+      "to": 1946,
+      "present": false,
+      "polity": "Democratic Federal Yugoslavia (Partisan flag)",
+      "evidence": "attested",
+      "page": "/flags/croatia-flags/#era-1943",
+      "sha256": "dc26177900af28bbccdbc66068ec8f5f61d7c3eabac75f72ef97d8009918fc28"
+    },
+    "croatia-flags--era-1946": {
+      "file": "croatia-flags--era-1946.svg",
+      "country": "croatia-flags",
+      "from": 1946,
+      "to": 1992,
+      "present": false,
+      "polity": "Socialist Federal Republic of Yugoslavia",
+      "evidence": "attested",
+      "page": "/flags/croatia-flags/#era-1946",
+      "sha256": "1d932ccbe3ddd7ab244c2c37e20ac36b87e7329f5ed3f5e0e6deab84140be435"
+    },
+    "croatia-flags--era-1990": {
+      "file": "croatia-flags--era-1990.svg",
+      "country": "croatia-flags",
+      "from": 1990,
+      "to": null,
+      "present": true,
+      "polity": "Republic of Croatia",
+      "evidence": "attested",
+      "page": "/flags/croatia-flags/#era-1990",
+      "sha256": "1e72cebadf2de34829a5b58f93c96e737020feb16f50cfa6f2a6aaeb3d8e5c1b"
+    },
+    "czechia-flags--era-1918": {
+      "file": "czechia-flags--era-1918.svg",
+      "country": "czechia-flags",
+      "from": 1918,
+      "to": 1938,
+      "present": false,
+      "polity": "First Czechoslovak Republic",
+      "evidence": "attested",
+      "page": "/flags/czechia-flags/#era-1918",
+      "sha256": "28d9d117125b7167394cb79df7e061131e36471ef8ba07b99bbda940f2413195"
+    },
+    "czechia-flags--era-1945": {
+      "file": "czechia-flags--era-1945.svg",
+      "country": "czechia-flags",
+      "from": 1945,
+      "to": 1948,
+      "present": false,
+      "polity": "Third Czechoslovak Republic",
+      "evidence": "attested",
+      "page": "/flags/czechia-flags/#era-1945",
+      "sha256": "28d9d117125b7167394cb79df7e061131e36471ef8ba07b99bbda940f2413195"
+    },
+    "czechia-flags--era-1948": {
+      "file": "czechia-flags--era-1948.svg",
+      "country": "czechia-flags",
+      "from": 1948,
+      "to": 1989,
+      "present": false,
+      "polity": "Czechoslovak Socialist Republic",
+      "evidence": "attested",
+      "page": "/flags/czechia-flags/#era-1948",
+      "sha256": "28d9d117125b7167394cb79df7e061131e36471ef8ba07b99bbda940f2413195"
+    },
+    "czechia-flags--era-1989": {
+      "file": "czechia-flags--era-1989.svg",
+      "country": "czechia-flags",
+      "from": 1989,
+      "to": 1992,
+      "present": false,
+      "polity": "Czech and Slovak Federative Republic",
+      "evidence": "attested",
+      "page": "/flags/czechia-flags/#era-1989",
+      "sha256": "28d9d117125b7167394cb79df7e061131e36471ef8ba07b99bbda940f2413195"
+    },
+    "czechia-flags--era-1993": {
+      "file": "czechia-flags--era-1993.svg",
+      "country": "czechia-flags",
+      "from": 1993,
+      "to": null,
+      "present": true,
+      "polity": "Czech Republic",
+      "evidence": "attested",
+      "page": "/flags/czechia-flags/#era-1993",
+      "sha256": "28d9d117125b7167394cb79df7e061131e36471ef8ba07b99bbda940f2413195"
+    },
+    "denmark-flags--era-1523": {
+      "file": "denmark-flags--era-1523.svg",
+      "country": "denmark-flags",
+      "from": 1523,
+      "to": 1814,
+      "present": false,
+      "polity": "Denmark–Norway (Oldenburg personal union)",
+      "evidence": "attested",
+      "page": "/flags/denmark-flags/#era-1523",
+      "sha256": "4e36304dd2ee7d764308d0c8349079452e5c883957050bcaab3e14bd5c5457e5"
+    },
+    "denmark-flags--era-1814": {
+      "file": "denmark-flags--era-1814.svg",
+      "country": "denmark-flags",
+      "from": 1814,
+      "to": null,
+      "present": true,
+      "polity": "Kingdom of Denmark",
+      "evidence": "attested",
+      "page": "/flags/denmark-flags/#era-1814",
+      "sha256": "4e36304dd2ee7d764308d0c8349079452e5c883957050bcaab3e14bd5c5457e5"
+    },
+    "estonia-flags--era-1991": {
+      "file": "estonia-flags--era-1991.svg",
+      "country": "estonia-flags",
+      "from": 1991,
+      "to": null,
+      "present": true,
+      "polity": "Republic of Estonia (restored)",
+      "evidence": "attested",
+      "page": "/flags/estonia-flags/#era-1991",
+      "sha256": "2159aa5aa81dc22a8eb5b9410d5d7f4906ae7975f960c99d0ca9b0609e384014"
+    },
+    "finland-flags--era-1917": {
+      "file": "finland-flags--era-1917.svg",
+      "country": "finland-flags",
+      "from": 1917,
+      "to": null,
+      "present": true,
+      "polity": "Republic of Finland",
+      "evidence": "attested",
+      "page": "/flags/finland-flags/#era-1917",
+      "sha256": "2d088ee63e54bb1d9d8253a76550ec01615c16bd8dcdedde7c4bbb271264b38d"
+    },
+    "france-flags--era-1589": {
+      "file": "france-flags--era-1589.svg",
+      "country": "france-flags",
+      "from": 1589,
+      "to": 1789,
+      "present": false,
+      "polity": "Bourbon Kingdom",
+      "evidence": "attested",
+      "page": "/flags/france-flags/#era-1589",
+      "sha256": "61e1bc25cd5e4c1887779567c07c27f2a2ef1189dde1ed50f71ea182a3f8c77d"
+    },
+    "france-flags--era-1789": {
+      "file": "france-flags--era-1789.svg",
+      "country": "france-flags",
+      "from": 1789,
+      "to": 1804,
+      "present": false,
+      "polity": "Revolution & First Republic",
+      "evidence": "attested",
+      "page": "/flags/france-flags/#era-1789",
+      "sha256": "b9a955ab2661efd91cf5fe1a5e82cdebc0e4c4a893bb17899e3ae01cea7682a6"
+    },
+    "france-flags--era-1804": {
+      "file": "france-flags--era-1804.svg",
+      "country": "france-flags",
+      "from": 1804,
+      "to": 1814,
+      "present": false,
+      "polity": "First Empire",
+      "evidence": "attested",
+      "page": "/flags/france-flags/#era-1804",
+      "sha256": "b9a955ab2661efd91cf5fe1a5e82cdebc0e4c4a893bb17899e3ae01cea7682a6"
+    },
+    "france-flags--era-1814": {
+      "file": "france-flags--era-1814.svg",
+      "country": "france-flags",
+      "from": 1814,
+      "to": 1830,
+      "present": false,
+      "polity": "Bourbon Restoration (with the Hundred Days)",
+      "evidence": "attested",
+      "page": "/flags/france-flags/#era-1814",
+      "sha256": "61e1bc25cd5e4c1887779567c07c27f2a2ef1189dde1ed50f71ea182a3f8c77d"
+    },
+    "france-flags--era-1830": {
+      "file": "france-flags--era-1830.svg",
+      "country": "france-flags",
+      "from": 1830,
+      "to": 1848,
+      "present": false,
+      "polity": "July Monarchy",
+      "evidence": "attested",
+      "page": "/flags/france-flags/#era-1830",
+      "sha256": "b9a955ab2661efd91cf5fe1a5e82cdebc0e4c4a893bb17899e3ae01cea7682a6"
+    },
+    "france-flags--era-1848": {
+      "file": "france-flags--era-1848.svg",
+      "country": "france-flags",
+      "from": 1848,
+      "to": 1852,
+      "present": false,
+      "polity": "Second Republic",
+      "evidence": "attested",
+      "page": "/flags/france-flags/#era-1848",
+      "sha256": "b9a955ab2661efd91cf5fe1a5e82cdebc0e4c4a893bb17899e3ae01cea7682a6"
+    },
+    "france-flags--era-1852": {
+      "file": "france-flags--era-1852.svg",
+      "country": "france-flags",
+      "from": 1852,
+      "to": 1870,
+      "present": false,
+      "polity": "Second Empire",
+      "evidence": "attested",
+      "page": "/flags/france-flags/#era-1852",
+      "sha256": "b9a955ab2661efd91cf5fe1a5e82cdebc0e4c4a893bb17899e3ae01cea7682a6"
+    },
+    "france-flags--era-1870": {
+      "file": "france-flags--era-1870.svg",
+      "country": "france-flags",
+      "from": 1870,
+      "to": 1940,
+      "present": false,
+      "polity": "Third Republic",
+      "evidence": "attested",
+      "page": "/flags/france-flags/#era-1870",
+      "sha256": "b9a955ab2661efd91cf5fe1a5e82cdebc0e4c4a893bb17899e3ae01cea7682a6"
+    },
+    "france-flags--era-1944": {
+      "file": "france-flags--era-1944.svg",
+      "country": "france-flags",
+      "from": 1944,
+      "to": 1958,
+      "present": false,
+      "polity": "Provisional Government & Fourth Republic",
+      "evidence": "attested",
+      "page": "/flags/france-flags/#era-1944",
+      "sha256": "b9a955ab2661efd91cf5fe1a5e82cdebc0e4c4a893bb17899e3ae01cea7682a6"
+    },
+    "france-flags--era-1958": {
+      "file": "france-flags--era-1958.svg",
+      "country": "france-flags",
+      "from": 1958,
+      "to": null,
+      "present": true,
+      "polity": "Fifth Republic",
+      "evidence": "attested",
+      "page": "/flags/france-flags/#era-1958",
+      "sha256": "b9a955ab2661efd91cf5fe1a5e82cdebc0e4c4a893bb17899e3ae01cea7682a6"
+    },
+    "france-flags--era-987": {
+      "file": "france-flags--era-987.svg",
+      "country": "france-flags",
+      "from": 987,
+      "to": 1589,
+      "present": false,
+      "polity": "Capetian & Valois Kingdom",
+      "evidence": "attested",
+      "page": "/flags/france-flags/#era-987",
+      "sha256": "51d1b497571c43c5be4d7a26c822f8fa52cf336331a3ce23604546d63a1534fd"
+    },
+    "germany-flags--era-1871": {
+      "file": "germany-flags--era-1871.svg",
+      "country": "germany-flags",
+      "from": 1871,
+      "to": 1918,
+      "present": false,
+      "polity": "German Empire (Kaiserreich)",
+      "evidence": "attested",
+      "page": "/flags/germany-flags/#era-1871",
+      "sha256": "4cae0097ec54936b2d677a154a97990702022abbc599626677b15cfe06fae752"
+    },
+    "germany-flags--era-1918": {
+      "file": "germany-flags--era-1918.svg",
+      "country": "germany-flags",
+      "from": 1918,
+      "to": 1933,
+      "present": false,
+      "polity": "Weimar Republic",
+      "evidence": "attested",
+      "page": "/flags/germany-flags/#era-1918",
+      "sha256": "6727392494759bbd7dd14d0a43fd3d44d984f271ca97c33dbd2b9064e2f1e224"
+    },
+    "germany-flags--era-1990": {
+      "file": "germany-flags--era-1990.svg",
+      "country": "germany-flags",
+      "from": 1990,
+      "to": null,
+      "present": true,
+      "polity": "Federal Republic of Germany (reunified)",
+      "evidence": "attested",
+      "page": "/flags/germany-flags/#era-1990",
+      "sha256": "6727392494759bbd7dd14d0a43fd3d44d984f271ca97c33dbd2b9064e2f1e224"
+    },
+    "germany-flags--era-962": {
+      "file": "germany-flags--era-962.svg",
+      "country": "germany-flags",
+      "from": 962,
+      "to": 1806,
+      "present": false,
+      "polity": "Holy Roman Empire (German lands)",
+      "evidence": "attested",
+      "page": "/flags/germany-flags/#era-962",
+      "sha256": "4c0a9cee76326011f1726a300e6a14646b818a55c3c6b84e77fd554721493b31"
+    },
+    "greece-flags--era-1974": {
+      "file": "greece-flags--era-1974.svg",
+      "country": "greece-flags",
+      "from": 1974,
+      "to": null,
+      "present": true,
+      "polity": "Hellenic Republic (Third Republic)",
+      "evidence": "attested",
+      "page": "/flags/greece-flags/#era-1974",
+      "sha256": "44ab5097743d62dd4f58c34f71f0e6b65519effa01a23a30bebc02709f37cc70"
+    },
+    "hungary-flags--era-1867": {
+      "file": "hungary-flags--era-1867.svg",
+      "country": "hungary-flags",
+      "from": 1867,
+      "to": 1918,
+      "present": false,
+      "polity": "Austria-Hungary (Kingdom of Hungary)",
+      "evidence": "attested",
+      "page": "/flags/hungary-flags/#era-1867",
+      "sha256": "d689bbdf6778f7b22845628cb55d61fdb6b7409499f70eba061a3ae72d0f541a"
+    },
+    "hungary-flags--era-1918": {
+      "file": "hungary-flags--era-1918.svg",
+      "country": "hungary-flags",
+      "from": 1918,
+      "to": 1919,
+      "present": false,
+      "polity": "Hungarian Democratic Republic",
+      "evidence": "attested",
+      "page": "/flags/hungary-flags/#era-1918",
+      "sha256": "99f03da9993b0b2af724fcd26f8aaac1973c8ae07197126219496f1c70031e01"
+    },
+    "hungary-flags--era-1920": {
+      "file": "hungary-flags--era-1920.svg",
+      "country": "hungary-flags",
+      "from": 1920,
+      "to": 1944,
+      "present": false,
+      "polity": "Kingdom of Hungary (Horthy Regency)",
+      "evidence": "attested",
+      "page": "/flags/hungary-flags/#era-1920",
+      "sha256": "d689bbdf6778f7b22845628cb55d61fdb6b7409499f70eba061a3ae72d0f541a"
+    },
+    "hungary-flags--era-1946": {
+      "file": "hungary-flags--era-1946.svg",
+      "country": "hungary-flags",
+      "from": 1946,
+      "to": 1949,
+      "present": false,
+      "polity": "Second Republic of Hungary",
+      "evidence": "attested",
+      "page": "/flags/hungary-flags/#era-1946",
+      "sha256": "99f03da9993b0b2af724fcd26f8aaac1973c8ae07197126219496f1c70031e01"
+    },
+    "hungary-flags--era-1949": {
+      "file": "hungary-flags--era-1949.svg",
+      "country": "hungary-flags",
+      "from": 1949,
+      "to": 1989,
+      "present": false,
+      "polity": "Hungarian People's Republic",
+      "evidence": "attested",
+      "page": "/flags/hungary-flags/#era-1949",
+      "sha256": "fc0f42fa5730a21a3789ac275c95aa29a8a8fa00eeeca98a0e515ef64f57a194"
+    },
+    "hungary-flags--era-1989": {
+      "file": "hungary-flags--era-1989.svg",
+      "country": "hungary-flags",
+      "from": 1989,
+      "to": null,
+      "present": true,
+      "polity": "Republic of Hungary",
+      "evidence": "attested",
+      "page": "/flags/hungary-flags/#era-1989",
+      "sha256": "99f03da9993b0b2af724fcd26f8aaac1973c8ae07197126219496f1c70031e01"
+    },
+    "ireland-flags--era-1922": {
+      "file": "ireland-flags--era-1922.svg",
+      "country": "ireland-flags",
+      "from": 1922,
+      "to": 1949,
+      "present": false,
+      "polity": "Irish Free State / Éire",
+      "evidence": "attested",
+      "page": "/flags/ireland-flags/#era-1922",
+      "sha256": "726dcf343c211ab24712cadfbdde7e4db4b8f580ec26b663735570d2ac212abc"
+    },
+    "ireland-flags--era-1949": {
+      "file": "ireland-flags--era-1949.svg",
+      "country": "ireland-flags",
+      "from": 1949,
+      "to": null,
+      "present": true,
+      "polity": "Republic of Ireland",
+      "evidence": "attested",
+      "page": "/flags/ireland-flags/#era-1949",
+      "sha256": "726dcf343c211ab24712cadfbdde7e4db4b8f580ec26b663735570d2ac212abc"
+    },
+    "italy-flags--era-1861": {
+      "file": "italy-flags--era-1861.svg",
+      "country": "italy-flags",
+      "from": 1861,
+      "to": 1922,
+      "present": false,
+      "polity": "Kingdom of Italy (Liberal era)",
+      "evidence": "attested",
+      "page": "/flags/italy-flags/#era-1861",
+      "sha256": "ebe8f3f77cc9c016088f35a93b18b1019578fb57b198c86579fbe60fcb9300ac"
+    },
+    "italy-flags--era-1922": {
+      "file": "italy-flags--era-1922.svg",
+      "country": "italy-flags",
+      "from": 1922,
+      "to": 1943,
+      "present": false,
+      "polity": "Kingdom of Italy (Fascist era)",
+      "evidence": "attested",
+      "page": "/flags/italy-flags/#era-1922",
+      "sha256": "0e04ddbbdba66d8c936f98fc8add8dc84c2230ed18b2d4bf39a630231ace3c69"
+    },
+    "italy-flags--era-1945": {
+      "file": "italy-flags--era-1945.svg",
+      "country": "italy-flags",
+      "from": 1945,
+      "to": 1946,
+      "present": false,
+      "polity": "Kingdom of Italy (reunified)",
+      "evidence": "attested",
+      "page": "/flags/italy-flags/#era-1945",
+      "sha256": "d7bf8cd794423a6a14d909895de0699d7ea8d4b27344e475204fbc5705d2ddbd"
+    },
+    "italy-flags--era-1946": {
+      "file": "italy-flags--era-1946.svg",
+      "country": "italy-flags",
+      "from": 1946,
+      "to": null,
+      "present": true,
+      "polity": "Italian Republic",
+      "evidence": "attested",
+      "page": "/flags/italy-flags/#era-1946",
+      "sha256": "55ee1c6f513effe7e18c691bc6e046a8c6d36ca50ad86531ebdff350672d8535"
+    },
+    "latvia-flags--era-1990": {
+      "file": "latvia-flags--era-1990.svg",
+      "country": "latvia-flags",
+      "from": 1990,
+      "to": null,
+      "present": true,
+      "polity": "Republic of Latvia (restored)",
+      "evidence": "attested",
+      "page": "/flags/latvia-flags/#era-1990",
+      "sha256": "20cb1287ed3ed76ebd237f373d328455bfb3219a51c7590ed6ec9727eaac4108"
+    },
+    "lithuania-flags--era-1990": {
+      "file": "lithuania-flags--era-1990.svg",
+      "country": "lithuania-flags",
+      "from": 1990,
+      "to": null,
+      "present": true,
+      "polity": "Republic of Lithuania",
+      "evidence": "attested",
+      "page": "/flags/lithuania-flags/#era-1990",
+      "sha256": "f46a1ae6adbf8d5ff526c889527af5e7c23a153d7fdf95662786ed2edd285b67"
+    },
+    "malta-flags--era-1974": {
+      "file": "malta-flags--era-1974.svg",
+      "country": "malta-flags",
+      "from": 1974,
+      "to": null,
+      "present": true,
+      "polity": "Republic of Malta",
+      "evidence": "attested",
+      "page": "/flags/malta-flags/#era-1974",
+      "sha256": "08b4924e68c15c609b42b85fddb7ee1b5226d1be1f72005c64b26dbb964d296a"
+    },
+    "moldova-flags--era-1600": {
+      "file": "moldova-flags--era-1600.svg",
+      "country": "moldova-flags",
+      "from": 1600,
+      "to": 1812,
+      "present": false,
+      "polity": "Principality of Moldavia (Ottoman vassal)",
+      "evidence": "attested",
+      "page": "/flags/moldova-flags/#era-1600",
+      "sha256": "f5bcea6f092028e49a41137438135267cc3f6df77f85c55158e061e6277c81a3"
+    },
+    "montenegro-flags--era-2006": {
+      "file": "montenegro-flags--era-2006.svg",
+      "country": "montenegro-flags",
+      "from": 2006,
+      "to": null,
+      "present": true,
+      "polity": "Republic of Montenegro",
+      "evidence": "attested",
+      "page": "/flags/montenegro-flags/#era-2006",
+      "sha256": "c13ba279c319e2885eba0e2d7b9afd5e2af256cc577008d0c6064b6ee408e3ae"
+    },
+    "netherlands-flags--era-1581": {
+      "file": "netherlands-flags--era-1581.svg",
+      "country": "netherlands-flags",
+      "from": 1581,
+      "to": 1650,
+      "present": false,
+      "polity": "Dutch Republic — the Prinsenvlag",
+      "evidence": "attested",
+      "page": "/flags/netherlands-flags/#era-1581",
+      "sha256": "708b426dea4b1fef81978d34440ff089009fcead3050abb05993bd5cdbc53934"
+    },
+    "netherlands-flags--era-1650": {
+      "file": "netherlands-flags--era-1650.svg",
+      "country": "netherlands-flags",
+      "from": 1650,
+      "to": 1795,
+      "present": false,
+      "polity": "Dutch Republic — the Statenvlag",
+      "evidence": "attested",
+      "page": "/flags/netherlands-flags/#era-1650",
+      "sha256": "2c9785fc9fe8667671c509efd505b27a7c177a94accea3f1527de05d1f8cd7e4"
+    },
+    "netherlands-flags--era-1795": {
+      "file": "netherlands-flags--era-1795.svg",
+      "country": "netherlands-flags",
+      "from": 1795,
+      "to": 1806,
+      "present": false,
+      "polity": "Batavian Republic",
+      "evidence": "attested",
+      "page": "/flags/netherlands-flags/#era-1795",
+      "sha256": "c05e56de0055ad36103b366f0cba4a093c56beb80d9f7a7ad353c7a1042ed614"
+    },
+    "netherlands-flags--era-1813": {
+      "file": "netherlands-flags--era-1813.svg",
+      "country": "netherlands-flags",
+      "from": 1813,
+      "to": 1830,
+      "present": false,
+      "polity": "United Kingdom of the Netherlands",
+      "evidence": "attested",
+      "page": "/flags/netherlands-flags/#era-1813",
+      "sha256": "2c9785fc9fe8667671c509efd505b27a7c177a94accea3f1527de05d1f8cd7e4"
+    },
+    "netherlands-flags--era-1830": {
+      "file": "netherlands-flags--era-1830.svg",
+      "country": "netherlands-flags",
+      "from": 1830,
+      "to": 1940,
+      "present": false,
+      "polity": "Kingdom of the Netherlands (post-secession)",
+      "evidence": "attested",
+      "page": "/flags/netherlands-flags/#era-1830",
+      "sha256": "2c9785fc9fe8667671c509efd505b27a7c177a94accea3f1527de05d1f8cd7e4"
+    },
+    "netherlands-flags--era-1945": {
+      "file": "netherlands-flags--era-1945.svg",
+      "country": "netherlands-flags",
+      "from": 1945,
+      "to": null,
+      "present": true,
+      "polity": "Kingdom of the Netherlands",
+      "evidence": "attested",
+      "page": "/flags/netherlands-flags/#era-1945",
+      "sha256": "2c9785fc9fe8667671c509efd505b27a7c177a94accea3f1527de05d1f8cd7e4"
+    },
+    "new-zealand-flags--era-1902": {
+      "file": "new-zealand-flags--era-1902.svg",
+      "country": "new-zealand-flags",
+      "from": 1902,
+      "to": null,
+      "present": true,
+      "polity": "Dominion / modern New Zealand",
+      "evidence": "attested",
+      "page": "/flags/new-zealand-flags/#era-1902",
+      "sha256": "4d36dadbf53de8b4aa917f477312e4a7654d63a7d3086ba97d5310642682c534"
+    },
+    "norway-flags--era-1905": {
+      "file": "norway-flags--era-1905.svg",
+      "country": "norway-flags",
+      "from": 1905,
+      "to": 1940,
+      "present": false,
+      "polity": "Kingdom of Norway (independent)",
+      "evidence": "attested",
+      "page": "/flags/norway-flags/#era-1905",
+      "sha256": "316be05a51bcea789e7b929c683f7dea19b146349f83edced52e645856367a4a"
+    },
+    "norway-flags--era-1945": {
+      "file": "norway-flags--era-1945.svg",
+      "country": "norway-flags",
+      "from": 1945,
+      "to": null,
+      "present": true,
+      "polity": "Kingdom of Norway (restored)",
+      "evidence": "attested",
+      "page": "/flags/norway-flags/#era-1945",
+      "sha256": "316be05a51bcea789e7b929c683f7dea19b146349f83edced52e645856367a4a"
+    },
+    "ottoman-empire-flags--era-1844": {
+      "file": "ottoman-empire-flags--era-1844.svg",
+      "country": "ottoman-empire-flags",
+      "from": 1844,
+      "to": 1922,
+      "present": false,
+      "polity": "Decline & the standardized flag",
+      "evidence": "attested",
+      "page": "/flags/ottoman-empire-flags/#era-1844",
+      "sha256": "f6502ea04fe915208599cef135d41a96496e59f5b7fa03aaaae48ffe96600816"
+    },
+    "paraguay-flags--era-1870": {
+      "file": "paraguay-flags--era-1870.svg",
+      "country": "paraguay-flags",
+      "from": 1870,
+      "to": null,
+      "present": true,
+      "polity": "Republic of Paraguay (modern)",
+      "evidence": "attested",
+      "page": "/flags/paraguay-flags/#era-1870",
+      "sha256": "8faf9ff034f356654b583b55d0c2ef406129c6867519977993d5920c3aa50567"
+    },
+    "peru-flags--era-1825": {
+      "file": "peru-flags--era-1825.svg",
+      "country": "peru-flags",
+      "from": 1825,
+      "to": null,
+      "present": true,
+      "polity": "Republic of Peru (modern)",
+      "evidence": "attested",
+      "page": "/flags/peru-flags/#era-1825",
+      "sha256": "b1e1bbac394637b757dc45b05e12f2d30b796c79076db9da11b036979ce49de5"
+    },
+    "poland-flags--era-1320": {
+      "file": "poland-flags--era-1320.svg",
+      "country": "poland-flags",
+      "from": 1320,
+      "to": 1569,
+      "present": false,
+      "polity": "Kingdom of Poland (reunified)",
+      "evidence": "attested",
+      "page": "/flags/poland-flags/#era-1320",
+      "sha256": "c068c2f223b451126ee2f40cb437afa804183085dec3f1b1aee015a10c514a2f"
+    },
+    "poland-flags--era-1569": {
+      "file": "poland-flags--era-1569.svg",
+      "country": "poland-flags",
+      "from": 1569,
+      "to": 1795,
+      "present": false,
+      "polity": "Polish–Lithuanian Commonwealth",
+      "evidence": "attested",
+      "page": "/flags/poland-flags/#era-1569",
+      "sha256": "73d6e80de460ea038abd05ba48fa718aa528cf272dfc3569ff79b37bba6cb2a6"
+    },
+    "poland-flags--era-1918": {
+      "file": "poland-flags--era-1918.svg",
+      "country": "poland-flags",
+      "from": 1918,
+      "to": 1939,
+      "present": false,
+      "polity": "Second Polish Republic",
+      "evidence": "attested",
+      "page": "/flags/poland-flags/#era-1918",
+      "sha256": "4af998c23fe49e38bda18e9b93d7d879544295aa32b11984c16e60a3f457950a"
+    },
+    "poland-flags--era-1945": {
+      "file": "poland-flags--era-1945.svg",
+      "country": "poland-flags",
+      "from": 1945,
+      "to": 1947,
+      "present": false,
+      "polity": "Provisional Government of National Unity",
+      "evidence": "attested",
+      "page": "/flags/poland-flags/#era-1945",
+      "sha256": "121b8e413e0a1b3ac99a8ae3da5b064ab81601eb3c3f4c469ac8a4521424c2ab"
+    },
+    "poland-flags--era-1947": {
+      "file": "poland-flags--era-1947.svg",
+      "country": "poland-flags",
+      "from": 1947,
+      "to": 1989,
+      "present": false,
+      "polity": "Polish People's Republic",
+      "evidence": "attested",
+      "page": "/flags/poland-flags/#era-1947",
+      "sha256": "121b8e413e0a1b3ac99a8ae3da5b064ab81601eb3c3f4c469ac8a4521424c2ab"
+    },
+    "poland-flags--era-1989": {
+      "file": "poland-flags--era-1989.svg",
+      "country": "poland-flags",
+      "from": 1989,
+      "to": null,
+      "present": true,
+      "polity": "Republic of Poland (Third Republic)",
+      "evidence": "attested",
+      "page": "/flags/poland-flags/#era-1989",
+      "sha256": "121b8e413e0a1b3ac99a8ae3da5b064ab81601eb3c3f4c469ac8a4521424c2ab"
+    },
+    "portugal-flags--era-1139": {
+      "file": "portugal-flags--era-1139.svg",
+      "country": "portugal-flags",
+      "from": 1139,
+      "to": 1580,
+      "present": false,
+      "polity": "Kingdom of Portugal (medieval, independent)",
+      "evidence": "attested",
+      "page": "/flags/portugal-flags/#era-1139",
+      "sha256": "75ef3d0b3c913c056d6df93778b40b03956d31714b00fce295c1cb054c98d0a8"
+    },
+    "portugal-flags--era-1580": {
+      "file": "portugal-flags--era-1580.svg",
+      "country": "portugal-flags",
+      "from": 1580,
+      "to": 1640,
+      "present": false,
+      "polity": "Iberian Union (Portugal under the Spanish Habsburgs)",
+      "evidence": "attested",
+      "page": "/flags/portugal-flags/#era-1580",
+      "sha256": "86cdf1fb5f53a374436d38f09c97e43ffd4d2aee5b37d4cc90a0d0dd9e47ab78"
+    },
+    "portugal-flags--era-1640": {
+      "file": "portugal-flags--era-1640.svg",
+      "country": "portugal-flags",
+      "from": 1640,
+      "to": 1910,
+      "present": false,
+      "polity": "Kingdom of Portugal (Braganza, restored)",
+      "evidence": "attested",
+      "page": "/flags/portugal-flags/#era-1640",
+      "sha256": "b662fa750cd9344667f95e2ee16e434c7fad556769c971f814a01a51d2fcd35e"
+    },
+    "portugal-flags--era-1910": {
+      "file": "portugal-flags--era-1910.svg",
+      "country": "portugal-flags",
+      "from": 1910,
+      "to": 1926,
+      "present": false,
+      "polity": "First Portuguese Republic",
+      "evidence": "attested",
+      "page": "/flags/portugal-flags/#era-1910",
+      "sha256": "712c1633a89e3d0c0609c37b8e7a1c8f29e0a236ce1dd2b56bd71dd005d5e9a1"
+    },
+    "portugal-flags--era-1926": {
+      "file": "portugal-flags--era-1926.svg",
+      "country": "portugal-flags",
+      "from": 1926,
+      "to": 1974,
+      "present": false,
+      "polity": "Military Dictatorship & Estado Novo",
+      "evidence": "attested",
+      "page": "/flags/portugal-flags/#era-1926",
+      "sha256": "712c1633a89e3d0c0609c37b8e7a1c8f29e0a236ce1dd2b56bd71dd005d5e9a1"
+    },
+    "portugal-flags--era-1974": {
+      "file": "portugal-flags--era-1974.svg",
+      "country": "portugal-flags",
+      "from": 1974,
+      "to": null,
+      "present": true,
+      "polity": "Portuguese Republic (Third Republic)",
+      "evidence": "attested",
+      "page": "/flags/portugal-flags/#era-1974",
+      "sha256": "712c1633a89e3d0c0609c37b8e7a1c8f29e0a236ce1dd2b56bd71dd005d5e9a1"
+    },
+    "romania-flags--era-1918": {
+      "file": "romania-flags--era-1918.svg",
+      "country": "romania-flags",
+      "from": 1918,
+      "to": 1940,
+      "present": false,
+      "polity": "Kingdom of Romania (Greater Romania)",
+      "evidence": "attested",
+      "page": "/flags/romania-flags/#era-1918",
+      "sha256": "30875894c92a787ae96c837827c8a5e49ea6c88cf4e5d43a55357344d969cf88"
+    },
+    "romania-flags--era-1944": {
+      "file": "romania-flags--era-1944.svg",
+      "country": "romania-flags",
+      "from": 1944,
+      "to": 1947,
+      "present": false,
+      "polity": "Kingdom of Romania (Soviet occupation)",
+      "evidence": "attested",
+      "page": "/flags/romania-flags/#era-1944",
+      "sha256": "30875894c92a787ae96c837827c8a5e49ea6c88cf4e5d43a55357344d969cf88"
+    },
+    "romania-flags--era-1947": {
+      "file": "romania-flags--era-1947.svg",
+      "country": "romania-flags",
+      "from": 1947,
+      "to": 1989,
+      "present": false,
+      "polity": "People's / Socialist Republic of Romania",
+      "evidence": "attested",
+      "page": "/flags/romania-flags/#era-1947",
+      "sha256": "75c53a2cc0bd7fabb13677d2b24b7f8b29dab3f6d54a93927bfd0e223747ed52"
+    },
+    "romania-flags--era-1989": {
+      "file": "romania-flags--era-1989.svg",
+      "country": "romania-flags",
+      "from": 1989,
+      "to": null,
+      "present": true,
+      "polity": "Romania (post-Communist republic)",
+      "evidence": "attested",
+      "page": "/flags/romania-flags/#era-1989",
+      "sha256": "08679ddf7213b41d04bc6b827443451241a56c371dc100c332945ddbd779c2c3"
+    },
+    "russia-flags--era-1721": {
+      "file": "russia-flags--era-1721.svg",
+      "country": "russia-flags",
+      "from": 1721,
+      "to": 1917,
+      "present": false,
+      "polity": "Russian Empire",
+      "evidence": "attested",
+      "page": "/flags/russia-flags/#era-1721",
+      "sha256": "4153d9c3eb6305d5ce758ab00f5d4ec4b1e4fde2bc6d7fecff093126b4303354"
+    },
+    "russia-flags--era-1917": {
+      "file": "russia-flags--era-1917.svg",
+      "country": "russia-flags",
+      "from": 1917,
+      "to": 1922,
+      "present": false,
+      "polity": "Russian Soviet Federative Socialist Republic (Civil War)",
+      "evidence": "attested",
+      "page": "/flags/russia-flags/#era-1917",
+      "sha256": "c60c7630454dd40819edc6540cd2b7358b441a1c54882671d779f79580b54e1e"
+    },
+    "russia-flags--era-1922": {
+      "file": "russia-flags--era-1922.svg",
+      "country": "russia-flags",
+      "from": 1922,
+      "to": 1991,
+      "present": false,
+      "polity": "Soviet Union (Russian SFSR as founding republic)",
+      "evidence": "attested",
+      "page": "/flags/russia-flags/#era-1922",
+      "sha256": "8a5fc4ed95a65182984758b2a9055fb69582c058cc08268f7c343b76d51c38f8"
+    },
+    "russia-flags--era-1991": {
+      "file": "russia-flags--era-1991.svg",
+      "country": "russia-flags",
+      "from": 1991,
+      "to": null,
+      "present": true,
+      "polity": "Russian Federation",
+      "evidence": "attested",
+      "page": "/flags/russia-flags/#era-1991",
+      "sha256": "9c9e0234adf1985a29f0d37e54d15f34da60696e451548f4cfad20ecfde8377c"
+    },
+    "scotland-flags--era-1249": {
+      "file": "scotland-flags--era-1249.svg",
+      "country": "scotland-flags",
+      "from": 1249,
+      "to": 1603,
+      "present": false,
+      "polity": "Kingdom of Scotland (independent medieval & early modern kingdom)",
+      "evidence": "attested",
+      "page": "/flags/scotland-flags/#era-1249",
+      "sha256": "9cc6b56037d0c20ed13ecb51057d680daadb1b35da7127b6da12f975968314be"
+    },
+    "scotland-flags--era-1603": {
+      "file": "scotland-flags--era-1603.svg",
+      "country": "scotland-flags",
+      "from": 1603,
+      "to": 1707,
+      "present": false,
+      "polity": "Kingdom of Scotland (Union of the Crowns)",
+      "evidence": "attested",
+      "page": "/flags/scotland-flags/#era-1603",
+      "sha256": "48a2186d031c7b83f1788ea72edda048dcc3e71cb935f8543cd22902db57dc89"
+    },
+    "scotland-flags--era-1707": {
+      "file": "scotland-flags--era-1707.svg",
+      "country": "scotland-flags",
+      "from": 1707,
+      "to": 1999,
+      "present": false,
+      "polity": "Scotland (in the united Kingdom of Great Britain / UK)",
+      "evidence": "attested",
+      "page": "/flags/scotland-flags/#era-1707",
+      "sha256": "43463fe1ccbf8c851e5b42f007f9f2d292c1fbb6c7575c6bcf3f5a959c39d409"
+    },
+    "serbia-flags--era-1878": {
+      "file": "serbia-flags--era-1878.svg",
+      "country": "serbia-flags",
+      "from": 1878,
+      "to": 1882,
+      "present": false,
+      "polity": "Principality of Serbia (Full Independence)",
+      "evidence": "attested",
+      "page": "/flags/serbia-flags/#era-1878",
+      "sha256": "abeacfbae4bb435577938069c14cfb07525c223438de26046750565127a747f6"
+    },
+    "serbia-flags--era-1882": {
+      "file": "serbia-flags--era-1882.svg",
+      "country": "serbia-flags",
+      "from": 1882,
+      "to": 1918,
+      "present": false,
+      "polity": "Kingdom of Serbia",
+      "evidence": "attested",
+      "page": "/flags/serbia-flags/#era-1882",
+      "sha256": "66834dbf744ad3e72cdbcfeabde3cb115652f0890eb271a5cead0eb3ea95037a"
+    },
+    "serbia-flags--era-1918": {
+      "file": "serbia-flags--era-1918.svg",
+      "country": "serbia-flags",
+      "from": 1918,
+      "to": 1941,
+      "present": false,
+      "polity": "Kingdom of SHS / Kingdom of Yugoslavia",
+      "evidence": "attested",
+      "page": "/flags/serbia-flags/#era-1918",
+      "sha256": "cf04222d6ac3144a209aa183265f17de6e26b539ce8cbfad5ec9b0b59dd73c97"
+    },
+    "serbia-flags--era-1992": {
+      "file": "serbia-flags--era-1992.svg",
+      "country": "serbia-flags",
+      "from": 1992,
+      "to": 2006,
+      "present": false,
+      "polity": "FR Yugoslavia / Serbia and Montenegro",
+      "evidence": "attested",
+      "page": "/flags/serbia-flags/#era-1992",
+      "sha256": "cf04222d6ac3144a209aa183265f17de6e26b539ce8cbfad5ec9b0b59dd73c97"
+    },
+    "serbia-flags--era-2006": {
+      "file": "serbia-flags--era-2006.svg",
+      "country": "serbia-flags",
+      "from": 2006,
+      "to": null,
+      "present": true,
+      "polity": "Republic of Serbia",
+      "evidence": "attested",
+      "page": "/flags/serbia-flags/#era-2006",
+      "sha256": "59475aa4f9ac92a5187ba2b3a7a5b2fd7cef2c1f0d05e13d0b00a1ef1464f280"
+    },
+    "slovakia-flags--era-1993": {
+      "file": "slovakia-flags--era-1993.svg",
+      "country": "slovakia-flags",
+      "from": 1993,
+      "to": null,
+      "present": true,
+      "polity": "Slovak Republic",
+      "evidence": "attested",
+      "page": "/flags/slovakia-flags/#era-1993",
+      "sha256": "733ccac6ab01518a11395725ec8c1750c9df36fde3b319e730f0cda0e2c4d087"
+    },
+    "slovenia-flags--era-1991": {
+      "file": "slovenia-flags--era-1991.svg",
+      "country": "slovenia-flags",
+      "from": 1991,
+      "to": null,
+      "present": true,
+      "polity": "Republic of Slovenia",
+      "evidence": "attested",
+      "page": "/flags/slovenia-flags/#era-1991",
+      "sha256": "e4e48c990b55f0ff1e0936c7027d428046b6a5d54b7a66e34de61f6540c3649b"
+    },
+    "south-africa-flags--era-1652": {
+      "file": "south-africa-flags--era-1652.svg",
+      "country": "south-africa-flags",
+      "from": 1652,
+      "to": 1806,
+      "present": false,
+      "polity": "Dutch Cape Colony",
+      "evidence": "attested",
+      "page": "/flags/south-africa-flags/#era-1652",
+      "sha256": "91dcc2799115500cc377affe6144cee0752ea70be56eaff0a866345671d6df8c"
+    },
+    "south-africa-flags--era-1910": {
+      "file": "south-africa-flags--era-1910.svg",
+      "country": "south-africa-flags",
+      "from": 1910,
+      "to": 1928,
+      "present": false,
+      "polity": "Union of South Africa (Dominion)",
+      "evidence": "attested",
+      "page": "/flags/south-africa-flags/#era-1910",
+      "sha256": "8ef489514ec50633d15cdf93d43f8a244be451abb26e1273205456b715910c0e"
+    },
+    "south-africa-flags--era-1928": {
+      "file": "south-africa-flags--era-1928.svg",
+      "country": "south-africa-flags",
+      "from": 1928,
+      "to": 1994,
+      "present": false,
+      "polity": "Union / Republic of South Africa (segregation and apartheid)",
+      "evidence": "attested",
+      "page": "/flags/south-africa-flags/#era-1928",
+      "sha256": "2e3367abcf94f5abf985112cf80f045c085dccf98740495df97a6d2e0447e928"
+    },
+    "south-africa-flags--era-1994": {
+      "file": "south-africa-flags--era-1994.svg",
+      "country": "south-africa-flags",
+      "from": 1994,
+      "to": null,
+      "present": true,
+      "polity": "Republic of South Africa (democratic)",
+      "evidence": "attested",
+      "page": "/flags/south-africa-flags/#era-1994",
+      "sha256": "b160eaafe0aaf97cdf9d2016155e6d4044f453f982629a9c60523c565c6962cc"
+    },
+    "spain-flags--era-1516": {
+      "file": "spain-flags--era-1516.svg",
+      "country": "spain-flags",
+      "from": 1516,
+      "to": 1716,
+      "present": false,
+      "polity": "Kingdom of Spain (Habsburg era)",
+      "evidence": "attested",
+      "page": "/flags/spain-flags/#era-1516",
+      "sha256": "86cdf1fb5f53a374436d38f09c97e43ffd4d2aee5b37d4cc90a0d0dd9e47ab78"
+    },
+    "spain-flags--era-1716": {
+      "file": "spain-flags--era-1716.svg",
+      "country": "spain-flags",
+      "from": 1716,
+      "to": 1808,
+      "present": false,
+      "polity": "Kingdom of Spain (Bourbon, unified)",
+      "evidence": "attested",
+      "page": "/flags/spain-flags/#era-1716",
+      "sha256": "cb786d2de03367210a7fc9c70b2a225a7fabb5072e9a7860953a0277396d7f03"
+    },
+    "spain-flags--era-1975": {
+      "file": "spain-flags--era-1975.svg",
+      "country": "spain-flags",
+      "from": 1975,
+      "to": null,
+      "present": true,
+      "polity": "Kingdom of Spain",
+      "evidence": "attested",
+      "page": "/flags/spain-flags/#era-1975",
+      "sha256": "eabd91f39b8043b2545cc96ac548ce0da2faa4db459458f7cc39bf1ec52adee2"
+    },
+    "sweden-flags--era-1523": {
+      "file": "sweden-flags--era-1523.svg",
+      "country": "sweden-flags",
+      "from": 1523,
+      "to": 1814,
+      "present": false,
+      "polity": "Kingdom of Sweden (independent, post-Kalmar)",
+      "evidence": "attested",
+      "page": "/flags/sweden-flags/#era-1523",
+      "sha256": "d0a1d27c578cc6205d69c84133e8f8f7e5ead9b03bd4b8d8409e0b9254b096b9"
+    },
+    "sweden-flags--era-1814": {
+      "file": "sweden-flags--era-1814.svg",
+      "country": "sweden-flags",
+      "from": 1814,
+      "to": 1905,
+      "present": false,
+      "polity": "Sweden–Norway (personal union)",
+      "evidence": "attested",
+      "page": "/flags/sweden-flags/#era-1814",
+      "sha256": "30564f5fff5da08f5791c1a99a66e74c1826f89a2c95ba7d3e0993abfc1b0bb9"
+    },
+    "sweden-flags--era-1905": {
+      "file": "sweden-flags--era-1905.svg",
+      "country": "sweden-flags",
+      "from": 1905,
+      "to": null,
+      "present": true,
+      "polity": "Kingdom of Sweden (independent, modern)",
+      "evidence": "attested",
+      "page": "/flags/sweden-flags/#era-1905",
+      "sha256": "d0a1d27c578cc6205d69c84133e8f8f7e5ead9b03bd4b8d8409e0b9254b096b9"
+    },
+    "switzerland-flags--era-1848": {
+      "file": "switzerland-flags--era-1848.svg",
+      "country": "switzerland-flags",
+      "from": 1848,
+      "to": null,
+      "present": true,
+      "polity": "Swiss Confederation (modern federal state)",
+      "evidence": "attested",
+      "page": "/flags/switzerland-flags/#era-1848",
+      "sha256": "18455ce2f611c76b5246ee7d2762278d7c57f8a92f6db49f02b13df0a53e8686"
+    },
+    "uk-flags--era-1200": {
+      "file": "uk-flags--era-1200.svg",
+      "country": "uk-flags",
+      "from": 1200,
+      "to": 1603,
+      "present": false,
+      "polity": "Kingdom of England (with Wales)",
+      "evidence": "attested",
+      "page": "/flags/uk-flags/#era-1200",
+      "sha256": "75aa93efb30077f2f0e94153c8ecd1b85de04b1fb7e1d3d5356d3b597f5ec54a"
+    },
+    "uk-flags--era-1603": {
+      "file": "uk-flags--era-1603.svg",
+      "country": "uk-flags",
+      "from": 1603,
+      "to": 1707,
+      "present": false,
+      "polity": "Personal Union of England and Scotland (Union of the Crowns)",
+      "evidence": "attested",
+      "page": "/flags/uk-flags/#era-1603",
+      "sha256": "fc2f831d1dde66e0331af5640a0e09153f4d54cb093c686566df70c0f3fa8f34"
+    },
+    "uk-flags--era-1707": {
+      "file": "uk-flags--era-1707.svg",
+      "country": "uk-flags",
+      "from": 1707,
+      "to": 1801,
+      "present": false,
+      "polity": "Kingdom of Great Britain",
+      "evidence": "attested",
+      "page": "/flags/uk-flags/#era-1707",
+      "sha256": "fc2f831d1dde66e0331af5640a0e09153f4d54cb093c686566df70c0f3fa8f34"
+    },
+    "uk-flags--era-1801": {
+      "file": "uk-flags--era-1801.svg",
+      "country": "uk-flags",
+      "from": 1801,
+      "to": 1922,
+      "present": false,
+      "polity": "United Kingdom of Great Britain and Ireland",
+      "evidence": "attested",
+      "page": "/flags/uk-flags/#era-1801",
+      "sha256": "c83f38e80ffea1c5784b47249ef5a48f2282cb381f06072b4518d74127daeed3"
+    },
+    "uk-flags--era-1922": {
+      "file": "uk-flags--era-1922.svg",
+      "country": "uk-flags",
+      "from": 1922,
+      "to": null,
+      "present": true,
+      "polity": "United Kingdom of Great Britain and Northern Ireland",
+      "evidence": "attested",
+      "page": "/flags/uk-flags/#era-1922",
+      "sha256": "c83f38e80ffea1c5784b47249ef5a48f2282cb381f06072b4518d74127daeed3"
+    },
+    "ukraine-flags--era-1991": {
+      "file": "ukraine-flags--era-1991.svg",
+      "country": "ukraine-flags",
+      "from": 1991,
+      "to": null,
+      "present": true,
+      "polity": "Ukraine",
+      "evidence": "attested",
+      "page": "/flags/ukraine-flags/#era-1991",
+      "sha256": "3077a063dbae95e10dc7cf122522d21faaf4ecd87de31e50446e007ed7f745bb"
+    },
+    "united-states-flags--era-1960": {
+      "file": "united-states-flags--era-1960.svg",
+      "country": "united-states-flags",
+      "from": 1960,
+      "to": null,
+      "present": true,
+      "polity": "50-star flag",
+      "evidence": "attested",
+      "page": "/flags/united-states-flags/#era-1960",
+      "sha256": "b2b538ca4f377234458d6d3ed6ef01e977922536d16df7dd335a5646ab573be6"
+    },
+    "uruguay-flags--era-1830": {
+      "file": "uruguay-flags--era-1830.svg",
+      "country": "uruguay-flags",
+      "from": 1830,
+      "to": null,
+      "present": true,
+      "polity": "Oriental Republic of Uruguay (modern)",
+      "evidence": "attested",
+      "page": "/flags/uruguay-flags/#era-1830",
+      "sha256": "88d102a741cc9434f51ee603d2dd5491901fd80b52c2eba0140ef057b820b4d4"
+    },
+    "vatican-city-flags--era-1825": {
+      "file": "vatican-city-flags--era-1825.svg",
+      "country": "vatican-city-flags",
+      "from": 1825,
+      "to": 1870,
+      "present": false,
+      "polity": "Papal States (restored, pre-unification)",
+      "evidence": "attested",
+      "page": "/flags/vatican-city-flags/#era-1825",
+      "sha256": "46ae3e2e84be34fa897d5f619967e7870ba62f7a899a17fac8a20ae58b5c75ec"
+    },
+    "vatican-city-flags--era-756": {
+      "file": "vatican-city-flags--era-756.svg",
+      "country": "vatican-city-flags",
+      "from": 756,
+      "to": 1825,
+      "present": false,
+      "polity": "Papal States (temporal rule, early era)",
+      "evidence": "attested",
+      "page": "/flags/vatican-city-flags/#era-756",
+      "sha256": "afc623390c843e960090ac499689f51c1a4c0d675aa6e10811ec33169e0f6306"
+    },
+    "venezuela-flags--era-1830": {
+      "file": "venezuela-flags--era-1830.svg",
+      "country": "venezuela-flags",
+      "from": 1830,
+      "to": null,
+      "present": true,
+      "polity": "Republic of Venezuela (modern, separate state)",
+      "evidence": "attested",
+      "page": "/flags/venezuela-flags/#era-1830",
+      "sha256": "ea8480dbc006481b86d370027d7cf52a9ba3615ea25032ed0d5c527b13594378"
+    },
+    "germany-flags--era-1815": {
+      "file": null,
+      "country": "germany-flags",
+      "from": 1815,
+      "to": 1866,
+      "present": false,
+      "polity": "German Confederation",
+      "evidence": "attested",
+      "page": "/flags/germany-flags/#era-1815",
+      "sha256": null
+    },
+    "germany-flags--era-1949": {
+      "file": null,
+      "country": "germany-flags",
+      "from": 1949,
+      "to": 1990,
+      "present": false,
+      "polity": "Federal Republic of Germany (West) / German Democratic Republic (East)",
+      "evidence": "attested",
+      "page": "/flags/germany-flags/#era-1949",
+      "sha256": null
+    },
+    "ottoman-empire-flags--era-1793": {
+      "file": null,
+      "country": "ottoman-empire-flags",
+      "from": 1793,
+      "to": 1844,
+      "present": false,
+      "polity": "Selim III's navy flag, the eight-pointed star",
+      "evidence": "attested",
+      "page": "/flags/ottoman-empire-flags/#era-1793",
+      "sha256": null
+    }
+  },
+  "unpicked": [
+    "hungary-flags--era-1000",
+    "hungary-flags--era-1699",
+    "ukraine-flags--era-1917",
+    "uruguay-flags--era-1825"
+  ],
+  "today": {
+    "AR": "argentina-flags--era-1861",
+    "AT": "austria-flags--era-1955",
+    "AU": "australia-flags--era-1901",
+    "BA": "bosnia-flags--era-1998",
+    "BE": "belgium-flags--era-1944",
+    "BR": "brazil-flags--era-1889",
+    "BY": "belarus-flags--era-1995",
+    "CA": "canada-flags--era-1965",
+    "CH": "switzerland-flags--era-1848",
+    "CL": "chile-flags--era-1990",
+    "CZ": "czechia-flags--era-1993",
+    "DE": "germany-flags--era-1990",
+    "DK": "denmark-flags--era-1814",
+    "EE": "estonia-flags--era-1991",
+    "ES": "spain-flags--era-1975",
+    "FI": "finland-flags--era-1917",
+    "FR": "france-flags--era-1958",
+    "GB": "uk-flags--era-1922",
+    "GR": "greece-flags--era-1974",
+    "HR": "croatia-flags--era-1990",
+    "HU": "hungary-flags--era-1989",
+    "IE": "ireland-flags--era-1949",
+    "IT": "italy-flags--era-1946",
+    "LT": "lithuania-flags--era-1990",
+    "LV": "latvia-flags--era-1990",
+    "ME": "montenegro-flags--era-2006",
+    "MT": "malta-flags--era-1974",
+    "NL": "netherlands-flags--era-1945",
+    "NO": "norway-flags--era-1945",
+    "NZ": "new-zealand-flags--era-1902",
+    "PE": "peru-flags--era-1825",
+    "PL": "poland-flags--era-1989",
+    "PT": "portugal-flags--era-1974",
+    "PY": "paraguay-flags--era-1870",
+    "RO": "romania-flags--era-1989",
+    "RS": "serbia-flags--era-2006",
+    "RU": "russia-flags--era-1991",
+    "SE": "sweden-flags--era-1905",
+    "SI": "slovenia-flags--era-1991",
+    "SK": "slovakia-flags--era-1993",
+    "UA": "ukraine-flags--era-1991",
+    "US": "united-states-flags--era-1960",
+    "UY": "uruguay-flags--era-1830",
+    "VE": "venezuela-flags--era-1830",
+    "ZA": "south-africa-flags--era-1994"
+  },
+  "regionCountries": {
+    "istria-central": [
+      "HR",
+      "SI"
+    ],
+    "istria-south": [
+      "HR"
+    ],
+    "kvarner": [
+      "HR"
+    ],
+    "carnia": [
+      "AT",
+      "IT"
+    ],
+    "dalmatia": [
+      "BA",
+      "HR"
+    ],
+    "imotski": [
+      "BA",
+      "HR"
+    ],
+    "campania": [
+      "IT"
+    ],
+    "sicily": [
+      "IT"
+    ],
+    "calabria": [
+      "IT"
+    ],
+    "west-prussia": [
+      "PL"
+    ],
+    "posen": [
+      "PL"
+    ],
+    "cape": [
+      "ZA"
+    ],
+    "england": [
+      "GB"
+    ],
+    "queensland": [
+      "AU"
+    ],
+    "buenos-aires": [
+      "AR"
+    ],
+    "santafe": [
+      "AR"
+    ],
+    "galicia": [
+      "PL",
+      "SK",
+      "UA"
+    ],
+    "bukovina": [
+      "RO",
+      "UA"
+    ],
+    "bohemia": [
+      "AT",
+      "CZ",
+      "DE",
+      "PL"
+    ],
+    "moravia": [
+      "AT",
+      "CZ",
+      "PL",
+      "SK"
+    ],
+    "prekmurje": [
+      "SI",
+      "HU"
+    ],
+    "civil-croatia": [
+      "HR"
+    ],
+    "slavonia": [
+      "HR"
+    ],
+    "istria-west": [
+      "HR"
+    ],
+    "hungary": [
+      "AT",
+      "HU",
+      "RO",
+      "SK"
+    ],
+    "transylvania": [
+      "HU",
+      "RO"
+    ],
+    "east-prussia": [
+      "LT",
+      "PL",
+      "RU"
+    ],
+    "pomerania": [
+      "DE",
+      "PL"
+    ],
+    "ireland": [
+      "IE",
+      "GB"
+    ],
+    "scotland": [
+      "GB"
+    ],
+    "palatinate": [
+      "DE"
+    ],
+    "alsace-lorraine": [
+      "FR",
+      "DE"
+    ],
+    "silesia": [
+      "PL",
+      "CZ",
+      "DE"
+    ],
+    "baltic-governorates": [
+      "EE",
+      "LV",
+      "LT",
+      "RU"
+    ],
+    "congress-poland": [
+      "PL",
+      "LT",
+      "BY",
+      "UA"
+    ],
+    "carniola": [
+      "SI",
+      "AT",
+      "IT",
+      "HR"
+    ],
+    "serbia": [
+      "RS"
+    ],
+    "bosnia": [
+      "BA"
+    ],
+    "vojvodina": [
+      "RS",
+      "HU",
+      "RO"
+    ],
+    "quebec": [
+      "CA"
+    ],
+    "acadia": [
+      "CA",
+      "US"
+    ],
+    "vojna-krajina": [
+      "HR",
+      "RS",
+      "BA"
+    ],
+    "netherlands": [
+      "NL"
+    ],
+    "denmark": [
+      "DK",
+      "DE"
+    ],
+    "norway": [
+      "NO"
+    ],
+    "sweden": [
+      "SE"
+    ],
+    "finland": [
+      "FI",
+      "RU"
+    ],
+    "portugal": [
+      "PT"
+    ],
+    "belgium": [
+      "BE"
+    ],
+    "western-cape": [
+      "ZA"
+    ],
+    "transvaal": [
+      "ZA"
+    ],
+    "natal": [
+      "ZA"
+    ],
+    "orange-free-state": [
+      "ZA"
+    ],
+    "trentino": [
+      "IT"
+    ],
+    "veneto": [
+      "IT"
+    ],
+    "lazio": [
+      "IT"
+    ],
+    "frankfurt": [
+      "DE"
+    ],
+    "hesse-darmstadt": [
+      "DE"
+    ],
+    "rhenish-hesse": [
+      "DE"
+    ],
+    "uruguay": [
+      "UY"
+    ]
+  }
+}

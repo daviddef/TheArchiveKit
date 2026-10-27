@@ -1,0 +1,645 @@
+{
+ "version": 1,
+ "note": "TODAY's country of a place a ribbon card names, for the mini flags' 'today' flag (kit/tools/ribbonflags.py; kit/docs/ribbon-flags.md). Read after the card's own words (a part that is a country name or alias: 'Brisbane, Australia') and the archive's own place table (its era snapshot region, when that region lies in one country only; or the archive's --countries file); this table is the last of the three. Keys are folded (kit/lib/era.js fold): case, accents and apostrophes gone. A place in `ambiguous` (a name two or more countries have: Córdoba is in Spain and Argentina, Rosario in Argentina and Uruguay; a region now split between countries: Istria, Dalmatia) is NEVER resolved from this table: only the card's own words or the archive's own table can. When two sources name different countries, no flag. Countries: `slug` is the Flags Atlas country page whose present flag is drawn, `name` how the label says it.",
+ "countries": {
+  "ES": {
+   "name": "Spain",
+   "slug": "spain-flags",
+   "aliases": [
+    "espana",
+    "spain"
+   ]
+  },
+  "UY": {
+   "name": "Uruguay",
+   "slug": "uruguay-flags",
+   "aliases": [
+    "banda oriental",
+    "estado oriental del uruguay",
+    "republica oriental del uruguay",
+    "uruguay"
+   ]
+  },
+  "AR": {
+   "name": "Argentina",
+   "slug": "argentina-flags",
+   "aliases": [
+    "argentina",
+    "republica argentina"
+   ]
+  },
+  "ZA": {
+   "name": "South Africa",
+   "slug": "south-africa-flags",
+   "aliases": [
+    "rsa",
+    "south africa",
+    "union of south africa"
+   ]
+  },
+  "GB": {
+   "name": "the United Kingdom",
+   "slug": "uk-flags",
+   "aliases": [
+    "britain",
+    "england",
+    "great britain",
+    "northern ireland",
+    "scotland",
+    "uk",
+    "united kingdom",
+    "wales"
+   ]
+  },
+  "HR": {
+   "name": "Croatia",
+   "slug": "croatia-flags",
+   "aliases": [
+    "croatia",
+    "hrvatska"
+   ]
+  },
+  "DE": {
+   "name": "Germany",
+   "slug": "germany-flags",
+   "aliases": [
+    "deutschland",
+    "germany"
+   ]
+  },
+  "AU": {
+   "name": "Australia",
+   "slug": "australia-flags",
+   "aliases": [
+    "australia"
+   ]
+  },
+  "IT": {
+   "name": "Italy",
+   "slug": "italy-flags",
+   "aliases": [
+    "italia",
+    "italy"
+   ]
+  },
+  "SI": {
+   "name": "Slovenia",
+   "slug": "slovenia-flags",
+   "aliases": [
+    "slovenia",
+    "slovenija"
+   ]
+  },
+  "AT": {
+   "name": "Austria",
+   "slug": "austria-flags",
+   "aliases": [
+    "austria",
+    "osterreich"
+   ]
+  },
+  "HU": {
+   "name": "Hungary",
+   "slug": "hungary-flags",
+   "aliases": [
+    "hungary",
+    "magyarorszag"
+   ]
+  },
+  "FR": {
+   "name": "France",
+   "slug": "france-flags",
+   "aliases": [
+    "france"
+   ]
+  },
+  "IE": {
+   "name": "Ireland",
+   "slug": "ireland-flags",
+   "aliases": [
+    "eire",
+    "ireland"
+   ]
+  },
+  "NL": {
+   "name": "the Netherlands",
+   "slug": "netherlands-flags",
+   "aliases": [
+    "holland",
+    "netherlands"
+   ]
+  },
+  "BE": {
+   "name": "Belgium",
+   "slug": "belgium-flags",
+   "aliases": [
+    "belgium"
+   ]
+  },
+  "PL": {
+   "name": "Poland",
+   "slug": "poland-flags",
+   "aliases": [
+    "poland",
+    "polska"
+   ]
+  },
+  "PT": {
+   "name": "Portugal",
+   "slug": "portugal-flags",
+   "aliases": [
+    "portugal"
+   ]
+  },
+  "BR": {
+   "name": "Brazil",
+   "slug": "brazil-flags",
+   "aliases": [
+    "brasil",
+    "brazil"
+   ]
+  },
+  "CL": {
+   "name": "Chile",
+   "slug": "chile-flags",
+   "aliases": [
+    "chile"
+   ]
+  },
+  "PE": {
+   "name": "Peru",
+   "slug": "peru-flags",
+   "aliases": [
+    "peru"
+   ]
+  },
+  "US": {
+   "name": "the United States",
+   "slug": "united-states-flags",
+   "aliases": [
+    "u s a",
+    "united states",
+    "united states of america",
+    "usa"
+   ]
+  },
+  "CA": {
+   "name": "Canada",
+   "slug": "canada-flags",
+   "aliases": [
+    "canada"
+   ]
+  },
+  "NZ": {
+   "name": "New Zealand",
+   "slug": "new-zealand-flags",
+   "aliases": [
+    "new zealand"
+   ]
+  },
+  "RS": {
+   "name": "Serbia",
+   "slug": "serbia-flags",
+   "aliases": [
+    "serbia",
+    "srbija"
+   ]
+  },
+  "BA": {
+   "name": "Bosnia and Herzegovina",
+   "slug": "bosnia-flags",
+   "aliases": [
+    "bosnia",
+    "bosnia and herzegovina"
+   ]
+  },
+  "CZ": {
+   "name": "Czechia",
+   "slug": "czechia-flags",
+   "aliases": [
+    "czech republic",
+    "czechia"
+   ]
+  },
+  "SK": {
+   "name": "Slovakia",
+   "slug": "slovakia-flags",
+   "aliases": [
+    "slovakia"
+   ]
+  },
+  "RO": {
+   "name": "Romania",
+   "slug": "romania-flags",
+   "aliases": [
+    "romania"
+   ]
+  },
+  "RU": {
+   "name": "Russia",
+   "slug": "russia-flags",
+   "aliases": [
+    "russia"
+   ]
+  },
+  "UA": {
+   "name": "Ukraine",
+   "slug": "ukraine-flags",
+   "aliases": [
+    "ukraine"
+   ]
+  },
+  "CH": {
+   "name": "Switzerland",
+   "slug": "switzerland-flags",
+   "aliases": [
+    "switzerland"
+   ]
+  },
+  "DK": {
+   "name": "Denmark",
+   "slug": "denmark-flags",
+   "aliases": [
+    "denmark"
+   ]
+  },
+  "SE": {
+   "name": "Sweden",
+   "slug": "sweden-flags",
+   "aliases": [
+    "sweden"
+   ]
+  },
+  "NO": {
+   "name": "Norway",
+   "slug": "norway-flags",
+   "aliases": [
+    "norway"
+   ]
+  },
+  "FI": {
+   "name": "Finland",
+   "slug": "finland-flags",
+   "aliases": [
+    "finland"
+   ]
+  },
+  "VE": {
+   "name": "Venezuela",
+   "slug": "venezuela-flags",
+   "aliases": [
+    "venezuela"
+   ]
+  },
+  "ME": {
+   "name": "Montenegro",
+   "slug": "montenegro-flags",
+   "aliases": [
+    "crna gora",
+    "montenegro"
+   ]
+  },
+  "LT": {
+   "name": "Lithuania",
+   "slug": "lithuania-flags",
+   "aliases": [
+    "lithuania"
+   ]
+  },
+  "LV": {
+   "name": "Latvia",
+   "slug": "latvia-flags",
+   "aliases": [
+    "latvia"
+   ]
+  },
+  "EE": {
+   "name": "Estonia",
+   "slug": "estonia-flags",
+   "aliases": [
+    "estonia"
+   ]
+  },
+  "BY": {
+   "name": "Belarus",
+   "slug": "belarus-flags",
+   "aliases": [
+    "belarus"
+   ]
+  },
+  "GR": {
+   "name": "Greece",
+   "slug": "greece-flags",
+   "aliases": [
+    "greece"
+   ]
+  },
+  "MT": {
+   "name": "Malta",
+   "slug": "malta-flags",
+   "aliases": [
+    "malta"
+   ]
+  },
+  "PY": {
+   "name": "Paraguay",
+   "slug": "paraguay-flags",
+   "aliases": [
+    "paraguay"
+   ]
+  }
+ },
+ "places": {
+  "adelaide": "AU",
+  "adolfo alsina": "AR",
+  "ajaccio": "FR",
+  "andalucia": "ES",
+  "andalusia": "ES",
+  "arienzo": "IT",
+  "arpaia": "IT",
+  "artigas uruguay": "UY",
+  "asturias": "ES",
+  "avellino": "IT",
+  "bahia blanca": "AR",
+  "bakar": "HR",
+  "bastia": "FR",
+  "bavaria": "DE",
+  "bayern": "DE",
+  "benevento": "IT",
+  "benoni": "ZA",
+  "berlin": "DE",
+  "bideford": "GB",
+  "bideford devon": "GB",
+  "bloemfontein": "ZA",
+  "boksburg": "ZA",
+  "brac": "HR",
+  "brakpan": "ZA",
+  "briatico": "IT",
+  "bribir": "HR",
+  "brinje": "HR",
+  "brisbane": "AU",
+  "buenos aires": "AR",
+  "buzet": "HR",
+  "cadiz": "ES",
+  "calabria": "IT",
+  "campania": "IT",
+  "canary islands": "ES",
+  "canelones": "UY",
+  "cantabria": "ES",
+  "cap corse": "FR",
+  "cape colony": "ZA",
+  "cape province": "ZA",
+  "cape town": "ZA",
+  "carabobo": "VE",
+  "caracas": "VE",
+  "carnia": "IT",
+  "carniola": "SI",
+  "caserta": "IT",
+  "cerro largo": "UY",
+  "city of london": "GB",
+  "coldridge": "GB",
+  "colonia del sacramento": "UY",
+  "cordon montevideo": "UY",
+  "cork": "IE",
+  "cornwall": "GB",
+  "corse": "FR",
+  "corsica": "FR",
+  "cres": "HR",
+  "crikvenica": "HR",
+  "devon": "GB",
+  "drivenik": "HR",
+  "dublin": "IE",
+  "dubrovnik": "HR",
+  "durazno": "UY",
+  "durban": "ZA",
+  "east london south africa": "ZA",
+  "east lothian": "GB",
+  "edinburgh": "GB",
+  "entre rios": "AR",
+  "ersa": "FR",
+  "exeter": "GB",
+  "fiume": "HR",
+  "flores uruguay": "UY",
+  "forchia": "IT",
+  "frankfurt am main": "DE",
+  "friuli": "IT",
+  "galicia spain": "ES",
+  "germiston": "ZA",
+  "glasgow": "GB",
+  "gologorica": "HR",
+  "gorski kotar": "HR",
+  "gospic": "HR",
+  "gracisce": "HR",
+  "grizane": "HR",
+  "gualeguaychu": "AR",
+  "haddington": "GB",
+  "hamburg": "DE",
+  "herzegovina": "BA",
+  "hesse": "DE",
+  "holborn": "GB",
+  "hvar": "HR",
+  "imotski": "HR",
+  "ipswich queensland": "AU",
+  "islas canarias": "ES",
+  "islas de canarias": "ES",
+  "izola": "SI",
+  "jablanac": "HR",
+  "johannesburg": "ZA",
+  "karlobag": "HR",
+  "karlovac": "HR",
+  "kimberley": "ZA",
+  "klenovica": "HR",
+  "knin": "HR",
+  "koper": "SI",
+  "korcula": "HR",
+  "kraljevica": "HR",
+  "krivi put": "HR",
+  "krk": "HR",
+  "krmpote": "HR",
+  "krugersdorp": "ZA",
+  "kvarner": "HR",
+  "la plata": "AR",
+  "labin": "HR",
+  "lazio": "IT",
+  "ledenice": "HR",
+  "lika": "HR",
+  "limerick": "IE",
+  "liverpool": "GB",
+  "liznjan": "HR",
+  "ljubljana": "SI",
+  "logrono": "ES",
+  "london": "GB",
+  "losinj": "HR",
+  "madrid": "ES",
+  "makarska": "HR",
+  "malaga": "ES",
+  "maldonado": "UY",
+  "manchester": "GB",
+  "maribor": "SI",
+  "marseille": "FR",
+  "mayfair johannesburg": "ZA",
+  "melbourne": "AU",
+  "mendoza": "AR",
+  "messina": "IT",
+  "montevideo": "UY",
+  "mostar": "BA",
+  "motovun": "HR",
+  "munchen": "DE",
+  "munich": "DE",
+  "naples": "IT",
+  "napoli": "IT",
+  "natal": "ZA",
+  "navarra": "ES",
+  "new south wales": "AU",
+  "newlands cape town": "ZA",
+  "northam": "GB",
+  "northam devon": "GB",
+  "novi vinodolski": "HR",
+  "ogulin": "HR",
+  "omis": "HR",
+  "orange free state": "ZA",
+  "otocac": "HR",
+  "pag": "HR",
+  "palatinate": "DE",
+  "palermo": "IT",
+  "parana entre rios": "AR",
+  "paris": "FR",
+  "paysandu": "UY",
+  "pazin": "HR",
+  "perth western australia": "AU",
+  "pfullingen": "DE",
+  "pietermaritzburg": "ZA",
+  "piran": "SI",
+  "plymouth": "GB",
+  "pola": "HR",
+  "porec": "HR",
+  "port elizabeth": "ZA",
+  "pretoria": "ZA",
+  "pula": "HR",
+  "queensland": "AU",
+  "rab": "HR",
+  "reggio calabria": "IT",
+  "reutlingen": "DE",
+  "rijeka": "HR",
+  "rivera uruguay": "UY",
+  "roma": "IT",
+  "rome": "IT",
+  "rondebosch": "ZA",
+  "rosario de santa fe": "AR",
+  "rosario santa fe": "AR",
+  "rovinj": "HR",
+  "san felice a cancello": "IT",
+  "san jose de mayo": "UY",
+  "santa fe argentina": "AR",
+  "sarajevo": "BA",
+  "seget": "HR",
+  "selce": "HR",
+  "senj": "HR",
+  "sevilla": "ES",
+  "seville": "ES",
+  "sibenik": "HR",
+  "sicilia": "IT",
+  "sicily": "IT",
+  "sinj": "HR",
+  "smokvica krmpotska": "HR",
+  "split": "HR",
+  "springs": "ZA",
+  "stinica": "HR",
+  "stuttgart": "DE",
+  "suffolk": "GB",
+  "sveti juraj": "HR",
+  "sydney": "AU",
+  "tolmezzo": "IT",
+  "toowoomba": "AU",
+  "transvaal": "ZA",
+  "trentino": "IT",
+  "trento": "IT",
+  "tribalj": "HR",
+  "trieste": "IT",
+  "trinidad flores": "UY",
+  "trogir": "HR",
+  "tucuman": "AR",
+  "udine": "IT",
+  "valencia venezuela": "VE",
+  "veneto": "IT",
+  "venezia": "IT",
+  "venice": "IT",
+  "vibo valentia": "IT",
+  "victoria australia": "AU",
+  "vinodol": "HR",
+  "vis": "HR",
+  "vizcaya": "ES",
+  "vodnjan": "HR",
+  "west leigh by coldridge": "GB",
+  "worlingworth": "GB",
+  "wurttemberg": "DE",
+  "wynberg": "ZA",
+  "zadar": "HR",
+  "zagreb": "HR"
+ },
+ "ambiguous": [
+  "alexandria",
+  "backa",
+  "banat",
+  "baranja",
+  "bohemia",
+  "bukovina",
+  "cambridge",
+  "carinthia",
+  "colonia",
+  "concepcion",
+  "cordoba",
+  "cordova",
+  "dalmacija",
+  "dalmatia",
+  "flores",
+  "galicia",
+  "georgia",
+  "gorica",
+  "gorizia",
+  "granada",
+  "hamilton",
+  "istra",
+  "istria",
+  "kingston",
+  "la paz",
+  "lagos",
+  "littoral",
+  "macedonia",
+  "mendoza valley",
+  "merida",
+  "moravia",
+  "newlands",
+  "parana",
+  "paris texas",
+  "perth",
+  "plymouth massachusetts",
+  "pomerania",
+  "posen",
+  "primorje",
+  "prozor",
+  "prussia",
+  "richmond",
+  "rio de la plata",
+  "river plate",
+  "rosario",
+  "san jose",
+  "san pedro",
+  "santa fe",
+  "santiago",
+  "silesia",
+  "springfield",
+  "srem",
+  "styria",
+  "sumecica",
+  "syrmia",
+  "the river plate",
+  "tirol",
+  "transylvania",
+  "trinidad",
+  "tyrol",
+  "valencia",
+  "victoria",
+  "washington"
+ ]
+}

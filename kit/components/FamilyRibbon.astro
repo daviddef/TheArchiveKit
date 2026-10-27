@@ -25,11 +25,16 @@
      derived      extra connections (marriageConnections() of the story), merged with the family's own; the family's own win
      personHref   (slug) => address of a person's page            u   the archive's path helper
      heading      false to draw none, or the heading's words (default "<title>: the line, generation by generation")
-     level        the heading level (default 2)                    legend   false to leave the legend to the page */
+     level        the heading level (default 2)                    legend   false to leave the legend to the page
+   A card may carry `flags` (kit/tools/ribbonflags.py; kit/docs/ribbon-flags.md): a strip of mini flags in the card's header row
+   (FlagMini: absolutely placed, so the card does not change size), and one line under the ribbon saying what they are and whose
+   art they are (drawn whatever `legend` says: it is the credit). No `flags`: unchanged. */
 import "../styles/story.css";
 import "../styles/ours.css";
 import "../styles/familyribbon.css";
 import { yearsLine, atLine } from "../lib/story.js";
+import { hasFlags, FLAG_KEY, FLAG_CREDIT } from "../lib/flags.js";
+import FlagMini from "./FlagMini.astro";
 import { directMap, OURS_LEGEND } from "../lib/directline.js";
 import { cardsFromLane, findLane, familyStatus, blocksOf, blockSentence, joinsOf, mergeConnections, GRADE_WORD } from "../lib/familyribbon.js";
 const {
@@ -54,6 +59,7 @@ const SUFFIX = { inf: " (inferred)", lore: " (family's tree)" };
 const addr = (slug) => personHref(slug);
 const spouseLink = (c) => (c.spousePerson ? addr(c.spousePerson) : c.spouseHref ? u(c.spouseHref) : null);
 const uid = String(family.id).replace(/[^a-z0-9]+/gi, "-");
+const flagged = hasFlags(cards);
 const safeYears = (c) => (c.minor ? "" : yearsLine(c));
 ---
 {cards.length > 0 && (
@@ -79,6 +85,7 @@ const safeYears = (c) => (c.minor ? "" : yearsLine(c));
               data-person={c.person || undefined} data-spouse-person={c.spousePerson || undefined} data-ours={ours ? c.person : undefined}
               title={ours ? `On our direct line, generation ${ours.generation}` : c.title || undefined}>
             <span class="fr-g">Gen. {i + 1}</span>
+            <FlagMini card={c} cap={3} />
             <span class="fr-n">{linked ? <a href={addr(c.person)}>{c.name}</a> : c.name}{ours && <span class="st-vh"> (on our direct line, generation {ours.generation})</span>}</span>
             <span class="fr-y">{safeYears(c)}</span>
             <span class="fr-f">{c.origin ? `from ${c.origin}` : ""}{SUFFIX[c.originGrade] && <span class="fr-q">{SUFFIX[c.originGrade]}</span>}</span>
@@ -93,6 +100,7 @@ const safeYears = (c) => (c.minor ? "" : yearsLine(c));
     </ol>
   </div>
   {laneNote && <p class="fr-note">{laneNote}</p>}
+  {flagged && <p class="fr-note fr-fl" data-flag-credit="1">{FLAG_KEY} <span class="flag-credit">{FLAG_CREDIT}.</span></p>}
 
   <div class="fr-conn" data-connections={blocks.filter((b) => b.kind === "link").length}>
     <h3 class="fr-ch">How our line connects</h3>

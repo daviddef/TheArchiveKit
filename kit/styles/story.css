@@ -80,6 +80,25 @@
 }
 .st-rb-note { font-family: var(--st-sans); font-size: 12px; color: var(--st-ink-3); margin: 2px 0 0; line-height: 1.5; }
 
+/* Mini flags on the ribbon cards (components/FlagMini.astro, kit/docs/ribbon-flags.md): one strip per card, absolutely placed at the
+   right end of the card's header row, so the card keeps its size whatever it holds (checkflagfit.mjs measures 0px, and no overlap with
+   the glyph, "Gen. n" or the name). 12px high, 3:2, a hairline edge, 2px corners. The story card's: two stacked at the right end of its
+   header, the third and fourth at the left end; the family card's one row, its "Gen. n" moved to the row's left end to make room. A slot
+   holding the from line's flag repeats the card's evidence (dashed inferred, dotted family memory); today's flag has a tiny dotted
+   underline. Used by StoryRibbon and FamilyRibbon (both load this file). */
+.flag-strip { position: absolute; top: 6px; right: 6px; display: flex; flex-direction: column; gap: 2px; line-height: 0; z-index: 1; }
+.flag-strip-left { right: auto; left: 6px; }
+.flag-strip-3 { top: 5px; flex-direction: row; }
+.flag-mini { display: block; width: 18px; height: 12px; margin: 0; border: 0; border-radius: 2px;
+  box-shadow: 0 0 0 1px var(--st-rule-strong); background: var(--st-paper, transparent); }
+.flag-mini-inf { box-shadow: none; outline: 1px dashed var(--st-inf); outline-offset: 1px; }
+.flag-mini-lore { box-shadow: none; outline: 1px dotted var(--st-lore); outline-offset: 1px; }
+.flag-mini-today { box-sizing: border-box; box-shadow: none; border: 1px solid var(--st-rule-strong); border-bottom: 1px dotted var(--st-ink-2); }
+.flag-more { display: block; height: 12px; min-width: 14px; font: 600 9px/12px var(--st-sans); color: var(--st-ink-3); text-align: center;
+  border-radius: 2px; box-shadow: 0 0 0 1px var(--st-rule); }
+.fr-c:has(> .flag-strip) > .fr-g { align-self: flex-start; }
+.st-rb-fl .flag-credit, .fr-fl .flag-credit { color: var(--st-ink-3); font-style: italic; }
+
 .st-legend { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 22px; font-family: var(--st-sans); font-size: 12.5px; line-height: 1.5;
   color: var(--st-ink-2); border-top: 1px solid var(--st-rule); border-bottom: 1px solid var(--st-rule); padding: 10px 0; margin: 6px 0 20px; }
 .st-lt { font-weight: 600; letter-spacing: .12em; text-transform: uppercase; font-size: 10.5px; color: var(--st-ink-3); }
