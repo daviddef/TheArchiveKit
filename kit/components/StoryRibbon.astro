@@ -50,5 +50,5 @@ const spouseLink = (c) => (c.spousePerson ? personHref(c.spousePerson) : c.spous
     ))}
   </ol>
   {ribbon.note && <p class="st-rb-note">{ribbon.note}</p>}
-  {flagged && <p class="st-rb-note st-rb-fl" data-flag-credit="1">{FLAG_KEY} <span class="flag-credit">{FLAG_CREDIT}.</span></p>}
+  {flagged && <p class="st-rb-note st-rb-fl" data-flag-credit="1">{FLAG_KEY}{" "}<span class="flag-credit">{FLAG_CREDIT}.</span></p>}
 </nav>

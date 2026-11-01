@@ -100,7 +100,7 @@ const safeYears = (c) => (c.minor ? "" : yearsLine(c));
     </ol>
   </div>
   {laneNote && <p class="fr-note">{laneNote}</p>}
-  {flagged && <p class="fr-note fr-fl" data-flag-credit="1">{FLAG_KEY} <span class="flag-credit">{FLAG_CREDIT}.</span></p>}
+  {flagged && <p class="fr-note fr-fl" data-flag-credit="1">{FLAG_KEY}{" "}<span class="flag-credit">{FLAG_CREDIT}.</span></p>}
 
   <div class="fr-conn" data-connections={blocks.filter((b) => b.kind === "link").length}>
     <h3 class="fr-ch">How our line connects</h3>

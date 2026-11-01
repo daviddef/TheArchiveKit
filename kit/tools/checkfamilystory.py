@@ -912,6 +912,8 @@ def selftest():
         plant("a chapter with no title", "S0", lambda s: ch(s, 0).pop("title"))
         plant("a field the contract does not know", "S0", lambda s: ch(s, 0).update(colour="red"))
         plant("a grade that is not doc, inf or lore", "S0", lambda s: ch(s, 0)["paragraphs"][0].update(grade="proven"))
+        plant("a ribbon flag whose kind is not era or today", "S0", lambda s: s["ribbon"]["cards"][0].update(flags=[{"kind": "yesterday", "line": "from", "place": "Hollin", "svg": "x.svg", "flag": "x", "year": None, "label": "x", "grade": "doc"}]))
+        plant("a ribbon flag with a field the contract does not know", "S0", lambda s: s["ribbon"]["cards"][0].update(flags=[{"kind": "today", "line": "from", "place": "Hollin", "svg": "x.svg", "flag": "x", "year": None, "label": "from Hollin: X today", "grade": "doc", "colour": "red"}]))
         plant("a thread that is not an id", "S0", lambda s: ch(s, 0)["tree"].update(thread=5))
         # ids and references
         plant("two chapters with one id", "S1", lambda s: ch(s, 1).update(id="weaver"))

@@ -14,6 +14,23 @@
     "grade": { "enum": ["doc", "inf", "lore"], "description": "doc: a document says so (solid). inf: the archive reasons it from documents (dashed). lore: family memory or the family's tree (dotted)." },
     "status": { "enum": ["documented", "inferred", "origin-unknown", "family-lore"], "description": "How far back this family's evidence reaches; the lines page's four tiers, in the same words (kit/lib/lines.js)." },
     "relation": { "enum": ["married", "son of", "daughter of", "child of", "father of", "mother of", "parent of", "brother of", "sister of", "sibling of", "godparent of", "godchild of", "witness for"], "description": "OUR person's relation to THEIR person: Ljubomir (ours) 'married' Milka Papić (theirs); Hedviga (ours) 'daughter of' Milka. godparent of, godchild of and witness for are said only of a documented relation (grade doc)." },
+    "flag": {
+      "type": "object", "required": ["kind", "line", "place", "svg", "flag", "year", "label", "grade"], "additionalProperties": false,
+      "description": "One mini flag on a card's header row, written by kit/tools/ribbonflags.py and checked in full by checkribbonflags.py (kit/docs/ribbon-flags.md).",
+      "properties": {
+        "kind": { "enum": ["era", "today"], "description": "era: the state over the place in the card's year; today: the country the place is in now." },
+        "line": { "enum": ["from", "at", "spouse"], "description": "Which place line of the card the flag is for." },
+        "place": { "type": "string", "minLength": 1 },
+        "svg": { "type": "string", "minLength": 1, "description": "The artwork file in kit/data/flags." },
+        "flag": { "type": "string", "minLength": 1, "description": "The Flags Atlas flag id." },
+        "country": { "type": "string", "description": "ISO code of today's country (today flags)." },
+        "year": { "type": ["integer", "null"], "description": "The card year an era flag is for; null on a today flag." },
+        "label": { "type": "string", "minLength": 1, "description": "The accessible name and tooltip: names the place and the year." },
+        "grade": { "$ref": "#/$defs/grade", "description": "The evidence of the line the flag stands for." },
+        "era": { "type": "string", "description": "The era id the flag was picked from (era flags)." },
+        "assessed": { "type": "boolean" }
+      }
+    },
     "card": {
       "type": "object",
       "required": ["name", "years", "origin", "originGrade", "spouse", "spouseOrigin", "atPlace", "atYear", "living"],
@@ -32,7 +49,8 @@
         "person": { "type": "string", "description": "A person page (slug)." },
         "spousePerson": { "type": "string" },
         "spouseHref": { "type": "string" },
-        "title": { "type": "string" }
+        "title": { "type": "string" },
+        "flags": { "type": "array", "items": { "$ref": "#/$defs/flag" }, "description": "Mini flags for the card, in line order (kit/tools/ribbonflags.py writes them; do not hand-edit)." }
       }
     },
     "connection": {

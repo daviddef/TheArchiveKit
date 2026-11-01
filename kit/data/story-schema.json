@@ -149,6 +149,23 @@
         "papers": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/link" } }
       }
     },
+    "flag": {
+      "type": "object", "required": ["kind", "line", "place", "svg", "flag", "year", "label", "grade"], "additionalProperties": false,
+      "description": "One mini flag on a card's header row, written by kit/tools/ribbonflags.py and checked in full by checkribbonflags.py (kit/docs/ribbon-flags.md).",
+      "properties": {
+        "kind": { "enum": ["era", "today"], "description": "era: the state over the place in the card's year; today: the country the place is in now." },
+        "line": { "enum": ["from", "at", "spouse"], "description": "Which place line of the card the flag is for." },
+        "place": { "type": "string", "minLength": 1 },
+        "svg": { "type": "string", "minLength": 1, "description": "The artwork file in kit/data/flags." },
+        "flag": { "type": "string", "minLength": 1, "description": "The Flags Atlas flag id." },
+        "country": { "type": "string", "description": "ISO code of today's country (today flags)." },
+        "year": { "type": ["integer", "null"], "description": "The card year an era flag is for; null on a today flag." },
+        "label": { "type": "string", "minLength": 1, "description": "The accessible name and tooltip: names the place and the year." },
+        "grade": { "$ref": "#/$defs/grade", "description": "The evidence of the line the flag stands for." },
+        "era": { "type": "string", "description": "The era id the flag was picked from (era flags)." },
+        "assessed": { "type": "boolean" }
+      }
+    },
     "card": {
       "type": "object",
       "required": ["name", "years", "origin", "originGrade", "spouse", "spouseOrigin", "atPlace", "atYear", "living", "chapter"],
@@ -170,7 +187,8 @@
         "spouseLiving": { "type": "boolean", "description": "Defaults to the card's own living flag." },
         "spouseDirect": { "type": "boolean", "description": "The spouse is also on our direct line (a mother is): kit/tools/directline.py then lists her as a partner in src/data/direct-line.json." },
         "title": { "type": "string" },
-        "glyph": { "enum": ["hill", "loom", "field", "stone", "wave", "works", "gable", "ship"] }
+        "glyph": { "enum": ["hill", "loom", "field", "stone", "wave", "works", "gable", "ship"] },
+        "flags": { "type": "array", "items": { "$ref": "#/$defs/flag" }, "description": "Mini flags for the card, in line order (kit/tools/ribbonflags.py writes them; do not hand-edit)." }
       }
     },
     "extent": {

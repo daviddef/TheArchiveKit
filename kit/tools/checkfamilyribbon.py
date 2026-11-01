@@ -632,6 +632,8 @@ def selftest():
         planted("a family with no cards and no lane", "F3", fl_edit=lambda fl: fam(fl).pop("cards"))
         planted("a family of family lore with a documented card", "F5", fl_edit=lambda fl: (fam(fl, 1).update(status="family-lore"), fam(fl, 1)["cards"][0].update(originGrade="doc")))
         planted("an origin grade that is not doc, inf or lore", "F0", fl_edit=lambda fl: fam(fl)["cards"][0].update(originGrade="probably"))
+        planted("a flag whose kind is not era or today", "F0", fl_edit=lambda fl: fam(fl)["cards"][0].update(flags=[{"kind": "yesterday", "line": "from", "place": "Hollin", "svg": "x.svg", "flag": "x", "year": None, "label": "x", "grade": "doc"}]))
+        planted("a flag with a field the contract does not know", "F0", fl_edit=lambda fl: fam(fl)["cards"][0].update(flags=[{"kind": "today", "line": "from", "place": "Hollin", "svg": "x.svg", "flag": "x", "year": None, "label": "from Hollin: X today", "grade": "doc", "colour": "red"}]))
         planted("two families on one page", "F1", fl_edit=lambda fl: fam(fl, 1).update(page="/brandt/"))
         print("how our line connects")
         planted("a connection to someone not on the direct line", "C1", fl_edit=lambda fl: fam(fl)["connections"][0].update(ourSlug="a-cousin"))

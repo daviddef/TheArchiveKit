@@ -119,7 +119,9 @@ country, year, label, grade, assessed); R7 no flag missing; R8 the table names o
 allowed; R9 built: alt = title, not empty, a line, inside a ribbon card, the credit on the page; R10 never today's flag beside an era
 flag of the same country.
 
-`checkflagfit.mjs` (the boxes, in Chrome through playwright-core, which is not a kit dependency, so it is not in `npm test`):
+The two contract gates know the field: `data/story-schema.json` (`checkfamilystory.py`) and `data/family-ribbon-schema.json` (`checkfamilyribbon.py`) list `flags` on a card (`$defs/flag`: kind era|today, line from|at|spouse, place, svg, flag, year int|null, label, grade, optional country, era, assessed), and each self-test plants a flag with a bad kind and one with an unknown field. An archive passes its story and family-lines files to them as they are; no copy with the flags taken off is needed.
+
+`checkflagfit.mjs` (the boxes, in Chrome through playwright-core, which is not a kit dependency, so it is not in `npm test`, and its planted-fault self-test was not reliable on a CI runner's Chrome (the 27 Oct deploys of three archives failed on it), so run it by hand and keep it out of the deploy workflow):
 `node checkflagfit.mjs --url <built page> ... [--widths 1440,1100,390]` measures every ribbon card with its flags and with them
 hidden; any card whose height or width changes by more than 0px fails, and so does a strip that touches the glyph, "Gen. n", the
 name or the years. `--selftest` passes a fixture ribbon and catches three planted faults (the strip in the flow; the strip moved
