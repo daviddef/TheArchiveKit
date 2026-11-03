@@ -211,39 +211,54 @@ const base = import.meta.env.BASE_URL || "/";
 
     var map = L.map(el, { scrollWheelZoom: true, worldCopyJump: true });
     /* ---- THE GROUND UNDER THE MARKERS -----------------------------------
-       Four basemaps, because the question changes what you need under the
-       dots. Street to find a village. Terrain to see why a family crossed one
-       pass and not another. Satellite to find a farm that is still there.
-       Plain to read a dense cluster of markers without a map arguing with it.
+       Three basemaps, because the question changes what you need under the
+       dots. Map, the default, is Esri's light grey canvas: coastlines, borders
+       and place names and nothing else, so the dots are the only colour and a
+       dense cluster can be read without a map arguing with it. (It replaced
+       OpenStreetMap's standard style, whose peaks, roads and shop icons said
+       nothing about where a record is held, and the separate CARTO «Plain».)
+       Terrain to see why a family crossed one pass and not another. Satellite
+       to find a farm that is still there.
 
        THE KEYS ARE THE ONES ALREADY IN USE. The Defranceschi map and the
        Record Atlas each built this separately; they agree on `terrain` and
        `satellite`, and differ only in what they call the default - street
        against map. Neither ever writes its default to the URL, so there is no
        such link in the world to break: the canonical key is `street`, and
-       `map` is accepted on the way in so that the Record Atlas's own links
-       keep working when it comes onto this component.
+       `map` and `plain` are accepted on the way in, so the Record Atlas's own
+       links and any old «Plain» choice remembered in a browser keep working.
 
        The reader's choice is remembered per browser, and the URL beats the
        memory, because a link somebody sent is a stronger statement about what
        to show than what this reader happened to pick last week. */
     var BASES = [
-      ["street", "Street", "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-       "&copy; OpenStreetMap contributors", 18],
+      ["street", "Map",
+       "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}",
+       "Esri, HERE, Garmin \u00b7 &copy; OpenStreetMap contributors", 18],
       ["terrain", "Terrain", "https://tile.opentopomap.org/{z}/{x}/{y}.png",
        "&copy; OpenStreetMap contributors, SRTM \u00b7 OpenTopoMap (CC-BY-SA)", 17],
       ["satellite", "Satellite",
        "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-       "Esri, Maxar, Earthstar Geographics", 18],
-      ["plain", "Plain", "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
-       "&copy; OpenStreetMap contributors \u00b7 &copy; CARTO", 19]
+       "Esri, Maxar, Earthstar Geographics", 18]
     ];
-    var ALIAS = { map: "street" };
+    var ALIAS = { map: "street", plain: "street" };
     var BKEY = "atlas:base";
     var tiles = {};
     BASES.forEach(function (b) {
-      tiles[b[0]] = L.tileLayer(b[2], { attribution: b[3], maxZoom: b[4] });
+      tiles[b[0]] = L.tileLayer(b[2], {
+        attribution: b[3], maxZoom: b[4], maxNativeZoom: b[0] === "street" ? 16 : null });
     });
+    /* The light grey canvas keeps its place names in a separate layer. It goes in
+       its own pane, above the tiles and below the markers, and follows the Map
+       base on and off, so Terrain and Satellite never carry grey labels. */
+    map.createPane("baseLabels");
+    map.getPane("baseLabels").style.zIndex = 250;
+    map.getPane("baseLabels").style.pointerEvents = "none";
+    var baseLabels = L.tileLayer(
+      "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}",
+      { pane: "baseLabels", maxNativeZoom: 16, maxZoom: 18 });
+    tiles.street.on("add", function () { baseLabels.addTo(map); });
+    tiles.street.on("remove", function () { map.removeLayer(baseLabels); });
     var baseNow = (function () {
       var want = Q.get("base");
       if (!want) { try { want = localStorage.getItem(BKEY); } catch (e) {} }
