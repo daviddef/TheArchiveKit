@@ -44,6 +44,7 @@
   "components/PlacePage.astro": "3fa7782a4859a13c028b2ecd34dd824719b95dba6c45501aad6c549279a9d6ba",
   "components/PlaceSpark.astro": "1438b77f59423f6e51b7922b2ee4a061d7c1d5aa81b1aa8e72ae17b8aaba7e2e",
   "components/Places.astro": "240398754487d60aca988d6df416277edca1ecd375c21b654cb5023877710b8f",
+  "components/Privacy.astro": "f92035da9446c541f1575c90987e3a60c724b22a6a931c3fdb4c1da11f684f44",
   "components/Questions.astro": "5e15ba3c15d81727b3f56091feb6a179445971ad3894eb8eecc409c5a1aa58f7",
   "components/Rec.astro": "5ec3839156e0eb333f7f64fd8e1de125e1ccca86fece37334c666be282743591",
   "components/Register.astro": "7ff3ae7158496b323a0681fb603f6b660841d723345c0f9cb05dcca24075d869",

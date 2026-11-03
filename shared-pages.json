@@ -313,6 +313,17 @@
         "Luwinski"
       ],
       "note": "**On five of eight: Blazevic, Booyzen, D'Arcy, Defranceski, Lerena. Not on Falco, Mazza or Luwinski, and it was never registered here, so nothing counted the gap.** It spread by copying (Defranceski 9 Sep, Booyzen 13 Sep, D'Arcy and Lerena 10 Sep from the Defranceski audit, Blazevic 9 Oct) and the component was lifted afterwards. Three other pages ask the same question under another name and are folded into it by `evidence-menu.json`: **Photograph these** (Blazevic, Defranceski, Lerena: the kit's own Shotlist header says it is «what somebody standing in the right place should photograph»), **The Letters** (Booyzen) and **Letters out** (Luwinski, which alone has a chase schedule worth keeping). Falco and Mazza had asks that existed and were not on the site: **both now have an Errands page (9 October 2026)**: Mazza `5a04330` (five asks at four doors, from a drafted Scilla request and work-list rows 9, 59 and 158) and Falco `5c8951bf` (five asks at three doors, from questions and rows 20 and 21). *An earlier version of this note said Falco's notes named the Arienzo liber IX register as an ask to the museum; that came from a 13 September note that row 100 (27 September) superseded, and it is not on the page.* **9 Oct 2026, Booyzen: The Letters folded into `/errands/#sent`** (`241adb4`), `/letters/` redirects, and the fold exposed a stale hand-written count on the page it joined. Luwinski's `Letters out` is now the only separate sent-letters page left. **9 Oct 2026, Lerena:** gaps («What we cannot close») folded into `/open-questions/#may-never-close` in the same commit; Defranceski's `/gaps/` is the only one left, so it is no longer a shared page. **Status 9 Oct 2026, evening: all eight archives now have /errands/.** Seven draw it with the kit's component; Luwinski's is its Letters out page whole (the per-recipient chase schedule is not modelled by the kit's Errands row, so it stays bespoke until `chase` is added)."
+    },
+    {
+      "key": "privacy",
+      "route": "/privacy/",
+      "on": 8,
+      "state": "aligned",
+      "tier": 0,
+      "note": "What a reader's browser loads from elsewhere (GoatCounter's count, Google Fonts, and on the map pages Leaflet from cdnjs and Esri and OpenTopoMap tiles) and that there is no account, form or advertising. One component, nothing written by an archive; the GoatCounter site is read from archives.json. Keep it true: an archive that starts loading something new says so here in the same commit.",
+      "component": "Privacy",
+      "using": 8,
+      "drawingTheirOwn": []
     }
   ]
 }

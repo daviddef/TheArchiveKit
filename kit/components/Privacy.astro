@@ -1,0 +1,78 @@
+---
+/* What a reader's browser does when it opens this archive, and who else it talks to.
+ *
+ * The eight archives are static files on GitHub Pages: no account, no sign-in, no form
+ * that sends anything, no database, no advertising. What they do load from elsewhere is
+ * the same short list on every one of them, so the page is one shared component and an
+ * archive writes nothing. The only thing that differs is the GoatCounter site that
+ * counts its reads, and that is read from archives.json by the same whoami() the ring
+ * uses, so it cannot be mistyped.
+ *
+ * Keep this true. When an archive starts loading something new (a font, a script, an
+ * embedded video, a tile server), this is the page that has to say so, in the same
+ * commit. The Record Atlas and defranceski.com each have a privacy page of their own;
+ * this one covers the archives only and links to neither.
+ *
+ *   u        the archive's url helper
+ *   name     "The Mazza Archive", for the opening sentence
+ *   counter  GoatCounter site code; defaults to this archive's own from archives.json
+ *   hasMap   false for an archive with no map page (the maps are why Leaflet and the
+ *            tile servers are named)
+ *   aboutHref the page that says how the archive treats living people ("/about/"; Luwinski
+ *            has no About page and points at "/method/")
+ *   updated  the date this wording was last checked
+ */
+import ring from "../data/archives.json";
+import { whoami } from "../lib/ring.js";
+
+const { u = (p) => p, name = "this archive", counter, hasMap = true,
+        aboutHref = "/about/", updated = "3 November 2026" } = Astro.props;
+const here = (import.meta.env.BASE_URL || "/").replace(/\/$/, "");
+const code = counter ?? whoami(here)?.counter;
+---
+<div class="pv">
+  <p class="pv-when mono">Last checked {updated}.</p>
+  <p class="pv-lede">This page covers {name} only. There is no account, no sign-in and nothing to
+    fill in: what you type in the search box, which layers you switch on and which year you set
+    stay in your browser (in the address bar, or remembered on your own device) and are never
+    sent anywhere. There are no advertisements.</p>
+
+  <section class="pv-s">
+    <h2>The count at the foot of each page</h2>
+    <p>The “times read” number comes from <a href="https://www.goatcounter.com/" rel="noopener">GoatCounter</a>,
+      a counter that sets no cookies and does not follow you from one site to another. It records
+      that a page was read, which page, roughly the kind of browser and the country — not who you
+      are.{code ? <> This archive’s count is its own: <span class="mono">{code}</span>.</> : null}</p>
+  </section>
+
+  <section class="pv-s">
+    <h2>What your browser fetches from elsewhere</h2>
+    <ul class="pv-list">
+      <li><b>Fonts</b> from Google Fonts. Google sees your IP address and which fonts were asked for.</li>
+      {hasMap ? (
+        <li><b>The map pages</b> load Leaflet, the mapping library, from the Cloudflare CDN, and map
+          tiles from Esri (the default map with its place names, and the satellite view) or OpenTopoMap
+          (the terrain view), depending on which base is showing. Those services see your IP address
+          and which tiles you asked for, as any map on the web does. Only the map pages do this.</li>
+      ) : null}
+      <li><b>GitHub Pages</b> serves the site and keeps standard server logs.</li>
+    </ul>
+    <p>Following a link to another site (FamilySearch, a national archive, a newspaper) takes you to
+      that site, under its terms and not these.</p>
+  </section>
+
+  <section class="pv-s">
+    <h2>Living people</h2>
+    <p>A living person is named with their relationships and their town and country, and nothing
+      more. <a href={u(aboutHref)}>How this archive works and what it will not say &rarr;</a></p>
+  </section>
+</div>
+
+<style is:global>
+  .pv-when { margin:0 0 .6rem; color:var(--ink-3,#888); font-size:.85rem; }
+  .pv-lede { margin:0 0 1.6rem; color:var(--ink-2,inherit); }
+  .pv-s { margin:0 0 1.8rem; }
+  .pv-s h2 { margin:0 0 .5rem; }
+  .pv-list { margin:0 0 .8rem; padding-left:1.2em; }
+  .pv-list li { margin-bottom:.5rem; }
+</style>
