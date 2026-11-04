@@ -40,7 +40,7 @@
   "components/PersonChart.astro": "54c275810e6166b1bb1c6f1659d6b1477089888a3a8cf890814fad2bfcb51bea",
   "components/PersonEvTag.astro": "510db6f847ee3ca1bbc76e8fca3f2a7c8d6db0181329adad7e78c0297e83e868",
   "components/PersonEvidence.astro": "ff287e609211092a5fedaac9622455a462ecd8d09c0f98b52e76eb8ea84fb0e1",
-  "components/PersonGlance.astro": "21b74c159e614cb612e0a3fd8e3739aaf9d64b7d6a4ef682306b0afb304f46f5",
+  "components/PersonGlance.astro": "d06bbf616f6c363576a413fd9a2af446fd477d45285f7fd6a87b19ce916516be",
   "components/PersonLore.astro": "711bc38b561b6f2bb271d81cefcda83454c20b1ec33cb12e5de6c99f46739c09",
   "components/PersonPage.astro": "6d900eb6e41a45b44d0212484a04705e04ee64be3a8b44e0b573ae48efbddf5b",
   "components/PersonRootsViews.astro": "dd1855683d9bc47c7767343fc43cd96b917c72a6609b57b05cecd97313a6a8d7",

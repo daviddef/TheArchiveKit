@@ -26,7 +26,7 @@ const { facts = [], journey = [], gradeSay = {} } = Astro.props;
           <span class="pg-where">{s.country || " "}</span>
           <span class="pg-year">{s.year ? (s.est ? "c. " : "") + s.year : "year not recorded"}</span>
           {s.flag && s.flag.polity ? (
-            <span class="pg-polity">{s.flag.polity}{(s.flag.pills.length > 0 || s.flag.why) ? <button type="button" class="pg-i" aria-expanded="false" aria-controls={`pg-era-${i}`} data-era={i} title="Who ruled, and why it mattered, in the Record Atlas's words" aria-label={`About ${s.flag.polity}`}>i</button> : null}<small>{s.flag.dates}</small></span>
+            <span class="pg-polity">{s.flag.polity}{(s.flag.pills.length > 0 || s.flag.why) ? <button type="button" class="pg-i" aria-expanded="false" aria-controls={`pg-era-${i}`} data-flagcard={i} title="Who ruled, and why it mattered, in the Record Atlas's words" aria-label={`About ${s.flag.polity}`}>i</button> : null}<small>{s.flag.dates}</small></span>
           ) : null}
           {s.grade ? <span class={`pg-grade g-${s.grade}`}>{gradeSay[s.grade] || s.grade}</span> : null}
         </div>
