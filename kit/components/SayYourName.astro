@@ -107,6 +107,8 @@ const met = rows.reduce((a, r) => a + Object.values(r.langs || {})
   .syn-none { font-style:italic; color:var(--ink-3,#888); }
   .syn-why { font-size:.86rem; line-height:1.55; color:var(--ink-2,inherit); margin:0; }
   .syn-note { display:block; font-size:.78rem; color:var(--ink-3,#888); }
+  .syn-sub2 { margin:1.4rem 0 .2rem; font-size:11px; font-weight:600; letter-spacing:.11em; text-transform:uppercase; color:var(--ink-3,#888); }
+  .syn-slips { margin:.3rem 0 0; padding-left:1.1rem; font-size:.9rem; line-height:1.55; }
   .syn-foot { margin-top:1.6rem; }
   @media (max-width:560px) { .syn-q { font-size:1.2rem; } }
 </style>
@@ -159,7 +161,7 @@ const met = rows.reduce((a, r) => a + Object.values(r.langs || {})
       let h = '<h3 class="syn-head"><strong>' + esc(cap(r.canon)) + "</strong> — "
         + n + " forms of this one name, of which " + seen
         + " are attested in the records gathered here.</h3>"
-        + '<p class="syn-sub">Every form below is the same person.</p>'
+        + '<p class="syn-sub">Every form below is the same name, written by different hands.</p>'
         + '<div class="syn-cards">';
       for (const L of langs) {
         const forms = (r.langs || {})[L.key] || [];
@@ -187,7 +189,15 @@ const met = rows.reduce((a, r) => a + Object.values(r.langs || {})
         }
         h += '<p class="syn-why">' + esc(L.note || "") + "</p></div>";
       }
-      out.innerHTML = h + "</div>";
+      h += "</div>";
+      if ((r.slips || []).length)
+        h += '<h4 class="syn-sub2">Written by mistake, once</h4><p class="syn-sub">Not spellings of the name. A clerk or an indexer slipped; '
+          + "they are here so nobody counts them as variants or searches the world for them.</p><ul class=\"syn-slips\">"
+          + r.slips.map((s) => "<li><b>" + esc(s.form) + "</b> — " + esc(s.why) + "</li>").join("") + "</ul>";
+      if ((r.notSame || []).length)
+        h += '<h4 class="syn-sub2">Look alike, but a different name</h4><ul class="syn-slips">'
+          + r.notSame.map((s) => "<li><b>" + esc(s.form) + "</b> — " + esc(s.why) + "</li>").join("") + "</ul>";
+      out.innerHTML = h;
       setUrl(t);
     };
 
