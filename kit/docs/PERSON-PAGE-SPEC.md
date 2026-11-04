@@ -46,6 +46,27 @@ One order, one set of words for the headings, one anchor each. On a person who i
 
 Rules: one `h1`; sections are `h2`; nothing skips a level; no section is empty without saying so; no run of prose over about 150 words without structure. A person with several marriages, households or places uses a list or a table inside the section, not a new top-level heading per household.
 
+### 2a. Story mode: the shared optional sections (ruled 4 November 2026)
+
+A page can draw the family as a **chart** (the table above, `data-mode="chart"`, the default) or **tell the life** (`data-mode="story"`). Story mode was built first on one page, `/person/ivan-defranceski-1951/`, then ruled into the spec by David on 4 November 2026 in three parts.
+
+**Ruling 5: the required Family is satisfied by the story.** In story mode the required `#family` is the first stop of the story, "Where they came from" (the parents, the grandparents, and the line of fathers up to the earliest person the archive holds). The brothers and sisters stand in the Birth stop and the children in "What they left behind". No chart section is drawn and none is required. The first stop is **always** drawn and, when no parent is named, says so in a sentence, so a missing family is never a claim made in silence. `checkperson.py` fails a story-mode page that has no `#family`.
+
+**Ruling 6: four shared optional sections.** They have fixed words and anchors like the six, are drawn by `PersonSection`, are never empty (an archive passes the slot only when it has the material), and exist only in story mode:
+
+| Anchor | Heading | What goes in it |
+|---|---|---|
+| `#story` | The story | the life on a timeline: where they came from, birth, life, death, what they left behind, then the notes about the record itself, last and quiet |
+| `#lore` | What the family says, and what the record holds | the family's own claims, one row each, set beside the archive's reading and what would settle it |
+| `#world` | What was happening around them | events the Record Atlas dates at the places they lived, in the years they were there |
+| `#where` | Where they lived, and what is still missing | the Roots & Routes profile and views, and the registers and archives the Atlas lists for each place |
+
+The order in story mode is **What the record says, The story, Photographs and papers, What the family says…, Where this comes from, What was happening around them, Where they lived…, Others of the same name, Notes and corrections**. The route (flags, places, eras) is the lead of the record section; the photographs stand beside the story. The order is held in `ORDER_BY_MODE` (`lib/person.js`) and in `checkperson.py`, and `checkperson_logic.mjs` fails if they differ.
+
+**Ruling 7: the living rule is the kit's, not a page's.** A relative in the story is drawn through `isLiving` and `isHeldOut` (80 years; 60 for a child's parent). A living relative is a **name and a relationship**: no dates, no place, no mark (the name still links to their page, which is itself only a name, relationships and a town and country, item 7). A relative the rule holds out is **not drawn at all**, not even as a "not yet found" card. A living person's own page is never in story mode. A story-mode page does not use its own year test: the first version did (110 years), and the kit's rule replaced it.
+
+The evidence words are unchanged by story mode (section 5): a **person** in a story takes a **grade** (Documented, Inferred, Family), a **link** takes a **source word** (a record read here, inferred, family tree unverified) and only where the archive has tested the link, and the direct line stays a bar. The adapter that maps an archive's rows to marks lives in the archive; the vocabulary and the drawing live in the kit (`lib/personevidence.js`, `PersonEvTag`).
+
 ### The canonical person object
 
 The archive's adapter hands the component one object. Every field is optional.
@@ -252,6 +273,9 @@ Nothing in an archive's living-people gates is replaced by `checkperson.py`: it 
 | `kit/components/PersonChart.astro` | the chart adapter over the kit's `PersonTree` |
 | `kit/components/PersonSection.astro` | one section with its fixed heading and anchor |
 | `kit/components/EvidenceChip.astro` | grade and source, side by side; no grade beside an index entry or an image held |
+| `kit/lib/personstory.js`, `kit/lib/personevidence.js` | story mode (section 2a): the ancestry thread, the family of one person, the timeline, the journey and its gaps, the marks; pure functions, with the kit's living rule |
+| `kit/components/PersonGlance.astro` · `PersonStory` · `PersonLore` · `PersonEvidence` · `PersonEvTag` · `PersonWorldAround` · `PersonRootsViews` | the inside of the story-mode sections; the sections themselves are `PersonSection` |
+| `kit/tools/personstory_logic.mjs` | the story layer, with planted faults (a living relative's dates or place; a held-out relative drawn) |
 | `kit/styles/personpage.css` | new classes only |
 | `kit/data/living-rule-cases.json` | **the one list of cases for the living rule**, read by both implementations |
 | `kit/tools/living_rule.py` | gains `address_like()` (the town-and-country test); the rule itself is unchanged |

@@ -1,0 +1,206 @@
+---
+/* The story of a life as a timeline: a rail down the left with one stop per stage (where they came from, birth, life, death, what they left
+   behind), the people of a stage as small linked cards, the researcher's chapters as cards under it, and the notes about the record itself
+   last and quiet. A chapter longer than ~140 words keeps its first paragraph open and folds the rest behind «Read on». Bodies are markdown
+   rendered by the archive's own md(); nothing is rewritten here. The stages come from storyOf() in lib/personstory.js. */
+import { wordsIn } from "../lib/personstory.js";
+import EvTag from "./PersonEvTag.astro";
+const { stages = [], md = (s) => s, gradeSay = {}, u = (p) => p } = Astro.props;
+const FOLD = 140;
+const lnk = (n) => (n.external ? n.href : u(n.href));
+const NUM = ["no", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"];
+const gens = (n) => `${NUM[n] || n} generation${n === 1 ? "" : "s"}`;
+const split = (body, keep = false) => {
+  if (keep || wordsIn(body) <= FOLD) return [body, ""];
+  const parts = String(body).split(/\n\n+/);
+  if (parts.length > 1) return [parts[0], parts.slice(1).join("\n\n")];
+  const sentences = String(body).split(/(?<=[.!?»”])\s+(?=[A-Z«“*])/);
+  let head = "", i = 0;
+  while (i < sentences.length && wordsIn(head) < 70) head += (head ? " " : "") + sentences[i++];
+  return [head, sentences.slice(i).join(" ")];
+};
+---
+{stages.length > 0 ? (
+  <div class="st">
+    <ol class="st-rail">
+      {stages.map((s) => (
+        <li class={`st-stage st-${s.key}${s.quiet ? " st-quiet" : ""}`} id={s.key === "origin" ? "family" : undefined}>
+          <span class="st-dot" aria-hidden="true"></span>
+          <div class="st-body">
+            <header class="st-head">
+              <h3 class="st-label">{s.label}</h3>
+              {s.when ? <span class="st-when">{s.when}</span> : null}
+            </header>
+            {s.key === "origin" && s.empty ? <p class="st-none-said">No parent is named for this person in this archive yet.</p> : null}
+            {s.key === "origin" && !s.empty ? (
+              <div class="st-threads">
+                {(s.threads || []).map((t) => (
+                  <section class="st-thread" aria-label={t.side}>
+                    <h4 class="st-side">{t.side}</h4>
+                    <ol class="st-chain">
+                      {t.origin ? (
+                        <>
+                          <li class="st-link st-origin">
+                            <a class="st-ocard" href={lnk(t.origin)}>
+                              <span class="st-rel">The family's own account</span>
+                              <span class="st-name">{t.origin.place}</span>
+                              <span class="st-dates">{t.origin.when}</span>
+                              <span class="st-note">{t.origin.note}</span>
+                              {t.origin.go ? <span class="st-go">{t.origin.go}</span> : null}
+                            </a>
+                          </li>
+                          <li class="st-gap" aria-hidden="true"><span class="st-dots">⋮</span><span class="st-gaptext">no record yet joins the two</span></li>
+                        </>
+                      ) : null}
+                      <li class="st-link">
+                        {t.earliest.href ? <a class="st-person" href={lnk(t.earliest)}><span class="st-rel">{t.earliest.rel}</span><span class="st-name">{t.earliest.name}</span>{t.earliest.dates ? <span class="st-dates">{t.earliest.dates}</span> : null}{t.earliest.place ? <span class="st-place">{t.earliest.place}</span> : null}<EvTag n={t.earliest} /></a>
+                        : <span class={`st-person${t.earliest.living ? " is-living" : ""}`}><span class="st-rel">{t.earliest.rel}</span><span class="st-name">{t.earliest.name}</span>{t.earliest.dates ? <span class="st-dates">{t.earliest.dates}</span> : null}{t.earliest.place ? <span class="st-place">{t.earliest.place}</span> : null}<EvTag n={t.earliest} /></span>}
+                      </li>
+                      {t.between.length > 0 ? (
+                        <li class="st-gap st-gap-gens">
+                          <span class="st-dots" aria-hidden="true">⋮</span>
+                          <div class="st-gaptext">
+                            <p class="st-gaphead">{gens(t.between.length)} on</p>
+                            <ul class="st-gens">
+                              {t.between.map((b) => (
+                                <li class={b.living ? "is-living" : undefined}>{b.href ? <a href={lnk(b)}>{b.name}</a> : b.name}{b.dates ? <span class="st-gd">{b.dates}</span> : null}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        </li>
+                      ) : (
+                        <li class="st-gap" aria-hidden="true"><span class="st-dots">⋮</span></li>
+                      )}
+                    </ol>
+                  </section>
+                ))}
+                {[{ label: "Grandparents", list: s.grand }, { label: "Parents", list: s.parents }].filter((g) => g.list && g.list.length > 0).map((g) => (
+                  <section class="st-thread st-parents" aria-label={g.label}>
+                    <h4 class="st-side">{g.label}</h4>
+                    <ul class="st-pgrid">
+                      {g.list.map((n) => (
+                        <li class="st-link">
+                          {n.unknown ? <span class="st-person st-none"><span class="st-rel">{n.rel}</span><span class="st-miss">{n.missing}</span></span>
+                          : n.href ? <a class="st-person st-par" href={lnk(n)}><span class="st-rel">{n.rel}</span><span class="st-name">{n.name}</span>{n.dates ? <span class="st-dates">{n.dates}</span> : null}{n.place ? <span class="st-place">{n.place}</span> : null}<EvTag n={n} />{n.external ? <span class="st-ext">{n.site} ↗</span> : null}</a>
+                          : <span class={`st-person st-par${n.living ? " is-living" : ""}`}><span class="st-rel">{n.rel}</span><span class="st-name">{n.name}</span>{n.dates ? <span class="st-dates">{n.dates}</span> : null}{n.place ? <span class="st-place">{n.place}</span> : null}<EvTag n={n} /></span>}
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+                ))}
+                <p class="st-legend">The mark is the archive's grade for the person (documented, probable, inferred, family, disputed). A «link» mark says where the link itself comes from, and appears only where the archive has tested it. Being on the direct line is the bar at the top of the page, not a grade.</p>
+              </div>
+            ) : null}
+            {s.people && s.people.length > 0 ? (
+              <div class="st-ppl">
+              {s.plabel ? <h4 class="st-side">{s.plabel} <span class="st-count">{s.people.length}</span></h4> : null}
+              <ul class="st-people">
+                {s.people.map((n) => (
+                  <li>
+                    {n.href ? <a class="st-person" href={lnk(n)}>{s.plabel ? null : <span class="st-rel">{n.rel}</span>}<span class="st-name">{n.name}</span>{n.dates ? <span class="st-dates">{n.dates}</span> : null}{n.place ? <span class="st-place">{n.place}</span> : null}<EvTag n={n} />{n.external ? <span class="st-ext">{n.site} ↗</span> : null}</a>
+                    : <span class={`st-person${n.living ? " is-living" : ""}`}>{s.plabel ? null : <span class="st-rel">{n.rel}</span>}<span class="st-name">{n.name}</span>{n.dates ? <span class="st-dates">{n.dates}</span> : null}{n.place ? <span class="st-place">{n.place}</span> : null}<EvTag n={n} /></span>}
+                  </li>
+                ))}
+              </ul>
+              </div>
+            ) : null}
+            {s.cards.map((c) => {
+              const [head, rest] = split(c.body, c.gap);
+              return (
+                <article class={`st-card${c.gap ? " st-gap-card" : ""}${c.reg ? " st-reg-card" : ""}`}>
+                  {c.reg ? <span class="st-reg">Read from the register</span> : null}
+                  {(c.title || c.grade) ? (
+                    <div class="st-top">
+                      {c.title ? <h4 class="st-t">{c.title}</h4> : null}
+                      {c.grade ? <span class={`st-grade g-${c.grade}`}>{gradeSay[c.grade] || c.grade}</span> : null}
+                    </div>
+                  ) : null}
+                  <div class="st-text prose" set:html={md(head)}></div>
+                  {rest ? (
+                    <details class="st-more">
+                      <summary>Read on</summary>
+                      <div class="st-text prose" set:html={md(rest)}></div>
+                    </details>
+                  ) : null}
+                </article>
+              );
+            })}
+          </div>
+        </li>
+      ))}
+    </ol>
+  </div>
+) : null}
+
+<style>
+  .st { margin: 0 0 2.4rem; }
+  .st-h { margin: 0 0 1.1rem; }
+  .st-rail { list-style: none; margin: 0; padding: 0; max-width: 46rem; position: relative; }
+  /* the rail: one line down the left, a dot per stage */
+  .st-rail::before { content: ""; position: absolute; left: .55rem; top: .6rem; bottom: .6rem; border-left: 2px solid var(--rule-strong, var(--rule,#bbb)); }
+  .st-stage { position: relative; padding: 0 0 1.6rem 2.2rem; }
+  .st-stage:last-child { padding-bottom: 0; }
+  .st-dot { position: absolute; left: 0; top: .35rem; width: 1.2rem; height: 1.2rem; border-radius: 50%; background: var(--paper, #fff); border: 3px solid var(--accent,#1f5c6b); box-sizing: border-box; z-index: 1; }
+  .st-birth .st-dot { background: var(--accent,#1f5c6b); }
+  .st-death .st-dot { background: var(--ink,currentColor); border-color: var(--ink,currentColor); }
+  .st-legacy .st-dot { border-color: var(--ochre, var(--accent,#1f5c6b)); }
+  .st-quiet .st-dot { border-color: var(--rule-strong, var(--rule,#bbb)); border-style: dashed; }
+  .st-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: .2rem .8rem; margin-bottom: .6rem; }
+  .st-label { margin: 0; font-family: var(--serif,Georgia,serif); font-size: 1.55rem; line-height: 1.2; }
+  .st-quiet .st-label { font-size: 1.15rem; color: var(--ink-2,#444); }
+  .st-when { font-family: var(--mono,ui-monospace,monospace); font-size: .95rem; color: var(--ochre, var(--ink-2,#444)); }
+  .st-body { display: flex; flex-direction: column; }
+  .st-ppl { margin: 0 0 .8rem; }
+  .st-ppl .st-side { margin-bottom: .5rem; }
+  .st-count { font-family: var(--mono,ui-monospace,monospace); font-weight: 400; margin-left: .3rem; }
+  .st-birth .st-ppl { order: 5; margin: .2rem 0 0; }
+  .st-people { list-style: none; margin: 0 0 .8rem; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr)); gap: .6rem; }
+  .st-person { display: flex; flex-direction: column; gap: .1rem; height: 100%; padding: .6rem .8rem .7rem; border: 1px solid var(--rule,#bbb); border-radius: .4rem; background: var(--panel,transparent); color: var(--ink,currentColor); text-decoration: none; }
+  a.st-person:hover, a.st-person:focus-visible { border-color: var(--accent,#1f5c6b); }
+  .st-rel { font-family: var(--sans,system-ui,sans-serif); font-size: .7rem; letter-spacing: .07em; text-transform: uppercase; color: var(--ink-2,#444); }
+  .st-name { font-family: var(--serif,Georgia,serif); font-size: 1.05rem; line-height: 1.2; }
+  .st-dates { font-family: var(--mono,ui-monospace,monospace); font-size: .82rem; }
+  .st-ext { font-family: var(--sans,system-ui,sans-serif); font-size: .78rem; color: var(--accent,#1f5c6b); margin-top: .2rem; }
+  .st-place { font-family: var(--sans,system-ui,sans-serif); font-size: .82rem; color: var(--ink-2,#444); }
+  /* where they came from: one thread per parent, top (earliest) to bottom (the parent), with a dotted gap between */
+  .st-threads { display: grid; gap: 1.2rem; margin: 0 0 .8rem; }
+  .st-pgrid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: .7rem; }
+  .st-side { margin: 0 0 .5rem; font-family: var(--sans,system-ui,sans-serif); font-size: .76rem; letter-spacing: .09em; text-transform: uppercase; color: var(--ink-2,#444); font-weight: 600; }
+  .st-chain { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+  .st-link { display: flex; }
+  .st-link > .st-person, .st-link > .st-ocard { width: 100%; }
+  .st-gap { display: flex; align-items: center; gap: .7rem; padding: .1rem 0 .1rem 1.1rem; min-height: 2.1rem; }
+  .st-dots { font-family: var(--mono,ui-monospace,monospace); font-size: 1.5rem; line-height: 1; letter-spacing: 0; color: var(--ink-2,#444); width: .8rem; text-align: center; }
+  .st-gaptext { font-family: var(--sans,system-ui,sans-serif); font-size: .85rem; line-height: 1.35; color: var(--ink-2,#444); }
+  .st-gaptext a { color: var(--accent,#1f5c6b); }
+  .st-gap-gens { align-items: flex-start; padding: .6rem 0 .6rem 1.1rem; gap: .9rem; }
+  .st-gap-gens .st-dots { margin-top: .1rem; }
+  .st-gaphead { margin: 0 0 .4rem; font-family: var(--sans,system-ui,sans-serif); font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-2,#444); }
+  .st-gens { list-style: none; margin: 0; padding: 0; display: grid; gap: .45rem; }
+  .st-gens li { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 .6rem; font-family: var(--serif,Georgia,serif); font-size: 1rem; line-height: 1.3; }
+  .st-gd { font-family: var(--mono,ui-monospace,monospace); font-size: .8rem; color: var(--ink-2,#444); }
+  .st-par { border-left: 4px solid var(--accent,#1f5c6b); }
+  .st-ocard { display: flex; flex-direction: column; gap: .15rem; padding: .7rem .9rem .8rem; border: 1px dashed var(--ochre, var(--rule-strong, var(--rule,#bbb))); border-radius: .4rem; background: transparent; color: var(--ink,currentColor); text-decoration: none; }
+  a.st-ocard:hover, a.st-ocard:focus-visible { border-color: var(--accent,#1f5c6b); }
+  .st-note { font-family: var(--sans,system-ui,sans-serif); font-size: .85rem; line-height: 1.4; color: var(--ink-2,#444); margin-top: .2rem; }
+  .st-go { font-family: var(--sans,system-ui,sans-serif); font-size: .85rem; color: var(--accent,#1f5c6b); margin-top: .3rem; }
+  .st-none { border-style: dashed; justify-content: center; min-height: 4.2rem; background: transparent; }
+  .st-miss { font-family: var(--sans,system-ui,sans-serif); font-size: .9rem; color: var(--ink-2,#444); }
+  .st-card { padding: 1rem 1.2rem 1.1rem; border: 1px solid var(--rule,#bbb); border-radius: .5rem; background: var(--panel,transparent); margin: 0 0 .8rem; }
+  .st-reg { display: inline-block; font-family: var(--sans,system-ui,sans-serif); font-size: .7rem; letter-spacing: .08em; text-transform: uppercase; color: var(--accent,#1f5c6b); margin-bottom: .45rem; }
+  .st-reg-card { border-left: 4px solid var(--accent,#1f5c6b); }
+  .st-legend { margin: .2rem 0 0; font-family: var(--sans,system-ui,sans-serif); font-size: .82rem; line-height: 1.4; color: var(--ink-2,#444); }
+  .st-gap-card { background: transparent; border-style: dashed; border-color: var(--ochre, var(--rule-strong,var(--rule,#999))); }
+  .st-quiet .st-card { background: transparent; border-style: dashed; }
+  .st-top { display: flex; flex-wrap: wrap; align-items: baseline; gap: .3rem .8rem; margin-bottom: .4rem; }
+  .st-t { margin: 0; font-family: var(--serif,Georgia,serif); font-size: 1.25rem; line-height: 1.25; }
+  .st-grade { font-family: var(--sans,system-ui,sans-serif); font-size: .75rem; letter-spacing: .05em; text-transform: uppercase; padding: .12rem .5rem; border-radius: 99rem; border: 1px solid currentColor; color: var(--ev-family, var(--ochre,var(--accent,#845c15))); }
+  .st-grade.g-doc { color: var(--accent,#1f5c6b); }
+  .st-grade.g-inf { color: var(--ev-inferred, var(--ochre,var(--accent,#845c15))); }
+  .st-text { font-size: 1.05rem; line-height: 1.65; }
+  .st-text :global(p) { margin: 0 0 .7rem; }
+  .st-text :global(p:last-child) { margin-bottom: 0; }
+  .st-more { margin-top: .6rem; }
+  .st-more summary { cursor: pointer; font-family: var(--sans,system-ui,sans-serif); font-size: .95rem; color: var(--accent,#1f5c6b); width: max-content; }
+  .st-more[open] summary { margin-bottom: .6rem; }
+</style>

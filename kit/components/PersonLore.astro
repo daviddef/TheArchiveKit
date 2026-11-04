@@ -1,0 +1,63 @@
+---
+/* What the family says, and what the record holds: each claim the family makes, in its own words, set beside the archive's reading of it, with
+   what would settle it folded away. The claims, readings and grades are the archive's own (the page for 1948 holds the full argument); nothing
+   here is written for this component. A claim that no record has met stays marked as lore. */
+import { md as kitMd } from "../lib/md.js";
+const { claims = [], u = (p) => p, md = kitMd, href = "", hrefLabel = "the full argument",
+  dek = "Each of these is lore until a record says otherwise. They are set down as they were told, beside what this archive can put against them." } = Astro.props;
+const gradeWord = (g) => { const [head, ...rest] = String(g || "lore").split("·").map((x) => x.trim()); return { head: head === "lore" ? "Family lore" : head, note: rest.join(" · ") }; };
+---
+{claims.length > 0 ? (
+  <div class="lo">
+    <p class="lo-dek">{dek}{href ? <> The full reading of each is on <a href={u(href)}>{hrefLabel}</a>.</> : null}</p>
+    <ol class="lo-list">
+      {claims.map((c) => {
+        const g = gradeWord(c.grade);
+        return (
+          <li class="lo-row">
+            <div class="lo-say">
+              <span class="lo-tag">{g.head}</span>
+              <span class="lo-n" aria-hidden="true">{c.n}</span>
+              <div class="lo-said" set:html={md(c.said)}></div>
+            </div>
+            <div class="lo-rec">
+              <span class="lo-lab">The record{g.note ? ` · ${g.note}` : ""}</span>
+              <p class="lo-verdict">{c.verdict}</p>
+              {c.settle ? (
+                <details class="lo-more">
+                  <summary>What would settle it</summary>
+                  <div class="lo-settle" set:html={md(c.settle)}></div>
+                </details>
+              ) : null}
+            </div>
+          </li>
+        );
+      })}
+    </ol>
+  </div>
+) : null}
+
+<style>
+  .lo { margin: 2.4rem 0; }
+  .lo-h { margin: 0 0 .5rem; }
+  .lo-dek { margin: 0 0 1.2rem; max-width: 46rem; font-size: 1.05rem; line-height: 1.55; color: var(--ink-2,#444); }
+  .lo-list { list-style: none; margin: 0; padding: 0; border: 1px solid var(--rule,#bbb); border-radius: .5rem; background: var(--panel,transparent); overflow: hidden; }
+  .lo-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 0; border-top: 1px solid var(--rule,#bbb); }
+  .lo-row:first-child { border-top: 0; }
+  .lo-say { padding: 1rem 1.2rem; background: var(--panel-2, transparent); border-right: 1px solid var(--rule,#bbb); position: relative; }
+  .lo-rec { padding: 1rem 1.2rem; }
+  .lo-tag { display: inline-block; font-family: var(--sans,system-ui,sans-serif); font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; padding: .1rem .5rem; border: 1px solid var(--ochre, var(--rule-strong,var(--rule,#999))); border-radius: 99rem; color: var(--ochre, var(--ink-2,#444)); margin-bottom: .5rem; }
+  .lo-n { position: absolute; top: .8rem; right: 1.1rem; font-family: var(--serif,Georgia,serif); font-size: 1.6rem; color: var(--rule-strong, var(--rule,#bbb)); line-height: 1; }
+  .lo-said { font-family: var(--serif,Georgia,serif); font-size: 1.1rem; line-height: 1.45; color: var(--ink,currentColor); font-style: italic; }
+  .lo-said :global(p) { margin: 0; }
+  .lo-lab { display: block; font-family: var(--sans,system-ui,sans-serif); font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-2,#444); margin-bottom: .4rem; }
+  .lo-verdict { margin: 0; font-size: 1.02rem; line-height: 1.55; }
+  .lo-more { margin-top: .6rem; }
+  .lo-more summary { cursor: pointer; font-family: var(--sans,system-ui,sans-serif); font-size: .92rem; color: var(--accent,#1f5c6b); width: max-content; }
+  .lo-settle { margin-top: .5rem; font-size: .98rem; line-height: 1.55; color: var(--ink-2,#444); }
+  .lo-settle :global(p) { margin: 0 0 .5rem; }
+  @media (max-width: 44rem) {
+    .lo-row { grid-template-columns: minmax(0, 1fr); }
+    .lo-say { border-right: 0; border-bottom: 1px solid var(--rule,#bbb); }
+  }
+</style>

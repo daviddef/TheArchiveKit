@@ -305,6 +305,41 @@ try:
 finally:
     shutil.rmtree(d, ignore_errors=True)
 
+# =============================== story mode (ruled 4 November 2026, spec section 2a)
+print("  -- story mode: the story is the family section")
+STORY_ATTRS = 'data-person-page="1" data-mode="story" data-living="0"'
+ORIGIN = ('<div class="st"><ol class="st-rail"><li class="st-stage st-origin" id="family"><h3 class="st-label">Where they came from</h3>'
+          '<ul class="st-people"><li><span class="st-person is-living"><span class="st-name">B Person</span></span></li></ul></li></ol></div>')
+S_REC = '<section class="psec" id="record" data-section="record"><h2 class="psec-h">What the record says</h2><p>Born at home.</p></section>'
+S_STORY = '<section class="psec" id="story" data-section="story"><h2 class="psec-h">The story</h2>' + ORIGIN + '</section>'
+S_LORE = '<section class="psec" id="lore" data-section="lore"><h2 class="psec-h">What the family says, and what the record holds</h2><p>A claim.</p></section>'
+S_SRC = '<section class="psec" id="sources" data-section="sources"><h2 class="psec-h">Where this comes from</h2><p>A register.</p></section>'
+S_MEDIA = '<section class="psec" id="media" data-section="media"><h2 class="psec-h">Photographs and papers</h2><p>One plate.</p></section>'
+
+
+def story(body=None, **k):
+    kw = dict(body=body if body is not None else S_REC + S_STORY + S_MEDIA + S_LORE + S_SRC, attrs=STORY_ATTRS)
+    kw.update(k)
+    return page(**kw)
+
+
+r = run({"p": story()}, require_jsonld=True)
+expect("control: a clean story-mode page raises nothing (no chart section, none required)", r["findings"] == [] and r["canonical"] == 1, str(r["findings"]))
+one("story: no #family anchor in the story", story(S_REC + S_STORY.replace(' id="family"', "") + S_SRC), "sections")
+one("story: a Family heading belongs to chart mode", story(S_REC + S_STORY + S_SRC + '<section class="psec" id="family"><h2 class="psec-h">Family</h2><p>x</p></section>'), "sections")
+one("story: the story before the record is out of order", story(S_STORY + S_REC + S_SRC), "sections")
+one("story: a section drawn and empty", story(S_REC + S_STORY + '<section class="psec" id="lore" data-section="lore"><h2 class="psec-h">What the family says, and what the record holds</h2></section>' + S_SRC), "sections")
+one("story: no sources section", story(S_REC + S_STORY), "sections")
+one("story: the story heading in a chart-mode page", page(body=SECTIONS.format(chart=CHART) + S_STORY), "sections")
+one("story: a living person is never in story mode", living(attrs='data-person-page="1" data-mode="story" data-living="1"'), "living")
+one("story: a living relative with a year beside the name",
+    story(S_REC + S_STORY.replace('<span class="st-name">B Person</span>', '<span class="st-name">B Person</span><span class="st-dates">1799</span>') + S_SRC), "living")
+one("story: a living relative with a mark (a grade chip)",
+    story(S_REC + S_STORY.replace('<span class="st-name">B Person</span>', '<span class="st-name">B Person</span><span class="ev-wrap"><span class="ev">Documented</span></span>') + S_SRC), "living")
+r = run({"p": story(S_REC + S_STORY.replace('<span class="st-person is-living"><span class="st-name">B Person</span></span>', '<a class="st-person is-living" href="/people/p/"><span class="st-name">B Person</span></a>') + S_SRC)})
+expect("control: a living relative may link to their own page (a name, relationships and a place)", r["findings"] == [], str(r["findings"]))
+one("story: an unknown mode", page(attrs='data-person-page="1" data-mode="tale" data-living="0"'), "sections")
+
 # =============================== exit codes: advisory by default, --strict, --max
 print("  -- advisory by default, --strict, --max")
 d = build({"bad": page(h1="<h1>A</h1><h1>B</h1>"), "ok": page()})

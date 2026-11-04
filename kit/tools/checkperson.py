@@ -81,9 +81,17 @@ import outdir  # noqa: E402
 import living_rule  # noqa: E402  (the estate's one definition: address_like)
 
 SECTIONS = [("family", "Family"), ("record", "What the record says"), ("sources", "Where this comes from"),
-            ("namesakes", "Others of the same name"), ("media", "Photographs and papers"), ("notes", "Notes and corrections")]
+            ("namesakes", "Others of the same name"), ("media", "Photographs and papers"), ("notes", "Notes and corrections"),
+            # the shared optional sections of a page in story mode (ruled 4 November 2026, spec section 2a)
+            ("story", "The story"), ("lore", "What the family says, and what the record holds"),
+            ("world", "What was happening around them"), ("where", "Where they lived, and what is still missing")]
 HEADINGS = [h for _, h in SECTIONS]
-REQUIRED = HEADINGS[:3]
+HEAD_OF = dict(SECTIONS)
+# the order of the h2s, by mode (the twin of lib/person.js ORDER_BY_MODE and REQUIRED_BY_MODE; checkperson_logic.mjs holds them equal)
+ORDER_BY_MODE = {"chart": ["family", "record", "sources", "namesakes", "media", "notes"],
+                 "story": ["record", "story", "media", "lore", "sources", "world", "where", "namesakes", "notes"]}
+REQUIRED_BY_MODE = {"chart": ["family", "record", "sources"], "story": ["record", "story", "sources"]}
+REQUIRED = [HEAD_OF[k] for k in REQUIRED_BY_MODE["chart"]]
 FAMILY_ONLY = {"family"}
 GRADES = {"Documented", "Probable", "Inferred", "Family", "Disputed"}
 SOURCE_WORDS = {"a record read here", "an index entry, not read", "image held, not yet read", "family tree, unverified",
@@ -250,14 +258,31 @@ def audit_page(root, rel_url, living_urls, sitemap, require_jsonld, known_urls=N
             out.append(("names", "warn", f"ALL-CAPS token in the h1: {t[:50]}"))
 
     h2s = [h.content() for h in find(main, "h2")]
+    mode = (art.attrs.get("data-mode") if art is not None else None) or "chart"
+    if mode not in ORDER_BY_MODE:
+        out.append(("sections", "FAIL", f"data-mode is '{mode}', not chart or story"))
+        mode = "chart"
     if canonical:
-        order = [HEADINGS.index(h) for h in h2s if h in HEADINGS]
+        heads = [HEAD_OF[k] for k in ORDER_BY_MODE[mode]]
+        order = [heads.index(h) for h in h2s if h in heads]
         if order != sorted(order):
-            out.append(("sections", "FAIL", "canonical headings out of order: " + " > ".join(h2s)))
+            out.append(("sections", "FAIL", f"canonical headings out of order for a page in {mode} mode: " + " > ".join(h2s)))
+        stray = [h for h in h2s if h in HEADINGS and h not in heads]
+        if stray and not living:
+            out.append(("sections", "FAIL", f"a heading that belongs to the other mode: {stray[0]} (this page is in {mode} mode)"))
         if not living:
-            for r in REQUIRED:
-                if r not in h2s:
-                    out.append(("sections", "FAIL", f"required section missing: {r}"))
+            for k in REQUIRED_BY_MODE[mode]:
+                if HEAD_OF[k] not in h2s:
+                    out.append(("sections", "FAIL", f"required section missing: {HEAD_OF[k]}"))
+            if mode == "story" and not any(n.attrs.get("id") == "family" for n in find(art)):
+                out.append(("sections", "FAIL", "a page in story mode has no #family: the story's first stop, «Where they came from», carries the Family anchor and says so when no parent is named"))
+        if living and mode == "story":
+            out.append(("living", "FAIL", "a living person's page is in story mode: it is the header and Family only"))
+        for sec in find(art, "section"):
+            if "psec" in sec.cls() and sec.attrs.get("id") in dict(SECTIONS) and not living and sec.attrs.get("id") != "family":
+                body = [n for n in sec.kids if not (n.tag.startswith("h") and len(n.tag) == 2)]
+                if not any(n.content() or list(find(n, "img")) or list(find(n, "iframe")) for n in body):
+                    out.append(("sections", "FAIL", f"#{sec.attrs.get('id')} is drawn and empty: say there is nothing, or do not draw the section"))
         for sec in find(art, "section"):
             if "psec" in sec.cls() and "psec-local" not in sec.cls():
                 h = next(find(sec, "h2"), None)
@@ -270,7 +295,7 @@ def audit_page(root, rel_url, living_urls, sitemap, require_jsonld, known_urls=N
             out.append(("sections", "warn", f"{len(odd)} of {len(h2s)} h2 are not a spec heading, e.g. '{odd[0][:40]}'"))
 
     charts = [f for f in find(main, "figure") if "ptree" in f.cls()]
-    if not charts and not list(find(main, None, "pempty")):
+    if mode != "story" and not charts and not list(find(main, None, "pempty")):
         out.append(("chart", "FAIL", "no family chart, and no sentence saying why not"))
 
     for dt in find(main, "span", "dt"):
@@ -330,6 +355,12 @@ def audit_page(root, rel_url, living_urls, sitemap, require_jsonld, known_urls=N
             if tgt and tgt not in known_urls:
                 out.append(("nopage", "FAIL", f"a link to a person page that is not in the build: {tgt}"))
 
+    # a living relative drawn in a story: a name and a relationship, nothing else (no dates, no place, no mark; the name may link to their page)
+    for n in find(main, None, "is-living"):
+        if under(n, "st") or "st-person" in n.cls() or n.tag == "li":
+            bad = [x for x in find(n) if x is not n and {"st-dates", "st-place", "st-gd", "ev-wrap", "pchip", "ev"} & set(x.cls())]
+            if bad:
+                out.append(("living", "FAIL", "a living relative in the story carries more than a name: " + (bad[0].content() or bad[0].tag)[:30]))
     # a living relative drawn on any page: a name and a relationship, nothing else
     for n in find(main, None, "is-living"):
         if n.tag in ("a", "div") and "node" in n.cls():

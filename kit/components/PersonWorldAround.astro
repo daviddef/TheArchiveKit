@@ -1,0 +1,48 @@
+---
+/* What was happening around a person: the mass-death events the Record Atlas dates and places at somewhere they lived, in years they
+   could have been there. These are the world around them, not records about them, and the page says so. An event that begins after the
+   last year the archive can place them there is marked «may overlap», with the reason, so nothing is claimed that the record cannot hold. */
+const { events = [], name = "this person" } = Astro.props;
+const TYPE = { epidemic: "Epidemic", famine: "Famine", genocide: "Genocide", massacre: "Massacre", war: "War", atrocity: "Atrocity", displacement: "Displacement" };
+const span = (e) => (e.from === e.to ? String(e.from) : e.to >= 2026 ? `${e.from} – now` : `${e.from} – ${e.to}`);
+---
+{events.length > 0 ? (
+  <div class="wa">
+    <p class="wa-why">Events the Record Atlas dates and places at somewhere {name} lived, in the years they lived there. These describe the times, not {name}: nothing here says they were touched by them.</p>
+    <ol class="wa-list">
+      {events.map((e) => (
+        <li class="wa-card">
+          <div class="wa-top">
+            <span class="wa-years">{span(e)}</span>
+            <span class="wa-type">{TYPE[e.type] || e.type}</span>
+          </div>
+          <h3 class="wa-name">{e.name}</h3>
+          <p class="wa-where">
+            {e.where.map((w, i) => <>{i > 0 ? ", " : ""}{w.name}</>)}
+            {e.maybe ? <span class="wa-maybe"> · may overlap: the year they left is not recorded</span> : null}
+          </p>
+          {e.says ? <p class="wa-says">{e.says}</p> : null}
+          {e.toll ? <p class="wa-toll"><b>The toll.</b>{" "}{e.toll}</p> : null}
+          {e.url ? <p class="wa-src"><a href={e.url} rel="noopener">{e.wiki || "Source"} ↗</a> · in the Record Atlas</p> : null}
+        </li>
+      ))}
+    </ol>
+  </div>
+) : null}
+
+<style>
+  .wa { margin: 0 0 2.4rem; }
+  .wa-h { margin: 0 0 .4rem; }
+  .wa-why { margin: 0 0 1rem; max-width: 46rem; color: var(--ink-2,#444); }
+  .wa-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(19rem, 1fr)); gap: 1rem; }
+  .wa-card { padding: 1rem 1.2rem 1.1rem; border: 1px solid var(--rule,#bbb); border-radius: .5rem; background: var(--panel,transparent); }
+  .wa-top { display: flex; justify-content: space-between; align-items: baseline; gap: .6rem; margin-bottom: .3rem; }
+  .wa-years { font-family: var(--mono,ui-monospace,monospace); font-size: .95rem; color: var(--ink,currentColor); }
+  .wa-type { font-family: var(--sans,system-ui,sans-serif); font-size: .78rem; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-2,#444); }
+  .wa-name { margin: 0 0 .3rem; font-family: var(--serif,Georgia,serif); font-size: 1.25rem; line-height: 1.25; }
+  .wa-where { margin: 0 0 .6rem; font-family: var(--sans,system-ui,sans-serif); font-size: .95rem; color: var(--ink-2,#444); }
+  .wa-maybe { color: var(--ochre,var(--accent,#845c15)); }
+  .wa-says, .wa-toll { margin: 0 0 .55rem; font-size: 1rem; line-height: 1.55; }
+  .wa-toll { color: var(--ink-2,#444); font-size: .95rem; }
+  .wa-src { margin: 0; font-family: var(--sans,system-ui,sans-serif); font-size: .88rem; color: var(--ink-2,#444); }
+</style>

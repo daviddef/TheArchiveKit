@@ -74,3 +74,12 @@
   .ppage .phead h1{font-size:1.7rem}
   .ppage .ptree .node{max-width:100%}
 }
+
+/* STORY MODE (ruled 4 November 2026, PERSON-PAGE-SPEC.md section 2a): the story in a main column with the photographs beside it, one column
+   on a phone with the photographs first. The sections are drawn by PersonSection; the inside of each is a component's own. */
+.ppage[data-mode="story"] .pcols{display:grid;grid-template-columns:minmax(0,46rem) minmax(15rem,1fr);gap:2.5rem;align-items:start;margin:0 0 1.8rem}
+.ppage[data-mode="story"] .pcols .psec{margin:0}
+@media (max-width:62rem){
+  .ppage[data-mode="story"] .pcols{grid-template-columns:minmax(0,1fr);gap:1.4rem}
+  .ppage[data-mode="story"] .pcol-side{order:-1}
+}

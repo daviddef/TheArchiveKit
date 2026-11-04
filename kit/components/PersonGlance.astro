@@ -1,0 +1,180 @@
+---
+/* The first thing under a person's name: five facts as tiles, then the journey of their life as a route.
+   Every tile says what it rests on; a stop with an estimated year says «c.». Nothing here is new data: it is what
+   the roster row already held, set so it can be scanned in five seconds. */
+import { flagOf } from "../lib/personstory.js";
+import PersonSection from "./PersonSection.astro";
+const { facts = [], journey = [], gradeSay = {} } = Astro.props;
+---
+<div class="pg" aria-label="Life at a glance">
+  {journey.length > 1 ? (
+    <div class="pg-route" role="list" aria-label="The places of this life, in order">
+      {journey.map((s, i) => (
+        <div class={`pg-stop pg-${s.kind.toLowerCase()}`} role="listitem">
+          <span class="pg-kind">{s.kind}</span>
+          <span class="pg-dot" aria-hidden="true"></span>
+          <span class="pg-place">
+            {s.flag ? (
+              <a class="pg-flaglink" href={s.flag.href} target="_blank" rel="noopener" title={`The ${s.flag.polity} flag, in the Flag Atlas`}>
+                <svg class="pg-svg" viewBox={s.flag.viewBox} role="img" aria-label={`Flag over ${s.name} in ${s.year}: ${s.flag.polity}. Opens the Flag Atlas.`} set:html={s.flag.inner}></svg>
+              </a>
+            ) : s.iso ? <span class="pg-flag" aria-hidden="true">{flagOf(s.iso)}</span> : null}
+            {s.place ? (
+              <a class="pg-name" href={s.place.href} {...(s.place.where === "Record Atlas" ? { target: "_blank", rel: "noopener" } : {})} title={`${s.name} in ${s.place.where}`}>{s.name}</a>
+            ) : <span class="pg-name">{s.name}</span>}
+          </span>
+          <span class="pg-where">{s.country || " "}</span>
+          <span class="pg-year">{s.year ? (s.est ? "c. " : "") + s.year : "year not recorded"}</span>
+          {s.flag && s.flag.polity ? (
+            <span class="pg-polity">{s.flag.polity}{(s.flag.pills.length > 0 || s.flag.why) ? <button type="button" class="pg-i" aria-expanded="false" aria-controls={`pg-era-${i}`} data-era={i} title="Who ruled, and why it mattered, in the Record Atlas's words" aria-label={`About ${s.flag.polity}`}>i</button> : null}<small>{s.flag.dates}</small></span>
+          ) : null}
+          {s.grade ? <span class={`pg-grade g-${s.grade}`}>{gradeSay[s.grade] || s.grade}</span> : null}
+        </div>
+      ))}
+    </div>
+    <div class="pg-eras">
+      {journey.map((s, i) => (s.flag && (s.flag.pills.length > 0 || s.flag.why)) ? (
+        <section class="pg-era" id={`pg-era-${i}`} hidden aria-label={`${s.flag.polity}, ${s.name}`}>
+          <button type="button" class="pg-x" data-close aria-label="Close">×</button>
+          <div class="pg-era-head">
+            <a class="pg-era-flag" href={s.flag.href} target="_blank" rel="noopener" title="Open this era in the Flag Atlas"><svg viewBox={s.flag.viewBox} role="img" aria-label={`Flag: ${s.flag.polity}`} set:html={s.flag.inner}></svg></a>
+            <div>
+              <p class="pg-era-at">{s.name} · {s.kind === "Born" ? "born" : s.kind === "Died" ? "died" : "moved"} {s.year ? (s.est ? "c. " : "") + s.year : ""}</p>
+              <h3 class="pg-era-t">{s.flag.polity}</h3>
+              <p class="pg-era-d">{s.flag.dates}</p>
+            </div>
+          </div>
+          {s.flag.pills.length > 0 ? (
+            <ul class="pg-pills">
+              {s.flag.pills.map((p) => <li class="pg-pill" tabindex="0" title={p.tip || undefined}><i style={`background:${p.dot}`} aria-hidden="true"></i>{p.t}</li>)}
+            </ul>
+          ) : null}
+          {s.flag.why ? <p class="pg-who"><b>Who &amp; why:</b>{" "}{s.flag.why}</p> : null}
+          {(s.flag.rep || s.flag.pills.some((p) => p.tip)) ? (
+            <details class="pg-more">
+              <summary>More from the Atlas</summary>
+              {s.flag.rep ? <p><b>What the flag represents:</b>{" "}{s.flag.rep}</p> : null}
+              {s.flag.pills.filter((p) => p.tip).map((p) => <p><b>{p.t}.</b>{" "}{p.tip}</p>)}
+            </details>
+          ) : null}
+          <p class="pg-era-src">From the Record Atlas · <a href={s.flag.href} target="_blank" rel="noopener">this era in the Flag Atlas ↗</a> · describes the times, not the person</p>
+        </section>
+      ) : null)}
+    </div>
+  ) : null}
+
+  {facts.length > 0 ? (
+    <PersonSection kind="record">
+    <div class="pg-rec">
+      <dl class="pg-facts">
+        {facts.map((f) => (
+          <div class="pg-fact">
+            <dt>{f.k}</dt>
+            <dd>
+              {f.href ? <a href={f.href} {...(f.external ? { rel: "noopener" } : {})}>{f.v}</a> : f.v}
+              {f.sub ? <small>{f.sub}</small> : null}
+              {f.era ? <small class="pg-era-note">At the time: {f.era} · Record Atlas</small> : null}
+              {f.ev ? <small class={`pg-rests pg-rests-${f.ev.tier}`}>{f.ev.label}</small> : null}
+              {f.external && f.site ? <small class="pg-ext">{f.site} ↗</small> : null}
+            </dd>
+          </div>
+        ))}
+      </dl>
+    </div>
+    </PersonSection>
+  ) : (
+    <PersonSection kind="record"><p class="pnone">No event is recorded for this person in this archive.</p></PersonSection>
+  )}
+</div>
+
+<script>
+  document.querySelectorAll<HTMLElement>(".pg").forEach((root) => {
+    const btns = [...root.querySelectorAll<HTMLButtonElement>(".pg-i")];
+    const panels = [...root.querySelectorAll<HTMLElement>(".pg-era")];
+    const show = (id: string | null) => {
+      panels.forEach((p) => { p.hidden = p.id !== id; });
+      btns.forEach((b) => b.setAttribute("aria-expanded", b.getAttribute("aria-controls") === id ? "true" : "false"));
+    };
+    btns.forEach((b) => b.addEventListener("click", () => show(b.getAttribute("aria-expanded") === "true" ? null : b.getAttribute("aria-controls"))));
+    root.querySelectorAll<HTMLElement>("[data-close]").forEach((x) => x.addEventListener("click", () => show(null)));
+    root.addEventListener("keydown", (e) => { if ((e as KeyboardEvent).key === "Escape") show(null); });
+  });
+</script>
+
+<style>
+  .pg { margin: 1.4rem 0 2.2rem; }
+  .pg-rec { margin: 1.8rem 0 0; padding: 1rem 1.3rem 1.1rem; border: 1px solid var(--rule,#bbb); border-radius: .5rem; background: var(--panel,transparent); }
+  .pg-rec-h { margin: 0 0 .5rem; font-family: var(--serif,Georgia,serif); font-size: 1.15rem; font-weight: 400; color: var(--ink,currentColor); }
+  .pg-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(19rem, 1fr)); column-gap: 2.4rem; margin: 0; }
+  .pg-fact { display: grid; grid-template-columns: 7rem minmax(0, 1fr); gap: .2rem 1rem; padding: .6rem 0; border-top: 1px solid var(--rule,#bbb); align-items: baseline; }
+  .pg-fact dt { font-family: var(--sans,system-ui,sans-serif); font-size: .76rem; letter-spacing: .09em; text-transform: uppercase; color: var(--ink-2,#444); margin: 0; }
+  .pg-fact dd { margin: 0; font-family: var(--serif,Georgia,serif); font-size: 1.12rem; line-height: 1.3; color: var(--ink,currentColor); }
+  .pg-fact dd a { color: var(--accent,#1f5c6b); text-decoration: underline; text-underline-offset: 2px; text-decoration-thickness: 1px; }
+  .pg-fact dd small { display: block; margin-top: .1rem; font-family: var(--sans,system-ui,sans-serif); font-size: .88rem; line-height: 1.35; color: var(--ink-2,#444); }
+  .pg-fact dd small.pg-ext { color: var(--accent,#1f5c6b); }
+  .pg-fact dd small.pg-era-note { font-style: italic; }
+  .pg-fact dd small.pg-rests { font-size: .75rem; letter-spacing: .05em; text-transform: uppercase; }
+  .pg-fact dd small.pg-rests-doc { color: var(--accent,#1f5c6b); }
+  .pg-fact dd small.pg-rests-lore, .pg-fact dd small.pg-rests-inf { color: var(--ochre, var(--ink-2,#444)); }
+  @media (max-width: 30rem) { .pg-fact { grid-template-columns: 1fr; } }
+
+  /* the route: a rail with one stop per place; flows left to right, wraps to a vertical list on a phone */
+  .pg-route { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(9.5rem, 1fr); gap: 0; position: relative; padding-top: .2rem; }
+  .pg-stop { position: relative; display: grid; grid-template-rows: none; align-content: start; justify-items: start; row-gap: .15rem; padding: 0 1rem 0 0; }
+  .pg-kind { font-family: var(--sans,system-ui,sans-serif); font-size: .78rem; letter-spacing: .09em; text-transform: uppercase; color: var(--ink-2,#444); margin-bottom: .45rem; }
+  .pg-dot { width: .85rem; height: .85rem; border-radius: 50%; background: var(--paper, #fff); border: 3px solid var(--accent,#1f5c6b); position: relative; z-index: 1; margin-bottom: .55rem; }
+  .pg-born .pg-dot { background: var(--accent,#1f5c6b); }
+  .pg-died .pg-dot { border-color: var(--ink,currentColor); background: var(--ink,currentColor); }
+  .pg-stop::before { content: ""; position: absolute; left: .85rem; right: 0; top: calc(1.2em + .45rem + .38rem); height: 3px; background: repeating-linear-gradient(90deg, var(--rule-strong, var(--rule,#bbb)) 0 7px, transparent 7px 12px); }
+  .pg-stop:last-child::before { display: none; }
+  .pg-place { font-family: var(--serif,Georgia,serif); font-size: 1.3rem; line-height: 1.15; color: var(--ink,currentColor); }
+  .pg-flag { margin-right: .35rem; font-size: 1.05em; }
+  .pg-place { display: flex; flex-direction: column; align-items: flex-start; }
+  .pg-flaglink { display: block; margin: 0 0 .45rem; line-height: 0; border-radius: 2px; }
+  .pg-flaglink:hover .pg-svg, .pg-flaglink:focus-visible .pg-svg { outline: 2px solid var(--accent,#1f5c6b); outline-offset: 2px; }
+  /* every flag is the same height; its width follows its own proportions, so the names under them line up */
+  .pg-svg { display: block; height: 1.9rem; width: auto; max-width: 4rem; border: 1px solid var(--rule,#bbb); border-radius: 2px; }
+  .pg-name { color: inherit; text-decoration: none; border-bottom: 1px dotted var(--ink-2,#444); }
+  a.pg-name:hover, a.pg-name:focus-visible { color: var(--accent,#1f5c6b); border-bottom-color: var(--accent,#1f5c6b); }
+  .pg-polity { margin-top: .35rem; font-family: var(--sans,system-ui,sans-serif); font-size: .88rem; line-height: 1.35; color: var(--ink-2,#444); max-width: 14rem; }
+  .pg-polity small { display: block; font-family: var(--mono,ui-monospace,monospace); font-size: .8rem; color: var(--ink-2,#444); }
+  .pg-where { font-family: var(--sans,system-ui,sans-serif); font-size: .95rem; color: var(--ink-2,#444); }
+  .pg-year { font-family: var(--mono,ui-monospace,monospace); font-size: .95rem; color: var(--ink,currentColor); }
+  .pg-grade { margin-top: .3rem; font-family: var(--sans,system-ui,sans-serif); font-size: .78rem; letter-spacing: .05em; text-transform: uppercase; padding: .12rem .5rem; border-radius: 99rem; border: 1px solid currentColor; color: var(--ev-family, var(--ochre,var(--accent,#845c15))); }
+  .pg-grade.g-doc { color: var(--accent,#1f5c6b); }
+  .pg-grade.g-inf { color: var(--ev-inferred, var(--ochre,var(--accent,#845c15))); }
+
+  .pg-polity .pg-i { display: inline-flex; align-items: center; justify-content: center; width: 1.25rem; height: 1.25rem; margin-left: .4rem; padding: 0; border-radius: 50%;
+    border: 1px solid var(--accent,#1f5c6b); background: transparent; color: var(--accent,#1f5c6b); font: italic 600 .8rem var(--serif,Georgia,serif); line-height: 1; cursor: pointer; vertical-align: middle; }
+  .pg-polity .pg-i:hover, .pg-polity .pg-i[aria-expanded="true"] { background: var(--accent,#1f5c6b); color: var(--paper, #fff); }
+  .pg-polity .pg-i:focus-visible { outline: 2px solid var(--accent,#1f5c6b); outline-offset: 2px; }
+  .pg-eras { margin-top: 1rem; }
+  .pg-era { position: relative; padding: 1.1rem 1.3rem 1rem; border: 1px solid var(--rule,#bbb); border-radius: .5rem; background: var(--panel,transparent); }
+  .pg-x { position: absolute; top: .4rem; right: .6rem; width: 1.8rem; height: 1.8rem; border: 0; background: none; color: var(--ink-2,#444); font-size: 1.4rem; line-height: 1; cursor: pointer; }
+  .pg-era-head { display: flex; align-items: center; gap: .9rem; margin-right: 2rem; }
+  .pg-era-flag { flex: none; line-height: 0; }
+  .pg-era-flag svg { display: block; height: 2.6rem; width: auto; max-width: 4.6rem; border: 1px solid var(--rule,#bbb); border-radius: 2px; }
+  .pg-era-at { margin: 0; font-family: var(--sans,system-ui,sans-serif); font-size: .76rem; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-2,#444); }
+  .pg-era-t { margin: .1rem 0 0; font-family: var(--serif,Georgia,serif); font-size: 1.35rem; line-height: 1.2; }
+  .pg-era-d { margin: .1rem 0 0; font-family: var(--mono,ui-monospace,monospace); font-size: .88rem; color: var(--ochre, var(--ink-2,#444)); }
+  .pg-pills { list-style: none; margin: .8rem 0 .2rem; padding: 0; display: flex; flex-wrap: wrap; gap: .35rem; }
+  .pg-pill { display: inline-flex; align-items: center; gap: .4rem; padding: .18rem .6rem; border: 1px solid var(--rule,#bbb); border-radius: .3rem; background: var(--panel-2, var(--panel,transparent));
+    font-family: var(--mono,ui-monospace,monospace); font-size: .74rem; letter-spacing: .05em; text-transform: uppercase; color: var(--ink-2,#444); cursor: help; }
+  .pg-pill:focus-visible { outline: 2px solid var(--accent,#1f5c6b); outline-offset: 2px; }
+  .pg-pill i { width: .5rem; height: .5rem; border-radius: 50%; flex: none; }
+  .pg-who { margin: .6rem 0 0; font-size: 1rem; line-height: 1.55; }
+  .pg-who b { color: var(--ochre, var(--accent,#1f5c6b)); }
+  .pg-more { margin-top: .5rem; }
+  .pg-more summary { cursor: pointer; font-family: var(--sans,system-ui,sans-serif); font-size: .92rem; color: var(--accent,#1f5c6b); width: max-content; }
+  .pg-more p { margin: .5rem 0 0; font-size: .95rem; line-height: 1.5; color: var(--ink-2,#444); }
+  .pg-more b { color: var(--ink,currentColor); }
+  .pg-era-src { margin: .7rem 0 0; font-family: var(--sans,system-ui,sans-serif); font-size: .8rem; color: var(--ink-2,#444); }
+
+  @media (max-width: 40rem) {
+    .pg-route { grid-auto-flow: row; grid-auto-columns: auto; gap: 0; padding-left: .2rem; }
+    .pg-stop { padding: 0 0 1.3rem 1.8rem; }
+    .pg-stop::before { left: .5rem; right: auto; top: 1.4rem; bottom: -.2rem; width: 3px; height: auto; background: repeating-linear-gradient(180deg, var(--rule-strong, var(--rule,#bbb)) 0 7px, transparent 7px 12px); }
+    .pg-dot { position: absolute; left: 0; top: 1.15rem; margin: 0; }
+    .pg-kind { margin-bottom: .1rem; }
+  }
+</style>

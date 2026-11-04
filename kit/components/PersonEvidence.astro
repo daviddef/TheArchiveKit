@@ -1,0 +1,60 @@
+---
+/* What the records say about this person: one row for each thing the archive says, with what it rests on, so a reader can see at a glance how
+   much of a page is read from a register and how much is the family's account. Then what the family tree itself attaches, which is a witness
+   and not a source. Every row is drawn from data the page already holds (the person's own notes, the links this archive has tested, the roster
+   row); nothing is added here. A person with no register entry is told so plainly. */
+const { name = "this person", rows = [], summary = "", treeSources = null, listed = "" } = Astro.props;
+const SAY = { register: "Documented · read from the register", doc: "Documented", inf: "Inferred", lore: "Family", tree: "Family", note: "Not graded" };
+---
+{rows.length > 0 ? (
+  <div class="ev-sec">
+    {summary ? <p class="ev-dek">{summary}</p> : null}
+    <div class="ev-scroll">
+      <table class="ev-table">
+        <thead><tr><th>Year</th><th>What is said</th><th>Rests on</th></tr></thead>
+        <tbody>
+          {rows.map((x) => (
+            <tr>
+              <td class="ev-y">{x.year || ""}</td>
+              <td>{x.href ? <a href={x.href}>{x.what}</a> : x.what}</td>
+              <td><span class={`ev-k ev-k-${x.kind}`}>{SAY[x.kind] || x.kind}</span></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+    {listed ? <p class="ev-note">{listed}</p> : null}
+    {treeSources ? (
+      <div class="ev-tree">
+        <h3 class="ev-h3">Sources attached in the family tree</h3>
+        {treeSources.length === 0
+          ? <p>None. This person carries no source string at all in the tree. They may still be right, but nothing here can be checked without going to a register.</p>
+          : <ul>{treeSources.map((t) => <li>{t}</li>)}</ul>}
+        <p class="ev-note">A family tree is a witness, not a source: where it cites a register, the register is the thing worth going to.</p>
+      </div>
+    ) : null}
+  </div>
+) : null}
+
+<style>
+  .ev-sec { margin: 2.4rem 0; }
+  .ev-h { margin: 0 0 .5rem; }
+  .ev-dek { margin: 0 0 1rem; max-width: 46rem; font-size: 1.05rem; line-height: 1.55; color: var(--ink-2,#444); }
+  .ev-scroll { overflow-x: auto; border: 1px solid var(--rule,#bbb); border-radius: .5rem; background: var(--panel,transparent); }
+  .ev-table { width: 100%; border-collapse: collapse; font-size: 1rem; line-height: 1.45; }
+  .ev-table th { text-align: left; font-family: var(--sans,system-ui,sans-serif); font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-2,#444); font-weight: 600; padding: .6rem .9rem; border-bottom: 1px solid var(--rule,#bbb); }
+  .ev-table td { padding: .65rem .9rem; border-top: 1px solid var(--rule,#bbb); vertical-align: top; }
+  .ev-table tbody tr:first-child td { border-top: 0; }
+  .ev-y { font-family: var(--mono,ui-monospace,monospace); font-size: .88rem; white-space: nowrap; color: var(--ink-2,#444); width: 4.5rem; }
+  .ev-table td:last-child { white-space: nowrap; width: 12rem; }
+  .ev-table a { color: var(--accent,#1f5c6b); }
+  .ev-k { font-family: var(--sans,system-ui,sans-serif); font-size: .7rem; letter-spacing: .06em; text-transform: uppercase; padding: .14rem .5rem; border: 1px solid currentColor; border-radius: 99rem; color: var(--ink-2,#444); }
+  .ev-k-register, .ev-k-doc { color: var(--accent,#1f5c6b); }
+  .ev-k-lore, .ev-k-inf { color: var(--ochre, var(--ink-2,#444)); }
+  .ev-k-tree { border-style: dashed; }
+  .ev-note { margin: .7rem 0 0; font-family: var(--sans,system-ui,sans-serif); font-size: .88rem; line-height: 1.45; color: var(--ink-2,#444); max-width: 46rem; }
+  .ev-tree { margin-top: 1.4rem; }
+  .ev-h3 { margin: 0 0 .4rem; font-family: var(--serif,Georgia,serif); font-size: 1.15rem; font-weight: 400; }
+  .ev-tree p, .ev-tree ul { margin: 0 0 .4rem; font-size: 1rem; line-height: 1.5; }
+  @media (max-width: 40rem) { .ev-table td:last-child { white-space: normal; width: auto; } }
+</style>

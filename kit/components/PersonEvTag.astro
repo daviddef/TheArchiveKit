@@ -1,0 +1,22 @@
+---
+/* The marks on a person's card in a story: what the archive holds for the PERSON (n.ev: a grade), and, only where the archive has tested the
+   LINK between the two, what that link rests on (n.link: a source word). Two questions, two words, drawn by the kit's own EvidenceChip so the
+   words and the colours are the chart's (PERSON-PAGE-SPEC.md section 5; ruled 16 October 2026). Draws nothing for a person with no mark.
+   The direct line is never drawn here: it is the bar under the name (OursBand). */
+import EvidenceChip from "./EvidenceChip.astro";
+const { n } = Astro.props;
+const GRADE = { doc: "documented", inf: "inferred", lore: "family", tree: "family" };
+const SOURCE = { doc: "read", inf: "inferred", lore: "tree", tree: "tree" };
+---
+{(n && n.ev) || (n && n.link) ? (
+  <span class="ev-wrap">
+    {n.ev ? <EvidenceChip level={GRADE[n.ev.tier]} /> : null}
+    {n.link ? <span class="ev-link" title="What the link between the two rests on"><span class="ev-linklab">link</span><EvidenceChip source={SOURCE[n.link.grade] || "none"} /></span> : null}
+  </span>
+) : null}
+
+<style>
+  .ev-wrap { display: flex; flex-wrap: wrap; gap: .3rem; margin-top: .4rem; }
+  .ev-link { display: inline-flex; align-items: center; gap: .3rem; }
+  .ev-linklab { font-family: var(--sans,system-ui,sans-serif); font-size: .68rem; letter-spacing: .05em; text-transform: uppercase; color: var(--ink-2,#444); }
+</style>

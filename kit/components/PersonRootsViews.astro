@@ -1,0 +1,95 @@
+---
+/* Roots & Routes, on the person's own page. The views are not redrawn here: each tab opens the one Roots & Routes page,
+   focused on this person, in a frame (/roots/view.html#<view>&p=<id>&embed=1), so the page and the person's chart are
+   always the same code. A frame is made only when its tab is first opened, so the 2 MB viewer is not fetched by a reader
+   who never looks. The link underneath opens the full page on the same person. */
+const { pid, u = (p) => p, roots = "/roots/", views = [
+  ["hourglass", "Hourglass", "Their parents above, their descendants below."],
+  ["fan", "Fan", "Their ancestors as rings, father's side on the left, mother's on the right; dashed gaps are parents still to find."],
+  ["close", "Close family", "Their ancestors, descendants, siblings, aunts, uncles and cousins, by surname and birth year."],
+  ["movements", "Movements", "Where the family moved, on the map, year by year."],
+  ["surnames", "Surnames", "The surnames of their ancestors as a cloud: the bigger the name, the more people carried it."],
+  ["gen", "Generations", "The same people as rows of generations, played through time."],
+  ["routes", "Where they lived", "The places this family lived, under whose rule, year by year."],
+] } = Astro.props;
+---
+<div class="rp">
+  <p class="rp-why">From Roots &amp; Routes and the Record Atlas: who ruled each place, the route in order, what was happening around them, and where to look next.</p>
+  <div class="rp-frame" data-src={u(`${roots}view.html#profile&p=${pid}&embed=1`)} data-pid={pid}></div>
+
+<div class="rv" role="group" aria-label="Roots & Routes">
+  <h3 class="rv-h">In Roots &amp; Routes</h3>
+  <div class="rv-tabs" role="tablist">
+    {views.map(([k, t], i) => (
+      <button type="button" role="tab" class="rv-tab" id={`rvt-${k}`} aria-selected={i === 0 ? "true" : "false"} aria-controls={`rvp-${k}`} data-v={k}>{t}</button>
+    ))}
+  </div>
+  {views.map(([k, , why], i) => (
+    <div class="rv-panel" role="tabpanel" id={`rvp-${k}`} aria-labelledby={`rvt-${k}`} hidden={i !== 0}>
+      <p class="rv-why">{why}</p>
+      <div class="rv-frame" data-src={u(`${roots}view.html#${k}&p=${pid}&embed=1`)}></div>
+    </div>
+  ))}
+  <p class="rv-open"><a href={u(`${roots}#hourglass&p=${pid}`)}>Open Roots &amp; Routes on this person →</a></p>
+</div>
+</div>
+
+<script>
+  document.querySelectorAll<HTMLElement>(".rp-frame").forEach((box) => {
+    const mk = () => {
+      if (box.querySelector("iframe")) return;
+      const i = document.createElement("iframe");
+      i.src = box.dataset.src || ""; i.title = "Where they lived, and what is still missing"; i.scrolling = "no";
+      box.appendChild(i);
+    };
+    if ("IntersectionObserver" in window) {
+      const io = new IntersectionObserver((e) => { if (e.some((x) => x.isIntersecting)) { mk(); io.disconnect(); } }, { rootMargin: "600px" });
+      io.observe(box);
+    } else mk();
+    window.addEventListener("message", (e) => {
+      const f = box.querySelector("iframe");
+      if (f && e.source === f.contentWindow && e.data && typeof e.data.rrh === "number") f.style.height = Math.ceil(e.data.rrh) + 4 + "px";
+    });
+  });
+  document.querySelectorAll<HTMLElement>(".rv").forEach((root) => {
+    const tabs = [...root.querySelectorAll<HTMLButtonElement>(".rv-tab")];
+    const fill = (panel: HTMLElement) => {
+      const f = panel.querySelector<HTMLElement>(".rv-frame");
+      if (!f || f.querySelector("iframe")) return;
+      const i = document.createElement("iframe");
+      i.src = f.dataset.src || "";
+      i.title = "Roots & Routes view";
+      f.appendChild(i);
+    };
+    const show = (t: HTMLButtonElement) => {
+      tabs.forEach((x) => { x.setAttribute("aria-selected", x === t ? "true" : "false"); (root.querySelector("#" + x.getAttribute("aria-controls")) as HTMLElement).hidden = x !== t; });
+      fill(root.querySelector("#" + t.getAttribute("aria-controls")) as HTMLElement);
+    };
+    tabs.forEach((t) => t.addEventListener("click", () => show(t)));
+    // the first tab loads when the section nears the screen, not before
+    const first = root.querySelector<HTMLElement>(".rv-panel:not([hidden])");
+    if (first) {
+      if ("IntersectionObserver" in window) {
+        const io = new IntersectionObserver((e) => { if (e.some((x) => x.isIntersecting)) { fill(first); io.disconnect(); } }, { rootMargin: "400px" });
+        io.observe(root);
+      } else fill(first);
+    }
+  });
+</script>
+
+<style>
+  .rv { margin: 0 0 2.4rem; }
+  .rv-h { margin: 0 0 .8rem; }
+  .rv-tabs { display: flex; flex-wrap: wrap; gap: .4rem; margin-bottom: .8rem; }
+  .rv-tab { font-family: var(--sans,system-ui,sans-serif); font-size: .95rem; padding: .45rem .9rem; border: 1px solid var(--rule,#bbb); border-radius: 99rem; background: var(--panel,transparent); color: var(--ink,currentColor); cursor: pointer; }
+  .rv-tab[aria-selected="true"] { background: var(--ink,currentColor); color: var(--paper, #fff); border-color: var(--ink,currentColor); }
+  .rv-why { margin: 0 0 .6rem; color: var(--ink-2,#444); font-size: .98rem; }
+  .rv-frame { border: 1px solid var(--rule,#bbb); border-radius: .5rem; background: var(--panel,transparent); overflow: hidden; }
+  .rv-frame :global(iframe) { display: block; width: 100%; height: 50rem; border: 0; }
+  .rv-open { margin: .7rem 0 0; font-family: var(--sans,system-ui,sans-serif); font-size: .95rem; }
+  @media (max-width: 40rem) { .rv-frame :global(iframe) { height: 38rem; } }
+  .rp { margin: 0 0 2.4rem; }
+  .rp-h { margin: 0 0 .4rem; }
+  .rp-why { margin: 0 0 1rem; color: var(--ink-2,#444); max-width: 46rem; }
+  .rp-frame :global(iframe) { display: block; width: 100%; height: 30rem; border: 0; }
+</style>

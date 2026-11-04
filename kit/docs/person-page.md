@@ -12,6 +12,8 @@ The reasoning, the measurements and the four rulings (16 October 2026) are in [P
 | `data/living-rule-cases.json` | the one list of cases both implementations are tested against |
 | `components/PersonPage.astro` | the page, in the spec's order; a living person is name, relationships, town and country and nothing else; throws on a held-out person |
 | `components/PersonChart.astro` | an adapter over the kit's `PersonTree`: one set of source words, dates from fields, living relatives by name only, an empty chart that says why |
+| `lib/personstory.js`, `lib/personevidence.js` | story mode: the pure logic of a life told on a timeline (spec section 2a), with the kit's living rule |
+| `components/PersonStory.astro`, `PersonGlance`, `PersonLore`, `PersonEvidence`, `PersonEvTag`, `PersonWorldAround`, `PersonRootsViews` | the inside of the story-mode sections; pass them in the `story`, `glance`, `lore`, `sources`, `world` and `where` slots of `PersonPage` (the `story` slot puts the page in story mode) |
 | `components/PersonSection.astro` | one section with its fixed heading and anchor |
 | `components/EvidenceChip.astro` | a grade (the kit's `Evidence`) and a source, side by side; no grade beside an index entry or an image held |
 | `styles/personpage.css` | new classes only; `persontree.css` is untouched |
