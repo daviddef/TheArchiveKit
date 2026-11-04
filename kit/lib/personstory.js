@@ -120,7 +120,10 @@ export function eraFlag(slice, eras, name, year) {
   const [viewBox, inner] = slice.flags[at];
   return { viewBox, inner, dates: "", polity: "", id, pills: [], why: "", rep: "", caption: "" };
 }
-const card = (id, e) => ({ viewBox: e.vb, inner: e.svg, dates: e.dates, polity: e.polity, id, pills: e.pills || [], why: e.why || "", rep: e.rep || "", caption: e.caption || "" });
+/* The Atlas writes an open span as «(1975–)». On a person's page that is also how a living person's birth is written, and the estate's gate for
+   living years cannot tell them apart; «(from 1975)» says the same and is not mistaken. */
+const openSpan = (t) => String(t ?? "").replace(/\((\d{3,4})\s?[–—-]\s?\)/g, "(from $1)");
+const card = (id, e) => ({ viewBox: e.vb, inner: e.svg, dates: e.dates, polity: e.polity, id, pills: (e.pills || []).map((x) => ({ ...x, t: openSpan(x.t), tip: openSpan(x.tip) })), why: openSpan(e.why), rep: openSpan(e.rep), caption: e.caption || "" });
 
 /* The mass-death events the Atlas dates and places at somewhere this person lived, in years they could have been there.
    A stop's window runs from the year they arrived to the year the next stop was reached. Where the next stop's year is not

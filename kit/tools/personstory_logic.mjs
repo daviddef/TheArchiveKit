@@ -118,5 +118,14 @@ await planted("a living relative's place drawn", "place: living ? \"\" : q.bp ||
 await planted("a held-out relative drawn", "if (heldOutOf(byId, id, rule)) return null;", "", "held-out");
 await planted("the rule not given the parent's life", "const parentLiving = [q.father, q.mother].some((par) => par && byId[par] && isLiving(canon(byId, byId[par]), rule));", "const parentLiving = false;", "held-out");
 
+// the Atlas writes an open span as «(1975–)»; the page says «(from 1975)» so the living-years gate does not take it for a birth
+{
+  const slice = { places: [{ n: "Testville", cn: "Testland", fl: [[1900, 0]] }], fid: ["testland-flags--era-1900"], flags: [["0 0 1 1", ""]] };
+  const eras = { "testland-flags--era-1900": { from: 1900, to: 9999, dates: "1900–present", polity: "Testland", vb: "0 0 1 1", svg: "", pills: [{ t: "Immigration: refugees (1975–)", dot: "#000", tip: "Waves (1945–) and (1975 – )." }], why: "since (1975–)", rep: "" } };
+  const c = S.eraFlag(slice, eras, "Testville", 1950);
+  eq("an open span in a pill reads (from 1975)", c.pills[0].t, "Immigration: refugees (from 1975)");
+  eq("an open span in a pill's tip, spaced or not", c.pills[0].tip, "Waves (from 1945) and (from 1975).");
+  eq("an open span in the era's own paragraph", c.why, "since (from 1975)");
+}
 if (bad) { console.log(`  FAIL  ${bad} of ${n} checks`); process.exit(1); }
 console.log(`  ok    ${n} checks — the story layer draws the living as names and leaves the held out unsaid`);
