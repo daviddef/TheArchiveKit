@@ -104,6 +104,9 @@ const {
   /* directLine: the archive's src/data/direct-line.json. A relative whose row carries `slug` and is in it is tinted
      (`is-ours`, data-ours): the Family cards of a person page show which relatives are on our direct line. */
   directLine = null,
+  /* plainFamilyOfLiving: on a LIVING person's page draw every relative as a name and a relationship, the dead ones too (no dates). The estate's
+     standard allows a dead relative's dates there; an archive whose own gate allows no four-digit year on a living page turns this on. */
+  plainFamilyOfLiving = false,
 } = Astro.props;
 const DM = directMap(directLine);
 const rule = { now, sources, heldIds };
@@ -126,7 +129,7 @@ const row = (r, { spouse = false, small = false } = {}) => {
   return {
     name: displayName(r.name, { style: nameStyle }),
     href,
-    dates: living ? "" : lifespan(r.born, r.died),
+    dates: living || (plainFamilyOfLiving && selfLiving) ? "" : lifespan(r.born, r.died),
     cls: [quiet ? "" : SOURCES[s.source].cls, isLine ? "is-line" : "", r.superseded ? "gone" : "", r.disputed ? "disputed" : "",
           living ? "is-living" : "", r.ambiguous ? "ambiguous" : !href ? "nopage" : ""].filter(Boolean).join(" "),
     mark: small ? undefined : mark,
