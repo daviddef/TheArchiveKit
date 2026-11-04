@@ -34,7 +34,7 @@ const span = (e) => (e.from === e.to ? String(e.from) : e.to >= 2026 ? `${e.from
   .wa { margin: 0 0 2.4rem; }
   .wa-h { margin: 0 0 .4rem; }
   .wa-why { margin: 0 0 1rem; max-width: 46rem; color: var(--ink-2,#444); }
-  .wa-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(19rem, 1fr)); gap: 1rem; }
+  .wa-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(19rem, 100%), 1fr)); gap: 1rem; }
   .wa-card { padding: 1rem 1.2rem 1.1rem; border: 1px solid var(--rule,#bbb); border-radius: .5rem; background: var(--panel,transparent); }
   .wa-top { display: flex; justify-content: space-between; align-items: baseline; gap: .6rem; margin-bottom: .3rem; }
   .wa-years { font-family: var(--mono,ui-monospace,monospace); font-size: .95rem; color: var(--ink,currentColor); }

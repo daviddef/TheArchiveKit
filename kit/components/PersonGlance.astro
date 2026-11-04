@@ -105,7 +105,7 @@ const { facts = [], journey = [], gradeSay = {} } = Astro.props;
   .pg { margin: 1.4rem 0 2.2rem; }
   .pg-rec { margin: 1.8rem 0 0; padding: 1rem 1.3rem 1.1rem; border: 1px solid var(--rule,#bbb); border-radius: .5rem; background: var(--panel,transparent); }
   .pg-rec-h { margin: 0 0 .5rem; font-family: var(--serif,Georgia,serif); font-size: 1.15rem; font-weight: 400; color: var(--ink,currentColor); }
-  .pg-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(19rem, 1fr)); column-gap: 2.4rem; margin: 0; }
+  .pg-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(19rem, 100%), 1fr)); column-gap: 2.4rem; margin: 0; }
   .pg-fact { display: grid; grid-template-columns: 7rem minmax(0, 1fr); gap: .2rem 1rem; padding: .6rem 0; border-top: 1px solid var(--rule,#bbb); align-items: baseline; }
   .pg-fact dt { font-family: var(--sans,system-ui,sans-serif); font-size: .76rem; letter-spacing: .09em; text-transform: uppercase; color: var(--ink-2,#444); margin: 0; }
   .pg-fact dd { margin: 0; font-family: var(--serif,Georgia,serif); font-size: 1.12rem; line-height: 1.3; color: var(--ink,currentColor); }
