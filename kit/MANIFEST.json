@@ -313,7 +313,7 @@
   "tools/autolink.py": "fabf032d27bcf370acda947bcd137aaec6b1aa48b84aa3b8230760f844b8aadf",
   "tools/autolink_selftest.py": "bdadc22eba41d556dbcda249cb954ae68d53561400290f945ec46df06a15bc90",
   "tools/book_logic.mjs": "331631ba951291ea43e4f90b00c7cb53c2347cd28784ec671ed72a6fa6d72f38",
-  "tools/checkarchive.py": "3e0adde2cb8297e755449df83bd4d1bc5303a324337dcd9bb7c0a739bacf173d",
+  "tools/checkarchive.py": "0ca658a1e9a9815f7bfab98647d84c918188751b1e98bf87059edb78b1b2544c",
   "tools/checkbook.py": "fa87140a825249e5e9a47c1c7656d4eb67b9ec2b0d9776530a0ef8c1faf86fef",
   "tools/checkbook_selftest.py": "98e738e19f35a024d6cb7114f93a212294dd056e13b9d7dd225211ee871ad0d0",
   "tools/checkcovers.py": "f7426cd7b0cce143169d3331390684a1a8a0940f440924d575b458b1b8427cc0",

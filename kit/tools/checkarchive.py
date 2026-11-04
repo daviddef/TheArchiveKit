@@ -237,6 +237,8 @@ def main():
             if not href.startswith("/"):
                 continue
             path, _, frag = href.partition("#")
+            if "=" in frag:
+                frag = ""      # «#hourglass&p=<id>»: a view and a person for the Roots & Routes page to open, state and not a section id
             path = path.partition("?")[0]          # /register/?q=X is a real page
             if not path:
                 continue
