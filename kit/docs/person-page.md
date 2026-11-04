@@ -20,6 +20,8 @@ The reasoning, the measurements and the four rulings (16 October 2026) are in [P
 | `tools/checkperson.py` | reads the **built** pages and fails (advisory unless `--strict` or `--max`; refuses an empty build) |
 | `tools/checkperson_selftest.py` | plants one fault per rule (values 1799, "Testville"); the checker must name it |
 | `tools/checkperson_logic.mjs` | the library's cases, **including the shared living-rule cases**, and planted faults in a copy of `person.js` |
+| `tools/checknamepages.py` | reads the **built** name pages (`/who/<name>/`) and fails when a page's «N people of the name» differs from the person pages of that name in the build, or when it does not link one of them (see below) |
+| `tools/checknamepages_selftest.py` | plants a wrong count, an unlinked person page, a silent name page and a living person; run as `checknamepages.py --selftest` |
 
 ## Using it
 
@@ -56,7 +58,32 @@ python3 kit/tools/checkperson.py --dist dist --living-urls living.txt --sitemap 
 python3 kit/tools/checkperson_selftest.py                                       # prove it can still fail
 node kit/tools/checkperson_logic.mjs                                            # the library, and the shared living-rule cases
 python3 kit/tools/living_rule_selftest.py                                       # the same shared cases against living_rule.py
+python3 kit/tools/checknamepages.py --dist dist                                  # name pages against person pages: exit 1 on a finding
+python3 kit/tools/checknamepages.py --selftest                                  # prove it can still fail
 ```
+
+### The name-page check (`checknamepages.py`)
+
+A name page says how many people carry a name; the number is written by the archive, from a list, and drifts from the pages.
+On 5 November 2026 `/who/ivan-defranceski/` said «3 people of the name» with five person pages in the build, and Booyzen's
+`/who/george-mountjoy/` said 2 with three pages and linked one. The check reads the build and fails on two things:
+
+- **count**: the name page claims N and the build holds M person pages (`data-person-page`) of that name. A person page belongs to
+  the name when its h1, accents and case folded, is the name, or the name plus a parenthesised qualifier, or the name plus « of …».
+- **unlinked**: the name page does not link to a person page of its name. This is checked on every name page, also on one that
+  claims no number (that is only a note).
+
+A living person's page is counted and never named in a message (a slug can carry a birth year). Exit 0 clean, 1 findings, 2 it could
+not see a name page or a person page (an empty build is not a pass). `--max N` is a ratchet for an archive that starts with findings;
+`--advisory` reports and exits 0. A new wording of the claim is one line in `CLAIMS` at the top of the tool.
+
+To add it to an archive's CI, after the build and next to its other checks:
+
+```
+python3 node_modules/@daviddef/archive-kit/kit/tools/checknamepages.py --dist "${ARCHIVE_OUT:-dist}" --who-prefix /who/ --person-prefix /people/ --max <today's count>
+```
+
+Start with `--max` at the count it reports today, and lower it as the name pages are fixed; remove `--max` when it reaches 0.
 
 Exit 0 is a pass or an advisory run; 1 is a FAIL under `--strict`/`--max`; **2 is "could not see a people page", which is not a pass**: no directory, an empty one, one that holds only redirect pages, or fewer than `--min-pages` (at least 1). It reads pages built with `PersonPage` against the whole spec (section order, headings, anchors) and every other person page against what can be said of any people page (one `h1` with no long qualifier, a chart or the reason for none, a named person has a page, dates, grade words, images, and everything about a living person). "Living" is what the page declares or what `--living-urls` says (computed by the archive from `living_rule.py`); `noindex` alone does not make a page living.
 
