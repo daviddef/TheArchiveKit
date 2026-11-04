@@ -189,7 +189,7 @@ export function lifeSentence(journey, r) {
 /* WHAT THE ARCHIVE CANNOT ACCOUNT FOR, from the journey: a stop whose year is only the family's account or is approximate, a stop with no year,
    a last place whose arrival is not recorded. Each is one paragraph of markdown for a card in the life; `extra` are paragraphs the archive has
    written for this person (a conflict between two of its own sources). Nothing is added that the stops do not hold. Empty when there is nothing
-   to say. */
+   to say. `here` null: the page has no #where section, so the closing pointer to it is left out. */
 export function gapsOf(journey, extra = [], here = "", help = "") {
   const out = [];
   journey.forEach((s, i) => {
@@ -204,6 +204,7 @@ export function gapsOf(journey, extra = [], here = "", help = "") {
   const all = [...out, ...extra];
   if (!all.length) return "";
   if (help) all.push(help);
+  if (here === null) return all.join("\n\n");     // no #where section on this page (the archive draws it only for some people): there is nothing to point at
   return all.join("\n\n") + `\n\nWhere to look is under [Where they lived, and what is still missing](${here}#where): the registers and archives the Record Atlas lists for each of these places.`;
 }
 

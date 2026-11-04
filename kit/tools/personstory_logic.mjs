@@ -81,6 +81,7 @@ eq("the sentence is neutral about the person", S.lifeSentence(j, { b: 1951, d: 2
 eq("a death with no recorded arrival is a gap, and a stop with its year is not", S.gapsOf(j, [], "/person/x/").split("\n\n").filter((x) => x.startsWith("**")).map((x) => x.split("**")[1]), ["Brisbane, arrival."]);
 eq("a stop with no year is a gap", S.gapsOf([{ kind: "Born", name: "A" }, { kind: "Moved", name: "B", year: null }], [], "/person/x/").startsWith("**B, no year.**"), true);
 eq("the pointer to where to look uses the shared anchor", S.gapsOf([{ kind: "Born", name: "A" }, { kind: "Moved", name: "B", year: null }], [], "/person/x/").includes("(/person/x/#where)"), true);
+eq("no pointer to #where when the page has no such section", S.gapsOf([{ kind: "Born", name: "A" }, { kind: "Moved", name: "B" }], [], null).includes("#where"), false);
 
 /* the timeline */
 const ch = S.chaptersOf("**Born.** At Senj. *doc*\n\n**Crossing, 1970.** To Harare. *lore*\n\n**Died.** In Brisbane.");
