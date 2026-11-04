@@ -220,8 +220,10 @@ def stray_text(art):
 
 
 def person_slug_url(href, people):
-    """'/people/ab/#x' -> '/people/ab/' when href points INTO the people directory, else None."""
-    h = re.sub(r"^https?://[^/]+", "", (href or "").strip())
+    """'/people/ab/#x' -> '/people/ab/' when href points INTO the people directory of THIS site, else None (a link with a host is another site's)."""
+    h = (href or "").strip()
+    if re.match(r"^(https?:)?//", h):
+        return None  # another site's /people/ page (AlsoIn's pointer to a sibling archive) is not this build's to hold
     h = re.sub(r"[?#].*$", "", h)
     base = "/" + people.strip("/") + "/"
     if not h.startswith(base) or h == base:

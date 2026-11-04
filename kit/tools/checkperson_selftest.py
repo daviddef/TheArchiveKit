@@ -201,6 +201,8 @@ r = run({"p": page(chart=CHART.replace("</figure>", '<figcaption><p class="omit"
 expect("nopage: a name in the «not drawn» list is advisory", cats(r) == [] and cats(r, "warn") == ["nopage"], str(r["findings"]))
 r = run({"p": with_node('<div class="node gap"><span class="nm">— withheld —</span></div>')})
 expect("a dashed placeholder (the old 'living, withheld' node) is not a named person", "nopage" not in cats(r))
+r = run({"p": page(body=SECTIONS.format(chart=CHART) + '<p><a href="https://sibling.example/people/not-ours/">also in</a></p>')})
+expect("a link to another site's people page (AlsoIn) is not this build's to hold", "nopage" not in cats(r), str(r["findings"]))
 r = run({"p": page(body=SECTIONS.format(chart=CHART) + '<p><a href="/people/">all</a></p>')})
 expect("a link to the people index itself is not a person link", "nopage" not in cats(r))
 
