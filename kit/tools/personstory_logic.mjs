@@ -64,7 +64,8 @@ eq("the mother's line, with no mother known, says so", [th[1].side, th[1].parent
 eq("a thread of living people never carries their dates", JSON.stringify(S.ancestryOf(T, "hal", null, RULE)).includes("1985"), false);
 
 /* grades: a person takes a grade, never the direct line */
-eq("a register image is Documented", E.evidenceOf({ ark: "x" }), { tier: "doc", label: "Documented" });
+eq("an ark alone is not a grade: it can name an index entry, which is ungraded by ruling", E.evidenceOf({ ark: "1:1:AAAA-BBB" }), null);
+eq("a family-tree row that carries an ark is Family, not Documented", E.evidenceOf({ src: "tree", ark: "1:1:AAAA-BBB" }, { treeSrc: ["tree"] }), { tier: "tree", label: "Family" });
 eq("an archive's own source kind counts only if it said so", E.evidenceOf({ src: "register" }), null);
 eq("... and does when it did", E.evidenceOf({ src: "register" }, { docSrc: ["register"] }), { tier: "doc", label: "Documented" });
 eq("a lore note is Family", E.evidenceOf({ note: "He sailed. *lore*" }), { tier: "lore", label: "Family" });

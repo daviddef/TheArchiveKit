@@ -204,7 +204,7 @@ def stray_text(art):
     """Text on a CANONICAL living page outside the places a living person may be shown:
     the h1, the fixed sentence, the place, the chart (judged separately), the section
     headings and the footer line. Anything left is something else about them."""
-    keep_cls = {"pliving", "pplace", "ptree", "pempty", "pfoot"}
+    keep_cls = {"pliving", "pplace", "prel", "ptree", "pempty", "pfoot", "ours-band"}
     out = []
 
     def go(n):

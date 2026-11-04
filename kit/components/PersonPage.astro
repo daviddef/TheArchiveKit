@@ -65,6 +65,8 @@
  *                   and handed to the chart for the name-level empty reason
  *        peopleHref where «all the people» is (default /people/)
  *        registerHref  a «every record naming this person» link, if the archive has one
+ *        relation   a LIVING person only: how they stand to the compiler («David's cousin»), one line under the fixed sentence. It is a
+ *                   relationship, so the standard allows it; it carries no date and the checker fails a year in it
  *        stubNote   what the person is known from, for the stub sentence
  *        lede       one plain sentence under the name (also the meta description
  *                   via personMeta); never drawn for a living person
@@ -78,7 +80,7 @@
         now, sources   the living rule's clock and kit/data/public-sources.json
  *        edgeLevel, emptyWhy, emptyText, palette, labels   passed to PersonChart
  * SLOTS  record · sources · namesakes · media · notes · chart-notes · after
- *        story mode adds: glance (replaces record: the route, then PersonSection kind="record" itself) · story · lore · world · where
+ *        glance (either mode; replaces record: the route, then PersonSection kind="record" itself) · and in story mode: story · lore · world · where
  *        (and the unnamed slot, drawn after the rest as kind="more" sections)
  */
 import PersonChart from "./PersonChart.astro";
@@ -90,7 +92,7 @@ import { isLiving, isHeldOut, displayName, splitQualifier, lifespan, stubReason,
 
 const {
   person = {}, nameHref = null, peopleHref = "/people/", registerHref = null, stubNote = "", lede = person.lede || "",
-  nameStyle = "titleCase", edgeLevel = true, emptyWhy = null, emptyText = null, palette = {}, labels = {},
+  relation = "", nameStyle = "titleCase", edgeLevel = true, emptyWhy = null, emptyText = null, palette = {}, labels = {},
   now = new Date().getFullYear(), sources = PS, heldIds = [], directLine = null, storyHref = "/story/", slug = null,
 } = Astro.props;
 const rule = { now, sources };
@@ -117,6 +119,7 @@ const mySlug = slug || person.slug || null;
     {nm.qualifier && !living ? <p class="pqual">{nm.qualifier}</p> : null}
     {life ? <p class="plife">{life}</p> : null}
     {living ? <p class="pliving">{LIVING_SENTENCE}</p> : (lede ? <p class="pdek">{lede}</p> : null)}
+    {living && relation ? <p class="prel">{relation}</p> : null}
     {living && place.text ? <p class="pplace">{place.text}</p> : null}
     <OursBand {directLine} slug={mySlug} {storyHref} />
   </header>
@@ -130,7 +133,7 @@ const mySlug = slug || person.slug || null;
     </PersonSection>
   )}
 
-  {living ? null : story && has("glance") ? <Fragment set:html={S.glance} /> : (
+  {living ? null : has("glance") ? <Fragment set:html={S.glance} /> : (
     <PersonSection kind="record">
       {has("record") ? <Fragment set:html={S.record} />
         : stub ? <p class="pnone pstub">Known only from {stubNote || "the place that names them"}; nothing else is recorded yet.</p>

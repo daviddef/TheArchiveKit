@@ -130,6 +130,11 @@ expect("control: a clean living page is quiet when the sitemap does not list it"
 
 # =============================== (a) a living page shows name, relationships, town and country, nothing else
 print("  -- (a) a living page shows nothing beyond name, relationships, town and country")
+r = run({"p": living(body=LIVING_BODY.format(chart=LIVING_CHART).replace('<p class="pplace">', '<p class="prel">A relative of the compiler.</p><p class="pplace">'))})
+expect("control: a living person's relationship to the compiler is allowed (a relationship, no date)", r["findings"] == [], str(r["findings"]))
+r = run({"p": living(body=LIVING_BODY.format(chart=LIVING_CHART).replace('<p class="pplace">', '<p class="ours-band is-ours"><b>On our direct line &middot; generation 8</b><a href="/story/">in the story &rarr;</a></p><p class="pplace">'))})
+expect("control: the direct-line band is a relationship with no date, and is allowed", r["findings"] == [], str(r["findings"]))
+one("living: a year inside the relationship line", living(body=LIVING_BODY.format(chart=LIVING_CHART).replace('<p class="pplace">', '<p class="prel">A cousin, 1799.</p><p class="pplace">')), "living")
 one("living: not noindex", living(head=""), "living")
 one("living: a photograph", living(body=LIVING_BODY.format(chart=LIVING_CHART) + '<img src="/me.jpg" alt="x">'), "living")
 one("living: a year (1799) in the body", living(body=LIVING_BODY.format(chart=LIVING_CHART).replace("Testville, Nowhere", "Testville, Nowhere 1799")), "living")
