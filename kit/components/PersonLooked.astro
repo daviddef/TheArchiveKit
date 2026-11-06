@@ -1,0 +1,122 @@
+---
+/* WHERE WE HAVE LOOKED (`#looked`, PERSON-PAGE-SPEC.md 2a): the searches the archive has made for the person's surname at the places they lived, what each
+   gave back, and which volumes the Record Atlas lists for those places that have not been opened for the name. The logic, and the rule that «looked and
+   found nothing» never reads like «not looked», is lib/personlooked.js; this draws what it returns. Drawn by PersonPage in the `looked` slot, story mode only,
+   and only when the archive passes it (a person with no matching row and no place held gets no section: it is never empty).
+
+   PROPS  rows · places · names · span · outcomes · cap     as lib/personlooked.js lookedModel
+          u            prefixes an internal path (the archive's base)
+          moreHref     where the whole register of searches is (rows past `cap` are counted and this is linked)
+          moreLabel    its name, default «the search register»
+          nameNoun     default «name»: «the name Smith»
+          heading      none: the section's heading is PersonSection's. */
+import { lookedModel, CLASS_LABEL, DEFAULT_OUTCOMES, listJoin, plural } from "../lib/personlooked.js";
+const { rows = [], places = [], names = [], span = null, outcomes = DEFAULT_OUTCOMES, cap = 0, u = (p) => p, moreHref = "", moreLabel = "the search register" } = Astro.props;
+const M = lookedModel({ rows, places, names, span, outcomes, cap });
+const nameSay = listJoin(M.names) || "this name";
+const ext = (h) => /^(https?:)?\/\//.test(String(h || ""));
+const href = (h) => (ext(h) ? h : u(h));
+const SAY = { nil: "Looked, nothing found", nilx: CLASS_LABEL.nilx, blocked: "Could not look", notyet: "Not looked yet" };
+const hiddenSay = (by) => listJoin(Object.entries(by).map(([c, n]) => `${n} ${(CLASS_LABEL[c] || c).toLowerCase()}`));
+---
+{M.counts.rows > 0 || M.groups.length > 0 ? (
+  <div class="plk" data-looked="1" data-by-tag={M.byTag ? "1" : "0"}>
+    <p class="plk-dek">
+      {M.counts.rows > 0
+        ? <>These are the searches this archive has recorded for the {M.names.length > 1 ? "names" : "name"} <strong>{nameSay}</strong> at the places this page names.{M.byTag ? <> They are <strong>for the name at each place, not for this person alone</strong>: a search is listed here because it was made for the name there, not because it looked for this person.</> : null}</>
+        : <>No search is recorded in this archive for the {M.names.length > 1 ? "names" : "name"} <strong>{nameSay}</strong> at the places this page names. That means the register of searches has no entry, which is different from a search that found nothing.</>}
+    </p>
+    <p class="plk-key">
+      <span class="plk-chip plk-chip-nil">Looked, nothing found</span> a search was made under every spelling of the name and returned nothing.
+      <span class="plk-chip plk-chip-notyet">Not looked yet</span> the volume has not been opened for the name: a gap in the research, not an absence from the record.
+    </p>
+    {M.progress.length > 0 ? <ul class="plk-progress">{M.progress.map((t) => <li>{t}</li>)}</ul> : null}
+
+    {M.groups.map((g) => (
+      <section class="plk-place" data-place={g.key} aria-labelledby={`plk-${g.key}`}>
+        <h3 class="plk-h" id={`plk-${g.key}`}>{g.name}</h3>
+        {g.held ? <p class="plk-held"><span class="plk-lab">The archive holds</span> {g.held.books}{g.held.checked ? <> <span class="plk-checked">{g.held.checked}</span></> : null}</p> : null}
+        {g.rows.length > 0 ? (
+          <ol class="plk-rows">
+            {g.shown.map((r) => (
+              <li class="plk-row" data-cls={r.cls} data-outcome={r.outcome} data-covered={r.cls === "nil" ? "1" : undefined}>
+                <div class="plk-top">
+                  <span class={`plk-chip plk-chip-${r.cls}`}>{r.cls === "nilx" ? CLASS_LABEL.nilx : r.label}</span>
+                  {SAY[r.cls] && r.cls !== "nilx" ? <span class={`plk-say plk-say-${r.cls}`}>{SAY[r.cls]}</span> : null}
+                  <span class="plk-src">{r.href ? <a href={href(r.href)} rel={ext(r.href) ? "noopener" : undefined}>{r.src}</a> : r.src}</span>
+                  {r.volume ? <span class="plk-vol">{r.volume}</span> : null}
+                </div>
+                <div class="plk-meta">
+                  {r.years ? <span class="plk-years">{r.years}</span> : null}
+                  {r.when ? <span class="plk-when">{r.when}</span> : null}
+                </div>
+                {r.what ? <p class="plk-what">{r.what}</p> : null}
+                {r.nilnote ? <p class="plk-nilnote">{r.nilnote}</p> : null}
+              </li>
+            ))}
+          </ol>
+        ) : (
+          <p class="plk-none">No search is recorded in this archive for {nameSay} at {g.name}.</p>
+        )}
+        {g.hidden.length > 0 ? (
+          <p class="plk-more">And {plural(g.hidden.length, "more search", "more searches")} for the name at {g.name} ({hiddenSay(g.hiddenBy)}){moreHref ? <>: all of them are in <a href={u(moreHref)}>{moreLabel}</a></> : null}.</p>
+        ) : null}
+
+        {g.total > 0 ? (
+          <div class="plk-open" data-unopened={g.unopened.length}>
+            {g.unopened.length > 0 ? (
+              <>
+                <p class="plk-open-h"><span class="plk-chip plk-chip-notyet">Not looked yet</span> Volumes the Record Atlas lists for {g.name} that have not been opened for {nameSay}{span && span[0] != null ? <>, for the years {span[0]}&ndash;{span[1]}</> : null}</p>
+                <ul class="plk-vols">
+                  {g.unopened.map((v) => (
+                    <li data-state={v.state || "none"}>
+                      {v.u ? <a href={v.u} rel="noopener">{v.t}</a> : v.t}{v.years ? <> <span class="plk-years">{v.years}</span></> : null}
+                      {v.state === "blocked" ? <> <span class="plk-vnote">a search is recorded but was blocked</span></> : v.state === "notyet" ? <> <span class="plk-vnote">a search is planned, not made</span></> : null}
+                    </li>
+                  ))}
+                </ul>
+              </>
+            ) : <p class="plk-open-none">Every volume the Record Atlas lists for {g.name}{span && span[0] != null ? <> in the years {span[0]}&ndash;{span[1]}</> : null} has been looked at for {nameSay}.</p>}
+            {g.outside > 0 ? <p class="plk-outside">{plural(g.outside, "other volume")} the Record Atlas lists for {g.name} {g.outside === 1 ? "falls" : "fall"} outside those years and {g.outside === 1 ? "is" : "are"} not listed here.</p> : null}
+          </div>
+        ) : <p class="plk-open-none">The Record Atlas lists no volume for {g.name}, so there is nothing to count the searches against.</p>}
+      </section>
+    ))}
+  </div>
+) : null}
+
+<style>
+  .plk { margin: 0 0 1.4rem; max-width: 52rem; }
+  .plk-dek { margin: 0 0 .7rem; font-size: 1.04rem; line-height: 1.55; }
+  .plk-key { margin: 0 0 1rem; font-size: .9rem; line-height: 1.9; color: var(--ink-2,#444); }
+  .plk-progress { margin: 0 0 1.2rem; padding-left: 1.1rem; font-size: .98rem; }
+  .plk-place { margin: 0 0 1.5rem; padding-top: .2rem; border-top: 1px solid var(--rule,#bbb); }
+  .plk-h { margin: .7rem 0 .4rem; font-size: 1.12rem; }
+  .plk-held { margin: 0 0 .7rem; font-size: .92rem; color: var(--ink-2,#444); }
+  .plk-lab { font-family: var(--sans,system-ui,sans-serif); font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; }
+  .plk-checked { display: block; margin-top: .15rem; font-size: .88rem; }
+  .plk-rows { list-style: none; margin: 0 0 .6rem; padding: 0; border: 1px solid var(--rule,#bbb); border-radius: .5rem; background: var(--panel,transparent); overflow: hidden; }
+  .plk-row { padding: .65rem .9rem; border-top: 1px solid var(--rule,#bbb); }
+  .plk-row:first-child { border-top: 0; }
+  .plk-top { display: flex; flex-wrap: wrap; gap: .35rem .6rem; align-items: baseline; }
+  .plk-src { font-weight: 600; overflow-wrap: anywhere; min-width: 0; }
+  .plk-vol { font-size: .92rem; color: var(--ink-2,#444); overflow-wrap: anywhere; }
+  .plk-meta { margin-top: .15rem; font-size: .85rem; color: var(--ink-2,#444); display: flex; flex-wrap: wrap; gap: .1rem .8rem; }
+  .plk-what { margin: .3rem 0 0; font-size: .95rem; line-height: 1.5; overflow-wrap: anywhere; }
+  .plk-nilnote { margin: .35rem 0 0; font-size: .9rem; line-height: 1.45; padding-left: .6rem; border-left: 3px solid var(--ochre, #b7791f); color: var(--ink-2,#444); }
+  .plk-chip { display: inline-block; font-family: var(--sans,system-ui,sans-serif); font-size: .7rem; letter-spacing: .06em; text-transform: uppercase; padding: .08rem .5rem; border: 1px solid var(--rule-strong, var(--rule,#999)); border-radius: 99rem; white-space: nowrap; }
+  .plk-chip-found { border-color: var(--accent,#1f5c6b); color: var(--accent,#1f5c6b); }
+  .plk-chip-partial { border-style: solid; border-color: var(--ink-2,#444); color: var(--ink-2,#444); }
+  .plk-chip-nil { border-color: var(--ink,#222); background: var(--ink,#222); color: var(--paper,#fff); }
+  .plk-chip-nilx { border-style: dashed; border-color: var(--ochre, #b7791f); color: var(--ochre, #8a5a10); }
+  .plk-chip-blocked, .plk-chip-notyet { border-style: dashed; border-color: var(--ochre, #b7791f); color: var(--ochre, #8a5a10); background: transparent; }
+  .plk-say { font-size: .85rem; font-style: italic; color: var(--ink-2,#444); }
+  .plk-say-blocked, .plk-say-notyet { color: var(--ochre, #8a5a10); }
+  .plk-more, .plk-none, .plk-outside, .plk-open-none { margin: .3rem 0 .6rem; font-size: .95rem; }
+  .plk-open { margin-top: .8rem; padding: .7rem .9rem; border: 1px dashed var(--ochre, #b7791f); border-radius: .5rem; }
+  .plk-open-h { margin: 0 0 .5rem; font-size: .95rem; }
+  .plk-vols { margin: 0; padding-left: 1.1rem; font-size: .95rem; }
+  .plk-vols li { margin: .15rem 0; overflow-wrap: anywhere; }
+  .plk-years { font-variant-numeric: tabular-nums; }
+  .plk-vnote { font-size: .85rem; font-style: italic; color: var(--ochre, #8a5a10); }
+</style>
