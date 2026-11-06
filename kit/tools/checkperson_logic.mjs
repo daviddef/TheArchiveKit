@@ -183,7 +183,7 @@ eq("checkperson.py orders the sections as the library does, in both modes", pyOr
 eq("checkperson.py requires what the library requires, in both modes", pyList("REQUIRED_BY_MODE"), L.REQUIRED_BY_MODE);
 eq("every section the checker knows has a heading the library gives it",
    [...checkerSrc.matchAll(/\("(\w+)", "([^"]+)"\)/g)].filter(([, id]) => L.SECTION_BY_ID[id]).filter(([, id, h]) => L.SECTION_BY_ID[id].heading !== h).map((m) => m[1]), []);
-eq("the four shared sections are all story-mode only", L.PERSON_SECTIONS_SHARED.every((x) => x.mode === "story" && x.required === false), true);
+eq("the five shared sections are all story-mode only", L.PERSON_SECTIONS_SHARED.every((x) => x.mode === "story" && x.required === false), true);
 eq("every id in an order list is a known section", Object.values(L.ORDER_BY_MODE).flat().filter((id) => !L.SECTION_BY_ID[id]), []);
 eq("story mode requires no chart section: its Family is the story's first stop", L.REQUIRED_BY_MODE.story.includes("family"), false);
 eq("checkperson.py knows the five grade words", L.GRADES.filter((g) => !checkerSrc.includes(g[0].toUpperCase() + g.slice(1))), []);
