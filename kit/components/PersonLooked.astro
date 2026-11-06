@@ -17,25 +17,29 @@ const nameSay = listJoin(M.names) || "this name";
 const ext = (h) => /^(https?:)?\/\//.test(String(h || ""));
 const href = (h) => (ext(h) ? h : u(h));
 const SAY = { nil: "Looked, nothing found", nilx: CLASS_LABEL.nilx, blocked: "Could not look", notyet: "Not looked yet" };
+const one = (n, a, b) => (n === 1 ? a : b);
+const openSay = (g) => `${plural(g.unopened.length, "volume")} the Record Atlas lists for ${g.name} ${one(g.unopened.length, "has", "have")} not been opened for ${nameSay}${span && span[0] != null ? ", those in their years first" : ""}`;
+const catSay = (g) => `The Record Atlas also catalogues ${plural(g.catalogued, "more volume")} for ${g.name} that ${one(g.catalogued, "is", "are")} not online, so ${one(g.catalogued, "it is", "they are")} not counted here.`;
+const showYears = (v) => v.years && !(v.f != null && String(v.t).includes(String(v.f)));
 const hiddenSay = (by) => listJoin(Object.entries(by).map(([c, n]) => `${n} ${(CLASS_LABEL[c] || c).toLowerCase()}`));
 ---
 {M.counts.rows > 0 || M.groups.length > 0 ? (
   <div class="plk" data-looked="1" data-by-tag={M.byTag ? "1" : "0"}>
     <p class="plk-dek">
       {M.counts.rows > 0
-        ? <>These are the searches this archive has recorded for the {M.names.length > 1 ? "names" : "name"} <strong>{nameSay}</strong> at the places this page names.{M.byTag ? <> They are <strong>for the name at each place, not for this person alone</strong>: a search is listed here because it was made for the name there, not because it looked for this person.</> : null}</>
-        : <>No search is recorded in this archive for the {M.names.length > 1 ? "names" : "name"} <strong>{nameSay}</strong> at the places this page names. That means the register of searches has no entry, which is different from a search that found nothing.</>}
+        ? <>These are the searches this archive has recorded for the {M.names.length > 1 ? "names" : "name"}{" "}<strong>{nameSay}</strong> at the places this page names.{M.byTag ? <> They are <strong>for the name at each place, not for this person alone</strong>: a search is listed here because it was made for the name there, not because it looked for this person.</> : null}</>
+        : <>No search is recorded in this archive for the {M.names.length > 1 ? "names" : "name"}{" "}<strong>{nameSay}</strong> at the places this page names. That means the register of searches has no entry, which is different from a search that found nothing.</>}
     </p>
     <p class="plk-key">
-      <span class="plk-chip plk-chip-nil">Looked, nothing found</span> a search was made under every spelling of the name and returned nothing.
-      <span class="plk-chip plk-chip-notyet">Not looked yet</span> the volume has not been opened for the name: a gap in the research, not an absence from the record.
+      <span class="plk-chip plk-chip-nil">Looked, nothing found</span>{" "}a search was made under every spelling of the name and returned nothing.{" "}
+      <span class="plk-chip plk-chip-notyet">Not looked yet</span>{" "}the volume has not been opened for the name: a gap in the research, not an absence from the record.
     </p>
     {M.progress.length > 0 ? <ul class="plk-progress">{M.progress.map((t) => <li>{t}</li>)}</ul> : null}
 
     {M.groups.map((g) => (
       <section class="plk-place" data-place={g.key} aria-labelledby={`plk-${g.key}`}>
         <h3 class="plk-h" id={`plk-${g.key}`}>{g.name}</h3>
-        {g.held ? <p class="plk-held"><span class="plk-lab">The archive holds</span> {g.held.books}{g.held.checked ? <> <span class="plk-checked">{g.held.checked}</span></> : null}</p> : null}
+        {g.held ? <p class="plk-held"><span class="plk-lab">The archive holds</span>{" "}{g.held.books}{g.held.checked ? <span class="plk-checked">{g.held.checked}</span> : null}</p> : null}
         {g.rows.length > 0 ? (
           <ol class="plk-rows">
             {g.shown.map((r) => (
@@ -56,30 +60,57 @@ const hiddenSay = (by) => listJoin(Object.entries(by).map(([c, n]) => `${n} ${(C
             ))}
           </ol>
         ) : (
-          <p class="plk-none">No search is recorded in this archive for {nameSay} at {g.name}.</p>
+          <p class="plk-none">{`No search is recorded in this archive for ${nameSay} at ${g.name}.`}</p>
         )}
         {g.hidden.length > 0 ? (
-          <p class="plk-more">And {plural(g.hidden.length, "more search", "more searches")} for the name at {g.name} ({hiddenSay(g.hiddenBy)}){moreHref ? <>: all of them are in <a href={u(moreHref)}>{moreLabel}</a></> : null}.</p>
+          <p class="plk-more">{`And ${plural(g.hidden.length, "more search", "more searches")} for the name at ${g.name} (${hiddenSay(g.hiddenBy)})`}{moreHref ? <>{": all of them are in "}<a href={u(moreHref)}>{moreLabel}</a></> : null}{"."}</p>
         ) : null}
 
         {g.total > 0 ? (
           <div class="plk-open" data-unopened={g.unopened.length}>
             {g.unopened.length > 0 ? (
               <>
-                <p class="plk-open-h"><span class="plk-chip plk-chip-notyet">Not looked yet</span> Volumes the Record Atlas lists for {g.name} that have not been opened for {nameSay}{span && span[0] != null ? <>, for the years {span[0]}&ndash;{span[1]}</> : null}</p>
+                <p class="plk-open-h"><span class="plk-chip plk-chip-notyet">Not looked yet</span>{" "}{openSay(g)}</p>
                 <ul class="plk-vols">
-                  {g.unopened.map((v) => (
-                    <li data-state={v.state || "none"}>
-                      {v.u ? <a href={v.u} rel="noopener">{v.t}</a> : v.t}{v.years ? <> <span class="plk-years">{v.years}</span></> : null}
-                      {v.state === "blocked" ? <> <span class="plk-vnote">a search is recorded but was blocked</span></> : v.state === "notyet" ? <> <span class="plk-vnote">a search is planned, not made</span></> : null}
-                    </li>
+                  {g.shownVols.map((v) => <li data-state={v.state || "none"}>{v.u ? <a href={v.u} rel="noopener">{v.t}</a> : v.t}{showYears(v) ? <>{" "}<span class="plk-years">{v.years}</span></> : null}{v.state === "blocked" ? <>{" "}<span class="plk-vnote">a search is recorded but was blocked</span></> : v.state === "notyet" ? <>{" "}<span class="plk-vnote">a search is planned, not made</span></> : null}</li>)}
+                </ul>
+                {g.moreVols.length > 0 ? (
+                  <details class="plk-fold">
+                    <summary>And {plural(g.moreVols.length, "more volume")}</summary>
+                    <ul class="plk-vols">
+                      {g.moreVols.map((v) => <li data-state={v.state || "none"}>{v.u ? <a href={v.u} rel="noopener">{v.t}</a> : v.t}{showYears(v) ? <>{" "}<span class="plk-years">{v.years}</span></> : null}{v.state === "blocked" ? <>{" "}<span class="plk-vnote">a search is recorded but was blocked</span></> : v.state === "notyet" ? <>{" "}<span class="plk-vnote">a search is planned, not made</span></> : null}</li>)}
+                    </ul>
+                  </details>
+                ) : null}
+              </>
+            ) : <p class="plk-open-none">{`Every volume the Record Atlas lists for ${g.name} has been looked at for ${nameSay}.`}</p>}
+            {g.wanted.length > 0 ? (
+              <>
+                <p class="plk-open-h">{`Known and wanted at ${g.name}, and not yet opened:`}</p>
+                <ul class="plk-vols plk-wanted">
+                  {g.wanted.map((r) => (
+                    <li class="plk-want" data-cls={r.cls}>{r.href ? <a href={href(r.href)} rel={ext(r.href) ? "noopener" : undefined}>{r.src}</a> : r.src}{r.volume ? <>{" "}{r.volume}</> : null}{" "}<span class="plk-vnote">{r.cls === "blocked" ? "blocked" : "asked for, not yet got"}</span></li>
                   ))}
                 </ul>
               </>
-            ) : <p class="plk-open-none">Every volume the Record Atlas lists for {g.name}{span && span[0] != null ? <> in the years {span[0]}&ndash;{span[1]}</> : null} has been looked at for {nameSay}.</p>}
-            {g.outside > 0 ? <p class="plk-outside">{plural(g.outside, "other volume")} the Record Atlas lists for {g.name} {g.outside === 1 ? "falls" : "fall"} outside those years and {g.outside === 1 ? "is" : "are"} not listed here.</p> : null}
+            ) : null}
+            {g.catalogued > 0 ? <p class="plk-outside">{catSay(g)}</p> : null}
           </div>
-        ) : <p class="plk-open-none">The Record Atlas lists no volume for {g.name}, so there is nothing to count the searches against.</p>}
+        ) : (
+          <div class="plk-open">
+            <p class="plk-open-none">{`The Record Atlas lists no volume for ${g.name}, so there is nothing to count the searches against.`}</p>
+            {g.wanted.length > 0 ? (
+              <>
+                <p class="plk-open-h">{`Known and wanted at ${g.name}, and not yet opened:`}</p>
+                <ul class="plk-vols plk-wanted">
+                  {g.wanted.map((r) => (
+                    <li class="plk-want" data-cls={r.cls}>{r.href ? <a href={href(r.href)} rel={ext(r.href) ? "noopener" : undefined}>{r.src}</a> : r.src}{r.volume ? <> {r.volume}</> : null} <span class="plk-vnote">{r.cls === "blocked" ? "blocked" : "asked for, not yet got"}</span></li>
+                  ))}
+                </ul>
+              </>
+            ) : null}
+          </div>
+        )}
       </section>
     ))}
   </div>
@@ -117,6 +148,8 @@ const hiddenSay = (by) => listJoin(Object.entries(by).map(([c, n]) => `${n} ${(C
   .plk-open-h { margin: 0 0 .5rem; font-size: .95rem; }
   .plk-vols { margin: 0; padding-left: 1.1rem; font-size: .95rem; }
   .plk-vols li { margin: .15rem 0; overflow-wrap: anywhere; }
+  .plk-fold { margin: .3rem 0 .5rem; font-size: .95rem; }
+  .plk-fold summary { cursor: pointer; width: max-content; color: var(--accent,#1f5c6b); }
   .plk-years { font-variant-numeric: tabular-nums; }
   .plk-vnote { font-size: .85rem; font-style: italic; color: var(--ochre, #8a5a10); }
 </style>

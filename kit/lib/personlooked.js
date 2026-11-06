@@ -12,16 +12,18 @@
        archive having asked the Record Atlas catalogue: surname_variants.py cover). A nil whose verdict says a spelling was not tried is drawn as «looked,
        but not under every spelling» and NAMES the spelling; one whose verdict is missing or "unknown" says the spellings typed are not recorded on the row.
        Neither is ever drawn as an absence. Typography (case, spaces, hyphens, apostrophes) is never a spelling; the archive's verdict already ignores it.
-     - a match is by TAG (the surname family and the place), not by person, and the section says so unless every row is the person's own (row.own).
+     - a row with `placeOnly: true` is not a search for the name at all: it is something wanted at the place (a volume asked for, a letter unanswered) and
+     is only ever a `blocked` or `notyet` row. It is listed in the place's «not looked yet» box, apart from the searches, and never counts as a search.
+   - a match is by TAG (the surname family and the place), not by person, and the section says so unless every row is the person's own (row.own).
 
    INPUT  rows     [{ id, src, volume, years, span:[from,to], what, when, outcome, surnames[], places[], href, volumes[], nil, own }]
                    surnames/places are the keys the archive matched this person on (informational); `volumes` are ids of Atlas volumes (places[].volumes[].id)
                    the row read; `nil` is { status: "covered"|"missed"|"unknown", missed: [spellings] } for the PERSON's surname (only for outcome class nil).
-          places   [{ key, name, volumes: [{ id, t, u, f, to }], held: { books, checked, bad }|null, atlas: true|false }]   in the order the person lived there
+          places   [{ key, name, volumes: [{ id, t, u, f, to }], catalogued, held: { books, checked, bad }|null, atlas: true|false }]   (catalogued: volumes the Atlas lists with no online address)   in the order the person lived there
           names    the surname(s) as the page should say them
-          span     [from, to] the years the person lived (optional); unopened volumes entirely outside it are counted, not listed
+          span     [from, to] the years the person lived (optional); it only ORDERS the unopened volumes (those in their years first), nothing is dropped
           outcomes { word: { label, cls } }  the archive's own vocabulary (default: DEFAULT_OUTCOMES)
-          cap      show at most this many rows per place in full (0 = all); the rest are counted by outcome
+          cap      show at most this many FOUND or partly-read rows per place in full (0 = all); the rest are counted. A nothing is never hidden by it
    OUTPUT  a model the component draws: { names, byTag, groups[], counts, progress[], noAtlas[] } */
 
 export const CLASS_ORDER = ["found", "partial", "nil", "nilx", "blocked", "notyet"];
@@ -34,6 +36,8 @@ export const DEFAULT_OUTCOMES = {
   yield: { label: "Yielded", cls: "found" }, partial: { label: "Partly", cls: "partial" }, nothing: { label: "Nothing", cls: "nil" },
   blocked: { label: "Blocked", cls: "blocked" }, pending: { label: "Not yet", cls: "notyet" },
 };
+/* unopened volumes listed in full before the rest are folded away */
+export const VOLS_SHOWN = 6;
 const CLASSES = new Set(["found", "partial", "nil", "blocked", "notyet"]);
 /* a search that was made, for the progress count; blocked and notyet were not */
 const MADE = new Set(["found", "partial", "nil", "nilx"]);
@@ -67,12 +71,16 @@ const overlaps = (span, f, t) => {
 };
 const years = (f, t) => f == null ? "" : t == null || t === f ? String(f) : `${f}–${t}`;
 
-export function lookedModel({ rows = [], places = [], names = [], span = null, outcomes = DEFAULT_OUTCOMES, cap = 0 } = {}) {
+export function lookedModel({ rows: allRows = [], places = [], names = [], span = null, outcomes = DEFAULT_OUTCOMES, cap = 0 } = {}) {
+  let rows = allRows;
   const order = new Map(places.map((p, i) => [p.key, i]));
   /* each row is listed once: under the place of the first Atlas volume it read, else under the first of the person's places it names */
   const volPlace = new Map();
   for (const p of places) for (const v of p.volumes || []) if (!volPlace.has(v.id)) volPlace.set(v.id, p.key);
-  const groups = places.map((p) => ({ key: p.key, name: p.name, held: p.held || null, atlas: p.atlas !== false, rows: [], volumes: [], listed: 0, outside: 0 }));
+  const wanted = rows.filter((r) => r.placeOnly);
+  rows = rows.filter((r) => !r.placeOnly);
+  for (const r of wanted) if (!["blocked", "notyet"].includes(drawnClass(r, outcomes))) throw new Error(`personlooked: row "${r.id || r.src}" is placeOnly but its outcome is not a search that was not made`);
+  const groups = places.map((p) => ({ wanted: [], key: p.key, name: p.name, held: p.held || null, atlas: p.atlas !== false, catalogued: p.catalogued || 0, rows: [], volumes: [], listed: 0, near: 0 }));
   const byKey = new Map(groups.map((g) => [g.key, g]));
   for (const r of rows) {
     const cls = drawnClass(r, outcomes);
@@ -84,8 +92,13 @@ export function lookedModel({ rows = [], places = [], names = [], span = null, o
     if (!g) throw new Error(`personlooked: row "${r.id || r.src}" names none of this person's places; the archive must hand over only the rows that match`);
     g.rows.push(drawn);
   }
+  for (const r of wanted) {
+    const home = (r.places || []).filter((k) => order.has(k)).sort((a, b) => order.get(a) - order.get(b))[0];
+    if (!home) throw new Error(`personlooked: row "${r.id || r.src}" names none of this person's places`);
+    byKey.get(home).wanted.push({ ...r, cls: drawnClass(r, outcomes), label: (outcomes[r.outcome] || {}).label || r.outcome });
+  }
   const rank = (c) => CLASS_ORDER.indexOf(c);
-  const counts = { found: 0, partial: 0, nil: 0, nilx: 0, blocked: 0, notyet: 0, rows: 0 };
+  const counts = { found: 0, partial: 0, nil: 0, nilx: 0, blocked: 0, notyet: 0, rows: 0, wanted: wanted.length };
   for (const g of groups) {
     g.rows.sort((a, b) => rank(a.cls) - rank(b.cls));   // stable: the archive's own order (newest first) holds within a class
     for (const r of g.rows) { counts[r.cls]++; counts.rows++; }
@@ -102,12 +115,18 @@ export function lookedModel({ rows = [], places = [], names = [], span = null, o
     });
     g.looked = vols.filter((v) => v.made);
     g.inPart = g.looked.filter((v) => v.state === "partial").length;
-    const open = vols.filter((v) => !v.made);
-    g.unopened = open.filter((v) => v.inSpan);
-    g.outside = open.length - g.unopened.length;
+    /* every volume nobody has opened for the name, the ones in the person's years first, then by how far they are from them. The years only ORDER
+       the list: a parent's marriage is in an earlier volume than the person's own life, so nothing is dropped for being outside it. */
+    const gap = (v) => !span || span[0] == null || v.inSpan ? 0 : Math.min(Math.abs((v.to == null ? v.f : v.to) - span[0]), Math.abs((v.f == null ? v.to : v.f) - span[1]));
+    g.unopened = vols.filter((v) => !v.made).sort((a, b) => gap(a) - gap(b));
+    g.near = g.unopened.filter((v) => v.inSpan).length;
     g.total = vols.length;
-    g.shown = cap > 0 && g.rows.length > cap ? g.rows.slice(0, cap) : g.rows;
-    g.hidden = g.rows.slice(g.shown.length);
+    g.shownVols = g.unopened.slice(0, VOLS_SHOWN);
+    g.moreVols = g.unopened.slice(VOLS_SHOWN);
+    /* the cap hides only what was FOUND or read in part: a nothing, a nothing that missed a spelling, and everything not looked at are never folded away */
+    const pos = g.rows.filter((r) => r.cls === "found" || r.cls === "partial"), neg = g.rows.filter((r) => r.cls !== "found" && r.cls !== "partial");
+    g.shown = cap > 0 && pos.length > cap ? [...pos.slice(0, cap), ...neg] : g.rows;
+    g.hidden = cap > 0 && pos.length > cap ? pos.slice(cap) : [];
     g.hiddenBy = {};
     for (const r of g.hidden) g.hiddenBy[r.cls] = (g.hiddenBy[r.cls] || 0) + 1;
   }

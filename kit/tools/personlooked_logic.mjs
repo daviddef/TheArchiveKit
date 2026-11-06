@@ -50,12 +50,14 @@ eq("a row that is not a nil never gets a nil note, whatever verdict it carries",
 eq("blocked and pending are not searches that were made", L.lookedModel({ rows: [row("p", "blocked", { volumes: ["v1"] }), row("q", "pending", { volumes: ["v2"] })], places: [placeA], names: ["Fox"] }).groups[0].looked.length, 0);
 eq("a nil whose spelling was missed still counts as the volume having been opened", L.lookedModel({ rows: [row("x", "nothing", { volumes: ["v1"], nil: { status: "missed", missed: ["Fax"] } })], places: [placeA], names: ["Fox"] }).groups[0].looked.length, 1);
 
-/* the years: a volume wholly outside the person's years is counted, not listed */
+/* the years only ORDER the unopened volumes: nothing is dropped for being outside a life (a parent's marriage is in an earlier volume) */
 const ms = L.lookedModel({ rows: [], places: [placeA], names: ["Fox"], span: [1840, 1870] });
-eq("only the volumes that overlap the years are listed", ms.groups[0].unopened.map((v) => v.id), ["v2", "v3"]);
-eq("the others are counted", ms.groups[0].outside, 2);
-eq("with no years, every unopened volume is listed", L.lookedModel({ rows: [], places: [placeA], names: ["Fox"] }).groups[0].unopened.length, 4);
-eq("a volume with no years is always listed", L.lookedModel({ rows: [], places: [{ ...placeA, volumes: [{ id: "u", t: "A census", f: null, to: null }] }], names: ["Fox"], span: [1840, 1870] }).groups[0].unopened.length, 1);
+eq("the volumes in the person's years come first, then the nearest", ms.groups[0].unopened.map((v) => v.id), ["v2", "v3", "v1", "v4"]);
+eq("none is dropped", ms.groups[0].unopened.length, 4);
+eq("with no years, every unopened volume is listed in the Atlas's order", L.lookedModel({ rows: [], places: [placeA], names: ["Fox"] }).groups[0].unopened.map((v) => v.id), ["v1", "v2", "v3", "v4"]);
+eq("a volume with no years is listed with the rest", L.lookedModel({ rows: [], places: [{ ...placeA, volumes: [{ id: "u", t: "A census", f: null, to: null }] }], names: ["Fox"], span: [1840, 1870] }).groups[0].unopened.length, 1);
+const mv = L.lookedModel({ rows: [], places: [{ ...placeA, volumes: Array.from({ length: 9 }, (_, i) => V("x" + i, 1800 + i, 1800 + i)) }], names: ["Fox"] });
+eq("the first six are listed, the rest folded away", [mv.groups[0].shownVols.length, mv.groups[0].moreVols.length], [6, 3]);
 
 /* a place with no Atlas volume says so, and has no count */
 const mb = L.lookedModel({ rows: [row("z", "yield", { places: ["bton"] })], places: [placeB], names: ["Fox"] });
@@ -71,11 +73,19 @@ eq("the counts agree", two.counts.rows, 1);
 eq("rows matched by tag say so", L.lookedModel({ rows: [row("a", "yield")], places: [placeA], names: ["Fox"] }).byTag, true);
 eq("rows that are the person's own do not", L.lookedModel({ rows: [row("a", "yield", { own: true })], places: [placeA], names: ["Fox"] }).byTag, false);
 
-/* the cap */
+/* the cap hides only what was found or read in part: a nothing is never folded away */
 const many = Array.from({ length: 12 }, (_, i) => row("m" + i, i % 3 === 0 ? "nothing" : "yield", { nil: { status: "covered" } }));
 const mc = L.lookedModel({ rows: many, places: [placeA], names: ["Fox"], cap: 5 });
-eq("a cap shows that many rows and counts the rest by class", [mc.groups[0].shown.length, mc.groups[0].hidden.length, mc.groups[0].hiddenBy], [5, 7, { found: 3, nil: 4 }]);
+eq("a cap shows that many found rows, every nothing, and counts the rest", [mc.groups[0].shown.length, mc.groups[0].hidden.length, mc.groups[0].hiddenBy], [9, 3, { found: 3 }]);
+eq("every nil is still shown", mc.groups[0].shown.filter((r) => r.cls === "nil").length, 4);
 eq("the cap never changes the counts", mc.counts.rows, 12);
+eq("below the cap nothing is hidden", L.lookedModel({ rows: many, places: [placeA], names: ["Fox"], cap: 8 }).groups[0].hidden.length, 0);
+
+/* something wanted at the place is not a search for the name */
+const w = L.lookedModel({ rows: [row("w1", "pending", { placeOnly: true, surnames: [] }), row("a", "yield")], places: [placeA], names: ["Fox"] });
+eq("a place-only row is listed as wanted, not as a search", [w.groups[0].wanted.map((r) => r.id), w.groups[0].rows.map((r) => r.id), w.counts.rows, w.counts.wanted], [["w1"], ["a"], 1, 1]);
+eq("a place-only row alone does not make the match «by tag»", L.lookedModel({ rows: [row("w1", "pending", { placeOnly: true })], places: [placeA], names: ["Fox"] }).byTag, false);
+throws("a place-only row that claims a search was made", () => L.lookedModel({ rows: [row("w2", "yield", { placeOnly: true })], places: [placeA], names: ["Fox"] }), /placeOnly/);
 
 /* refusals */
 throws("an outcome word the archive did not declare", () => L.lookedModel({ rows: [row("a", "perhaps")], places: [placeA], names: ["Fox"] }), /no class/);
