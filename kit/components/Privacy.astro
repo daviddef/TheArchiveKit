@@ -2,11 +2,16 @@
 /* What a reader's browser does when it opens this archive, and who else it talks to.
  *
  * The eight archives are static files on GitHub Pages: no account, no sign-in, no form
- * that sends anything, no database, no advertising. What they do load from elsewhere is
+ * that sends anything, no database. Since 9 November 2026 they also carry Google AdSense (Auto ads),
+ * on every page EXCEPT a page about a living person (the noindex pages), where the script is not
+ * loaded at all. What they do load from elsewhere is
  * the same short list on every one of them, so the page is one shared component and an
  * archive writes nothing. The only thing that differs is the GoatCounter site that
  * counts its reads, and that is read from archives.json by the same whoami() the ring
  * uses, so it cannot be mistyped.
+ *
+ * Keep this true. (If an archive stops carrying the AdSense script, the Ads section and the last
+ * sentence of the lede come out in the same commit.)
  *
  * Keep this true. When an archive starts loading something new (a font, a script, an
  * embedded video, a tile server), this is the page that has to say so, in the same
@@ -26,7 +31,7 @@ import ring from "../data/archives.json";
 import { whoami } from "../lib/ring.js";
 
 const { u = (p) => p, name = "this archive", counter, hasMap = true,
-        aboutHref = "/about/", updated = "3 November 2026" } = Astro.props;
+        aboutHref = "/about/", updated = "9 November 2026" } = Astro.props;
 const here = (import.meta.env.BASE_URL || "/").replace(/\/$/, "");
 const code = counter ?? whoami(here)?.counter;
 ---
@@ -35,7 +40,7 @@ const code = counter ?? whoami(here)?.counter;
   <p class="pv-lede">This page covers {name} only. There is no account, no sign-in and nothing to
     fill in: what you type in the search box, which layers you switch on and which year you set
     stay in your browser (in the address bar, or remembered on your own device) and are never
-    sent anywhere. There are no advertisements.</p>
+    sent anywhere. The pages carry advertisements from Google AdSense, described below, except pages about living people, which carry none.</p>
 
   <section class="pv-s">
     <h2>The count at the foot of each page</h2>
@@ -59,6 +64,20 @@ const code = counter ?? whoami(here)?.counter;
     </ul>
     <p>Following a link to another site (FamilySearch, a national archive, a newspaper) takes you to
       that site, under its terms and not these.</p>
+  </section>
+
+  <section class="pv-s">
+    <h2>Advertisements</h2>
+    <p>Pages of this archive load Google AdSense, which shows ads and may choose them with cookies or
+      similar identifiers, including ads based on your interests. Where the law asks for it, as in
+      the European Economic Area, the United Kingdom and Switzerland, Google shows a choice before any
+      of that happens, and you can change your mind later. <b>A page about a living person loads no
+      advertising script at all.</b></p>
+    <ul class="pv-list">
+      <li>To see and turn off personalised ads: <a href="https://adssettings.google.com/" rel="noopener">Google Ad Settings</a>.</li>
+      <li>How Google uses information from sites that use its services: <a href="https://policies.google.com/technologies/partner-sites" rel="noopener">policies.google.com/technologies/partner-sites</a>.</li>
+      <li>You can also refuse or delete cookies in your browser settings. The site works without them.</li>
+    </ul>
   </section>
 
   <section class="pv-s">
