@@ -34,7 +34,8 @@
  *   record (the route and the facts, from the `glance` slot or the plain record), The story (#story, whose first stop, «Where they came
  *   from», carries #family and satisfies the required Family; the brothers and sisters and the children are in the stops that follow),
  *   Photographs and papers (beside the story), What the family says, and what the record holds (#lore), Where this comes from, What was
- *   happening around them (#world), Where they lived, and what is still missing (#where), Others of the same name, Notes and corrections.
+ *   happening around them (#world), Where they lived, and what is still missing (#where), Where we have looked (#looked: the searches made for their surname at those places,
+ *   never drawn empty), Others of the same name, Notes and corrections.
  *
  * No chart section is drawn in story mode, and none is required: the story is the family section. Every section is drawn by PersonSection, so
  * the words and the anchors cannot drift; a component put in a slot supplies the inside only. A section with nothing in it is not drawn: an
@@ -81,7 +82,7 @@
         now, sources   the living rule's clock and kit/data/public-sources.json
  *        edgeLevel, emptyWhy, emptyText, palette, labels   passed to PersonChart
  * SLOTS  record · sources · namesakes · media · notes · chart-notes · after
- *        glance (either mode; replaces record: the route, then PersonSection kind="record" itself) · and in story mode: story · lore · world · where
+ *        glance (either mode; replaces record: the route, then PersonSection kind="record" itself) · and in story mode: story · lore · world · where · looked
  *        (and the unnamed slot, drawn after the rest as kind="more" sections)
  */
 import PersonChart from "./PersonChart.astro";
@@ -107,7 +108,7 @@ const place = living ? livingPlace(person) : { text: "", refused: false };
 const stub = living ? null : stubReason(person);
 /* A slot counts as passed only when it RENDERS something. `Astro.slots.has` is true for `{cond && <Fragment slot="x">…}` whether or not cond held, which
    drew a section with a heading and nothing under it; the spec says a section is never empty, so the slot is rendered once, here, and tested. */
-const SLOT_KEYS = ["record", "sources", "namesakes", "media", "notes", "glance", "story", "lore", "world", "where"];
+const SLOT_KEYS = ["record", "sources", "namesakes", "media", "notes", "glance", "story", "lore", "world", "where", "looked"];
 const S = {};
 if (!living) for (const k of SLOT_KEYS) if (Astro.slots.has(k)) { const h = String(await Astro.slots.render(k)).trim(); if (h) S[k] = h; }
 const has = (k) => !living && S[k] !== undefined;
@@ -158,6 +159,7 @@ const mySlug = slug || person.slug || null;
 
   {story && has("world") ? <PersonSection kind="world"><Fragment set:html={S.world} /></PersonSection> : null}
   {story && has("where") ? <PersonSection kind="where"><Fragment set:html={S.where} /></PersonSection> : null}
+  {story && has("looked") ? <PersonSection kind="looked"><Fragment set:html={S.looked} /></PersonSection> : null}
   {has("namesakes") ? <PersonSection kind="namesakes"><Fragment set:html={S.namesakes} /></PersonSection> : null}
   {has("media") && !story ? <PersonSection kind="media"><Fragment set:html={S.media} /></PersonSection> : null}
   {has("notes") ? <PersonSection kind="notes"><Fragment set:html={S.notes} /></PersonSection> : null}

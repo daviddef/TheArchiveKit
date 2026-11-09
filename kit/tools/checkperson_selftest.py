@@ -347,6 +347,35 @@ r = run({"p": story(S_REC + S_STORY.replace('<span class="st-person is-living"><
 expect("control: a living relative may link to their own page (a name, relationships and a place)", r["findings"] == [], str(r["findings"]))
 one("story: an unknown mode", page(attrs='data-person-page="1" data-mode="tale" data-living="0"'), "sections")
 
+
+# =============================== Where we have looked (#looked, added 5 November 2026)
+print("  -- #looked: a nothing is only a nothing where every spelling was covered")
+def looked(rows, by_tag="1", dek="They are <strong>for the name at each place, not for this person alone</strong>."):
+    return ('<section class="psec" id="looked" data-section="looked"><h2 class="psec-h">Where we have looked</h2>'
+            f'<div class="plk" data-looked="1" data-by-tag="{by_tag}"><p class="plk-dek">{dek}</p>'
+            '<p class="plk-key"><span class="plk-chip plk-chip-nil">Looked, nothing found</span></p>'
+            f'<section class="plk-place"><h3>Testville</h3><ol class="plk-rows">{rows}</ol></section></div></section>')
+ROW_NIL = '<li class="plk-row" data-cls="nil" data-covered="1"><span class="plk-chip plk-chip-nil">Nothing</span><span class="plk-say">Looked, nothing found</span></li>'
+ROW_NILX = ('<li class="plk-row" data-cls="nilx"><span class="plk-chip plk-chip-nilx">Looked, but not under every spelling</span>'
+            '<p class="plk-nilnote">Not shown as an absence: Testvillo was not tried.</p></li>')
+ROW_NOTYET = '<li class="plk-row" data-cls="notyet"><span class="plk-chip plk-chip-notyet">Not yet</span><span class="plk-say">Not looked yet</span></li>'
+def with_looked(block):
+    return story(S_REC + S_STORY + S_SRC + block)
+r = run({"p": with_looked(looked(ROW_NIL + ROW_NILX + ROW_NOTYET))}, require_jsonld=True)
+expect("control: a covered nil, a nil that names its missed spelling and a not-yet raise nothing", r["findings"] == [], str(r["findings"]))
+one("looked: a nothing on a row whose spellings were not all covered", with_looked(looked(ROW_NIL.replace(' data-covered="1"', ""))), "looked")
+one("looked: a nothing chip on a not-yet row", with_looked(looked(ROW_NOTYET.replace("plk-chip-notyet", "plk-chip-nil"))), "looked")
+one("looked: a not-covered nil that does not say what was missed", with_looked(looked(ROW_NILX.replace('<p class="plk-nilnote">Not shown as an absence: Testvillo was not tried.</p>', ""))), "looked")
+one("looked: a row with no outcome class", with_looked(looked(ROW_NIL.replace('data-cls="nil"', 'data-cls="done"'))), "looked")
+one("looked: a match by tag that does not say it is for the name, not for the person", with_looked(looked(ROW_NOTYET, dek="Searches.")), "looked")
+r = run({"p": with_looked(looked(ROW_NOTYET, by_tag="0", dek="Searches."))})
+expect("control: rows that are the person's own need not carry the by-tag sentence", r["findings"] == [], str(r["findings"]))
+one("looked: a section after Where they lived, before the namesakes, in the wrong place (after the notes)",
+    story(S_REC + S_STORY + S_SRC + '<section class="psec" id="notes" data-section="notes"><h2 class="psec-h">Notes and corrections</h2><p>x</p></section>' + looked(ROW_NOTYET)), "sections")
+one("looked: the section in a chart-mode page", page(body=SECTIONS.format(chart=CHART) + looked(ROW_NOTYET)), "sections")
+one("looked: a section drawn and empty", story(S_REC + S_STORY + S_SRC + '<section class="psec" id="looked" data-section="looked"><h2 class="psec-h">Where we have looked</h2></section>'), "sections")
+one("looked: a living person's page never draws it", living(body=LIVING_BODY.format(chart=LIVING_CHART) + looked(ROW_NOTYET)), "living")
+
 # =============================== exit codes: advisory by default, --strict, --max
 print("  -- advisory by default, --strict, --max")
 d = build({"bad": page(h1="<h1>A</h1><h1>B</h1>"), "ok": page()})

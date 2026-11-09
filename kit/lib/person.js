@@ -55,31 +55,34 @@ export const PERSON_SECTIONS = [
   { id: "notes",     heading: "Notes and corrections",      required: false },
 ];
 /* THE SHARED OPTIONAL SECTIONS (ruled 4 November 2026, PERSON-PAGE-SPEC.md section 2a). A page that TELLS the life, rather than drawing a
-   chart, may carry these four. They are shared words and anchors like the six, not `#more-…`: four archives asked for them and the first
+   chart, may carry these five (the fifth, #looked, added 5 November 2026). They are shared words and anchors like the six, not `#more-…`: four archives asked for the first four and the first
    one built them, so a link to `#story` or `#lore` can be written once. They are optional everywhere; none is ever empty (a page without
    the material does not draw the section). `mode` is where they belong: they exist only on a page in story mode.
      story  #story  The story                                         the life on a timeline; its first stop, «Where they came from»,
                                                                        carries the anchor #family and satisfies the required Family
      lore   #lore   What the family says, and what the record holds   the family's own claims set against the record, one row each
      world  #world  What was happening around them                    events the Atlas dates at the places they lived, in the years there
-     where  #where  Where they lived, and what is still missing       the registers and archives for those places, and what is not found */
+     where  #where  Where they lived, and what is still missing       the registers and archives for those places, and what is not found
+     looked #looked  Where we have looked                              the searches made for their surname at those places, what each gave back, and the
+                                                                       volumes the Atlas lists there that nobody has opened for the name (added 5 November 2026) */
 export const PERSON_SECTIONS_SHARED = [
   { id: "story", heading: "The story",                                       required: false, mode: "story" },
   { id: "lore",  heading: "What the family says, and what the record holds", required: false, mode: "story" },
   { id: "world", heading: "What was happening around them",                  required: false, mode: "story" },
   { id: "where", heading: "Where they lived, and what is still missing",     required: false, mode: "story" },
+  { id: "looked", heading: "Where we have looked",                            required: false, mode: "story" },
 ];
 export const SECTION_BY_ID = Object.fromEntries([...PERSON_SECTIONS, ...PERSON_SECTIONS_SHARED].map((s) => [s.id, s]));
 
 /* The order of the h2s on a page, by mode.
      chart  (the default, ruled 16 October 2026)  family, record, sources, namesakes, media, notes
-     story  (ruled 4 November 2026)               record, story, media, lore, sources, world, where, namesakes, notes
+     story  (ruled 4 November 2026)               record, story, media, lore, sources, world, where, looked, namesakes, notes
    In story mode the required «Family» is the story's first stop, «Where they came from» (#family), with the brothers and sisters and the
    children in the stops that follow, so no chart section is drawn and none is required. «What the record says» comes first because the
    route and the record are what a reader came for; the photographs stand beside the story, so they follow it. */
 export const ORDER_BY_MODE = {
   chart: ["family", "record", "sources", "namesakes", "media", "notes"],
-  story: ["record", "story", "media", "lore", "sources", "world", "where", "namesakes", "notes"],
+  story: ["record", "story", "media", "lore", "sources", "world", "where", "looked", "namesakes", "notes"],
 };
 export const REQUIRED_BY_MODE = { chart: ["family", "record", "sources"], story: ["record", "story", "sources"] };
 
