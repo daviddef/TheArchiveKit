@@ -21,6 +21,17 @@ const CASES = [
     want: (p) => p.entries.length === 2 && p.entries.filter((e) => e.kind === "nil").length === 1 },
   { id: "corrections-by-date", searched: [], corrections: { rows: [{ date: "2026-11-09", what_was_said: "a claim withdrawn" }, { what: "undated" }] },
     want: (p) => p.entries.length === 1 && p.cards.length === 1 && p.cards[0].type === "corrected" && p.counts.corrections === 2 },
+  { id: "source-name-link-group", searched: [
+      { source: "Antenati — Linguaglossa, Nati 1887", scope: "annual index read", when: "2026-11-11", outcome: "done", status: "done", url: "https://antenati.cultura.gov.it/x", pages: "48-49" },
+      { src: "Antenati — Nati 1888", what: "act 3", when: "2026-11-11", outcome: "nothing", href: "/searched/" },
+      { src: "FamilySearch full text, Aguada", what: "burials", when: "2026-11-11", outcome: "nothing", urls: ["https://www.familysearch.org/ark:/61903/3:1:X"] }],
+    outcomeMap: { done: "found" },
+    want: (p) => { const d = p.days[0]; return d.groups.length === 2 && d.groups.find((g) => g.name === "Antenati").rows.length === 2
+      && d.used === " — used FamilySearch full text and Antenati"
+      && p.entries.find((e) => e.src.startsWith("Antenati — Ling")).ext === "https://antenati.cultura.gov.it/x"
+      && p.entries.find((e) => e.src.startsWith("Antenati — Nati")).ext === ""
+      && p.entries.find((e) => e.provider === "FamilySearch full text").ext.startsWith("https://www.familysearch.org/")
+      && p.entries.find((e) => e.src.startsWith("Antenati — Ling")).title.startsWith("Antenati — Linguaglossa"); } },
   { id: "empty", searched: undefined, want: (p) => p.entries.length === 0 && p.days.length === 0 && p.latest === "" && p.cards.length === 0 },
 ];
 const TILES = (lib) => lib.tiles({ counts: { people: 0, sources: 5, logged: 3, walked: 0, corrections: 0, done: 2, open: 1 } }).map((t) => t[1]).join(",");
@@ -28,7 +39,7 @@ const TILES = (lib) => lib.tiles({ counts: { people: 0, sources: 5, logged: 3, w
 async function failing(lib) {
   const out = [];
   for (const c of CASES) {
-    let p; try { p = lib.buildPulse({ searched: c.searched, corrections: c.corrections, today: TODAY }); } catch (e) { out.push(c.id); continue; }
+    let p; try { p = lib.buildPulse({ searched: c.searched, corrections: c.corrections, outcomeMap: c.outcomeMap, today: TODAY }); } catch (e) { out.push(c.id); continue; }
     if (!c.want(p)) out.push(c.id);
   }
   if (TILES(lib) !== "searches,tasks done,sources") out.push("tiles-hide-zero");
@@ -46,6 +57,7 @@ const BREAK = [
   ["future-date", "&& w.iso <= today", ""],
   ["record-year-is-not-a-date", "if (!m) return null;\n  const mo = MON", "if (!m) return { iso: t.slice(0,4)+'-01-01', exact: false };\n  const mo = MON"],
   ["iso-and-note", '!("_note" in r)', "true"],
+  ["source-name-link-group", "/^https?:\\/\\//i.test(x.trim())", "true"],
   ["tiles-hide-zero", ".filter(([n]) => n > 0)", ""],
 ];
 for (const [id, from, to] of BREAK) {

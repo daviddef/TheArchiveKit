@@ -1,15 +1,16 @@
 ---
 /* WHAT'S NEW, the body of the page (kit component since 11 November 2026; first built in the Defranceschi archive, laid out as Record Atlas lays out its own):
    a tally with small badges, one summary card, then a timeline with a rule down the left, the date on it (day large, month in the accent,
-   year beneath) and a card per change. The day's searches fold into ONE «Research» card that opens onto its rows (a tick for found, a cross
-   for nothing, the place, the pages); each correction is a card of its own.
+   year beneath) and a card per change. The day's searches fold into ONE «Research» card that opens onto groups by provider, each with its rows (the source's name linked to its record, the place,
+   a ✅/❌ pill, the pages; see WhatsNewDay.astro); each correction is a card of its own.
    Nothing is written by hand: every line is a row of the archive's search log or corrections list, computed by kit/lib/pulse.js.
    The newest 25 days are open; the rest sit under «Earlier». The badges and the word box filter in the browser.
    The archive's page wraps this in its own layout (title, eyebrow, dek, noautolink) and passes `pulse`; see kit/docs/whats-new.md.
    props: pulse (buildPulse), logHref ("/searched/"), correctionsHref ("/corrections/"), askHref (a page for "know something we do not?", or none),
           tries (the example words of the filter box) */
 import { u } from "../lib/url.js";
-import { CARD, KIND, fmtDay, nf, tiles } from "../lib/pulse.js";
+import { CARD, fmtDay, nf, tiles } from "../lib/pulse.js";
+import WhatsNewDay from "./WhatsNewDay.astro";
 const { pulse, logHref = "/searched/", correctionsHref = "/corrections/", askHref = "", tries = "" } = Astro.props;
 const SHOWN = 25;
 const days = pulse.days;
@@ -19,9 +20,6 @@ const nRes = days.reduce((n, d) => n + d.research.length, 0);
 const nCor = days.reduce((n, d) => n + d.corrections.length, 0);
 const oldest = pulse.entries[pulse.entries.length - 1] || { iso: pulse.latest || new Date().toISOString().slice(0, 10), exact: false };
 const part = (iso, o) => new Date(iso + "T00:00:00Z").toLocaleDateString("en-GB", { ...o, timeZone: "UTC" });
-const long = (d) => d.exact ? part(d.iso, { day: "numeric", month: "long", year: "numeric" }) : part(d.iso, { month: "long", year: "numeric" });
-const mark = { found: ["✓", "Found something"], nil: ["✕", "Nothing found"], partial: ["◐", "Partly read"], blocked: ["■", "Blocked"] };
-const qRow = (e) => (e.head + " " + e.more + " " + e.src + " " + e.place).toLowerCase();
 const week = pulse.week;
 ---
   <p class="wn-tally" aria-label="Summary">
@@ -42,86 +40,14 @@ const week = pulse.week;
   <p class="wn-count" id="wn-count" aria-live="polite"></p>
 
   <ol class="wn-line" id="wn-list">
-    {recent.map((d) => (
-      <li class="wn-day" id={"d" + d.key}>
-        <time class="wn-when" datetime={d.key} title={long(d)}>
-          {d.exact && <b>{part(d.iso, { day: "numeric" })}</b>}
-          <span>{part(d.iso, { month: "short" })}</span>
-          <em>{part(d.iso, { year: "numeric" })}</em>
-        </time>
-        <ul class="wn-items">
-          {d.corrections.map((e) => (
-            <li class="wn-item" data-type="corrected" data-q={e.head.toLowerCase()}>
-              <span class="wn-chip2 corrected"><i aria-hidden="true">{CARD.corrected.glyph}</i> {CARD.corrected.label}</span>
-              <a class="wn-head" href={u(e.href)}>{e.head}<span class="wn-go" aria-hidden="true"> →</span></a>
-            </li>
-          ))}
-          {d.research.length > 0 && (
-            <li class="wn-item" data-type="research" data-q={d.research.map(qRow).join(" ")}>
-              <span class="wn-chip2 research"><i aria-hidden="true">{CARD.research.glyph}</i> {CARD.research.label}</span>
-              <details class="wn-rday">
-                <summary class="wn-head">{d.summary}<span class="wn-tl">{d.tally}</span></summary>
-                <div class="wn-rows">
-                  {d.research.map((e) => (
-                    <div class="wn-row" data-q={qRow(e)}>
-                      <div class="wn-rt">
-                        <a href={u(e.href)}>{e.head}</a>{e.place && <span class="wn-rp">{e.place}</span>}{e.walked && <span class="wn-rw" title="every entry of the book was read">walked</span>}
-                        {e.more && <p class="wn-rm">{e.more}</p>}
-                      </div>
-                      <div class={`wn-rs ${e.kind}`} title={KIND[e.kind].note}><i aria-hidden="true">{mark[e.kind][0]}</i> {mark[e.kind][1]}</div>
-                      <div class="wn-rn">{e.pages}</div>
-                    </div>
-                  ))}
-                </div>
-              </details>
-            </li>
-          )}
-        </ul>
-      </li>
-    ))}
+    {recent.map((d) => <WhatsNewDay d={d} logHref={logHref} />)}
   </ol>
 
   {earlier.length > 0 && (
     <details class="wn-older" id="wn-older2">
       <summary>Earlier: {earlier.length} more days, back to {fmtDay(oldest.iso, oldest.exact)}</summary>
       <ol class="wn-line" id="wn-list2">
-        {earlier.map((d) => (
-          <li class="wn-day" id={"d" + d.key}>
-            <time class="wn-when" datetime={d.key} title={long(d)}>
-              {d.exact && <b>{part(d.iso, { day: "numeric" })}</b>}
-              <span>{part(d.iso, { month: "short" })}</span>
-              <em>{part(d.iso, { year: "numeric" })}</em>
-            </time>
-            <ul class="wn-items">
-              {d.corrections.map((e) => (
-                <li class="wn-item" data-type="corrected" data-q={e.head.toLowerCase()}>
-                  <span class="wn-chip2 corrected"><i aria-hidden="true">{CARD.corrected.glyph}</i> {CARD.corrected.label}</span>
-                  <a class="wn-head" href={u(e.href)}>{e.head}<span class="wn-go" aria-hidden="true"> →</span></a>
-                </li>
-              ))}
-              {d.research.length > 0 && (
-                <li class="wn-item" data-type="research" data-q={d.research.map(qRow).join(" ")}>
-                  <span class="wn-chip2 research"><i aria-hidden="true">{CARD.research.glyph}</i> {CARD.research.label}</span>
-                  <details class="wn-rday">
-                    <summary class="wn-head">{d.summary}<span class="wn-tl">{d.tally}</span></summary>
-                    <div class="wn-rows">
-                      {d.research.map((e) => (
-                        <div class="wn-row" data-q={qRow(e)}>
-                          <div class="wn-rt">
-                            <a href={u(e.href)}>{e.head}</a>{e.place && <span class="wn-rp">{e.place}</span>}{e.walked && <span class="wn-rw" title="every entry of the book was read">walked</span>}
-                            {e.more && <p class="wn-rm">{e.more}</p>}
-                          </div>
-                          <div class={`wn-rs ${e.kind}`} title={KIND[e.kind].note}><i aria-hidden="true">{mark[e.kind][0]}</i> {mark[e.kind][1]}</div>
-                          <div class="wn-rn">{e.pages}</div>
-                        </div>
-                      ))}
-                    </div>
-                  </details>
-                </li>
-              )}
-            </ul>
-          </li>
-        ))}
+        {earlier.map((d) => <WhatsNewDay d={d} logHref={logHref} />)}
       </ol>
     </details>
   )}
@@ -175,34 +101,46 @@ const week = pulse.week;
   .wn-go{color:var(--accent);white-space:nowrap}
   .wn-tl{font-family:var(--sans);font-size:12.5px;color:var(--ink-3);margin-left:2px}
   .wn-rday{flex:1;min-width:0}
-  .wn-rday>summary{cursor:pointer;list-style:none}
-  .wn-rday>summary::-webkit-details-marker{display:none}
-  .wn-rday>summary::before{content:"▸";display:inline-block;margin-right:7px;color:var(--ink-2);font-size:13px;transition:transform .15s}
-  .wn-rday[open]>summary::before{transform:rotate(90deg)}
-  .wn-rows{margin-top:10px;border-top:1px solid var(--rule)}
-  .wn-row{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:4px 16px;align-items:start;padding:9px 0;border-bottom:1px solid var(--rule);font-family:var(--sans)}
-  .wn-row:last-child{border-bottom:0}
-  .wn-rt a{font-family:var(--serif);font-size:15.5px;line-height:1.4;color:var(--ink);text-decoration:none}
-  .wn-rt a:hover{color:var(--accent);text-decoration:underline}
-  .wn-rp{margin-left:8px;font-size:11.5px;color:var(--ink-3)}
+  .wn-rday>summary{cursor:pointer}
+  /* a provider's group: a ruled header with its tally, rows in three aligned columns (as Record Atlas lays out a research day) */
+  .wn-grp{margin:10px 0 0;font-family:var(--sans);border-top:1px solid var(--rule)}
+  .wn-grp>summary{list-style:none;cursor:pointer;display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 14px;padding:9px 0 6px;font-size:14.5px}
+  .wn-grp>summary::-webkit-details-marker{display:none}
+  .wn-grp>summary::before{content:"\25B8";color:var(--ink-3);width:1em;flex:none}
+  .wn-grp[open]>summary::before{content:"\25BE"}
+  .wn-grp>summary b{font-weight:700;color:var(--ink)}
+  .wn-gs{font-size:12.5px;color:var(--ink-3)}
+  .wn-rows{padding:0 0 6px 1em}
+  .wn-row{display:grid;grid-template-columns:minmax(0,1fr) 10.5rem 5.5rem;gap:2px 12px;align-items:baseline;padding:6px 0;border-top:1px solid var(--rule);font-size:14px;font-family:var(--sans)}
+  .wn-rows>.wn-row:first-child{border-top:0}
+  .wn-rt{min-width:0;overflow-wrap:anywhere}
+  .wn-rt a.wn-ta{font-family:var(--sans);font-size:14px;font-weight:600;line-height:1.4;color:var(--accent);text-decoration:none}
+  .wn-rt a.wn-ta:hover{text-decoration:underline}
+  .wn-ext{font-weight:400;font-size:12px}
+  .wn-rp{margin-left:8px;font-size:12.5px;font-weight:400;color:var(--ink-3)}
+  .wn-told{margin-left:8px;font-size:12.5px;font-weight:400;color:var(--accent);text-decoration:none;white-space:nowrap}
+  .wn-told:hover{text-decoration:underline}
   .wn-rw{margin-left:8px;font-family:var(--mono);font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-3);border:1px solid var(--rule);border-radius:3px;padding:1px 5px}
-  .wn-rm{margin:3px 0 0;font-size:13px;line-height:1.5;color:var(--ink-3)}
-  .wn-rs{font-size:12.5px;white-space:nowrap;color:var(--ink-2)}
-  .wn-rs.found{color:#2f7a52}
-  .wn-rs.nil{color:var(--ink-3)}
-  .wn-rs.blocked{color:#a5452c}
-  .wn-rn{font-size:12px;color:var(--ink-3);white-space:nowrap;text-align:right;min-width:3.5em}
+  .wn-rm{margin:3px 0 0;font-size:13px;font-weight:400;line-height:1.5;color:var(--ink-3)}
+  .wn-rs{display:inline-block;padding:1px 8px;border-radius:999px;border:1px solid var(--rule);font-size:11.5px;font-weight:600;color:var(--ink);white-space:nowrap}
+  .wn-rs i{font-style:normal;font-size:11px}
+  .wn-rs.found{background:rgba(31,157,85,.14);border-color:rgba(31,157,85,.5)}
+  .wn-rs.nil{background:var(--accent-wash,rgba(31,92,107,.1));border-color:var(--accent)}
+  .wn-rs.partial{background:rgba(185,138,62,.14);border-color:rgba(185,138,62,.55)}
+  .wn-rs.blocked{background:rgba(192,57,43,.12);border-color:rgba(192,57,43,.5)}
+  .wn-rn{font-size:12.5px;color:var(--ink-2);text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .wn-more{margin:0;border-top:1px solid var(--rule)}
+  .wn-more>summary{cursor:pointer;padding:7px 0;font-size:13px;color:var(--accent)}
+  .wn-grp[hidden]{display:none}
   .wn-older{margin-top:6px}
   .wn-older>summary{cursor:pointer;padding:12px 0 16px;font-family:var(--sans);font-size:13.5px;color:var(--accent);font-weight:600}
   .wn-foot{margin-top:10px;padding:18px 20px;border-radius:12px;background:var(--accent-wash);border:1px solid var(--rule);max-width:64ch}
   .wn-warm{margin:0 0 6px;font-family:var(--serif);font-size:18px;line-height:1.45;color:var(--ink)}
   .wn-cap{margin:0;font-family:var(--sans);font-size:12.5px;color:var(--ink-3)}
   @media (prefers-color-scheme:dark){
-    .wn-chip.research,.wn-chip2.research,.wn-rs.found{color:#7fcf9f;border-color:#3f8f63}
+    .wn-chip.research,.wn-chip2.research{color:#7fcf9f;border-color:#3f8f63}
     .wn-chip.research.on{background:rgba(127,207,159,.12)}
-    .wn-rs.found{border:0}
     .wn-chip.corrected,.wn-chip2.corrected{color:#e6bd7c;border-color:#9a7430}
-    .wn-rs.blocked{color:#e08a72}
   }
   @media (prefers-reduced-motion:reduce){.wn-item{transition:none}.wn-item:hover{transform:none}}
   @media (max-width:640px){
@@ -213,8 +151,9 @@ const week = pulse.week;
     .wn-when em{margin:0}
     .wn-item{flex-direction:column;gap:8px}
     .wn-item .wn-chip2{margin-top:0}
-    .wn-row{grid-template-columns:1fr auto}
-    .wn-rn{display:none}
+    .wn-row{grid-template-columns:minmax(0,1fr) auto}
+    .wn-rc{grid-column:1}
+    .wn-rn{grid-column:2;grid-row:2}
     .wn-find{margin-left:0;width:100%}.wn-find input{width:100%}
   }
 </style>
@@ -229,7 +168,7 @@ const week = pulse.week;
         li.hidden=!ok;
         if(ok){n++;
           var det=li.querySelector(".wn-rday");
-          if(det){[].slice.call(det.querySelectorAll(".wn-row")).forEach(function(r){r.hidden=!!w&&r.getAttribute("data-q").indexOf(w)<0}); if(w)det.open=true;}
+          if(det){[].slice.call(det.querySelectorAll(".wn-row")).forEach(function(r){r.hidden=!!w&&r.getAttribute("data-q").indexOf(w)<0}); if(w)[].slice.call(det.querySelectorAll("details")).concat([det]).forEach(function(x){x.open=true}); [].slice.call(det.querySelectorAll(".wn-grp")).forEach(function(g){g.hidden=!g.querySelector(".wn-row:not([hidden])")});}
         }
       });
       days.forEach(function(d){d.hidden=!d.querySelector(".wn-item:not([hidden])")});

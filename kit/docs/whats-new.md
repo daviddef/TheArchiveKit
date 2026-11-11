@@ -5,6 +5,7 @@ Three things every archive's header and one page carry, built once here (first i
 | piece | file | what it is |
 |---|---|---|
 | the ribbon | `components/PulseRibbon.astro` | round buttons in the top nav: a sparkle to `/whats-new/`, a chart that opens a panel (the four newest cards and the archive in numbers), a magnifier that opens the search box |
+| a day's rows | `components/WhatsNewDay.astro` | one day of `/whats-new/`, laid out as Record Atlas lays out a research day: the day's searches grouped by provider (the text of `src` before its first dash, comma or colon), each group with its tally, rows of source name (a link to the row's own `url`/`href`/first of `urls` when it is an http(s) address, else to the archive's page that tells it, else to the log), place, ✅/❌ pill and pages; first ten rows shown, the rest under «Show the other N» |
 | the search box | `components/SearchPop.astro` | the instant pop-up over the page: results as you type from `/searchindex.json`, arrow keys, Enter, Esc, `/` or Cmd/Ctrl+K from anywhere, «Open the whole list» to `/search/` |
 | the page | `components/WhatsNew.astro` | the body of `/whats-new/`: a tally with filter badges, one card of numbers, a timeline (a rule down the left, the date on it, a card per change) |
 | the logic | `lib/pulse.js` | `buildPulse()`: the log and the corrections list in, days and cards and counts out; pure functions |

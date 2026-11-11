@@ -1,0 +1,68 @@
+---
+/* ONE DAY of /whats-new/ (kit component, 12 November 2026; the rows laid out as Record Atlas lays out its research days):
+   the date on the rule, then a card per change. A day's searches fold into ONE «Research» card that opens onto GROUPS (one per provider:
+   Antenati, FamilySearch…), each with its tally and rows of three columns: the SOURCE'S NAME as a link (to the record itself when the row has
+   an address, else to the archive's log), the place and the sentence beneath; a pill (✅ Found something, ❌ Nothing found); the pages.
+   The first ten rows of a group show, the rest sit under «Show the other N». Each correction is a card of its own.
+   props: d (a day of buildPulse), logHref */
+import { u } from "../lib/url.js";
+import { CARD, KIND, pagesLabel } from "../lib/pulse.js";
+const { d, logHref = "/searched/" } = Astro.props;
+const part = (iso, o) => new Date(iso + "T00:00:00Z").toLocaleDateString("en-GB", { ...o, timeZone: "UTC" });
+const long = d.exact ? part(d.iso, { day: "numeric", month: "long", year: "numeric" }) : part(d.iso, { month: "long", year: "numeric" });
+const mark = { found: ["✅", "Found something"], nil: ["❌", "Nothing found"], partial: ["◐", "Partly read"], blocked: ["⛔", "Blocked"] };
+const qRow = (e) => (e.head + " " + e.more + " " + e.src + " " + e.place).toLowerCase();
+const SHOW = 10;
+/* what the title links to: the record itself, else the page of the archive that tells it, else the log */
+const hrefOf = (e) => e.ext || (e.story ? u(e.story) : u(e.href || logHref));
+const isExt = (e) => !!e.ext;
+---
+<li class="wn-day" id={"d" + d.key}>
+  <time class="wn-when" datetime={d.key} title={long}>
+    {d.exact && <b>{part(d.iso, { day: "numeric" })}</b>}
+    <span>{part(d.iso, { month: "short" })}</span>
+    <em>{part(d.iso, { year: "numeric" })}</em>
+  </time>
+  <ul class="wn-items">
+    {d.corrections.map((e) => (
+      <li class="wn-item" data-type="corrected" data-q={e.head.toLowerCase()}>
+        <span class="wn-chip2 corrected"><i aria-hidden="true">{CARD.corrected.glyph}</i> {CARD.corrected.label}</span>
+        <a class="wn-head" href={u(e.href)}>{e.head}<span class="wn-go" aria-hidden="true"> →</span></a>
+      </li>
+    ))}
+    {d.research.length > 0 && (
+      <li class="wn-item" data-type="research" data-q={d.research.map(qRow).join(" ")}>
+        <span class="wn-chip2 research"><i aria-hidden="true">{CARD.research.glyph}</i> {CARD.research.label}</span>
+        <details class="wn-rday">
+          <summary class="wn-head">{d.summary}{d.used}<span class="wn-tl">{d.tally}</span></summary>
+          {d.groups.map((g) => {
+            const first = g.rows.slice(0, SHOW), rest = g.rows.slice(SHOW);
+            const rowEl = (e) => (
+              <div class="wn-row" data-q={qRow(e)}>
+                <div class="wn-rt">
+                  <a class="wn-ta" href={hrefOf(e)} rel={isExt(e) ? "noopener" : undefined} title={isExt(e) ? "Open the record at its source" : undefined}>{e.title}{isExt(e) && <span class="wn-ext" aria-hidden="true"> ↗</span>}</a>
+                  {e.place && <span class="wn-rp">{e.place}</span>}
+                  {e.walked && <span class="wn-rw" title="every entry of the book was read">walked</span>}
+                  {e.story && e.ext && <a class="wn-told" href={u(e.story)}>told here →</a>}
+                  {e.story && e.src && e.src !== e.title && <span class="wn-rp">{e.src}</span>}
+                  {e.more && e.more !== e.title && <p class="wn-rm">{e.more}</p>}
+                </div>
+                <div class="wn-rc"><span class={`wn-rs ${e.kind}`} title={KIND[e.kind].note}><i aria-hidden="true">{mark[e.kind][0]}</i> {mark[e.kind][1]}</span></div>
+                <div class="wn-rn">{pagesLabel(e.pages)}</div>
+              </div>
+            );
+            return (
+              <details class="wn-grp" open={g.rows.length <= 12}>
+                <summary><b>{g.name}</b><span class="wn-gs">{g.rows.length} {g.rows.length === 1 ? "entry" : "entries"}{g.found ? ` · ${g.found} found something` : ""}{g.nil ? ` · ${g.nil} nothing found` : ""}</span></summary>
+                <div class="wn-rows">
+                  {first.map(rowEl)}
+                  {rest.length > 0 && <details class="wn-more"><summary>Show the other {rest.length}</summary>{rest.map(rowEl)}</details>}
+                </div>
+              </details>
+            );
+          })}
+        </details>
+      </li>
+    )}
+  </ul>
+</li>

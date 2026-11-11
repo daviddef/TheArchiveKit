@@ -67,6 +67,26 @@ export const clip = (s, n) => {
   return c.slice(0, k > n * 0.6 ? k : n).replace(/[,;:(—\-\s]+$/, "") + "…";
 };
 const first = (r, keys) => { for (const k of keys) if (r[k] != null && r[k] !== "") return r[k]; return ""; };
+/* the PROVIDER a source line belongs to ("Antenati — Linguaglossa, Nati 1887" → "Antenati"; "FamilySearch full text, Aguada" → "FamilySearch full text"):
+   the text before the first dash, comma, colon, semicolon or bracket; a line with none, or a long one, is "Other sources". Rows of a day group under it. */
+export const providerOf = (src) => {
+  const t = clean(src).split(/\s[—–-]\s|[,:;(]/)[0].trim();
+  return t && t.length <= 28 ? t : "Other sources";
+};
+/* where a row's own record is: an http(s) address in the row (url, href, or the first of urls); a site-internal path is not "the record" */
+const extUrl = (r, keys) => {
+  const c = [first(r, keys), ...(Array.isArray(r.urls) ? r.urls : [])];
+  for (const x of c) if (typeof x === "string" && /^https?:\/\//i.test(x.trim())) return x.trim();
+  return "";
+};
+/* "48-49" → "pp. 48-49", "12" → "p. 12"; free text stays as written */
+export const pagesLabel = (s) => {
+  const t = String(s == null ? "" : s).trim();
+  if (/^\d+$/.test(t)) return "p. " + t;
+  if (/^\d+\s*[–-]\s*\d+$/.test(t)) return "pp. " + t.replace(/\s+/g, "");
+  return t;
+};
+
 /* the log files come as an array, as {rows:[]}, or as {searched:[]}; underscore rows (notes to the reader) are not entries */
 export const rowsOf = (x) => {
   const a = Array.isArray(x) ? x : x && Array.isArray(x.rows) ? x.rows : x && Array.isArray(x.searched) ? x.searched : [];
@@ -81,6 +101,7 @@ const FIELDS = {
   src: ["src", "source"],
   place: ["dest", "where"],
   pages: ["pages"],
+  url: ["url", "href"],
   cwhen: ["when", "date"],
   cwhat: ["what", "what_was_said", "was"],
 };
@@ -108,11 +129,17 @@ export function buildPulse(o = {}) {
     const ev = Array.isArray(r.ev) ? r.ev.find((e) => Array.isArray(e) && typeof e[0] === "string" && e[0].startsWith("/") && e[1]) : null;
     const place = String(first(r, F.place));
     const pages = String(first(r, F.pages));
+    const srcText = clip(first(r, F.src), 120);
     entries.push({
       iso: w.iso, exact: w.exact, kind, order: i,
       head: ev ? clean(ev[1]) : clip(first(r, F.what) || first(r, F.src), 120),
-      more: ev ? clip(first(r, F.what), 240) : "",
+      /* what a row shows: the SOURCE'S NAME as its title (linked to the record itself when the row has an address), the sentence beneath */
+      title: ev ? clean(ev[1]) : srcText || clip(first(r, F.what), 120),
+      more: srcText || ev ? clip(first(r, F.what), 260) : "",
       src: clip(first(r, F.src), 110),
+      provider: providerOf(first(r, F.src)),
+      ext: extUrl(r, F.url),
+      story: ev ? ev[0] : "",
       href: ev ? ev[0] : logHref,
       walked: r.walked === true,
       place: place.length > 0 && place.length <= 32 && !/[·;]/.test(place) ? place.trim() : "",
@@ -123,7 +150,7 @@ export function buildPulse(o = {}) {
     const w = parseWhen(first(r, F.cwhen));
     const what = first(r, F.cwhat);
     if (!okDate(w) || !what) return;
-    entries.push({ iso: w.iso, exact: w.exact, kind: "corrected", order: 100000 + i, head: clip(what, 160), more: "", src: "", href: corHref, walked: false, place: "", pages: "" });
+    entries.push({ iso: w.iso, exact: w.exact, kind: "corrected", order: 100000 + i, head: clip(what, 160), title: clip(what, 160), more: "", src: "", provider: "", ext: "", story: "", href: corHref, walked: false, place: "", pages: "" });
   });
   /* newest first; within a day, the later row of the log first */
   entries.sort((a, b) => (a.iso < b.iso ? 1 : a.iso > b.iso ? -1 : b.order - a.order));
@@ -141,6 +168,11 @@ export function buildPulse(o = {}) {
     const r = d.research;
     d.found = r.filter((e) => e.kind === "found").length;
     const places = [...new Set(r.map((e) => e.place).filter(Boolean))];
+    const provs = [...new Set(r.map((e) => e.provider).filter((p) => p && p !== "Other sources"))];
+    d.used = provs.length ? " — used " + listOf(provs, 3) : "";
+    const g = new Map();
+    for (const e of r) { if (!g.has(e.provider)) g.set(e.provider, []); g.get(e.provider).push(e); }
+    d.groups = [...g].map(([name, rows]) => ({ name, rows, found: rows.filter((e) => e.kind === "found").length, nil: rows.filter((e) => e.kind === "nil").length }));
     d.summary = r.length ? `Research: ${r.length} ${r.length === 1 ? "search" : "searches"}${places.length ? " at " + listOf(places, 3) : ""}` : "";
     d.tally = r.length ? ` · ${d.found} of ${r.length} found something` : "";
   }
