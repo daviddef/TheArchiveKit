@@ -1,0 +1,245 @@
+---
+/* WHAT'S NEW, the body of the page (kit component since 11 November 2026; first built in the Defranceschi archive, laid out as Record Atlas lays out its own):
+   a tally with small badges, one summary card, then a timeline with a rule down the left, the date on it (day large, month in the accent,
+   year beneath) and a card per change. The day's searches fold into ONE «Research» card that opens onto its rows (a tick for found, a cross
+   for nothing, the place, the pages); each correction is a card of its own.
+   Nothing is written by hand: every line is a row of the archive's search log or corrections list, computed by kit/lib/pulse.js.
+   The newest 25 days are open; the rest sit under «Earlier». The badges and the word box filter in the browser.
+   The archive's page wraps this in its own layout (title, eyebrow, dek, noautolink) and passes `pulse`; see kit/docs/whats-new.md.
+   props: pulse (buildPulse), logHref ("/searched/"), correctionsHref ("/corrections/"), askHref (a page for "know something we do not?", or none),
+          tries (the example words of the filter box) */
+import { u } from "../lib/url.js";
+import { CARD, KIND, fmtDay, nf, tiles } from "../lib/pulse.js";
+const { pulse, logHref = "/searched/", correctionsHref = "/corrections/", askHref = "", tries = "" } = Astro.props;
+const SHOWN = 25;
+const days = pulse.days;
+const recent = days.slice(0, SHOWN), earlier = days.slice(SHOWN);
+const c = pulse.counts;
+const nRes = days.reduce((n, d) => n + d.research.length, 0);
+const nCor = days.reduce((n, d) => n + d.corrections.length, 0);
+const oldest = pulse.entries[pulse.entries.length - 1] || { iso: pulse.latest || new Date().toISOString().slice(0, 10), exact: false };
+const part = (iso, o) => new Date(iso + "T00:00:00Z").toLocaleDateString("en-GB", { ...o, timeZone: "UTC" });
+const long = (d) => d.exact ? part(d.iso, { day: "numeric", month: "long", year: "numeric" }) : part(d.iso, { month: "long", year: "numeric" });
+const mark = { found: ["✓", "Found something"], nil: ["✕", "Nothing found"], partial: ["◐", "Partly read"], blocked: ["■", "Blocked"] };
+const qRow = (e) => (e.head + " " + e.more + " " + e.src + " " + e.place).toLowerCase();
+const week = pulse.week;
+---
+  <p class="wn-tally" aria-label="Summary">
+    <span><b>{nf(pulse.entries.length)}</b> entries since {part(oldest.iso, { day: "numeric", month: "long" })}</span>
+    <button type="button" class="wn-chip on" data-k="all">All</button>
+    <button type="button" class="wn-chip research" data-k="research" title={CARD.research.note}><i aria-hidden="true">{CARD.research.glyph}</i> {nf(nRes)} searches</button>
+    {nCor > 0 && <button type="button" class="wn-chip corrected" data-k="corrected" title={CARD.corrected.note}><i aria-hidden="true">{CARD.corrected.glyph}</i> {nf(nCor)} corrected</button>}
+    <label class="wn-find"><span class="wn-sr">Filter the list by a word</span><input type="search" id="wn-q" placeholder={tries ? "Filter: " + tries : "Filter by a word"} autocomplete="off" /></label>
+  </p>
+
+  <section class="wn-sum" id="numbers" aria-label="The archive in numbers">
+    <h2>The archive in numbers</h2>
+    <p class="wn-figs">
+      {tiles(pulse).map(([n, l]) => <span><b>{n}</b> {l}</span>)}
+    </p>
+    <p class="wn-week">In the seven days to {fmtDay(pulse.latest)}: <b>{week.found}</b> searches found something, <b>{week.nil}</b> found nothing, <b>{week.corrected}</b> claims corrected.</p>
+  </section>
+  <p class="wn-count" id="wn-count" aria-live="polite"></p>
+
+  <ol class="wn-line" id="wn-list">
+    {recent.map((d) => (
+      <li class="wn-day" id={"d" + d.key}>
+        <time class="wn-when" datetime={d.key} title={long(d)}>
+          {d.exact && <b>{part(d.iso, { day: "numeric" })}</b>}
+          <span>{part(d.iso, { month: "short" })}</span>
+          <em>{part(d.iso, { year: "numeric" })}</em>
+        </time>
+        <ul class="wn-items">
+          {d.corrections.map((e) => (
+            <li class="wn-item" data-type="corrected" data-q={e.head.toLowerCase()}>
+              <span class="wn-chip2 corrected"><i aria-hidden="true">{CARD.corrected.glyph}</i> {CARD.corrected.label}</span>
+              <a class="wn-head" href={u(e.href)}>{e.head}<span class="wn-go" aria-hidden="true"> →</span></a>
+            </li>
+          ))}
+          {d.research.length > 0 && (
+            <li class="wn-item" data-type="research" data-q={d.research.map(qRow).join(" ")}>
+              <span class="wn-chip2 research"><i aria-hidden="true">{CARD.research.glyph}</i> {CARD.research.label}</span>
+              <details class="wn-rday">
+                <summary class="wn-head">{d.summary}<span class="wn-tl">{d.tally}</span></summary>
+                <div class="wn-rows">
+                  {d.research.map((e) => (
+                    <div class="wn-row" data-q={qRow(e)}>
+                      <div class="wn-rt">
+                        <a href={u(e.href)}>{e.head}</a>{e.place && <span class="wn-rp">{e.place}</span>}{e.walked && <span class="wn-rw" title="every entry of the book was read">walked</span>}
+                        {e.more && <p class="wn-rm">{e.more}</p>}
+                      </div>
+                      <div class={`wn-rs ${e.kind}`} title={KIND[e.kind].note}><i aria-hidden="true">{mark[e.kind][0]}</i> {mark[e.kind][1]}</div>
+                      <div class="wn-rn">{e.pages}</div>
+                    </div>
+                  ))}
+                </div>
+              </details>
+            </li>
+          )}
+        </ul>
+      </li>
+    ))}
+  </ol>
+
+  {earlier.length > 0 && (
+    <details class="wn-older" id="wn-older2">
+      <summary>Earlier: {earlier.length} more days, back to {fmtDay(oldest.iso, oldest.exact)}</summary>
+      <ol class="wn-line" id="wn-list2">
+        {earlier.map((d) => (
+          <li class="wn-day" id={"d" + d.key}>
+            <time class="wn-when" datetime={d.key} title={long(d)}>
+              {d.exact && <b>{part(d.iso, { day: "numeric" })}</b>}
+              <span>{part(d.iso, { month: "short" })}</span>
+              <em>{part(d.iso, { year: "numeric" })}</em>
+            </time>
+            <ul class="wn-items">
+              {d.corrections.map((e) => (
+                <li class="wn-item" data-type="corrected" data-q={e.head.toLowerCase()}>
+                  <span class="wn-chip2 corrected"><i aria-hidden="true">{CARD.corrected.glyph}</i> {CARD.corrected.label}</span>
+                  <a class="wn-head" href={u(e.href)}>{e.head}<span class="wn-go" aria-hidden="true"> →</span></a>
+                </li>
+              ))}
+              {d.research.length > 0 && (
+                <li class="wn-item" data-type="research" data-q={d.research.map(qRow).join(" ")}>
+                  <span class="wn-chip2 research"><i aria-hidden="true">{CARD.research.glyph}</i> {CARD.research.label}</span>
+                  <details class="wn-rday">
+                    <summary class="wn-head">{d.summary}<span class="wn-tl">{d.tally}</span></summary>
+                    <div class="wn-rows">
+                      {d.research.map((e) => (
+                        <div class="wn-row" data-q={qRow(e)}>
+                          <div class="wn-rt">
+                            <a href={u(e.href)}>{e.head}</a>{e.place && <span class="wn-rp">{e.place}</span>}{e.walked && <span class="wn-rw" title="every entry of the book was read">walked</span>}
+                            {e.more && <p class="wn-rm">{e.more}</p>}
+                          </div>
+                          <div class={`wn-rs ${e.kind}`} title={KIND[e.kind].note}><i aria-hidden="true">{mark[e.kind][0]}</i> {mark[e.kind][1]}</div>
+                          <div class="wn-rn">{e.pages}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </details>
+                </li>
+              )}
+            </ul>
+          </li>
+        ))}
+      </ol>
+    </details>
+  )}
+
+  <aside class="wn-foot">
+    {askHref && <p class="wn-warm">Know something this archive does not? A record, a photograph, a spelling, a correction. <a href={u(askHref)}>The open questions</a> are where to start.</p>}
+    <p class="wn-cap">{nf(pulse.entries.length)} of {nf(c.logged + c.corrections)} log rows carry a date this page can read; the rest are in <a href={u(logHref)}>the search log</a> and <a href={u(correctionsHref)}>the corrections</a>.</p>
+  </aside>
+
+
+<style is:global>
+  .wn-tally{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;margin:0 0 20px;font-family:var(--sans);font-size:14px;color:var(--ink-2)}
+  .wn-tally b{color:var(--ink)}
+  .wn-chip,.wn-chip2{display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;line-height:1;
+    padding:5px 9px 5px 8px;border-radius:999px;border:1px solid var(--rule-strong);color:var(--ink-2);background:var(--panel,transparent);white-space:nowrap}
+  .wn-chip{cursor:pointer}
+  .wn-chip i,.wn-chip2 i{font-style:normal;font-size:12px}
+  .wn-chip:hover{border-color:var(--accent);color:var(--accent)}
+  .wn-chip.on{background:var(--accent-wash);border-color:var(--accent);color:var(--accent)}
+  .wn-chip.research,.wn-chip2.research{color:#2f7a52;border-color:#2f7a52}
+  .wn-chip.research.on{background:rgba(47,122,82,.12)}
+  .wn-chip.corrected,.wn-chip2.corrected{color:#8a5a12;border-color:#b98a3e}
+  .wn-chip.corrected.on{background:rgba(185,138,62,.14)}
+  .wn-find{margin-left:auto}
+  .wn-find input{font-family:var(--sans);font-size:13px;padding:7px 12px;width:min(260px,100%);border:1px solid var(--rule);border-radius:999px;background:var(--panel);color:var(--ink)}
+  .wn-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+  .wn-sum{margin:0 0 26px;padding:16px 20px;border:1px solid var(--rule);border-radius:12px;background:var(--panel,transparent)}
+  .wn-sum h2{margin:0 0 6px;font-family:var(--serif);font-size:20px;line-height:1.2;color:var(--ink);font-weight:700;letter-spacing:0;text-transform:none}
+  .wn-figs{margin:0;display:flex;flex-wrap:wrap;gap:4px 18px;font-family:var(--sans);font-size:13.5px;color:var(--ink-2)}
+  .wn-figs b{font-family:var(--serif);font-size:17px;color:var(--ink);font-weight:700;margin-right:2px}
+  .wn-week{margin:8px 0 0;font-family:var(--sans);font-size:13px;color:var(--ink-3)}
+  .wn-week b{color:var(--ink-2)}
+  .wn-count{font-family:var(--sans);font-size:12.5px;color:var(--ink-3);margin:-12px 0 12px;min-height:1.2em}
+
+  /* the timeline: a rule down the left, the date on it, a card per change */
+  .wn-line{list-style:none;margin:0;padding:0;position:relative}
+  .wn-line::before{content:"";position:absolute;left:41px;top:6px;bottom:6px;width:2px;background:var(--rule)}
+  .wn-day{display:grid;grid-template-columns:84px minmax(0,1fr);gap:0 18px;padding-bottom:22px}
+  .wn-day[hidden],.wn-item[hidden],.wn-row[hidden]{display:none}
+  .wn-when{position:relative;display:flex;flex-direction:column;align-items:center;line-height:1.05;padding-top:2px;background:var(--ground,transparent);align-self:start}
+  .wn-when b{font-family:var(--serif);font-size:30px;font-weight:700;color:var(--ink)}
+  .wn-when span{font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-top:2px}
+  .wn-when em{font-style:normal;font-family:var(--mono);font-size:11px;color:var(--ink-3);margin-top:2px}
+  .wn-items{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+  .wn-item{display:flex;align-items:flex-start;gap:12px;padding:12px 14px;background:var(--panel,transparent);border:1px solid var(--rule);border-radius:10px;transition:border-color .15s,transform .15s}
+  .wn-item:hover{border-color:var(--accent);transform:translateX(2px)}
+  .wn-item .wn-chip2{flex:none;margin-top:3px;min-width:92px;justify-content:center}
+  .wn-head{font-family:var(--serif);font-size:17px;line-height:1.45;color:var(--ink);text-decoration:none;max-width:64ch}
+  a.wn-head:hover{color:var(--accent)}
+  .wn-go{color:var(--accent);white-space:nowrap}
+  .wn-tl{font-family:var(--sans);font-size:12.5px;color:var(--ink-3);margin-left:2px}
+  .wn-rday{flex:1;min-width:0}
+  .wn-rday>summary{cursor:pointer;list-style:none}
+  .wn-rday>summary::-webkit-details-marker{display:none}
+  .wn-rday>summary::before{content:"▸";display:inline-block;margin-right:7px;color:var(--ink-2);font-size:13px;transition:transform .15s}
+  .wn-rday[open]>summary::before{transform:rotate(90deg)}
+  .wn-rows{margin-top:10px;border-top:1px solid var(--rule)}
+  .wn-row{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:4px 16px;align-items:start;padding:9px 0;border-bottom:1px solid var(--rule);font-family:var(--sans)}
+  .wn-row:last-child{border-bottom:0}
+  .wn-rt a{font-family:var(--serif);font-size:15.5px;line-height:1.4;color:var(--ink);text-decoration:none}
+  .wn-rt a:hover{color:var(--accent);text-decoration:underline}
+  .wn-rp{margin-left:8px;font-size:11.5px;color:var(--ink-3)}
+  .wn-rw{margin-left:8px;font-family:var(--mono);font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-3);border:1px solid var(--rule);border-radius:3px;padding:1px 5px}
+  .wn-rm{margin:3px 0 0;font-size:13px;line-height:1.5;color:var(--ink-3)}
+  .wn-rs{font-size:12.5px;white-space:nowrap;color:var(--ink-2)}
+  .wn-rs.found{color:#2f7a52}
+  .wn-rs.nil{color:var(--ink-3)}
+  .wn-rs.blocked{color:#a5452c}
+  .wn-rn{font-size:12px;color:var(--ink-3);white-space:nowrap;text-align:right;min-width:3.5em}
+  .wn-older{margin-top:6px}
+  .wn-older>summary{cursor:pointer;padding:12px 0 16px;font-family:var(--sans);font-size:13.5px;color:var(--accent);font-weight:600}
+  .wn-foot{margin-top:10px;padding:18px 20px;border-radius:12px;background:var(--accent-wash);border:1px solid var(--rule);max-width:64ch}
+  .wn-warm{margin:0 0 6px;font-family:var(--serif);font-size:18px;line-height:1.45;color:var(--ink)}
+  .wn-cap{margin:0;font-family:var(--sans);font-size:12.5px;color:var(--ink-3)}
+  @media (prefers-color-scheme:dark){
+    .wn-chip.research,.wn-chip2.research,.wn-rs.found{color:#7fcf9f;border-color:#3f8f63}
+    .wn-chip.research.on{background:rgba(127,207,159,.12)}
+    .wn-rs.found{border:0}
+    .wn-chip.corrected,.wn-chip2.corrected{color:#e6bd7c;border-color:#9a7430}
+    .wn-rs.blocked{color:#e08a72}
+  }
+  @media (prefers-reduced-motion:reduce){.wn-item{transition:none}.wn-item:hover{transform:none}}
+  @media (max-width:640px){
+    .wn-line::before{display:none}
+    .wn-day{grid-template-columns:1fr;gap:8px}
+    .wn-when{flex-direction:row;align-items:baseline;gap:6px;padding:0}
+    .wn-when b{font-size:22px}
+    .wn-when em{margin:0}
+    .wn-item{flex-direction:column;gap:8px}
+    .wn-item .wn-chip2{margin-top:0}
+    .wn-row{grid-template-columns:1fr auto}
+    .wn-rn{display:none}
+    .wn-find{margin-left:0;width:100%}.wn-find input{width:100%}
+  }
+</style>
+<script is:inline>
+  (function(){
+    var type="all", q=document.getElementById("wn-q"), out=document.getElementById("wn-count"), older=document.getElementById("wn-older2");
+    var items=[].slice.call(document.querySelectorAll(".wn-item")), days=[].slice.call(document.querySelectorAll(".wn-day")), chips=[].slice.call(document.querySelectorAll(".wn-chip"));
+    function run(){
+      var w=(q.value||"").trim().toLowerCase(), n=0;
+      items.forEach(function(li){
+        var ok=(type==="all"||li.getAttribute("data-type")===type)&&(!w||li.getAttribute("data-q").indexOf(w)>-1);
+        li.hidden=!ok;
+        if(ok){n++;
+          var det=li.querySelector(".wn-rday");
+          if(det){[].slice.call(det.querySelectorAll(".wn-row")).forEach(function(r){r.hidden=!!w&&r.getAttribute("data-q").indexOf(w)<0}); if(w)det.open=true;}
+        }
+      });
+      days.forEach(function(d){d.hidden=!d.querySelector(".wn-item:not([hidden])")});
+      var on=type!=="all"||w; if(older&&on)older.open=true;
+      out.textContent=on?(n+" of "+items.length+" cards"):"";
+    }
+    chips.forEach(function(b){b.addEventListener("click",function(){
+      type=b.getAttribute("data-k"); chips.forEach(function(x){x.classList.toggle("on",x===b)}); run();
+    })});
+    if(q)q.addEventListener("input",run);
+    if(location.hash&&location.hash.indexOf("#d")===0){var t=document.getElementById(location.hash.slice(1)); if(t){var det=t.querySelector(".wn-rday"); if(det)det.open=true; var o=t.closest("#wn-older2"); if(o)o.open=true;}}
+  })();
+</script>

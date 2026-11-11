@@ -1,0 +1,84 @@
+---
+/* THE RIBBON (11 November 2026): round icon buttons beside the menus, the way Record Atlas has them.
+     sparkle      goes to /whats-new/
+     chart        opens a panel: the four newest cards and the archive in numbers
+     magnifier    opens the instant search (SearchPop.astro, placed by the layout outside the nav so a phone's drawer can open it too)
+   Everything is computed at build time from the archive's own logs (src/lib/pulse.js).
+   Kit component since 11 November 2026. The styles are scoped to this component on purpose: the archive's stylesheet is not touched. Below 1181px the header hides the nav, and
+   with it this ribbon: a phone reaches /whats-new/ and /search/ from the drawer, and any element with data-search-open opens the popup. */
+import { u } from "../lib/url.js";
+import { CARD, fmtDay, nf, tiles } from "../lib/pulse.js";
+/* props: pulse = buildPulse(...) from the archive's own src/lib/pulse.js */
+const { pulse } = Astro.props;
+const top = pulse.cards.slice(0, 4);
+const c = pulse.counts;
+const tip = `${nf(c.people)} people, ${nf(c.logged)} searches logged: what's new and the archive in numbers`;
+---
+<div class="pulse">
+  <a class="pbtn" href={u("/whats-new/")} aria-label="What's new" title="What's new: the latest research and corrections">
+    <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3zM18.5 15l.9 2.1 2.1.9-2.1.9-.9 2.1-.9-2.1-2.1-.9 2.1-.9.9-2.1z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+  </a>
+  <details class="pdet">
+    <summary class="pbtn" aria-label="The archive in numbers" title={tip}>
+      <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path d="M5 20V11M12 20V4M19 20v-6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+    </summary>
+    <div class="ppanel">
+      <p class="ph"><b>What's new</b> <span>to {fmtDay(pulse.latest)}</span></p>
+      <ul class="pl">
+        {top.map((e) => (
+          <li>
+            <span class={`pk k-${e.type}`} title={CARD[e.type].note}><i aria-hidden="true">{CARD[e.type].glyph}</i> {CARD[e.type].label}</span>
+            <a href={u(e.href)}>{e.head}</a>
+            <time datetime={e.iso}>{fmtDay(e.iso, e.exact)}</time>
+          </li>
+        ))}
+      </ul>
+      <p class="pall"><a href={u("/whats-new/")}>All updates &rarr;</a></p>
+      <p class="ph"><b>In numbers</b> <span>this week: {pulse.week.found} found · {pulse.week.nil} nothing · {pulse.week.corrected} corrected</span></p>
+      <div class="pt">
+        {tiles(pulse).map(([n, l, d]) => <div><b>{n}</b><span>{l}</span><em>{d}</em></div>)}
+      </div>
+    </div>
+  </details>
+  <button class="pbtn psearch" type="button" data-search-open aria-haspopup="dialog" aria-label="Search the archive" title="Search the archive (press /)">
+    <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M15.2 15.2L20 20" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+  </button>
+</div>
+
+<style is:global>
+  .pulse{display:flex;align-items:center;gap:6px;margin-right:2px}
+  header.site nav.topnav .pulse a.pbtn,.pulse .pdet>summary.pbtn,.pulse button.pbtn{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;padding:0;border-radius:50%;
+    border:1px solid var(--rule);background:var(--panel);color:var(--ink-2);cursor:pointer;list-style:none;text-decoration:none;line-height:1;font:inherit}
+  .pulse .pdet>summary::after{display:none}
+  .pulse .pdet>summary::-webkit-details-marker{display:none}
+  header.site nav.topnav .pulse a.pbtn:hover,.pulse .pdet>summary.pbtn:hover,.pulse .pdet[open]>summary.pbtn,.pulse button.pbtn:hover{color:var(--accent);background:var(--accent-wash);border-color:var(--accent)}
+  .pulse .pdet{position:relative}
+  .pulse .ppanel{position:absolute;top:calc(100% + 10px);right:-80px;z-index:80;width:min(440px,92vw);padding:16px 18px;background:var(--panel);border:1px solid var(--rule);
+    border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.16);font-family:var(--sans);font-size:13px;color:var(--ink-2);text-align:left}
+  .ppanel .ph{margin:0 0 8px;display:flex;justify-content:space-between;gap:12px;align-items:baseline;font-size:11.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-3,#777)}
+  .ppanel .ph b{color:var(--ink);font-weight:600;white-space:nowrap}
+  .ppanel .ph span{text-transform:none;letter-spacing:0;font-size:12px;text-align:right}
+  .ppanel .pl{list-style:none;margin:0 0 6px;padding:0}
+  .ppanel .pl li{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;padding:8px 0;border-top:1px solid var(--rule);align-items:baseline}
+  .ppanel .pl li a{color:var(--ink);text-decoration:none;font-family:var(--serif);font-size:15px;line-height:1.35}
+  .ppanel .pl li a:hover{color:var(--accent);text-decoration:underline}
+  .ppanel .pl time{grid-column:2;font-family:var(--mono);font-size:11px;letter-spacing:.04em;color:var(--ink-3,#777)}
+  .ppanel .pk{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:999px;border:1px solid var(--rule-strong);color:var(--ink-2);white-space:nowrap}
+  .ppanel .pk.k-research{color:#2f7a52;border-color:#2f7a52}
+  .ppanel .pk.k-corrected{color:#8a5a12;border-color:#b98a3e}
+  .ppanel .pall{margin:2px 0 14px;text-align:right}
+  .ppanel .pall a{color:var(--accent);text-decoration:none;font-weight:600}
+  .ppanel .pt{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .ppanel .pt div{border:1px solid var(--rule);border-radius:8px;padding:8px 10px;background:var(--panel-2)}
+  .ppanel .pt b{display:block;font-family:var(--serif);font-size:21px;color:var(--ink);font-weight:700;line-height:1.1}
+  .ppanel .pt span{display:block;font-size:12px;color:var(--ink);margin-top:2px}
+  .ppanel .pt em{display:block;font-style:normal;font-size:11px;color:var(--ink-3,#777);line-height:1.3;margin-top:1px}
+  @media (prefers-color-scheme:dark){.ppanel .pk.k-research{color:#7fcf9f;border-color:#3f8f63}.ppanel .pk.k-corrected{color:#e6bd7c;border-color:#9a7430}}
+
+</style>
+<script is:inline>
+  (function () {
+    document.addEventListener("click", function (e) { if (!e.target.closest(".pulse .pdet")) document.querySelectorAll(".pulse .pdet[open]").forEach(function (d) { d.open = false; }); });
+    document.addEventListener("keydown", function (e) { if (e.key === "Escape") document.querySelectorAll(".pulse .pdet[open]").forEach(function (d) { d.open = false; }); });
+  })();
+</script>

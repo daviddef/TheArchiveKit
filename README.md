@@ -17,6 +17,7 @@ so they cannot quietly drift apart.
 | `kit/tools/sitemap.py` | `tools/` | Writes `sitemap.xml` from the built HTML, skipping anything that noindexes itself — so living people's pages can never be handed to a search engine by accident. |
 | `kit/tools/living_rule.py`, `kit/lib/person.js` | `node_modules` (imported) | The one definition of who is living, in Python and its JavaScript twin, held to one list of cases (`kit/data/living-rule-cases.json`). The line is `cutoff_year()` = this year minus 80; a public-source citation or a bare death flag never frees anyone born on or after it. See **[kit/docs/living.md](kit/docs/living.md)**. |
 | `kit/tools/checkliving.py`, `kit/tools/livingyears.py` | `tools/` | The living gates. `checkliving.py` guards the dates the data attaches to living people; `--years` adds the **printed-year gate**: no built page or data file may print a year or date on or after the line for a person with no death. |
+| `kit/lib/pulse.js`, `kit/components/PulseRibbon.astro`, `SearchPop.astro`, `WhatsNew.astro` | `node_modules` (imported) | **What's new, the numbers and the search box**: the header ribbon (sparkle, chart, magnifier), the instant search pop-up and `/whats-new/`, computed at build time from the archive's own logs. See **[kit/docs/whats-new.md](kit/docs/whats-new.md)**; gates `kit/tools/pulse_logic.mjs` and `checkpulse.py`. |
 
 CSS is **not** copied. Each archive's stylesheet is its own; the kit only
 checks that the blocks it needs are present (`.ev-documented`, `.ladder`,

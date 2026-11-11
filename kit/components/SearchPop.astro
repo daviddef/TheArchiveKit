@@ -1,0 +1,132 @@
+---
+/* THE SEARCH BOX (11 November 2026): the magnifier in the header opens this, over the page, as Record Atlas does: results as you type,
+   arrow keys and Enter, Esc to close, «/» or Cmd/Ctrl+K from anywhere, and «Open the whole list» for /search/. Anything with
+   data-search-open opens it (the header's magnifier; the drawer's Search link on a phone, whose href still goes to /search/ without
+   scripts). It reads /searchindex.json, the same index and the same folding and ranking as the kit's /search/ page (kit Search.astro); kit component since 11 November 2026,
+   fetched once, on the first hover or open. Styles scoped to this component; the shared stylesheet is not touched. */
+/* props: tries = the examples shown before the reader types (an archive passes its own: a name, a place, a kind of record, a year) */
+import { u } from "../lib/url.js";
+const { tries = [] } = Astro.props;
+---
+<div class="sdlg" id="sdlg" hidden>
+  <div class="sbox" role="dialog" aria-modal="true" aria-label="Search the archive">
+    <div class="srow">
+      <input id="sdq" type="search" autocomplete="off" spellcheck="false" placeholder="Search the archive: a name, a place, a register, a year" aria-controls="sdres" />
+      <button class="sx" type="button" aria-label="Close search">&times;</button>
+    </div>
+    <div class="sres" id="sdres" role="listbox" aria-live="polite">
+      <p class="shint">Type a name, a place or a kind of record{tries.length ? ": " : "."}{tries.map((t, i) => <><button type="button" class="stry" data-q={t}>{t}</button>{i < tries.length - 1 ? ", " : "."}</>)}</p>
+    </div>
+    <p class="sall"><a id="sdall" href={u("/search/")}>Open the whole list, grouped by kind &rarr;</a></p>
+  </div>
+</div>
+
+<style is:global>
+  /* THE SEARCH BOX: over the page, results as you type */
+  .sdlg{position:fixed;inset:0;z-index:200;background:rgba(10,14,18,.5);display:flex;justify-content:center;align-items:flex-start;padding:12vh 16px 16px;overflow:auto}
+  .sdlg[hidden]{display:none}
+  .sbox{width:min(720px,100%);background:var(--panel);border:1px solid var(--rule);border-radius:16px;box-shadow:0 18px 60px rgba(0,0,0,.35);overflow:hidden;font-family:var(--sans)}
+  .srow{display:flex;gap:10px;align-items:center;padding:14px 16px}
+  .srow input{flex:1;min-width:0;font-family:var(--sans);font-size:17px;line-height:1.2;padding:12px 16px;border:2px solid var(--accent);border-radius:10px;background:var(--ground,var(--panel));color:var(--ink);outline:none}
+  .srow input::placeholder{color:var(--ink-3,#888)}
+  .sx{flex:none;width:46px;height:46px;border:1px solid var(--rule);border-radius:10px;background:var(--panel);color:var(--ink-2);font-size:24px;line-height:1;cursor:pointer}
+  .sx:hover{border-color:var(--accent);color:var(--accent)}
+  .sres{border-top:1px solid var(--rule);max-height:52vh;overflow:auto}
+  .shint,.snone,.scount{margin:0;padding:16px 20px;font-family:var(--serif);font-size:17px;line-height:1.5;color:var(--ink-2)}
+  .scount{padding:10px 20px 4px;font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3)}
+  .stry{font:inherit;font-style:italic;color:var(--accent);background:none;border:0;padding:0;cursor:pointer;text-decoration:underline;text-decoration-color:transparent}
+  .stry:hover{text-decoration-color:var(--accent)}
+  .sr{display:grid;grid-template-columns:78px minmax(0,1fr);gap:2px 12px;align-items:baseline;padding:9px 20px;text-decoration:none;color:var(--ink);border-top:1px solid var(--rule)}
+  .scount+.sr{border-top:0}
+  .sr:hover,.sr.on{background:var(--accent-wash)}
+  .sr .sk{font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);text-align:right}
+  .sr b{font-family:var(--serif);font-size:16.5px;font-weight:600;line-height:1.35}
+  .sr .ss{grid-column:2;font-size:12.5px;color:var(--ink-3);line-height:1.35}
+  .sall{margin:0;padding:13px 20px;border-top:1px solid var(--rule);font-family:var(--serif);font-size:16.5px}
+  .sall a{color:var(--accent)}
+  @media (max-width:560px){.sr{grid-template-columns:1fr}.sr .sk{text-align:left}.sr .ss{grid-column:1}.sdlg{padding-top:8vh}}
+  @media print{.pulse,.sdlg{display:none!important}}
+</style>
+<script is:inline define:vars={{ BASE: u("/") }}>
+  (function () {
+    var dlg = document.getElementById("sdlg"), box = document.getElementById("sdq"), res = document.getElementById("sdres"), all = document.getElementById("sdall");
+    if (!dlg || !box) return;
+    var HINT = res.innerHTML, idx = null, loading = null, timer, opener = null, act = -1, root = BASE.replace(/\/$/, "");
+    var ORDER = ["Page", "Person", "Record", "Place", "Household", "Document", "Correction"], SHOW = 12;
+    /* the folding and the ranking are the kit's (Search.astro): accents both ways, typography never a spelling, a match at the front of
+       the title first. This MUST stay the same as fold() there and in searchkit.py, or a name the index holds is not found here. */
+    var PAIRS = [["đ","d"],["Đ","D"],["ð","d"],["Ð","D"],["ø","o"],["Ø","O"],["œ","oe"],["Œ","OE"],["æ","ae"],["Æ","AE"],["ß","ss"],["ł","l"],["Ł","L"],["ħ","h"],["Ħ","H"],["ı","i"],["İ","I"],["ŧ","t"],["Ŧ","T"],["þ","th"],["Þ","TH"],["ĸ","k"],["ŉ","n"],["’","'"],["‘","'"],["“",'"'],["”",'"'],["–","-"],["—","-"],["−","-"],["­",""],[" "," "],["​",""]];
+    function fold(s) { s = String(s == null ? "" : s); for (var i = 0; i < PAIRS.length; i++) s = s.split(PAIRS[i][0]).join(PAIRS[i][1]); return s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase(); }
+    function squash(s) { return fold(s).replace(/[^a-z0-9]+/g, ""); }
+    function esc(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+    function load() {
+      if (idx) return Promise.resolve(idx);
+      if (!loading) loading = fetch(root + "/searchindex.json").then(function (r) { return r.json(); }).then(function (d) { idx = d; return d; });
+      return loading;
+    }
+    function open(from) {
+      opener = from || document.activeElement; dlg.hidden = false; document.documentElement.style.overflow = "hidden";
+      load(); box.focus(); box.select();
+    }
+    function close() {
+      dlg.hidden = true; document.documentElement.style.overflow = "";
+      if (opener && opener.focus) opener.focus();
+    }
+    function links() { return [].slice.call(res.querySelectorAll("a.sr")); }
+    function mark(n) {
+      var a = links(); if (!a.length) return;
+      act = (n + a.length) % a.length;
+      a.forEach(function (x, i) { x.classList.toggle("on", i === act); });
+      a[act].scrollIntoView({ block: "nearest" });
+    }
+    function run() {
+      var v = box.value.trim(); act = -1;
+      all.href = root + "/search/" + (v ? "?q=" + encodeURIComponent(v) : "");
+      if (v.length < 2) { res.innerHTML = HINT; return; }
+      load().then(function (rows) {
+        if (box.value.trim() !== v) return;
+        var lower = v.toLowerCase(), folded = fold(v), tight = squash(v), hits = [];
+        for (var i = 0; i < rows.length; i++) {
+          var r = rows[i], hay = r.q || "";
+          if (hay.indexOf(lower) === -1 && hay.indexOf(folded) === -1 && (tight.length < 2 || hay.indexOf(tight) === -1)) continue;
+          var t = fold(String(r.t || "").toLowerCase());
+          hits.push([t.indexOf(folded) === 0 ? 0 : t.indexOf(folded) > -1 ? 1 : 2, r]);
+        }
+        hits.sort(function (a, b) {
+          var ka = ORDER.indexOf(a[1].k), kb = ORDER.indexOf(b[1].k);
+          return a[0] - b[0] || (ka < 0 ? 99 : ka) - (kb < 0 ? 99 : kb) || String(a[1].t).localeCompare(String(b[1].t));
+        });
+        if (!hits.length) { res.innerHTML = '<p class="snone">Nothing found for <i>' + esc(v) + '</i>. That may mean it has not been read yet.</p>'; return; }
+        var html = '<p class="scount">' + hits.length.toLocaleString() + (hits.length === 1 ? " result" : " results") + (hits.length > SHOW ? ", the first " + SHOW : "") + "</p>";
+        hits.slice(0, SHOW).forEach(function (h) {
+          var r = h[1];
+          html += '<a class="sr" role="option" href="' + root + esc(r.h) + '"><span class="sk">' + esc(r.k) + "</span><b>" + esc(r.t) + "</b>" + (r.s ? '<span class="ss">' + esc(r.s) + "</span>" : "") + "</a>";
+        });
+        res.innerHTML = html; mark(0);
+      });
+    }
+    document.addEventListener("click", function (e) {
+      var o = e.target.closest("[data-search-open]");
+      if (o) { e.preventDefault(); open(o); return; }
+      if (dlg.hidden) return;
+      if (e.target === dlg || e.target.closest(".sx")) { close(); return; }
+      var t = e.target.closest(".stry"); if (t) { box.value = t.getAttribute("data-q"); box.focus(); run(); }
+    });
+    document.addEventListener("pointerover", function (e) { if (!idx && e.target.closest && e.target.closest("[data-search-open]")) load(); }, { passive: true });
+    document.addEventListener("keydown", function (e) {
+      var typing = /^(INPUT|TEXTAREA|SELECT)$/.test((e.target.tagName || "")) || e.target.isContentEditable;
+      if (dlg.hidden) {
+        if ((e.key === "/" && !typing && !e.metaKey && !e.ctrlKey && !e.altKey) || ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k")) { e.preventDefault(); open(document.activeElement); }
+        return;
+      }
+      if (e.key === "Escape") { e.preventDefault(); close(); }
+      else if (e.key === "ArrowDown") { e.preventDefault(); mark(act + 1); }
+      else if (e.key === "ArrowUp") { e.preventDefault(); mark(act - 1); }
+      else if (e.key === "Enter" && e.target === box) {
+        var a = links(); e.preventDefault();
+        location.href = a.length && act > -1 ? a[act].href : all.href;
+      }
+    });
+    box.addEventListener("input", function () { clearTimeout(timer); timer = setTimeout(run, 90); });
+  })();
+</script>
