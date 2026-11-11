@@ -37,7 +37,7 @@ const week = pulse.week;
     <p class="wn-figs">
       {tiles(pulse).map(([n, l]) => <span><b>{n}</b> {l}</span>)}
     </p>
-    <p class="wn-week">In the seven days to {fmtDay(pulse.latest)}: <b>{week.found}</b> searches found something, <b>{week.nil}</b> found nothing, <b>{week.corrected}</b> claims corrected.</p>
+    <p class="wn-week">In the seven days to {fmtDay(pulse.latest)}: <b>{week.found}</b> searches found something, <b>{week.nil}</b> found nothing, <b>{week.corrected}</b> {week.corrected === 1 ? "claim" : "claims"} corrected.</p>
   </section>
   <p class="wn-count" id="wn-count" aria-live="polite"></p>
 
