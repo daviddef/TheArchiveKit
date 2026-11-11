@@ -2,7 +2,7 @@
 /* ONE DAY of /whats-new/ (kit component, 12 November 2026; the rows laid out as Record Atlas lays out its research days):
    the date on the rule, then a card per change. A day's searches fold into ONE «Research» card that opens onto GROUPS (one per provider:
    Antenati, FamilySearch…), each with its tally and rows of three columns: the SOURCE'S NAME as a link (to the record itself when the row has
-   an address, else to the archive's log), the place and the sentence beneath; a pill (✅ Found something, ❌ Nothing found); the pages.
+   an address, else to the archive's page that tells it, else to the log; the page that tells it is also named after the place), the place and the sentence beneath; a pill (✅ Found something, ❌ Nothing found); the pages.
    The first ten rows of a group show, the rest sit under «Show the other N». Each correction is a card of its own.
    props: d (a day of buildPulse), logHref */
 import { u } from "../lib/url.js";
@@ -43,8 +43,7 @@ const isExt = (e) => !!e.ext;
                   <a class="wn-ta" href={hrefOf(e)} rel={isExt(e) ? "noopener" : undefined} title={isExt(e) ? "Open the record at its source" : undefined}>{e.title}{isExt(e) && <span class="wn-ext" aria-hidden="true"> ↗</span>}</a>
                   {e.place && <span class="wn-rp">{e.place}</span>}
                   {e.walked && <span class="wn-rw" title="every entry of the book was read">walked</span>}
-                  {e.story && e.ext && <a class="wn-told" href={u(e.story)}>told here →</a>}
-                  {e.story && e.src && e.src !== e.title && <span class="wn-rp">{e.src}</span>}
+                  {e.story && <a class="wn-told" href={u(e.story)}>{e.head} →</a>}
                   {e.more && e.more !== e.title && <p class="wn-rm">{e.more}</p>}
                 </div>
                 <div class="wn-rc"><span class={`wn-rs ${e.kind}`} title={KIND[e.kind].note}><i aria-hidden="true">{mark[e.kind][0]}</i> {mark[e.kind][1]}</span></div>

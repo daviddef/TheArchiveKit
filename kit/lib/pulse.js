@@ -134,8 +134,8 @@ export function buildPulse(o = {}) {
       iso: w.iso, exact: w.exact, kind, order: i,
       head: ev ? clean(ev[1]) : clip(first(r, F.what) || first(r, F.src), 120),
       /* what a row shows: the SOURCE'S NAME as its title (linked to the record itself when the row has an address), the sentence beneath */
-      title: ev ? clean(ev[1]) : srcText || clip(first(r, F.what), 120),
-      more: srcText || ev ? clip(first(r, F.what), 260) : "",
+      title: srcText || clip(first(r, F.what), 120) || (ev ? clean(ev[1]) : ""),
+      more: srcText ? clip(first(r, F.what), 260) : "",
       src: clip(first(r, F.src), 110),
       provider: providerOf(first(r, F.src)),
       ext: extUrl(r, F.url),
