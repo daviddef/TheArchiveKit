@@ -17,6 +17,26 @@ const CASES = [
   { id: "record-year-is-not-a-date", searched: [{ when: "1814", what: "a record year", outcome: "found" }, { when: "2024", what: "a bare year", outcome: "found" }, { when: "Arienzo 1890–1900: the printed tavolae", what: "x", outcome: "found" }],
     want: (p) => p.entries.length === 0 && p.days.length === 0 },
   { id: "future-date", searched: [{ when: "2027-03-01", what: "typo", outcome: "yield" }], want: (p) => p.entries.length === 0 },
+  /* a work date is the researcher's LOCAL day; the build day (`today`) is UTC. One day ahead is real (Australia is UTC+10/11), two is a typo (12 Nov 2026) */
+  { id: "today-kept", searched: [{ when: "2026-11-11", what: "x", outcome: "yield" }], want: (p) => p.entries.length === 1 && p.latest === "2026-11-11" },
+  { id: "one-day-ahead-kept", searched: [{ when: "2026-11-12", what: "x", outcome: "yield" }, { when: "12 Nov 2026", what: "y", outcome: "nothing" }],
+    want: (p) => p.entries.length === 2 && p.latest === "2026-11-12" && p.days.length === 1 && p.days[0].iso === "2026-11-12" },
+  { id: "two-days-ahead-dropped", searched: [{ when: "2026-11-13", what: "x", outcome: "yield" }, { when: "13 Nov 2026", what: "y", outcome: "yield" }],
+    want: (p) => p.entries.length === 0 && p.latest === "" },
+  { id: "invalid-date-dropped", searched: [{ when: "2026-13-01", what: "month 13", outcome: "yield" }, { when: "tomorrow", what: "a word", outcome: "yield" }, { when: "", what: "empty", outcome: "yield" }, { what: "no date", outcome: "yield" }, { when: "32 Nov 2026", what: "day 32", outcome: "yield" }],
+    want: (p) => p.entries.length === 0 && p.counts.logged === 5 },
+  { id: "corrections-one-day-ahead", searched: [], corrections: [{ date: "2026-11-12", what: "ahead by one" }, { date: "2026-11-13", what: "ahead by two" }, { date: "2026-11-11", what: "today" }],
+    want: (p) => p.entries.length === 2 && !p.entries.some((e) => e.iso === "2026-11-13") && p.days[0].iso === "2026-11-12" && p.days[0].corrections.length === 1 },
+  /* the seven days count back from `latest` (the newest work date), so a row a day ahead is the newest day and is in the week */
+  { id: "week-window-with-day-ahead", searched: [{ when: "2026-11-12", what: "a", outcome: "yield" }, { when: "2026-11-06", what: "b", outcome: "yield" }, { when: "2026-11-05", what: "c", outcome: "yield" }, { when: "2026-11-12", what: "d", outcome: "nothing" }],
+    want: (p) => p.latest === "2026-11-12" && p.weekFrom === "2026-11-06" && p.week.found === 2 && p.week.nil === 1 && p.total.found === 3 },
+  /* o.today overrides the build day, and the day after it is computed across month, year and leap-day ends */
+  { id: "today-override", today: "2026-11-30", searched: [{ when: "2026-12-01", what: "next month, one day ahead", outcome: "yield" }, { when: "2026-12-02", what: "two ahead", outcome: "yield" }, { when: "2026-11-11", what: "past", outcome: "yield" }],
+    want: (p) => p.entries.length === 2 && p.latest === "2026-12-01" },
+  { id: "today-override-year-end", today: "2026-12-31", searched: [{ when: "2027-01-01", what: "new year, one day ahead", outcome: "yield" }, { when: "2027-01-02", what: "two ahead", outcome: "yield" }],
+    want: (p) => p.entries.length === 1 && p.latest === "2027-01-01" },
+  { id: "today-override-leap-day", today: "2028-02-28", searched: [{ when: "2028-02-29", what: "leap day", outcome: "yield" }, { when: "2028-03-01", what: "two ahead", outcome: "yield" }],
+    want: (p) => p.entries.length === 1 && p.latest === "2028-02-29" },
   { id: "status-for-outcome", searched: [{ when: "2026-11-01", scope: "a scope", status: "found" }, { when: "2026-11-01", scope: "b", outcome: "no Falco" }, { when: "2026-11-01", scope: "c", status: "outstanding" }],
     want: (p) => p.entries.length === 2 && p.entries.filter((e) => e.kind === "nil").length === 1 },
   { id: "corrections-by-date", searched: [], corrections: { rows: [{ date: "2026-11-09", what_was_said: "a claim withdrawn" }, { what: "undated" }] },
@@ -39,7 +59,7 @@ const TILES = (lib) => lib.tiles({ counts: { people: 0, sources: 5, logged: 3, w
 async function failing(lib) {
   const out = [];
   for (const c of CASES) {
-    let p; try { p = lib.buildPulse({ searched: c.searched, corrections: c.corrections, outcomeMap: c.outcomeMap, today: TODAY }); } catch (e) { out.push(c.id); continue; }
+    let p; try { p = lib.buildPulse({ searched: c.searched, corrections: c.corrections, outcomeMap: c.outcomeMap, today: c.today || TODAY }); } catch (e) { out.push(c.id); continue; }
     if (!c.want(p)) out.push(c.id);
   }
   if (TILES(lib) !== "searches,tasks done,sources") out.push("tiles-hide-zero");
@@ -50,13 +70,25 @@ const fails = await failing(real);
 ok("the real library passes every case (" + (CASES.length + 1) + ")", fails.length === 0, fails.join(", "));
 for (const c of CASES) ok("case " + c.id, !fails.includes(c.id));
 
+/* with no o.today the build day is now, in UTC: a row dated tomorrow-UTC is kept, one dated the day after that is not (this is the line the Falco rows hit) */
+{
+  const iso = (days) => new Date(Date.now() + days * 864e5).toISOString().slice(0, 10);
+  const p = real.buildPulse({ searched: [{ when: iso(1), what: "a", outcome: "yield" }, { when: iso(2), what: "b", outcome: "yield" }, { when: iso(0), what: "c", outcome: "yield" }] });
+  /* (a build that straddles 00:00 UTC while this runs could move the day by one; the dates were taken a moment before the build) */
+  ok("no o.today: the UTC day, tomorrow and the day after (kept, kept, dropped)", p.entries.length === 2 && p.latest === iso(1), p.entries.length + " entries, latest " + p.latest);
+}
+ok("dayAfter: month, year and leap-day ends", real.dayAfter("2026-11-30") === "2026-12-01" && real.dayAfter("2026-12-31") === "2027-01-01" && real.dayAfter("2028-02-28") === "2028-02-29" && real.dayAfter("2026-02-28") === "2026-03-01");
+
 /* the rules shown to bite: break one in a copy, and the case it guards must fail */
 const src = fs.readFileSync(libPath, "utf8");
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "pulse-"));
 /* pulse.js imports ./receipts.js (12 November 2026): the copies need it beside them, as an ES module */
 fs.copyFileSync(path.join(here, "..", "lib", "receipts.js"), path.join(tmp, "receipts.js")); fs.writeFileSync(path.join(tmp, "package.json"), '{"type":"module"}');
 const BREAK = [
-  ["future-date", "&& w.iso <= today", ""],
+  ["future-date", "&& w.iso <= tomorrow", ""],
+  ["one-day-ahead-kept", "const tomorrow = dayAfter(today);", "const tomorrow = today;"],
+  ["two-days-ahead-dropped", "const tomorrow = dayAfter(today);", "const tomorrow = dayAfter(dayAfter(today));"],
+  ["today-override", "const today = o.today ||", "const today = "],
   ["record-year-is-not-a-date", "if (!m) return null;\n  const mo = MON", "if (!m) return { iso: t.slice(0,4)+'-01-01', exact: false };\n  const mo = MON"],
   ["iso-and-note", '!("_note" in r)', "true"],
   ["source-name-link-group", "/^https?:\\/\\//i.test(x.trim())", "true"],

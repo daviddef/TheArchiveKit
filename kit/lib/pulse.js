@@ -64,6 +64,9 @@ export function parseWhen(s) {
   return { iso: `${m[3]}-${String(mo + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`, exact: !!m[1] };
 }
 
+/* the calendar day after an ISO day ("2026-11-12" → "2026-11-13"), by UTC arithmetic: no locale, no local time zone, and month and year ends roll over */
+export const dayAfter = (iso) => new Date(Date.parse(iso + "T00:00:00Z") + 864e5).toISOString().slice(0, 10);
+
 const clean = (s) => String(s == null ? "" : s).replace(/\[([^\]]*)\]\([^)]*\)/g, "$1").replace(/[*_`]/g, "").replace(/\s+/g, " ").trim();
 export const clip = (s, n) => {
   s = clean(s);
@@ -126,6 +129,7 @@ const FIELDS = {
  *   searched / corrections / worklist: the archive's JSON, whatever its shape (see rowsOf)
  *   counts: { people, sources } the archive passes in (the one thing it knows that no log holds); logged, walked, corrections, done, open are computed
  *   logHref / correctionsHref: where the archive's own pages are ("/searched/", "/corrections/")
+ *   today: "YYYY-MM-DD", the build's UTC day (default: now). A work date up to ONE DAY after it is kept (the researcher's local day can be ahead of UTC); later is dropped.
  *   receipts: { live, main, asOf } from loadReceipts() (kit/lib/receipts.js), or null/absent: the entries then carry no Atlas state and nothing else changes
  */
 export function buildPulse(o = {}) {
@@ -133,8 +137,11 @@ export function buildPulse(o = {}) {
   const OUT = { ...OUTCOME, ...(o.outcomeMap || {}) };
   const logHref = o.logHref || "/searched/", corHref = o.correctionsHref || "/corrections/";
   const today = o.today || new Date().toISOString().slice(0, 10);
-  const maxYear = +today.slice(0, 4) + 1;
-  const okDate = (w) => w && +w.iso.slice(0, 4) >= 2020 && +w.iso.slice(0, 4) <= maxYear && w.iso <= today;
+  /* a work date is the researcher's LOCAL day, and the build's `today` is UTC: a researcher in Australia (UTC+10/11) writes tomorrow's date for up to
+     ~11 hours, and one at UTC+14 for 14. So a date up to ONE DAY after `today` is a real date (kept); two days or more after is a typo (left out).
+     Every date check below (the log's rows and the corrections') goes through okDate, so the two cannot disagree. */
+  const tomorrow = dayAfter(today);
+  const okDate = (w) => w && +w.iso.slice(0, 4) >= 2020 && w.iso <= tomorrow;
 
   const log = rowsOf(o.searched), cor = rowsOf(o.corrections);
   const rc = o.receipts && (o.receipts.live || o.receipts.main) ? o.receipts : null;
@@ -207,6 +214,8 @@ export function buildPulse(o = {}) {
     for (const c of d.corrections) cards.push({ type: "corrected", iso: d.iso, exact: d.exact, head: c.head, href: c.href });
     if (d.research.length) cards.push({ type: "research", iso: d.iso, exact: d.exact, head: d.summary + d.tally, href: "/whats-new/#d" + d.key });
   }
+  /* `latest` is the newest WORK date in the log, which may be `today`'s tomorrow (see okDate); the seven days are counted back from it, not from `today`,
+     so a row dated a day ahead is the newest day and is inside the week. The header says "to <latest>" and means the newest day the work was done. */
   const latest = entries.length ? entries[0].iso : "";
   const weekFrom = latest ? new Date(Date.parse(latest + "T00:00:00Z") - 6 * 864e5).toISOString().slice(0, 10) : "";
   const week = {}, total = {};
