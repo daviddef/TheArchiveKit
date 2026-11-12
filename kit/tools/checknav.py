@@ -57,9 +57,14 @@ import outdir  # noqa: E402
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 CANON_FILE = os.path.join(HERE, "..", "data", "evidence-menu.json")
+# --canon research is the Research menu (12 November 2026); --canon evidence is the old canon, still the default until all
+# eight archives have moved. Any other value is a path.
+CANONS = {"evidence": CANON_FILE,
+          "research": os.path.join(HERE, "..", "data", "research-menu.json")}
 
 
 def load_canon(path=CANON_FILE):
+    path = CANONS.get(path, path)
     with open(path, encoding="utf-8") as f:
         return json.load(f)
 
@@ -170,11 +175,16 @@ def audit(dist, canon):
     got = [e["key"] for e in entries if e["kind"] == "core"]
     if got != sorted(got, key=want_order.index):
         problems["order"] = got
-    # core entries should lead, optional follow, nothing else interleaved
+    # core entries should lead, optional follow, nothing else interleaved. A GROUPED canon (the Research menu) reads the core pages
+    # in the order of its groups and lets an archive's own pages stand between them (deep dives sit in Sources & method).
     kinds = [e["kind"] for e in entries]
     first_other = next((i for i, k in enumerate(kinds) if k != "core"), len(kinds))
-    interleaved = any(k == "core" for k in kinds[first_other:])
+    interleaved = (not canon.get("grouped")) and any(k == "core" for k in kinds[first_other:])
     extras = [e for e in entries if e["kind"] in ("fold", "local")]
+    # a canon that allows local pages in the menu (local_ok) reports them, and does not count them as a departure;
+    # a FOLD (a page doing a core page's job under another name) is still a departure
+    local_ok = bool(canon.get("local_ok"))
+    departing = [e for e in extras if not (local_ok and e["kind"] == "local")]
     # Pages that do a core page's job but have been moved out of Evidence into
     # the overflow group. That is the right interim home and not a departure, but
     # it is work that is not finished, so it is named on every run.
@@ -184,7 +194,7 @@ def audit(dist, canon):
         if route in fold_of:
             parked.append(dict(route=route, label=label, key=fold_of[route]))
     ok = not (problems["absent"] or problems["unlinked"] or problems["label"]
-              or problems["order"] or interleaved or extras)
+              or problems["order"] or interleaved or departing)
     return dict(dist=dist, base=base, entries=entries, problems=problems,
                 interleaved=interleaved, extras=extras, parked=parked, ok=ok,
                 total=len(entries), overflow=len(over))
@@ -216,7 +226,10 @@ def render(a, canon):
         if folds:
             out.append("  FOLD     %d page(s) do a core page's job: %s" % (
                 len(folds), "; ".join("%s -> %s" % (e["label"], e["key"]) for e in folds)))
-        if local:
+        if local and canon.get("local_ok"):
+            out.append("  LOCAL    %d page(s) of the archive's own, allowed in %s: %s" % (
+                len(local), canon["group"], "; ".join(e["label"] for e in local)))
+        elif local:
             out.append("  LOCAL    %d page(s) to move to %s: %s" % (
                 len(local), canon["overflow"]["label"], "; ".join(e["label"] for e in local)))
     if a["overflow"]:
@@ -233,7 +246,8 @@ def render(a, canon):
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--dist", default="site/dist")
-    ap.add_argument("--canon", default=CANON_FILE)
+    ap.add_argument("--canon", default=CANON_FILE,
+                    help="'research' (the Research menu), 'evidence' (the old canon, the default) or a path to a canon file")
     ap.add_argument("--strict", action="store_true", help="exit 1 on any departure")
     ap.add_argument("--json", action="store_true")
     args = ap.parse_args(argv)

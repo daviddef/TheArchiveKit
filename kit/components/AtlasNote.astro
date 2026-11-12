@@ -1,0 +1,44 @@
+---
+/* THE NOTE AT THE TOP OF A PAGE WHOSE REGISTERS AND PLACES ARE ALSO ON THE RECORD ATLAS.
+   The kit's one copy (12 November 2026), taken from the Defranceski research-menu trial and Lerena's version, which added the
+   three wording props; six archives had each kept a local copy. The Atlas holds the shared map of registers and places; a page
+   that carries one keeps what only its archive has: what it has read, walked or concluded. The note says which is which, once,
+   before the page begins, and links only Atlas pages that exist (fetch each address and see a 200 before you put it here).
+   Nothing on the page below it is removed.
+     atlas      [[label, href]]            where the same registers and places are on the Atlas
+     only       [[label, href, what]]      what only this archive holds here, with where on this page it starts
+     atlasHead  heading over the Atlas column      (default "The registers and places themselves")
+     para, tail the sentence under the Atlas links: `{para} Record Atlas {tail}` */
+import { u } from "../lib/url.js";
+const { atlas = [], only = [], atlasHead = "The registers and places themselves", para = "These are on the",
+        tail = "as well. The page below is this archive's own account of them, in full." } = Astro.props;
+---
+<aside class="atlas-note" aria-label="What is here and what is on the Record Atlas">
+  <div class="an-col">
+    <div class="an-h">Only this archive holds</div>
+    <ul>
+      {only.map(([label, href, what]) => (
+        <li><a href={href.startsWith("#") ? href : u(href)}>{label}</a>{what ? <span class="an-w"> — {what}</span> : null}</li>
+      ))}
+    </ul>
+  </div>
+  <div class="an-col">
+    <div class="an-h">{atlasHead}</div>
+    <ul>
+      {atlas.map(([label, href]) => (
+        <li><a href={href} target="_blank" rel="noopener">{label} ↗</a></li>
+      ))}
+    </ul>
+    <p class="an-p">{para} <a href="https://recordatlas.org/" target="_blank" rel="noopener">Record Atlas</a> {tail}</p>
+  </div>
+</aside>
+<style>
+  .atlas-note { display: grid; grid-template-columns: 1.4fr 1fr; gap: 6px 28px; margin: 6px 0 30px; padding: 16px 20px;
+                border: 1px solid var(--rule, #dcd6cc); border-left: 3px solid var(--accent, #8a5a3b); border-radius: 3px;
+                background: var(--panel-2, transparent); font-size: 14.5px; line-height: 1.55; }
+  .an-h { font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase; opacity: .65; margin-bottom: 6px; font-weight: 600; }
+  .atlas-note ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; }
+  .an-w { opacity: .8; }
+  .an-p { margin: 10px 0 0; font-size: 13px; opacity: .8; }
+  @media (max-width: 760px) { .atlas-note { grid-template-columns: 1fr; } }
+</style>
