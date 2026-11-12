@@ -6,12 +6,21 @@
    Nothing is written by hand: every line is a row of the archive's search log or corrections list, computed by kit/lib/pulse.js.
    The newest 25 days are open; the rest sit under «Earlier». The badges and the word box filter in the browser.
    The archive's page wraps this in its own layout (title, eyebrow, dek, noautolink) and passes `pulse`; see kit/docs/whats-new.md.
+   RECEIPTS (12 November 2026; kit/docs/whats-new-receipts.md): with `atlasId` (the archive's id in the Atlas's research-receipts) each search row gets a
+   second line, the Atlas state and the pages the finding went into, the day tallies say «N of M in the Atlas», and a small script asks the Atlas
+   again when the page is opened. Without it the page is drawn exactly as before.
    props: pulse (buildPulse), logHref ("/searched/"), correctionsHref ("/corrections/"), askHref (a page for "know something we do not?", or none),
-          tries (the example words of the filter box) */
+          tries (the example words of the filter box), atlasId (REQUIRED to wire it, one of blazevic booyzen darcy defranceschi falco lerena luwinski mazza; none = not wired, drawn as before), liveUrl / mainUrl (the two receipt addresses; only a demo overrides them) */
 import { u } from "../lib/url.js";
 import { CARD, fmtDay, nf, tiles } from "../lib/pulse.js";
+import { ARCHIVE_IDS, LIVE_URL, MAIN_URL } from "../lib/receipts.js";
+import receiptsClient from "../lib/receipts.client.js?raw";
 import WhatsNewDay from "./WhatsNewDay.astro";
-const { pulse, logHref = "/searched/", correctionsHref = "/corrections/", askHref = "", tries = "" } = Astro.props;
+const { pulse, logHref = "/searched/", correctionsHref = "/corrections/", askHref = "", tries = "", atlasId = "", liveUrl = "", mainUrl = "" } = Astro.props;
+const wired = !!atlasId || !!pulse.atlas;
+/* atlasId is REQUIRED once the page is wired (receipts in the pulse, or any atlasId) and must be one of the Atlas's ids: a typo here would silently read no receipts */
+if (wired && !ARCHIVE_IDS.includes(atlasId)) throw new Error(`WhatsNew: atlasId must be one of ${ARCHIVE_IDS.join(", ")} (got "${atlasId}"). Defranceski is "defranceschi".`);
+const asOf = pulse.atlas && pulse.atlas.asOf ? fmtDay(pulse.atlas.asOf) : "";
 const SHOWN = 25;
 const days = pulse.days;
 const recent = days.slice(0, SHOWN), earlier = days.slice(SHOWN);
@@ -37,17 +46,22 @@ const week = pulse.week;
     </p>
     <p class="wn-week">In the seven days to {fmtDay(pulse.latest)}: <b>{week.found}</b> {week.found === 1 ? "search" : "searches"} found something, <b>{week.nil}</b> found nothing, <b>{week.corrected}</b> {week.corrected === 1 ? "claim" : "claims"} corrected.</p>
   </section>
+  {wired && (
+    <p class="wn-asof" id="wn-asof" hidden={!pulse.atlas} data-archive={atlasId || undefined} data-live={atlasId ? liveUrl || LIVE_URL(atlasId) : undefined} data-main={atlasId ? mainUrl || MAIN_URL(atlasId) : undefined}>
+      <span class="wn-asof-t">{pulse.atlas ? `Record Atlas status as of ${asOf}, when this page was built.` : ""}</span>
+    </p>
+  )}
   <p class="wn-count" id="wn-count" aria-live="polite"></p>
 
   <ol class="wn-line" id="wn-list">
-    {recent.map((d) => <WhatsNewDay d={d} logHref={logHref} />)}
+    {recent.map((d) => <WhatsNewDay d={d} logHref={logHref} wired={wired} />)}
   </ol>
 
   {earlier.length > 0 && (
     <details class="wn-older" id="wn-older2">
       <summary>Earlier: {earlier.length} more days, back to {fmtDay(oldest.iso, oldest.exact)}</summary>
       <ol class="wn-line" id="wn-list2">
-        {earlier.map((d) => <WhatsNewDay d={d} logHref={logHref} />)}
+        {earlier.map((d) => <WhatsNewDay d={d} logHref={logHref} wired={wired} />)}
       </ol>
     </details>
   )}
@@ -100,6 +114,28 @@ const week = pulse.week;
   a.wn-head:hover{color:var(--accent)}
   .wn-go{color:var(--accent);white-space:nowrap}
   .wn-tl{font-family:var(--sans);font-size:12.5px;color:var(--ink-3);margin-left:2px}
+  .wn-atl{color:var(--ink-2)}
+  .wn-asof{margin:-14px 0 18px;font-family:var(--sans);font-size:12.5px;color:var(--ink-3)}
+  .wn-asof[hidden]{display:none}
+  /* the second line under a row: the Atlas state, then the pages the finding went into */
+  .wn-rx{grid-column:1/-1;min-width:0;display:flex;flex-wrap:wrap;align-items:center;gap:4px 14px;margin:1px 0 2px;font-size:12.5px;color:var(--ink-3)}
+  .wn-rx:empty{display:none}
+  .wn-ax{display:inline-flex;flex-wrap:wrap;align-items:center;gap:2px 8px}
+  .wn-ax[hidden]{display:none}
+  .wn-at{display:inline-flex;align-items:center;gap:4px;padding:0 8px;border-radius:999px;border:1px solid var(--rule-strong,var(--rule));font-size:11.5px;font-weight:600;line-height:1.7;color:var(--ink-2);text-decoration:none;white-space:nowrap;background:transparent}
+  .wn-at i{font-style:normal;font-size:11px}
+  .wn-seeit{font-size:12px;color:var(--accent);text-decoration:none;white-space:nowrap}.wn-seeit:hover{text-decoration:underline}
+  .wn-at.in-atlas{background:var(--accent-wash,rgba(31,92,107,.1));border-color:var(--accent);color:var(--accent)}
+  .wn-at.going-live{border-style:dashed;border-color:var(--accent);color:var(--ink-2)}
+  .wn-at.not-sent{border-style:dotted;color:var(--ink-3)}
+  .wn-at.nothing-to-send{border-color:transparent;padding-left:0;font-weight:400;color:var(--ink-3)}
+  .wn-am{font-size:12px}.wn-am>summary{cursor:pointer;display:inline;color:var(--accent)}
+  .wn-am a{margin-left:8px;color:var(--accent);text-decoration:none}.wn-am a:hover{text-decoration:underline}
+  .wn-up{display:inline-flex;flex-wrap:wrap;align-items:baseline;gap:2px 6px;min-width:0;max-width:100%}
+  .wn-upl{font-family:var(--mono);font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-3)}
+  .wn-pg{display:inline-block;max-width:min(36ch,100%);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:bottom;padding:0 7px;border-radius:4px;border:1px solid var(--rule);font-size:12px;line-height:1.6;color:var(--accent);text-decoration:none}
+  .wn-pg:hover{border-color:var(--accent);text-decoration:underline}
+  .wn-lo{font-size:12px;font-style:italic;color:var(--ink-3)}
   .wn-rday{flex:1;min-width:0}
   .wn-rday>summary{cursor:pointer}
   /* a provider's group: a ruled header with its tally, rows in three aligned columns (as Record Atlas lays out a research day) */
@@ -118,7 +154,7 @@ const week = pulse.week;
   .wn-rt a.wn-ta:hover{text-decoration:underline}
   .wn-ext{font-weight:400;font-size:12px}
   .wn-rp{margin-left:8px;font-size:12.5px;font-weight:400;color:var(--ink-3)}
-  .wn-told{margin-left:8px;font-size:12.5px;font-weight:400;color:var(--accent);text-decoration:none;white-space:nowrap}
+  .wn-told{margin-left:8px;font-size:12.5px;font-weight:400;color:var(--accent);text-decoration:none;display:inline-block;max-width:100%;vertical-align:bottom}
   .wn-told:hover{text-decoration:underline}
   .wn-rw{margin-left:8px;font-family:var(--mono);font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-3);border:1px solid var(--rule);border-radius:3px;padding:1px 5px}
   .wn-rm{margin:3px 0 0;font-size:13px;font-weight:400;line-height:1.5;color:var(--ink-3)}
@@ -182,3 +218,4 @@ const week = pulse.week;
     if(location.hash&&location.hash.indexOf("#d")===0){var t=document.getElementById(location.hash.slice(1)); if(t){var det=t.querySelector(".wn-rday"); if(det)det.open=true; var o=t.closest("#wn-older2"); if(o)o.open=true;}}
   })();
 </script>
+{atlasId && <script is:inline set:html={receiptsClient} />}

@@ -4,10 +4,24 @@
    Antenati, FamilySearch…), each with its tally and rows of three columns: the SOURCE'S NAME as a link (to the record itself when the row has
    an address, else to the archive's page that tells it, else to the log; the page that tells it is also named after the place), the place and the sentence beneath; a pill (✅ Found something, ❌ Nothing found); the pages.
    The first ten rows of a group show, the rest sit under «Show the other N». Each correction is a card of its own.
-   props: d (a day of buildPulse), logHref */
+   When the archive has wired the receipts (WhatsNew passes `wired`), each row also has a second line beneath it (12 November 2026): the ATLAS state
+   (In the Atlas / Sent, going live / Not sent yet / Nothing to send, a pill that says it in words and in its outline, not by colour alone; «see it in the Atlas» links to the Atlas PAGE, never claiming the volume's row) and the
+   pages the finding went into (the row's `ev`, as links; or «log only»), and the day's tally says «N of M in the Atlas». lib/receipts.client.js
+   refreshes the pills at view time; the rows carry data-key and data-state for it. Without `wired` the day is drawn exactly as before.
+   props: d (a day of buildPulse), logHref, wired */
 import { u } from "../lib/url.js";
 import { CARD, KIND, pagesLabel } from "../lib/pulse.js";
-const { d, logHref = "/searched/" } = Astro.props;
+import { STATE_LABEL } from "../lib/receipts.js";
+const { d, logHref = "/searched/", wired = false } = Astro.props;
+/* the Atlas pages after the first, one link per page: several marks can sit on one page (the receipts' hrefs are page paths, no anchors) */
+const otherPages = (a) => { const seen = new Set([a.href]); return a.marks.filter((m) => !seen.has(m[1]) && seen.add(m[1])); };
+const GLYPH = { "in-atlas": "✓", "going-live": "↻", "not-sent": "○", "nothing-to-send": "–" };
+const STATE_NOTE = {
+  "in-atlas": "The Record Atlas has this search, live now",
+  "going-live": "Sent to the Record Atlas; it goes live with the Atlas's next deploy (13 to 65 minutes)",
+  "not-sent": "Not yet sent to the Record Atlas",
+  "nothing-to-send": "Checked: this note makes no mark on the Record Atlas (no source or volume to put on it)",
+};
 const part = (iso, o) => new Date(iso + "T00:00:00Z").toLocaleDateString("en-GB", { ...o, timeZone: "UTC" });
 const long = d.exact ? part(d.iso, { day: "numeric", month: "long", year: "numeric" }) : part(d.iso, { month: "long", year: "numeric" });
 const mark = { found: ["✅", "Found something"], nil: ["❌", "Nothing found"], partial: ["◐", "Partly read"], blocked: ["⛔", "Blocked"] };
@@ -34,7 +48,7 @@ const isExt = (e) => !!e.ext;
       <li class="wn-item" data-type="research" data-q={d.research.map(qRow).join(" ")}>
         <span class="wn-chip2 research"><i aria-hidden="true">{CARD.research.glyph}</i> {CARD.research.label}</span>
         <details class="wn-rday">
-          <summary class="wn-head">{d.summary}{d.used}<span class="wn-tl">{d.tally}</span></summary>
+          <summary class="wn-head">{d.summary}{d.used}<span class="wn-tl">{d.tally}{wired && <span class="wn-atl">{d.atlasTally}</span>}</span></summary>
           {d.groups.map((g) => {
             const first = g.rows.slice(0, SHOW), rest = g.rows.slice(SHOW);
             const rowEl = (e) => (
@@ -48,6 +62,22 @@ const isExt = (e) => !!e.ext;
                 </div>
                 <div class="wn-rc"><span class={`wn-rs ${e.kind}`} title={KIND[e.kind].note}><i aria-hidden="true">{mark[e.kind][0]}</i> {mark[e.kind][1]}</span></div>
                 <div class="wn-rn">{pagesLabel(e.pages)}</div>
+                {wired && (
+                  <div class="wn-rx">
+                    <div class="wn-ax" data-key={e.key} data-state={e.atlas ? e.atlas.state : undefined} hidden={!e.atlas}>
+                      {e.atlas && <span class={`wn-at ${e.atlas.state}`} title={STATE_NOTE[e.atlas.state]}><i aria-hidden="true">{GLYPH[e.atlas.state]}</i> {STATE_LABEL[e.atlas.state]}</span>}
+                      {e.atlas && e.atlas.state === "in-atlas" && e.atlas.href && <a class="wn-seeit" href={e.atlas.href} rel="noopener" title="Opens the Record Atlas page that carries this search; the page, not the volume's own row">see it in the Atlas ↗</a>}
+                      {e.atlas && e.atlas.state === "in-atlas" && otherPages(e.atlas).length > 0 && (
+                        <details class="wn-am"><summary>and {otherPages(e.atlas).length} more {otherPages(e.atlas).length === 1 ? "page" : "pages"}</summary>{otherPages(e.atlas).map((m) => <a href={m[1]} rel="noopener">{m[0].replace(":", " ")} ↗</a>)}</details>
+                      )}
+                    </div>
+                    {(e.updated.pages.length > 0 || e.updated.logOnly) && (
+                      <div class="wn-up"><span class="wn-upl">Updated</span>{e.updated.pages.length > 0
+                        ? e.updated.pages.map((pg) => <a class="wn-pg" href={u(pg[0])} title={pg[1]}>{pg[1]}</a>)
+                        : <span class="wn-lo" title="The finding is in the search log only; no page of the archive was changed">log only</span>}</div>
+                    )}
+                  </div>
+                )}
               </div>
             );
             return (

@@ -9,7 +9,12 @@
  *
  * Counts only, and the text of entries that the archive's own log and corrections pages already print (clipped, never rewritten):
  * nothing about a living person that those pages do not already hold, and no person is counted by name.
+ *
+ * RECEIPTS (12 November 2026, kit/lib/receipts.js): every search entry also carries `key` (the row's identity), `updated` (the archive's pages the
+ * finding went into, from the row's `ev`, or logOnly) and, when the archive passes `receipts` ({live, main, asOf} from loadReceipts), `atlas`
+ * (whether the Record Atlas has the row). Without `receipts` the entries are as they were and `atlas` is null.
  */
+import { rowkey, stateOf } from "./receipts.js";
 
 /* the card kinds of the timeline (Record Atlas's vocabulary): a day's searches fold into ONE research card, each correction is its own */
 export const CARD = {
@@ -66,6 +71,16 @@ export const clip = (s, n) => {
   const c = s.slice(0, n), k = c.lastIndexOf(" ");
   return c.slice(0, k > n * 0.6 ? k : n).replace(/[,;:(—\-\s]+$/, "") + "…";
 };
+/* the pages a finding went into: the row's `ev` entries ["/path/", "label"], once each, in order; `logOnly` = the row says the finding stays in the log */
+const updatedOf = (r) => {
+  const seen = new Set(), pages = [];
+  for (const e of Array.isArray(r.ev) ? r.ev : []) {
+    if (!Array.isArray(e) || typeof e[0] !== "string" || !e[0].startsWith("/") || e[0].startsWith("//") || seen.has(e[0])) continue;
+    seen.add(e[0]);
+    pages.push([e[0], clean(e[1]) || e[0]]);
+  }
+  return { pages, logOnly: r.logOnly === true };
+};
 const first = (r, keys) => { for (const k of keys) if (r[k] != null && r[k] !== "") return r[k]; return ""; };
 /* the PROVIDER a source line belongs to ("Antenati — Linguaglossa, Nati 1887" → "Antenati"; "FamilySearch full text, Aguada" → "FamilySearch full text"):
    the text before the first dash, comma, colon, semicolon or bracket; a line with none, or a long one, is "Other sources". Rows of a day group under it. */
@@ -111,6 +126,7 @@ const FIELDS = {
  *   searched / corrections / worklist: the archive's JSON, whatever its shape (see rowsOf)
  *   counts: { people, sources } the archive passes in (the one thing it knows that no log holds); logged, walked, corrections, done, open are computed
  *   logHref / correctionsHref: where the archive's own pages are ("/searched/", "/corrections/")
+ *   receipts: { live, main, asOf } from loadReceipts() (kit/lib/receipts.js), or null/absent: the entries then carry no Atlas state and nothing else changes
  */
 export function buildPulse(o = {}) {
   const F = { ...FIELDS, ...(o.fields || {}) };
@@ -121,6 +137,7 @@ export function buildPulse(o = {}) {
   const okDate = (w) => w && +w.iso.slice(0, 4) >= 2020 && +w.iso.slice(0, 4) <= maxYear && w.iso <= today;
 
   const log = rowsOf(o.searched), cor = rowsOf(o.corrections);
+  const rc = o.receipts && (o.receipts.live || o.receipts.main) ? o.receipts : null;
   const entries = [];
   log.forEach((r, i) => {
     const w = parseWhen(first(r, F.when));
@@ -130,6 +147,7 @@ export function buildPulse(o = {}) {
     const place = String(first(r, F.place));
     const pages = String(first(r, F.pages));
     const srcText = clip(first(r, F.src), 120);
+    const key = rowkey(r);
     entries.push({
       iso: w.iso, exact: w.exact, kind, order: i,
       head: ev ? clean(ev[1]) : clip(first(r, F.what) || first(r, F.src), 120),
@@ -144,13 +162,14 @@ export function buildPulse(o = {}) {
       walked: r.walked === true,
       place: place.length > 0 && place.length <= 32 && !/[·;]/.test(place) ? place.trim() : "",
       pages: pages.length > 0 && pages.length <= 24 ? pages.trim() : "",
+      key, atlas: rc ? stateOf(key, rc.live, rc.main) : null, updated: updatedOf(r),
     });
   });
   cor.forEach((r, i) => {
     const w = parseWhen(first(r, F.cwhen));
     const what = first(r, F.cwhat);
     if (!okDate(w) || !what) return;
-    entries.push({ iso: w.iso, exact: w.exact, kind: "corrected", order: 100000 + i, head: clip(what, 160), title: clip(what, 160), more: "", src: "", provider: "", ext: "", story: "", href: corHref, walked: false, place: "", pages: "" });
+    entries.push({ iso: w.iso, exact: w.exact, kind: "corrected", order: 100000 + i, head: clip(what, 160), title: clip(what, 160), more: "", src: "", provider: "", ext: "", story: "", href: corHref, walked: false, place: "", pages: "", key: "", atlas: null, updated: { pages: [], logOnly: false } });
   });
   /* newest first; within a day, the later row of the log first */
   entries.sort((a, b) => (a.iso < b.iso ? 1 : a.iso > b.iso ? -1 : b.order - a.order));
@@ -175,6 +194,12 @@ export function buildPulse(o = {}) {
     d.groups = [...g].map(([name, rows]) => ({ name, rows, found: rows.filter((e) => e.kind === "found").length, nil: rows.filter((e) => e.kind === "nil").length }));
     d.summary = r.length ? `Research: ${r.length} ${r.length === 1 ? "search" : "searches"}${places.length ? " at " + listOf(places, 3) : ""}` : "";
     d.tally = r.length ? ` · ${d.found} of ${r.length} found something` : "";
+    /* "8 of 9 in the Atlas": of the rows that make a mark, those whose receipt is in the deployed Atlas. "Nothing to send" rows are not counted; a row whose state is unknown is in neither figure. */
+    const n = { in: 0, going: 0, notSent: 0, nothing: 0 };
+    for (const e of r) { const s = e.atlas && e.atlas.state; if (s === "in-atlas") n.in++; else if (s === "going-live") n.going++; else if (s === "not-sent") n.notSent++; else if (s === "nothing-to-send") n.nothing++; }
+    const makes = n.in + n.going + n.notSent;
+    d.atlas = rc ? { ...n, makes } : null;
+    d.atlasTally = rc && makes ? ` · ${n.in} of ${makes} in the Atlas` : "";
   }
   /* the flat list of cards, newest first, as the header panel shows it */
   const cards = [];
@@ -192,6 +217,7 @@ export function buildPulse(o = {}) {
   const c = o.counts || {};
   return {
     entries, days, cards, latest, weekFrom, week, total,
+    atlas: rc ? { asOf: rc.asOf || "", live: !!rc.live, main: !!rc.main } : null,
     counts: {
       people: c.people || 0,
       sources: c.sources || 0,

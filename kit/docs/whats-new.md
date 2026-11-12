@@ -48,6 +48,11 @@ import { pulse } from "../lib/pulse.js";
 
 The page is a **template use, not a bespoke page** (`checkpages --max-bespoke 0` counts a page that carries its own markup). Put `noautolink` on the layout call: the cards quote the log's own text and a name inside it must not be linked by the build.
 
+## Under each row: the Atlas and the pages updated (optional, 12 November 2026)
+
+An archive can show, under each search row, whether the Record Atlas has it and which of its own pages the finding went into, with a gate that new found rows name one:
+**[whats-new-receipts.md](whats-new-receipts.md)** (`lib/receipts.js`, `tools/check_row_pages.py`). An archive that does not wire it renders exactly as above.
+
 ## What it reads, and what it leaves out
 
 `rowsOf()` takes the log as an array, as `{rows}` or as `{searched}`, and skips a row with `_note`. A row becomes a line only if its **date is a day the work was done**: `2026-11-11`, `11 Nov 2026`, `5 October 2026`, `Sept 2026` (a month alone shows no day). A bare record year (`1814`) or a sentence is not a date and the row stays on the archive's own log page, counted in the footer of `/whats-new/` («N of M log rows carry a date this page can read»). A date after today is a typo and is left out. **An outcome word the kit does not know is left out, not guessed** (`outcomeMap` adds one); `OUTCOME` in `lib/pulse.js` holds the dozen words the eight archives have used for yield / nothing / partial / blocked. Counts that are zero are not shown.

@@ -53,6 +53,8 @@ for (const c of CASES) ok("case " + c.id, !fails.includes(c.id));
 /* the rules shown to bite: break one in a copy, and the case it guards must fail */
 const src = fs.readFileSync(libPath, "utf8");
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "pulse-"));
+/* pulse.js imports ./receipts.js (12 November 2026): the copies need it beside them, as an ES module */
+fs.copyFileSync(path.join(here, "..", "lib", "receipts.js"), path.join(tmp, "receipts.js")); fs.writeFileSync(path.join(tmp, "package.json"), '{"type":"module"}');
 const BREAK = [
   ["future-date", "&& w.iso <= today", ""],
   ["record-year-is-not-a-date", "if (!m) return null;\n  const mo = MON", "if (!m) return { iso: t.slice(0,4)+'-01-01', exact: false };\n  const mo = MON"],
