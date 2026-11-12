@@ -133,6 +133,50 @@ d = tree(CORE + [("/the-stones/", "The Stones")])
 expect("advisory mode exits 0 on a departure", checknav.main(["--dist", d]) == 0)
 expect("--strict exits 1 on the same departure", checknav.main(["--dist", d, "--strict"]) == 1)
 
+# 9. THE RESEARCH CANON (12 November 2026): core pages in the order of the three groups, the archive's own pages allowed in the menu
+RES = checknav.load_canon("research")
+RCORE = [(c["route"], c["label"]) for c in RES["core"]]
+
+
+def rtree(links, build=None):
+    """A tree whose menu group is called Research (the Research canon's group)."""
+    d = tree([], build=build if build is not None else [r for r, _ in RCORE])
+    idx = os.path.join(d, "index.html")
+    body = "".join('<a href="%s%s" class>%s</a>' % (BASE, r, l) for r, l in links)
+    h = open(idx).read().replace("<summary>Evidence</summary><div class=\"panel\"></div>",
+                                  "<summary>Research</summary><div class=\"panel\">%s</div>" % body)
+    open(idx, "w").write(h)
+    return d
+
+
+expect("the Research canon's core order is to-do, what's new, sources and method",
+       [c["key"] for c in RES["core"]] == ["open-questions", "errands", "worklist", "searched", "corrections", "changes",
+                                          "sources", "method"])
+ra = checknav.audit(rtree(RCORE), RES)
+expect("a Research menu with the eight pages in group order conforms", ra["ok"])
+ra = checknav.audit(rtree(RCORE + [("/documents/", "Documents"), ("/gallery/", "Gallery"),
+                                    ("/the-stones/", "The Stones"), ("/audit/", "The Audit")],
+                          build=[r for r, _ in RCORE] + ["/documents/", "/gallery/"]), RES)
+expect("deep dives and an archive's own pages are local, allowed, and do not depart", ra["ok"] and len(ra["extras"]) == 2)
+expect("...and local pages still show in the report", "allowed in Research" in checknav.render(ra, RES))
+ra = checknav.audit(rtree(RCORE[:-1], build=[r for r, _ in RCORE]), RES)
+expect("a missing core page in the Research menu still departs", not ra["ok"] and ra["problems"]["unlinked"] == ["method"])
+ra = checknav.audit(rtree(RCORE[:-1], build=[r for r, _ in RCORE[:-1]]), RES)
+expect("...and one not built at all is absent", not ra["ok"] and ra["problems"]["absent"] == ["method"])
+swapped = RCORE[:]
+swapped[0], swapped[3] = swapped[3], swapped[0]
+ra = checknav.audit(rtree(swapped), RES)
+expect("core pages out of group order depart", not ra["ok"] and bool(ra["problems"]["order"]))
+ra = checknav.audit(rtree(RCORE[:3] + [("/photograph-these/", "Photograph these")] + RCORE[3:]), RES)
+expect("a fold in the Research menu still departs even though local pages are allowed", not ra["ok"])
+ra = checknav.audit(rtree([(r, "X" if r == "/errands/" else l) for r, l in RCORE]), RES)
+expect("a wrong label in the Research menu departs", not ra["ok"] and len(ra["problems"]["label"]) == 1)
+d = rtree(RCORE)
+expect("--canon research is strict-clean on a conforming Research menu",
+       checknav.main(["--dist", d, "--canon", "research", "--strict"]) == 0)
+expect("the old Evidence canon is still the default and ignores a Research group",
+       checknav.main(["--dist", d]) == 2)
+
 print()
 print("%d failed" % len(fails) if fails else "all cases behave")
 sys.exit(1 if fails else 0)
