@@ -17,6 +17,9 @@
  */
 import { createHash } from "node:crypto";
 
+/* the archive ids of the Atlas's research-receipts (the Atlas session, 12 November 2026). Defranceski is "defranceschi", with a c-h-i. */
+export const ARCHIVE_IDS = ["blazevic", "booyzen", "darcy", "defranceschi", "falco", "lerena", "luwinski", "mazza"];
+export const isArchiveId = (id) => ARCHIVE_IDS.includes(id);
 export const LIVE_URL = (id) => `https://recordatlas.org/research-receipts/${id}.json`;
 export const MAIN_URL = (id) => `https://raw.githubusercontent.com/daviddef/TheMap/main/site/public/research-receipts/${id}.json`;
 export const ATLAS_ORIGIN = "https://recordatlas.org";
@@ -88,6 +91,7 @@ const getJSON = async (fetchFn, url, ms) => {
 
 /**
  * loadReceipts(archiveId, { fetch, timeout, now }) -> { live, main, asOf } | null      (BUILD time; never throws)
+ *   archiveId: one of ARCHIVE_IDS; any other id warns and returns null
  *   fetch: defaults to the global fetch; a test or a demo passes its own (it receives the URL and must return a Response-like {ok, json()})
  *   timeout: milliseconds per file, default 8000
  *   asOf: today's date, YYYY-MM-DD, the day this snapshot was taken (the page says "as of <date>")
@@ -96,7 +100,7 @@ const getJSON = async (fetchFn, url, ms) => {
  */
 export async function loadReceipts(archiveId, o = {}) {
   try {
-    if (!archiveId || !/^[a-z0-9-]+$/i.test(String(archiveId))) return null;
+    if (!isArchiveId(archiveId)) { if (archiveId !== undefined && typeof console !== "undefined") console.warn(`loadReceipts: "${archiveId}" is not an Atlas archive id (${ARCHIVE_IDS.join(", ")}); no receipts read`); return null; }
     const f = o.fetch || (typeof fetch === "function" ? fetch : null);
     if (!f) return null;
     const ms = o.timeout || 8000;

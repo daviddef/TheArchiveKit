@@ -160,5 +160,5 @@ it — but each of these is either waiting for a caller or is dead.
 - **`Trees`** (6151 bytes) — Every line an archive follows, each stated in the form its own evidence supports.
 - **`VisitCount`** (3391 bytes) — A public count of how many times an archive has been read.
 - **`WaysIn`** (2289 bytes) — Three ways in, directly under the hero.
-- **`WhatsNew`** (16990 bytes) — WHAT'S NEW, the body of the page (kit component since 11 November 2026; first built in the Defranceschi archive, laid out as Record Atlas lays out its own): a tally with small badges, one summary card, then a timeline with a rule down the left, the date on it (day large, month in the accent, year beneath) and a card per change.
+- **`WhatsNew`** (17537 bytes) — WHAT'S NEW, the body of the page (kit component since 11 November 2026; first built in the Defranceschi archive, laid out as Record Atlas lays out its own): a tally with small badges, one summary card, then a timeline with a rule down the left, the date on it (day large, month in the accent, year beneath) and a card per change.
 - **`WorkList`** (11715 bytes) — What is being done, as opposed to what is known.

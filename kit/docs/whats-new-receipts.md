@@ -9,10 +9,10 @@ Spec: `Working Folder/Research Menu Rollout/whats-new-atlas-and-pages-spec.md`. 
 Under each search row on an archive's `/whats-new/`, one compact line with two parts:
 
 1. **The Atlas state**, a small pill that says it in words (and in its outline, dashed or dotted, so colour is never the only signal):
-   - **In the Atlas**: the row's receipt is in the Atlas's *deployed* receipts. A link to the first Atlas page of the row's marks (the others on "and N more").
+   - **In the Atlas**: the row's receipt is in the Atlas's *deployed* receipts, with a link **"see it in the Atlas"** to the first Atlas page of the row's marks (the others, one link per page, under "and N more pages"). The receipts' hrefs are page paths (`/place/<place>/`, `/archive/<provider>/`, `/my-research/`), **no anchors**: the link reaches the page, not the volume's own row, and says so in its tooltip; it is not a deep-link claim.
    - **Sent, going live**: the receipt is in the Atlas repo's `main` but not yet deployed (the Atlas deploy takes 13 to 65 minutes).
    - **Not sent yet**: no receipt anywhere.
-   - **Nothing to send**: the importer processed the row and it makes no mark (an empty list), for instance a note with no source or volume.
+   - **Nothing to send**: the importer processed the row and it makes no mark (an empty list): a host or source the Atlas has no provider for, or a note with no source or volume. This is common (in the Defranceski run, 137 of 951 rows), is not a fault, and is not counted in the tally.
 2. **Updated**: the archive's pages the finding went into, as links (the row's existing `ev`, `[[path, label], ...]`), or "log only" when the row says `"logOnly": true`. A row with neither shows no Updated line.
 
 The day card's tally says "8 of 9 in the Atlas": of the rows that make a mark, those that are live. "Nothing to send" rows are not counted; a row whose state is
@@ -20,7 +20,7 @@ unknown is in neither figure; "going live" rows are counted in the 9 but not the
 
 The page says **"Record Atlas status as of 12 Nov 2026, when this page was built."** (the build-time snapshot). A small inline script then asks the Atlas again when the
 page is opened, redraws the pills and tallies, and says **"Record Atlas status: checked just now."** If anything fails (offline, no CORS header, a missing file, bad JSON) it does
-nothing and the build-time states stay.
+nothing and the build-time states stay. **Until the Atlas Worker with `Access-Control-Allow-Origin: *` on `/research-receipts/*` is deployed, the live fetch fails in every browser, so the page shows the build-time states "as of <date>" and never says "checked just now"**; `raw.githubusercontent.com` already allows any origin, but the refresh needs both files. `tools/receipts_logic.mjs` runs the script against a failing, a 404, a non-receipt, a broken-JSON and a never-answering fetch and asserts it changes and throws nothing.
 
 ## Where the states come from
 
@@ -35,7 +35,7 @@ https://raw.githubusercontent.com/daviddef/TheMap/main/site/public/research-rece
 ```
 
 A key with marks = the row made them; `[]` = processed, no mark; absent = not processed. Keys and Atlas paths only: no person's name, no row text.
-`<archive>` is the id in the Atlas's `research-sessions.json` (`defranceschi`, `blazevic`, `booyzen`, `darcy`, `falco`, `lerena`, `luwinski`, `mazza`; the Atlas session confirms).
+`<archive>` is one of exactly these eight ids (`ARCHIVE_IDS` in `lib/receipts.js`, confirmed by the Atlas session, TheMap PR #15): **`blazevic`, `booyzen`, `darcy`, `defranceschi`, `falco`, `lerena`, `luwinski`, `mazza`**. Defranceski is `defranceschi`, with a c-h-i. `loadReceipts` with any other id warns and returns null; **`atlasId` is required to wire the page** and `WhatsNew` throws at build time if the page is wired with a missing or unknown one (a typo would otherwise read no receipts without a word). Not wired at all (no `receipts`, no `atlasId`) is still allowed and draws as before.
 
 **Row identity**: `rowkey(row) = sha1(canonical_json(row))[:12]`, the row object exactly as it sits in `searched.json`, keys sorted at every level, no spaces, non-ASCII left
 as it is (Python: `json.dumps(r, ensure_ascii=False, sort_keys=True, separators=(",", ":"))`). Editing a row changes its key, so an edited row reads "Not sent yet" until the
@@ -60,7 +60,7 @@ and *both files were read*, **not-sent**; in neither and one file could not be r
 nothing else changes. Each search entry carries `key`, `atlas` (`{ state, href, marks }` or `null`) and `updated` (`{ pages: [[path, label]], logOnly }`); each day carries `atlas`
 (`{ in, going, notSent, nothing, makes }`) and `atlasTally` (`" · 8 of 9 in the Atlas"` or `""`).
 
-`<WhatsNew atlasId="defranceschi" />`: with `atlasId` (or when the pulse carries receipts) the page draws the two lines; without both it is drawn exactly as before. `atlasId` is also what the
+`<WhatsNew atlasId="defranceschi" />`: with `atlasId` (or when the pulse carries receipts; then `atlasId` is required) the page draws the two lines; without both it is drawn exactly as before. `atlasId` is also what the
 view-time refresh uses to find the two files. `liveUrl` / `mainUrl` override the addresses (a demo with sample receipts does; no archive should).
 
 `loadReceipts(id, { fetch, timeout, now })` runs at build time, with a timeout of 8 seconds per file, and **never throws and never fails a build**: any failure gives `null` (or `null` for the one file that failed).
@@ -68,6 +68,7 @@ A build with the Atlas unreachable simply has no build-time Atlas line, and the 
 
 ## Wiring an archive in (one PR per archive, with the pin bump)
 
+0. The Atlas side must exist first: the receipt files for the archive's id, deployed and on `main`, and the CORS header deployed for the view-time refresh.
 1. **`src/lib/pulse.js`** (the adapter; the ribbon and `/whats-new/` share it, so the files are read once per build):
 
 ```js
@@ -79,7 +80,7 @@ export const pulse = buildPulse({
 });
 ```
 
-2. **`src/pages/whats-new.astro`**: `<WhatsNew pulse={pulse} atlasId="defranceschi" ... />`.
+2. **`src/pages/whats-new.astro`**: `<WhatsNew pulse={pulse} atlasId="defranceschi" ... />` (the Atlas's id for this archive, from the list above; required).
 3. **`docs/row-pages.json`**: `{"from": "YYYY-MM-DD"}`, the day the gate starts (rows before it are not checked). Absent = gate off.
 4. **`package.json`**: add `"check:row-pages": "python3 node_modules/@daviddef/archive-kit/kit/tools/check_row_pages.py --dist dist"` and run it after `astro build` in `build`.
    (It reads `src/data/searched.json` and `src/data/corrections.json`, and `docs/row-pages.json` or `../docs/row-pages.json`; `--searched`, `--corrections`, `--config` override.)

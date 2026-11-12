@@ -7,6 +7,12 @@
 var wnReceipts = (function () {
   var ORIGIN = "https://recordatlas.org";
   var LABEL = { "in-atlas": "In the Atlas", "going-live": "Sent, going live", "not-sent": "Not sent yet", "nothing-to-send": "Nothing to send" };
+  var NOTE = {
+    "in-atlas": "The Record Atlas has this search, live now",
+    "going-live": "Sent to the Record Atlas; it goes live with the Atlas's next deploy (13 to 65 minutes)",
+    "not-sent": "Not yet sent to the Record Atlas",
+    "nothing-to-send": "Checked: this note makes no mark on the Record Atlas (no source or volume to put on it)"
+  };
   var GLYPH = { "in-atlas": "✓", "going-live": "↻", "not-sent": "○", "nothing-to-send": "–" };
 
   function atlasHref(h) {
@@ -51,21 +57,30 @@ var wnReceipts = (function () {
   function paint(box, s) {
     /* box = .wn-ax, holding a .wn-at pill, an optional link and an optional list of the other marks; rebuilt from DOM nodes, never from markup strings */
     while (box.firstChild) box.removeChild(box.firstChild);
-    var pill = document.createElement(s.state === "in-atlas" && s.href ? "a" : "span");
+    var pill = document.createElement("span");
     pill.className = "wn-at " + s.state;
-    if (pill.tagName === "A") { pill.href = s.href; pill.title = "Open this on the Record Atlas"; pill.rel = "noopener"; }
+    pill.title = NOTE[s.state];
     var g = document.createElement("i"); g.setAttribute("aria-hidden", "true"); g.textContent = GLYPH[s.state];
-    pill.appendChild(g); pill.appendChild(document.createTextNode(" " + LABEL[s.state] + (pill.tagName === "A" ? " ↗" : "")));
+    pill.appendChild(g); pill.appendChild(document.createTextNode(" " + LABEL[s.state]));
     box.appendChild(pill);
-    if (s.state === "in-atlas" && s.marks.length > 1) {
-      var d = document.createElement("details"); d.className = "wn-am";
-      var sm = document.createElement("summary"); sm.textContent = "and " + (s.marks.length - 1) + " more";
-      d.appendChild(sm);
-      for (var i = 1; i < s.marks.length; i++) {
-        var a = document.createElement("a"); a.href = s.marks[i][1]; a.rel = "noopener"; a.textContent = label(s.marks[i][0]) + " ↗";
-        d.appendChild(a);
+    if (s.state === "in-atlas" && s.href) {
+      var see = document.createElement("a"); see.className = "wn-seeit"; see.href = s.href; see.rel = "noopener";
+      see.title = "Opens the Record Atlas page that carries this search; the page, not the volume's own row";
+      see.textContent = "see it in the Atlas ↗";
+      box.appendChild(see);
+      /* the other pages, one link per page (several marks can sit on one page) */
+      var seen = {}; seen[s.href] = 1; var others = [];
+      for (var i = 1; i < s.marks.length; i++) { if (!seen[s.marks[i][1]]) { seen[s.marks[i][1]] = 1; others.push(s.marks[i]); } }
+      if (others.length) {
+        var d = document.createElement("details"); d.className = "wn-am";
+        var sm = document.createElement("summary"); sm.textContent = "and " + others.length + " more " + (others.length === 1 ? "page" : "pages");
+        d.appendChild(sm);
+        for (var j = 0; j < others.length; j++) {
+          var a = document.createElement("a"); a.href = others[j][1]; a.rel = "noopener"; a.textContent = label(others[j][0]) + " ↗";
+          d.appendChild(a);
+        }
+        box.appendChild(d);
       }
-      box.appendChild(d);
     }
     box.setAttribute("data-state", s.state);
     box.hidden = false;

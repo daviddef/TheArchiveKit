@@ -10,14 +10,16 @@
    second line, the Atlas state and the pages the finding went into, the day tallies say «N of M in the Atlas», and a small script asks the Atlas
    again when the page is opened. Without it the page is drawn exactly as before.
    props: pulse (buildPulse), logHref ("/searched/"), correctionsHref ("/corrections/"), askHref (a page for "know something we do not?", or none),
-          tries (the example words of the filter box), atlasId ("defranceschi", or none), liveUrl / mainUrl (the two receipt addresses; only a demo overrides them) */
+          tries (the example words of the filter box), atlasId (REQUIRED to wire it, one of blazevic booyzen darcy defranceschi falco lerena luwinski mazza; none = not wired, drawn as before), liveUrl / mainUrl (the two receipt addresses; only a demo overrides them) */
 import { u } from "../lib/url.js";
 import { CARD, fmtDay, nf, tiles } from "../lib/pulse.js";
-import { LIVE_URL, MAIN_URL } from "../lib/receipts.js";
+import { ARCHIVE_IDS, LIVE_URL, MAIN_URL } from "../lib/receipts.js";
 import receiptsClient from "../lib/receipts.client.js?raw";
 import WhatsNewDay from "./WhatsNewDay.astro";
 const { pulse, logHref = "/searched/", correctionsHref = "/corrections/", askHref = "", tries = "", atlasId = "", liveUrl = "", mainUrl = "" } = Astro.props;
 const wired = !!atlasId || !!pulse.atlas;
+/* atlasId is REQUIRED once the page is wired (receipts in the pulse, or any atlasId) and must be one of the Atlas's ids: a typo here would silently read no receipts */
+if (wired && !ARCHIVE_IDS.includes(atlasId)) throw new Error(`WhatsNew: atlasId must be one of ${ARCHIVE_IDS.join(", ")} (got "${atlasId}"). Defranceski is "defranceschi".`);
 const asOf = pulse.atlas && pulse.atlas.asOf ? fmtDay(pulse.atlas.asOf) : "";
 const SHOWN = 25;
 const days = pulse.days;
@@ -122,7 +124,7 @@ const week = pulse.week;
   .wn-ax[hidden]{display:none}
   .wn-at{display:inline-flex;align-items:center;gap:4px;padding:0 8px;border-radius:999px;border:1px solid var(--rule-strong,var(--rule));font-size:11.5px;font-weight:600;line-height:1.7;color:var(--ink-2);text-decoration:none;white-space:nowrap;background:transparent}
   .wn-at i{font-style:normal;font-size:11px}
-  a.wn-at:hover{text-decoration:underline}
+  .wn-seeit{font-size:12px;color:var(--accent);text-decoration:none;white-space:nowrap}.wn-seeit:hover{text-decoration:underline}
   .wn-at.in-atlas{background:var(--accent-wash,rgba(31,92,107,.1));border-color:var(--accent);color:var(--accent)}
   .wn-at.going-live{border-style:dashed;border-color:var(--accent);color:var(--ink-2)}
   .wn-at.not-sent{border-style:dotted;color:var(--ink-3)}

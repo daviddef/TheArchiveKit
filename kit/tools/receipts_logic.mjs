@@ -68,15 +68,19 @@ const goodFetch = async (u) => { urls.push(u); return resp(u.startsWith("https:/
 const got = await R.loadReceipts("defranceschi", { fetch: goodFetch, now: "2026-11-12T10:00:00Z" });
 ok("loadReceipts: live and main read from the two addresses, asOf is the day", got && got.live === LIVE && got.main === MAIN && got.asOf === "2026-11-12"
   && urls.includes("https://recordatlas.org/research-receipts/defranceschi.json") && urls.includes("https://raw.githubusercontent.com/daviddef/TheMap/main/site/public/research-receipts/defranceschi.json"), JSON.stringify(urls));
-ok("loadReceipts: a fetch that throws -> null", (await R.loadReceipts("x", { fetch: async () => { throw new Error("offline"); } })) === null);
-ok("loadReceipts: HTTP 404/500 -> null", (await R.loadReceipts("x", { fetch: async () => resp({}, false) })) === null);
-ok("loadReceipts: bad JSON, a non-receipt, a future version -> null", (await R.loadReceipts("x", { fetch: async () => ({ ok: true, json: async () => { throw new SyntaxError("x"); } }) })) === null
-  && (await R.loadReceipts("x", { fetch: async () => resp({ hello: 1 }) })) === null && (await R.loadReceipts("x", { fetch: async () => resp({ v: 2, rows: {} }) })) === null);
-const half = await R.loadReceipts("x", { fetch: async (u) => (u.startsWith("https://recordatlas") ? resp({}, false) : resp(MAIN)) });
+ok("loadReceipts: a fetch that throws -> null", (await R.loadReceipts("falco", { fetch: async () => { throw new Error("offline"); } })) === null);
+ok("loadReceipts: HTTP 404/500 -> null", (await R.loadReceipts("falco", { fetch: async () => resp({}, false) })) === null);
+ok("loadReceipts: bad JSON, a non-receipt, a future version -> null", (await R.loadReceipts("falco", { fetch: async () => ({ ok: true, json: async () => { throw new SyntaxError("x"); } }) })) === null
+  && (await R.loadReceipts("falco", { fetch: async () => resp({ hello: 1 }) })) === null && (await R.loadReceipts("falco", { fetch: async () => resp({ v: 2, rows: {} }) })) === null);
+const half = await R.loadReceipts("falco", { fetch: async (u) => (u.startsWith("https://recordatlas") ? resp({}, false) : resp(MAIN)) });
 ok("loadReceipts: one file unread -> the other is kept, the unread is null", half && half.live === null && half.main === MAIN);
 const t0 = Date.now();
-ok("loadReceipts: a fetch that never answers (and ignores abort) times out", (await R.loadReceipts("x", { fetch: () => new Promise(() => {}), timeout: 60 })) === null && Date.now() - t0 < 2000);
-ok("loadReceipts: no fetch, no id, a strange id -> null, never a throw", (await R.loadReceipts("", { fetch: goodFetch })) === null && (await R.loadReceipts("../x", { fetch: goodFetch })) === null && (await R.loadReceipts(undefined)) === null);
+ok("loadReceipts: a fetch that never answers (and ignores abort) times out", (await R.loadReceipts("falco", { fetch: () => new Promise(() => {}), timeout: 60 })) === null && Date.now() - t0 < 2000);
+const warned = []; const w0 = console.warn; console.warn = (m) => warned.push(m);
+ok("loadReceipts: only the Atlas's eight ids are read (Defranceski is defranceschi); anything else warns and is null, never a throw", (await R.loadReceipts("", { fetch: goodFetch })) === null && (await R.loadReceipts("../x", { fetch: goodFetch })) === null && (await R.loadReceipts(undefined)) === null
+  && (await R.loadReceipts("defranceski", { fetch: goodFetch })) === null && warned.some((m) => m.includes("defranceski"))
+  && R.ARCHIVE_IDS.join() === "blazevic,booyzen,darcy,defranceschi,falco,lerena,luwinski,mazza" && (await Promise.all(R.ARCHIVE_IDS.map((i) => R.loadReceipts(i, { fetch: goodFetch })))).every(Boolean));
+console.warn = w0;
 
 /* ---- 4. the script's copy answers like stateOf ---- */
 const GRID_FILES = [null, { v: 1, rows: {} }, { rows: [] }, "x", file({ a: [], b: [["volume:1", "/p/1/"]], c: [["volume:2", "/p/2/"], ["source:s", "/s/"], ["bad", 5]], d: [["x", "https://evil.example/"]] }), file({ a: [["volume:1", "/p/9/"]], b: [], e: [["volume:3", "//host/x"]] }), file({ c: [] })];
@@ -93,6 +97,23 @@ const diffs = equivalence(realClient);
 ok("view-time script: stateOf answers identically to lib/receipts.js over " + GRID_FILES.length ** 2 * 8 + " cases", diffs.length === 0, diffs.slice(0, 3).join("\n         "));
 ok("view-time script: atlasHref identical", ["/a/", "//x", "https://recordatlas.org/q/", "https://evil.example/", "javascript:1", "", null, 5, " /sp/ ", "/has space/"].every((h) => realClient.atlasHref(h) === R.atlasHref(h)));
 ok("view-time script does nothing, and does not throw, without a page", (() => { try { realClient.run(); return true; } catch (e) { return false; } })());
+
+/* the page script when the Atlas cannot be reached (the CORS header is not deployed yet; offline; 404; bad JSON): it must change nothing and throw nothing */
+{
+  const bar = { hidden: true, text: "built", getAttribute: (a) => ({ "data-live": "https://recordatlas.org/x.json", "data-main": "https://raw.githubusercontent.com/x.json" })[a], setAttribute() { bar.fresh = true; }, querySelector: () => ({ set textContent(v) { bar.text = v; } }) };
+  let touched = 0; const g = globalThis, saved = { document: g.document, fetch: g.fetch };
+  g.document = { getElementById: () => bar, querySelectorAll: () => { touched++; return []; } };
+  const modes = { "a network/CORS failure (fetch rejects)": async () => { throw new TypeError("Failed to fetch"); }, "HTTP 404": async () => resp({}, false), "not a receipt": async () => resp({ hello: 1 }), "invalid JSON": async () => ({ ok: true, json: async () => { throw new SyntaxError("x"); } }), "hangs forever": () => new Promise(() => {}) };
+  let thrown = null; const rej = (e) => { thrown = e; }; process.on("unhandledRejection", rej);
+  for (const [name, f] of Object.entries(modes)) {
+    g.fetch = f; touched = 0; bar.hidden = true; bar.text = "built"; bar.fresh = false;
+    const c = new Function(fs.readFileSync(path.join(lib, "receipts.client.js"), "utf8") + "\n;return wnReceipts;")(); // auto-runs with the stub document
+    await new Promise((r) => setTimeout(r, name === "hangs forever" ? 50 : 30));
+    ok("view-time script, " + name + ": nothing changes, nothing thrown", touched === 0 && bar.hidden === true && bar.text === "built" && !bar.fresh && thrown === null);
+  }
+  process.off("unhandledRejection", rej); g.document = saved.document; g.fetch = saved.fetch;
+  if (saved.document === undefined) delete g.document;
+}
 
 /* ---- 5. buildPulse ---- */
 const P = await import(pathToFileURL(path.join(lib, "pulse.js")).href);
