@@ -94,6 +94,17 @@ same field names (`when`/`date`, `outcome`/`status`), the same dates (`2026-11-1
 `receipts_logic.mjs` runs the Python and the JavaScript on the same words and dates. An archive's own outcome word is taught with `"outcomeMap": {"done": "found"}` in `docs/row-pages.json`
 (the same as `buildPulse`'s `outcomeMap`). An archive that keeps its work date in another column (Falco: `searchedOn`, because its `when` is the year of the record) sets `"fields": {"when": ["searchedOn"]}` in `docs/row-pages.json`, the same as in its `buildPulse` call; a list given there replaces the kit's list for that key, as in `buildPulse`. Without it the gate reads `when`/`date`, cannot date the row, and checks nothing. A misspelt date, or a malformed `fields`, in the config **fails**: a typo must not turn the gate off.
 
+## Who a finding is for (`for`, `nobody`; 14 November 2026)
+
+A found row says who it is for. Under the row, What's new shows **Found for N people** with a link to each person's page on the archive (the first five, the rest under "and N more"), or **Read: no new person** when the row says so.
+
+    "for": [["/person/giuseppe-falco-1888/", "Giuseppe Falco"], ...]     each path a page of this archive, each with the name that page uses
+    "nobody": true                                                        the pages were read and no new person came out of them
+
+Rules: only a person the archive already publishes can be listed (the gate requires each path to be a built page, so a living person, who has no page, cannot be named); a page once per row; a name each; `for` and
+`nobody` never together. No names go to the Record Atlas (it takes the row's key, never its text). The gate is off until the archive sets `"peopleFrom": "YYYY-MM-DD"` in `docs/row-pages.json`; from that day every found row,
+`logOnly` or not, must carry one or the other. Old rows are not backfilled. The component shows the line whether or not the receipts are wired.
+
 Advisory only: a correction dated from the same day whose `where` names a path that is not a built page is a **warning**, not a failure.
 
 Without `--dist` only the shape of the paths is checked, and it says so.

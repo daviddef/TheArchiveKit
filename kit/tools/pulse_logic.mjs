@@ -79,6 +79,20 @@ for (const c of CASES) ok("case " + c.id, !fails.includes(c.id));
 }
 ok("dayAfter: month, year and leap-day ends", real.dayAfter("2026-11-30") === "2026-12-01" && real.dayAfter("2026-12-31") === "2027-01-01" && real.dayAfter("2028-02-28") === "2028-02-29" && real.dayAfter("2026-02-28") === "2026-03-01");
 
+/* WHO a finding is for (14 November 2026): the row's `for` ["/path/", "Name"], once each in order, local paths only, a name each; `nobody: true` only when no person is listed */
+{
+  const T = "2026-11-13";
+  const row = (x) => ({ when: "2026-11-13", what: "w", outcome: "found", ...x });
+  const pe = (x) => real.buildPulse({ searched: [row(x)], today: T }).entries[0].people;
+  const q = pe({ for: [["/person/a/", "Ann"], ["/person/b/", " Bea "], ["/person/a/", "Ann again"], ["//evil.example/", "X"], ["https://x.example/", "Y"], ["/person/c/", ""], ["/person/d/"], "junk", null] });
+  ok("people: valid local entries, once each, in order, trimmed; external, nameless and malformed entries dropped", JSON.stringify(q.list) === JSON.stringify([["/person/a/", "Ann"], ["/person/b/", "Bea"]]) && q.nobody === false, JSON.stringify(q));
+  ok("people: nobody:true is kept when no one is listed", pe({ nobody: true }).nobody === true && pe({ nobody: true }).list.length === 0);
+  ok("people: a listed person beats nobody:true (never both)", pe({ for: [["/person/a/", "Ann"]], nobody: true }).nobody === false);
+  ok("people: nobody must be exactly true", pe({ nobody: "yes" }).nobody === false && pe({}).list.length === 0 && pe({ for: "Ann" }).list.length === 0);
+  const pc = real.buildPulse({ searched: [], corrections: [{ when: "2026-11-13", what: "fixed" }], today: T }).entries[0];
+  ok("people: a correction entry carries an empty people (the component reads it)", pc.people && pc.people.list.length === 0 && pc.people.nobody === false);
+}
+
 /* the rules shown to bite: break one in a copy, and the case it guards must fail */
 const src = fs.readFileSync(libPath, "utf8");
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "pulse-"));
