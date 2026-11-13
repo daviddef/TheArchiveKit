@@ -12,6 +12,9 @@ Rows before that date are not checked. The date is the archive's, in docs/row-pa
 
     {"from": "2026-11-12"}                         the gate, on from that day
     {"from": "2026-11-12", "outcomeMap": {"done": "found"}}     an outcome word this archive uses that the kit does not know (as buildPulse's outcomeMap)
+    {"from": "2026-11-12", "fields": {"when": ["searchedOn"]}}  the column this archive keeps the work date in, when it is not `when`/`date` (as buildPulse's `fields`:
+                                                               a list given here REPLACES the kit's list for that key, exactly as there; keys read: when, outcome, cwhen).
+                                                               An archive whose pulse adapter sets `fields` MUST set the same here, or the gate reads the wrong date and checks nothing.
 
 No docs/row-pages.json = the gate is OFF (exit 0, and it says so): an archive turns it on in its pin-bump PR.
 
@@ -115,41 +118,43 @@ def ev_paths(r):
     return out
 
 
-def label(i, r):
+def label(i, r, F=FIELDS):
     k = r.get("key")
     s = " ".join(str(first(r, ["src", "source"]) or first(r, ["what", "scope"])).split())
-    return "row %d%s, %s%s" % (i + 1, " [" + k + "]" if isinstance(k, str) and k else "", first(r, FIELDS["when"]), " — " + s[:70] if s else "")
+    return "row %d%s, %s%s" % (i + 1, " [" + k + "]" if isinstance(k, str) and k else "", first(r, F["when"]), " — " + s[:70] if s else "")
 
 
-def audit(searched, dist, frm, omap=None, corrections=None):
+def audit(searched, dist, frm, omap=None, corrections=None, fields=None):
     """Return (problems, warnings, counts). problems: found rows from `frm` with no built page and no logOnly."""
+    F = dict(FIELDS)
+    F.update(fields or {})
     problems, warns = [], []
     n_found = n_checked = 0
     for i, r in enumerate(rows_of(searched)):
-        w = parse_when(first(r, FIELDS["when"]))
+        w = parse_when(first(r, F["when"]))
         if not w or w[0] < frm:
             continue
-        if outcome_of(first(r, FIELDS["outcome"]), omap) != "found":
+        if outcome_of(first(r, F["outcome"]), omap) != "found":
             continue
         n_found += 1
         if r.get("logOnly") is True:
             continue
         paths = ev_paths(r)
         if not paths:
-            problems.append("%s: a found row with no `ev` page and no logOnly" % label(i, r))
+            problems.append("%s: a found row with no `ev` page and no logOnly" % label(i, r, F))
         elif dist is not None and not any(page_exists(dist, p) for p in paths):
-            problems.append("%s: none of its ev pages is a built page (%s)" % (label(i, r), ", ".join(paths)))
+            problems.append("%s: none of its ev pages is a built page (%s)" % (label(i, r, F), ", ".join(paths)))
         n_checked += 1
     n_cor = 0
     for i, r in enumerate(rows_of(corrections)):
-        w = parse_when(first(r, FIELDS["cwhen"]))
+        w = parse_when(first(r, F["cwhen"]))
         where = r.get("where")
         if not w or w[0] < frm or not isinstance(where, str):
             continue
         n_cor += 1
         for p in re.findall(r"(?:^|[\s(\[«\"'])(/[A-Za-z0-9][A-Za-z0-9._~/\-]*)", where):
             if dist is not None and not page_exists(dist, p):
-                warns.append("correction %d (%s): `where` names %s, which is not a built page" % (i + 1, first(r, FIELDS["cwhen"]), p))
+                warns.append("correction %d (%s): `where` names %s, which is not a built page" % (i + 1, first(r, F["cwhen"]), p))
     return problems, warns, {"found": n_found, "checked": n_checked, "corrections": n_cor}
 
 
@@ -166,7 +171,7 @@ def pick(cands):
 
 
 def load_config(path):
-    """Return (from_iso, omap) or raise ValueError. The date must be YYYY-MM-DD: a gate with a misspelt date is not silently off."""
+    """Return (from_iso, omap, fields) or raise ValueError. The date must be YYYY-MM-DD: a gate with a misspelt date is not silently off."""
     c = read_json(path)
     if not isinstance(c, dict) or not isinstance(c.get("from"), str) or not re.match(r"^\d{4}-\d{2}-\d{2}$", c["from"]):
         raise ValueError('%s must be {"from": "YYYY-MM-DD"}' % path)
@@ -177,7 +182,12 @@ def load_config(path):
     om = c.get("outcomeMap") or {}
     if not isinstance(om, dict):
         raise ValueError("%s: outcomeMap must be an object" % path)
-    return c["from"], {str(k).lower(): v for k, v in om.items()}
+    fl = c.get("fields", {})
+    if fl is None:
+        fl = {}
+    if not isinstance(fl, dict) or any(not isinstance(v, list) or not v or any(not isinstance(x, str) or not x for x in v) for v in fl.values()):
+        raise ValueError("%s: fields must be an object of non-empty lists of column names, e.g. {\"when\": [\"searchedOn\"]}" % path)
+    return c["from"], {str(k).lower(): v for k, v in om.items()}, {k: v for k, v in fl.items() if k in FIELDS}
 
 
 def main(argv=None):
@@ -198,7 +208,7 @@ def main(argv=None):
         print("check_row_pages: OFF (no docs/row-pages.json; the archive turns the gate on with {\"from\": \"YYYY-MM-DD\"})")
         return 0
     try:
-        frm, omap = load_config(cfg)
+        frm, omap, fields = load_config(cfg)
     except (OSError, ValueError) as e:
         print("check_row_pages: FAIL  %s" % e)
         return 1
@@ -222,7 +232,7 @@ def main(argv=None):
     if dist is not None and not os.path.isdir(dist):
         print("check_row_pages: FAIL  --dist %s is not a directory (build first)" % dist)
         return 1
-    problems, warns, n = audit(searched, dist, frm, omap, corrections)
+    problems, warns, n = audit(searched, dist, frm, omap, corrections, fields)
     for w in warns:
         print("  warn  " + w)
     for p in problems:
