@@ -92,7 +92,7 @@ From the date in `docs/row-pages.json`, every `searched.json` row whose outcome 
 or query is ignored), **or** `"logOnly": true` (the reason goes in `what`). "Found" is decided exactly as `lib/pulse.js` decides it: the same outcome words (`hit`, `yield`, `found`), the
 same field names (`when`/`date`, `outcome`/`status`), the same dates (`2026-11-11`, `11 Nov 2026`, `Sept 2026`); a row pulse.js cannot date is not on `/whats-new/` and is not checked;
 `receipts_logic.mjs` runs the Python and the JavaScript on the same words and dates. An archive's own outcome word is taught with `"outcomeMap": {"done": "found"}` in `docs/row-pages.json`
-(the same as `buildPulse`'s `outcomeMap`). A misspelt date in the config **fails**: a typo must not turn the gate off.
+(the same as `buildPulse`'s `outcomeMap`). An archive that keeps its work date in another column (Falco: `searchedOn`, because its `when` is the year of the record) sets `"fields": {"when": ["searchedOn"]}` in `docs/row-pages.json`, the same as in its `buildPulse` call; a list given there replaces the kit's list for that key, as in `buildPulse`. Without it the gate reads `when`/`date`, cannot date the row, and checks nothing. A misspelt date, or a malformed `fields`, in the config **fails**: a typo must not turn the gate off.
 
 Advisory only: a correction dated from the same day whose `where` names a path that is not a built page is a **warning**, not a failure.
 

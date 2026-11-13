@@ -117,6 +117,25 @@ d = archive([{"date": "2026-11-13", "status": "yield", "src": "S"}], FROM)
 rc, out = run(d)
 expect("the alternative field names (date, status) are read", rc == 1, out)
 
+# 11b. `fields` in the config: an archive that keeps its work date in another column (Falco: searchedOn; `when` is the year of the record)
+falco = {"when": "1887", "searchedOn": "2026-11-13", "src": "MC55-VNL", "what": "Nascite 1889", "outcome": "hit", "key": "f-1"}
+d = archive([falco], FROM)
+rc, out = run(d)
+expect("without fields, a row dated only in searchedOn is not checked (the gap this closes)", rc == 0 and "0 found rows" in out, out)
+d = archive([falco], {"from": "2026-11-12", "fields": {"when": ["searchedOn"]}})
+rc, out = run(d)
+expect("with fields.when = [searchedOn] the row is read, found, and fails for want of ev", rc == 1 and "f-1" in out, out)
+d = archive([dict(falco, ev=[["/imotski/", "Imotski"]])], {"from": "2026-11-12", "fields": {"when": ["searchedOn"]}})
+rc, out = run(d)
+expect("with fields.when and an ev page that is built it passes", rc == 0 and "1 found rows" in out, out)
+d = archive([dict(falco, searchedOn="2026-11-10")], {"from": "2026-11-12", "fields": {"when": ["searchedOn"]}})
+rc, out = run(d)
+expect("a searchedOn before the gate date is not checked", rc == 0 and "0 found rows" in out, out)
+for bad_f in ('{"from": "2026-11-12", "fields": {"when": "searchedOn"}}', '{"from": "2026-11-12", "fields": {"when": []}}', '{"from": "2026-11-12", "fields": []}'):
+    d = archive([falco], bad_f)
+    rc, out = run(d)
+    expect("a malformed fields config fails loudly: %s" % bad_f, rc == 1 and "fields" in out, out)
+
 # 12. rows under {searched: []} and with a _note row
 d = archive({"sets": [], "searched": [{"_note": "to the reader"}, bad]}, FROM)
 rc, out = run(d)
