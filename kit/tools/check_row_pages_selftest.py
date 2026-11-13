@@ -136,6 +136,33 @@ for bad_f in ('{"from": "2026-11-12", "fields": {"when": "searchedOn"}}', '{"fro
     rc, out = run(d)
     expect("a malformed fields config fails loudly: %s" % bad_f, rc == 1 and "fields" in out, out)
 
+# 11c. WHO: `peopleFrom` makes a found row name its people (for) or say nobody
+PF = {"from": "2026-11-12", "peopleFrom": "2026-11-14"}
+ev = [["/imotski/", "Imotski"]]
+base = {"when": "2026-11-14", "src": "S", "what": "w", "outcome": "found", "ev": ev, "key": "p-1"}
+d = archive([base], PF); rc, out = run(d)
+expect("peopleFrom: a found row from that day with no for and no nobody fails", rc == 1 and "p-1" in out and "who it is for" in out, out)
+d = archive([dict(base, **{"for": [["/story/", "Ann"]]})], PF); rc, out = run(d)
+expect("peopleFrom: a row naming a built person page passes", rc == 0 and "ok" in out, out)
+d = archive([dict(base, nobody=True)], PF); rc, out = run(d)
+expect("peopleFrom: nobody:true passes", rc == 0, out)
+d = archive([dict(base, **{"for": [["/story/", "Ann"]], "nobody": True})], PF); rc, out = run(d)
+expect("peopleFrom: for and nobody together fail", rc == 1 and "both" in out, out)
+d = archive([dict(base, **{"for": [["/nobody-home/", "Ann"]]})], PF); rc, out = run(d)
+expect("peopleFrom: a for page that is not built fails (a living person has no page)", rc == 1 and "not built" in out, out)
+d = archive([dict(base, **{"for": [["/story/", "Ann"], ["/story/", "Ann"]]})], PF); rc, out = run(d)
+expect("peopleFrom: a page listed twice fails", rc == 1 and "twice" in out, out)
+d = archive([dict(base, **{"for": [["/story/", " "]]})], PF); rc, out = run(d)
+expect("peopleFrom: an entry with a blank name fails", rc == 1 and "no name" in out, out)
+d = archive([dict(base, when="2026-11-13")], PF); rc, out = run(d)
+expect("peopleFrom: a found row before that day is not asked for people", rc == 0, out)
+d = archive([dict(base, outcome="nothing")], PF); rc, out = run(d)
+expect("peopleFrom: a nil row is not asked for people", rc == 0, out)
+d = archive([base], {"from": "2026-11-12"}); rc, out = run(d)
+expect("without peopleFrom the people rule is off", rc == 0, out)
+d = archive([base], {"from": "2026-11-12", "peopleFrom": "tomorrow"}); rc, out = run(d)
+expect("a malformed peopleFrom fails loudly", rc == 1 and "peopleFrom" in out, out)
+
 # 12. rows under {searched: []} and with a _note row
 d = archive({"sets": [], "searched": [{"_note": "to the reader"}, bad]}, FROM)
 rc, out = run(d)

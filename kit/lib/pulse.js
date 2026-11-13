@@ -84,6 +84,19 @@ const updatedOf = (r) => {
   }
   return { pages, logOnly: r.logOnly === true };
 };
+/* WHO a finding is for: the row's `for` entries ["/path/", "Name"] (the archive's own pages for the people, once each, in order), or `nobody: true`
+   ("read, and no new person"). The names are the labels the archive gives its OWN pages for them, so a person the archive does not publish is never here. */
+const peopleOf = (r) => {
+  const seen = new Set(), list = [];
+  for (const e of Array.isArray(r.for) ? r.for : []) {
+    if (!Array.isArray(e) || typeof e[0] !== "string" || !e[0].startsWith("/") || e[0].startsWith("//") || seen.has(e[0])) continue;
+    const name = clean(e[1]);
+    if (!name) continue;
+    seen.add(e[0]);
+    list.push([e[0], name]);
+  }
+  return { list, nobody: r.nobody === true && list.length === 0 };
+};
 const first = (r, keys) => { for (const k of keys) if (r[k] != null && r[k] !== "") return r[k]; return ""; };
 /* the PROVIDER a source line belongs to ("Antenati — Linguaglossa, Nati 1887" → "Antenati"; "FamilySearch full text, Aguada" → "FamilySearch full text"):
    the text before the first dash, comma, colon, semicolon or bracket; a line with none, or a long one, is "Other sources". Rows of a day group under it. */
@@ -169,14 +182,14 @@ export function buildPulse(o = {}) {
       walked: r.walked === true,
       place: place.length > 0 && place.length <= 32 && !/[·;]/.test(place) ? place.trim() : "",
       pages: pages.length > 0 && pages.length <= 24 ? pages.trim() : "",
-      key, atlas: rc ? stateOf(key, rc.live, rc.main) : null, updated: updatedOf(r),
+      key, atlas: rc ? stateOf(key, rc.live, rc.main) : null, updated: updatedOf(r), people: peopleOf(r),
     });
   });
   cor.forEach((r, i) => {
     const w = parseWhen(first(r, F.cwhen));
     const what = first(r, F.cwhat);
     if (!okDate(w) || !what) return;
-    entries.push({ iso: w.iso, exact: w.exact, kind: "corrected", order: 100000 + i, head: clip(what, 160), title: clip(what, 160), more: "", src: "", provider: "", ext: "", story: "", href: corHref, walked: false, place: "", pages: "", key: "", atlas: null, updated: { pages: [], logOnly: false } });
+    entries.push({ iso: w.iso, exact: w.exact, kind: "corrected", order: 100000 + i, head: clip(what, 160), title: clip(what, 160), more: "", src: "", provider: "", ext: "", story: "", href: corHref, walked: false, place: "", pages: "", key: "", atlas: null, updated: { pages: [], logOnly: false }, people: { list: [], nobody: false } });
   });
   /* newest first; within a day, the later row of the log first */
   entries.sort((a, b) => (a.iso < b.iso ? 1 : a.iso > b.iso ? -1 : b.order - a.order));

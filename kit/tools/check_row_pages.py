@@ -16,6 +16,16 @@ Rows before that date are not checked. The date is the archive's, in docs/row-pa
                                                                a list given here REPLACES the kit's list for that key, exactly as there; keys read: when, outcome, cwhen).
                                                                An archive whose pulse adapter sets `fields` MUST set the same here, or the gate reads the wrong date and checks nothing.
 
+    {"from": "2026-11-12", "peopleFrom": "2026-11-14"}          from that day a found row must also say WHO it is for (below)
+
+WHO (David, 14 November 2026): What's new shows, under a found row, the people the finding is for. From `peopleFrom` (off when the key is absent) every row that
+READS AS FOUND must carry
+
+    "for": [["/person/slug/", "Name"], ...]     each path a built page of this archive (the archive's own page for that person), each with a name, none twice,
+ or "nobody": true                             the pages were read and no new person came out of them (the reason may go in `what`).
+
+Only people the archive already publishes can be listed: the path must be a built page, so a living person, who has none, cannot be named. `for` and `nobody` together fail.
+
 No docs/row-pages.json = the gate is OFF (exit 0, and it says so): an archive turns it on in its pin-bump PR.
 
 "Found" is decided exactly as lib/pulse.js decides it (the same OUTCOME words, the same dates, the same field names); kit/tools/receipts_logic.mjs
@@ -124,7 +134,7 @@ def label(i, r, F=FIELDS):
     return "row %d%s, %s%s" % (i + 1, " [" + k + "]" if isinstance(k, str) and k else "", first(r, F["when"]), " — " + s[:70] if s else "")
 
 
-def audit(searched, dist, frm, omap=None, corrections=None, fields=None):
+def audit(searched, dist, frm, omap=None, corrections=None, fields=None, people_from=None):
     """Return (problems, warnings, counts). problems: found rows from `frm` with no built page and no logOnly."""
     F = dict(FIELDS)
     F.update(fields or {})
@@ -137,6 +147,23 @@ def audit(searched, dist, frm, omap=None, corrections=None, fields=None):
         if outcome_of(first(r, F["outcome"]), omap) != "found":
             continue
         n_found += 1
+        if people_from and w[0] >= people_from:
+            fl = r.get("for")
+            ents = [e for e in fl if isinstance(e, list) and len(e) >= 2 and isinstance(e[0], str) and e[0].startswith("/") and not e[0].startswith("//")] if isinstance(fl, list) else []
+            if r.get("nobody") is True and (fl not in (None, [])):
+                problems.append("%s: has both `for` and `nobody`" % label(i, r, F))
+            elif not ents and r.get("nobody") is not True:
+                problems.append("%s: a found row that does not say who it is for (`for` [[\"/person/\", \"Name\"]] or \"nobody\": true)" % label(i, r, F))
+            else:
+                names = [e[1] for e in ents]
+                if len(set(e[0] for e in ents)) != len(ents):
+                    problems.append("%s: `for` lists a page twice" % label(i, r, F))
+                if any(not isinstance(n, str) or not n.strip() for n in names):
+                    problems.append("%s: a `for` entry has no name" % label(i, r, F))
+                if dist is not None:
+                    gone = [e[0] for e in ents if not page_exists(dist, e[0])]
+                    if gone:
+                        problems.append("%s: `for` names a page that is not built (%s)" % (label(i, r, F), ", ".join(gone)))
         if r.get("logOnly") is True:
             continue
         paths = ev_paths(r)
@@ -171,7 +198,7 @@ def pick(cands):
 
 
 def load_config(path):
-    """Return (from_iso, omap, fields) or raise ValueError. The date must be YYYY-MM-DD: a gate with a misspelt date is not silently off."""
+    """Return (from_iso, omap, fields, people_from) or raise ValueError. The date must be YYYY-MM-DD: a gate with a misspelt date is not silently off."""
     c = read_json(path)
     if not isinstance(c, dict) or not isinstance(c.get("from"), str) or not re.match(r"^\d{4}-\d{2}-\d{2}$", c["from"]):
         raise ValueError('%s must be {"from": "YYYY-MM-DD"}' % path)
@@ -187,7 +214,15 @@ def load_config(path):
         fl = {}
     if not isinstance(fl, dict) or any(not isinstance(v, list) or not v or any(not isinstance(x, str) or not x for x in v) for v in fl.values()):
         raise ValueError("%s: fields must be an object of non-empty lists of column names, e.g. {\"when\": [\"searchedOn\"]}" % path)
-    return c["from"], {str(k).lower(): v for k, v in om.items()}, {k: v for k, v in fl.items() if k in FIELDS}
+    pf = c.get("peopleFrom")
+    if pf is not None:
+        if not isinstance(pf, str) or not re.match(r"^\d{4}-\d{2}-\d{2}$", pf):
+            raise ValueError("%s: peopleFrom must be YYYY-MM-DD" % path)
+        try:
+            datetime.date.fromisoformat(pf)
+        except ValueError:
+            raise ValueError("%s: peopleFrom %s is not a date" % (path, pf))
+    return c["from"], {str(k).lower(): v for k, v in om.items()}, {k: v for k, v in fl.items() if k in FIELDS}, pf
 
 
 def main(argv=None):
@@ -208,7 +243,7 @@ def main(argv=None):
         print("check_row_pages: OFF (no docs/row-pages.json; the archive turns the gate on with {\"from\": \"YYYY-MM-DD\"})")
         return 0
     try:
-        frm, omap, fields = load_config(cfg)
+        frm, omap, fields, people_from = load_config(cfg)
     except (OSError, ValueError) as e:
         print("check_row_pages: FAIL  %s" % e)
         return 1
@@ -232,7 +267,7 @@ def main(argv=None):
     if dist is not None and not os.path.isdir(dist):
         print("check_row_pages: FAIL  --dist %s is not a directory (build first)" % dist)
         return 1
-    problems, warns, n = audit(searched, dist, frm, omap, corrections, fields)
+    problems, warns, n = audit(searched, dist, frm, omap, corrections, fields, people_from)
     for w in warns:
         print("  warn  " + w)
     for p in problems:
