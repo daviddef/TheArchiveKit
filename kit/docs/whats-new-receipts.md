@@ -11,7 +11,11 @@ Under each search row on an archive's `/whats-new/`, one compact line with two p
 1. **The Atlas state**, a small pill that says it in words (and in its outline, dashed or dotted, so colour is never the only signal):
    - **In the Atlas**: the row's receipt is in the Atlas's *deployed* receipts, with a link **"see it in the Atlas"** to the first Atlas page of the row's marks (the others, one link per page, under "and N more pages"). The receipts' hrefs are page paths (`/place/<place>/`, `/archive/<provider>/`, `/my-research/`), **no anchors**: the link reaches the page, not the volume's own row, and says so in its tooltip; it is not a deep-link claim.
    - **Sent, going live**: the receipt is in the Atlas repo's `main` but not yet deployed (the Atlas deploy takes 13 to 65 minutes).
-   - **Not sent yet**: no receipt anywhere.
+   - **Not sent yet**: no receipt anywhere. The Atlas's publisher runs on a GitHub Actions cron (`17 */2 * * *`), but GitHub
+     deprioritises scheduled workflows and drops ticks: measured over 28.3 hours on 13-14 November 2026 it delivered **4 runs where a
+     two-hour cadence predicts 14** (gaps of 7.6, 5.0, 8.1 and 7.6 hours, none firing near `:17`). So a row can honestly read "Not sent
+     yet" for **several hours** - lately about seven - and a tick that lands while an Atlas deploy is running skips by design and waits
+     for the one after. The pill says "sends run every few hours" rather than naming a figure that will drift.
    - **Nothing to send**: the importer processed the row and it makes no mark (an empty list): a host or source the Atlas has no provider for, or a note with no source or volume. This is common (in the Defranceski run, 137 of 951 rows), is not a fault, and is not counted in the tally.
 2. **Updated**: the archive's pages the finding went into, as links (the row's existing `ev`, `[[path, label], ...]`), or "log only" when the row says `"logOnly": true`. A row with neither shows no Updated line.
 

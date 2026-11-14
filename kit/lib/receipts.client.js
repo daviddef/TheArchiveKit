@@ -10,7 +10,7 @@ var wnReceipts = (function () {
   var NOTE = {
     "in-atlas": "The Record Atlas has this search, live now",
     "going-live": "Sent to the Record Atlas; it goes live with the Atlas's next deploy (13 to 65 minutes)",
-    "not-sent": "Not yet sent to the Record Atlas",
+    "not-sent": "Not yet sent to the Record Atlas; sends run every few hours, then 13 to 65 minutes to go live",
     "nothing-to-send": "Checked: this note makes no mark on the Record Atlas (no source or volume to put on it)"
   };
   var GLYPH = { "in-atlas": "✓", "going-live": "↻", "not-sent": "○", "nothing-to-send": "–" };
