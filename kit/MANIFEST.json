@@ -12,7 +12,7 @@
   "components/BookPart.astro": "7c38bc1082a313c76bd9502a6030a9ce7e1c61a1fa2f630a8702975944a9a23f",
   "components/BranchRivers.astro": "2a65d0f5ee61bce328ca0dad035a0966cb89de2c1b905b4042bcc156b96624d9",
   "components/Changes.astro": "f309fcd6640a3b109f9ff9923728cc70aa725281df7642dd5a42c9262220eb63",
-  "components/Corrections.astro": "8b49e142acb4c47860e91c3eddd9266fafe06cdc72bbdd2ccd025fbbf1841881",
+  "components/Corrections.astro": "29afb13b6bbfb5a0da73afbc76d2ba217a07125cdde888e2edc684de36023589",
   "components/Descent.astro": "73a8434b7be977e82d6bc69887ebfcec058642b32f55f9a220f70492f57fe98b",
   "components/Distribution.astro": "bf6d6e0ef192a087dcc2d1f0cb6da5d1617022c7522e51db72258e47b8d445ef",
   "components/Documents.astro": "7c441ed3f6e5c1c6f556259ff2658ddeec10e32e36cc3c8d53a4f8eb6aebd829",

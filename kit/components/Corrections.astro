@@ -32,7 +32,22 @@
  *           extra, superseded:{label, href, note}}]
  */
 const { rows = [], u = (p) => p, major = "major",
-        kindLabel = "About", sevLabel = "Show" } = Astro.props;
+        kindLabel = "About", sevLabel = "Show",
+        /* how/why mean different things in different archives (how it was caught,
+           the source, the lesson), so the fold's label is neutral by default and
+           an archive can name its own. */
+        moreLabel = "How and why" } = Astro.props;
+/* One heading per day, not one date repeated on every entry: Lerena has 184
+   entries over 27 days. Rows are grouped only while consecutive, so the
+   archive's own order is kept; rows with no date (Mazza's) form one group with no
+   heading, so they are still one list, not 235 separate blocks. The id an archive puts on an entry (a contents link to a day) stays
+   on the entry, inside its group. */
+const days = [];
+for (const r of rows) {
+  const last = days[days.length - 1];
+  if (last && last.when === (r.when || "")) last.rows.push(r);
+  else days.push({ when: r.when || "", rows: [r] });
+}
 const tally = (k) => {
   const m = new Map();
   for (const r of rows) if (r[k]) m.set(r[k], (m.get(r[k]) || 0) + 1);
@@ -51,6 +66,10 @@ const groups = [
    like /TheDefranceski/https://www.myheritage.com/ — 254 of them, caught by the
    build gate rather than by looking at the page. Only internal paths get based. */
 const href = (h) => !h ? "" : (/^(https?:)?\/\//.test(h) || h.startsWith("mailto:") ? h : u(h));
+/* Archives put a short category in `kind` (Mazza: "birth date"), but Falco puts the
+   whole headline of the correction there. A sentence in a bordered chip is a
+   box of capitals; past this length it is set as the entry's title instead. */
+const isTitle = (k) => String(k || "").length > 48;
 const ext = (h) => /^(https?:)?\/\//.test(String(h || ""));
 
 ---
@@ -74,33 +93,55 @@ const ext = (h) => /^(https?:)?\/\//.test(String(h || ""));
     </div>
   ))}
 
-  {rows.map((r) => (
-    <section class="cx-e" data-sev={r.sev || ""} data-kind={r.kind || ""} id={r.id || undefined}>
-      <div class="cx-h">
-        {r.when ? <span class="mono small">{r.when}</span> : null}
-        {r.who ? <strong class="cx-who" set:html={r.who} /> : null}
-        {r.kind ? <span class={"chip " + (r.sev === major ? "dis" : "")}>{r.kind}</span> : null}
-        {r.sev === major ? <span class="chip doc">material</span> : null}
-      </div>
-      {r.superseded ? (
-        <p class="cx-sup"><span class="cx-t">superseded</span>
-          {r.superseded.note ? <Fragment set:html={r.superseded.note} /> : null}
-          {r.superseded.href
-            ? <a href={href(r.superseded.href)}>{r.superseded.label} →</a>
-            : <span>{r.superseded.label}</span>}</p>
+  {rows.some((r) => r.how || r.why) ? (
+    <div class="cx-tools"><button type="button" class="cx-all" hidden>Open every note</button></div>
+  ) : null}
+  <p class="cx-meta small" hidden><span class="cx-count"></span>
+    <button type="button" class="cx-clear">Show all</button></p>
+
+  {days.map((d) => (
+    <div class="cx-d">
+      {d.when ? (
+        <h3 class="cx-date"><span>{d.when}</span>
+          <span class="cx-n small">{d.rows.length} {d.rows.length === 1 ? "entry" : "entries"}</span></h3>
       ) : null}
-      {r.was ? <p class="cx-was"><span class="cx-t">was</span> <Fragment set:html={r.was} /></p> : null}
-      {r.now ? <p class="cx-now"><span class="cx-t">now</span> <strong><Fragment set:html={r.now} /></strong></p> : null}
-      {r.how ? <p class="small cx-how"><span class="cx-t">how</span> <Fragment set:html={r.how} /></p> : null}
-      {r.why ? <p class="cx-why"><Fragment set:html={r.why} /></p> : null}
-      {(r.by || r.where || r.extra) ? (
-        <p class="small cx-foot">
-          {r.by ? <span class="dim">Caught by {r.by}.</span> : null}
-          {r.where ? <> {r.by ? " · " : ""}<a href={href(r.where)} rel={ext(r.where) ? "noopener" : null}>{r.whereLabel || "Where it lives now →"}</a></> : null}
-          {r.extra ? <Fragment set:html={r.extra} /> : null}
-        </p>
-      ) : null}
-    </section>
+      {d.rows.map((r) => (
+        <section class="cx-e" data-sev={r.sev || ""} data-kind={r.kind || ""} id={r.id || undefined}>
+          {(r.who || r.sev || (r.kind && !isTitle(r.kind))) ? (
+            <div class="cx-h">
+              {r.who ? <strong class="cx-who" set:html={r.who} /> : null}
+              {r.kind && !isTitle(r.kind) ? <span class={"chip " + (r.sev === major ? "dis" : "")}>{r.kind}</span> : null}
+              {!r.kind && r.sev ? <span class={"chip " + (r.sev === major ? "dis" : "")}>{r.sev}</span> : null}
+              {r.kind && r.sev === major ? <span class="chip doc">material</span> : null}
+            </div>
+          ) : null}
+          {r.kind && isTitle(r.kind) ? <p class="cx-title">{r.kind}</p> : null}
+          {r.superseded ? (
+            <p class="cx-sup"><span class="cx-t">superseded</span>
+              <span class="cx-b">{r.superseded.note ? <Fragment set:html={r.superseded.note} /> : null}
+              {r.superseded.href
+                ? <a href={href(r.superseded.href)}>{r.superseded.label} →</a>
+                : <span>{r.superseded.label}</span>}</span></p>
+          ) : null}
+          {r.was ? <div class="cx-was"><span class="cx-t">was</span><div class="cx-b"><Fragment set:html={r.was} /></div></div> : null}
+          {r.now ? <div class="cx-now"><span class="cx-t">now</span><div class="cx-b"><Fragment set:html={r.now} /></div></div> : null}
+          {(r.how || r.why) ? (
+            <details class="cx-more">
+              <summary>{moreLabel}</summary>
+              {r.how ? <div class="cx-how"><Fragment set:html={r.how} /></div> : null}
+              {r.why ? <div class="cx-why"><Fragment set:html={r.why} /></div> : null}
+            </details>
+          ) : null}
+          {(r.by || r.where || r.extra) ? (
+            <p class="small cx-foot">
+              {r.by ? <span class="dim">Caught by {r.by}.</span> : null}
+              {r.where ? <> {r.by ? " · " : ""}<a href={href(r.where)} rel={ext(r.where) ? "noopener" : null}>{r.whereLabel || "Where it lives now →"}</a></> : null}
+              {r.extra ? <Fragment set:html={r.extra} /> : null}
+            </p>
+          ) : null}
+        </section>
+      ))}
+    </div>
   ))}
   <p class="cx-none small" hidden>Nothing at that level.</p>
 </div>
@@ -108,7 +149,10 @@ const ext = (h) => /^(https?:)?\/\//.test(String(h || ""));
 <script>
   document.querySelectorAll(".cx").forEach((box) => {
     const entries = [...box.querySelectorAll(".cx-e")];
+    const dayBoxes = [...box.querySelectorAll(".cx-d")];
     const none = box.querySelector(".cx-none");
+    const meta = box.querySelector(".cx-meta");
+    const count = box.querySelector(".cx-count");
     /* The two controls narrow together rather than replacing one another: a
        reader asking for the birth-date corrections that are only probable is
        asking one question, not two. Each bar clears only its own key. */
@@ -123,7 +167,15 @@ const ext = (h) => /^(https?:)?\/\//.test(String(h || ""));
         e.hidden = !ok;
         if (ok) shown++;
       }
+      /* A day whose entries are all filtered out must not leave its heading
+         standing over nothing. */
+      for (const d of dayBoxes) d.hidden = !d.querySelector(".cx-e:not([hidden])");
       if (none) none.hidden = shown > 0;
+      const active = Object.values(picked).some(Boolean);
+      if (meta) {
+        meta.hidden = !active;
+        if (count) count.textContent = "Showing " + shown + " of " + entries.length;
+      }
     };
     box.querySelectorAll(".cx-bar").forEach((bar) => {
       const key = bar.dataset.key;
@@ -138,11 +190,37 @@ const ext = (h) => /^(https?:)?\/\//.test(String(h || ""));
       const sel = bar.querySelector(".cx-sel");
       if (sel) sel.addEventListener("change", () => { picked[key] = sel.value || ""; apply(); });
     });
+    const clear = box.querySelector(".cx-clear");
+    if (clear) clear.addEventListener("click", () => {
+      for (const k in picked) picked[k] = "";
+      box.querySelectorAll(".cx-bar").forEach((bar) => {
+        bar.querySelectorAll(".cx-opt").forEach((x) => x.classList.toggle("on", !x.dataset.v));
+        const sel = bar.querySelector(".cx-sel"); if (sel) sel.value = "";
+      });
+      apply();
+    });
+    /* One control for the folded notes: opening 184 of them one at a time is not
+       a reading mode. */
+    const all = box.querySelector(".cx-all");
+    const folds = [...box.querySelectorAll(".cx-more")];
+    if (all && folds.length) {
+      all.hidden = false;
+      all.addEventListener("click", () => {
+        const open = folds.some((f) => !f.open);
+        folds.forEach((f) => { f.open = open; });
+        all.textContent = open ? "Fold the notes" : (all.dataset.label || "Open every note");
+      });
+      all.dataset.label = all.textContent;
+    }
+  });
+  /* A folded note is not printed by every browser; open them for the print. */
+  window.addEventListener("beforeprint", () => {
+    document.querySelectorAll(".cx-more").forEach((f) => { f.open = true; });
   });
 </script>
 
 <style is:global>
-  .cx-bar { display:flex; flex-wrap:wrap; gap:.35rem; align-items:center; margin:1rem 0 .4rem; }
+  .cx-bar { display:flex; flex-wrap:wrap; gap:.4rem; align-items:center; margin:1rem 0 .5rem; }
   .cx-lab { font-size:11px; font-weight:600; letter-spacing:.11em; text-transform:uppercase;
     color:var(--ink-3,#888); margin-right:.35rem; }
   .cx-opt { font:inherit; font-size:.78rem; padding:.22rem .6rem; cursor:pointer;
@@ -152,14 +230,61 @@ const ext = (h) => /^(https?:)?\/\//.test(String(h || ""));
     background:var(--accent-wash,transparent); font-weight:600; }
   .cx-sel { font:inherit; font-size:.8rem; padding:.22rem .45rem; border:1px solid var(--rule,#ccc);
     border-radius:2px; background:var(--ground,#fff); color:inherit; max-width:34ch; }
+  .cx-tools { margin:.2rem 0 0; }
+  .cx-all, .cx-clear { font:inherit; font-size:.78rem; background:none; border:0; padding:0;
+    color:var(--accent,#963); cursor:pointer; text-decoration:underline; text-underline-offset:3px; }
+  .cx-meta[hidden], .cx-d[hidden], .cx-e[hidden] { display:none; }
+  .cx-meta { margin:.6rem 0 0; color:var(--ink-3,#888); display:flex; gap:.8rem; align-items:baseline; }
+
+  /* One day = one block. The measure is held near 70 characters: these are
+     sentences, sometimes paragraphs, and at 130 characters a line the eye
+     loses its place on the return sweep. The page can be as wide as it likes;
+     the reading column is not. */
+  .cx-d { max-width:72ch; margin-top:2.6rem; }
+  .cx-date { display:flex; align-items:baseline; justify-content:space-between; gap:1rem;
+    margin:0 0 .2rem; padding-bottom:.45rem; border-bottom:2px solid var(--rule,#ddd);
+    font-size:1.05rem; font-weight:600; }
+  .cx-n { font-weight:400; color:var(--ink-3,#888); }
+
+  .cx-e { padding:1.25rem 0 1.15rem; font-size:.94em; }
+  .cx-e + .cx-e { border-top:1px solid var(--rule,#ddd); }
+  .cx-h { display:flex; align-items:baseline; gap:.5rem; flex-wrap:wrap; margin-bottom:.7rem; }
   .cx-who { font-size:.95rem; }
-  .cx-e { border-top:1px solid var(--rule,#ddd); padding:.9rem 0 .8rem; }
-  .cx-h { display:flex; align-items:baseline; gap:.5rem; flex-wrap:wrap; margin-bottom:.4rem; }
-  .cx-t { display:inline-block; min-width:4.2rem; font-size:11px; font-weight:600;
-    letter-spacing:.11em; text-transform:uppercase; color:var(--ink-3,#888); }
-  .cx-was { color:var(--ink-3,#888); margin:.1rem 0; }
-  .cx-now { margin:.1rem 0; }
-  .cx-how, .cx-why { margin:.25rem 0 0; color:var(--ink-2,inherit); }
-  .cx-foot { margin-top:.35rem; color:var(--ink-3,#888); }
-  .cx-sup { margin:.1rem 0; color:var(--ink-3,#888); }
+  .cx-title { margin:0 0 .9rem; font-size:1.02rem; font-weight:600; line-height:1.4; color:var(--ink,inherit); }
+  .cx-h + .cx-title { margin-top:-.2rem; }
+
+  /* WAS and NOW are a pair, so they share a grid: a narrow label column and a
+     text column, the same on every entry, with air between the two. */
+  .cx-was, .cx-now, .cx-sup { display:grid; grid-template-columns:3.6rem minmax(0,1fr); column-gap:1rem; }
+  .cx-was { color:var(--ink-3,#777); margin:0 0 .9rem; line-height:1.55; font-size:.95em; }
+  .cx-now { color:var(--ink,inherit); line-height:1.6; }
+  .cx-sup { color:var(--ink-3,#888); margin:0 0 .9rem; }
+  .cx-t { font-size:11px; font-weight:600; letter-spacing:.11em; text-transform:uppercase;
+    color:var(--ink-3,#888); padding-top:.5em; }
+  .cx-now .cx-t { color:var(--accent,#963); }
+  .cx-b > :first-child { margin-top:0; }
+  .cx-b > :last-child { margin-bottom:0; }
+  .cx-b p { margin:0 0 .7rem; }
+  /* The truth was set in bold for the whole paragraph, which left nothing to
+     emphasise and made a 1,200-character answer a block of black. Plain weight;
+     the archive's own <strong> inside it still stands out. */
+  .cx-now strong { font-weight:650; }
+
+  .cx-more { margin:.9rem 0 0 4.6rem; font-size:.95em; }
+  .cx-more > summary { cursor:pointer; color:var(--ink-3,#888); font-size:11px; font-weight:600;
+    letter-spacing:.11em; text-transform:uppercase; list-style:none; width:max-content; }
+  .cx-more > summary::-webkit-details-marker { display:none; }
+  .cx-more > summary::before { content:"+"; display:inline-block; width:1.1em; font-weight:400; }
+  .cx-more[open] > summary::before { content:"\2212"; }
+  .cx-more > summary:hover { color:var(--accent,#963); }
+  .cx-how, .cx-why { margin:.7rem 0 0; color:var(--ink-2,inherit); line-height:1.6; }
+  .cx-how p, .cx-why p { margin:0 0 .6rem; }
+  .cx-foot { margin:.9rem 0 0 4.6rem; color:var(--ink-3,#888); }
+
+  @media (max-width:560px) {
+    .cx-was, .cx-now, .cx-sup { grid-template-columns:1fr; row-gap:.15rem; }
+    .cx-t { padding-top:0; }
+    .cx-more, .cx-foot { margin-left:0; }
+    .cx-d { margin-top:2rem; }
+  }
 </style>
