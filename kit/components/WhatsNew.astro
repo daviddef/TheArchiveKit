@@ -12,7 +12,7 @@
    props: pulse (buildPulse), logHref ("/searched/"), correctionsHref ("/corrections/"), askHref (a page for "know something we do not?", or none),
           tries (the example words of the filter box), atlasId (REQUIRED to wire it, one of blazevic booyzen darcy defranceschi falco lerena luwinski mazza; none = not wired, drawn as before), liveUrl / mainUrl (the two receipt addresses; only a demo overrides them) */
 import { u } from "../lib/url.js";
-import { CARD, fmtDay, nf, tiles } from "../lib/pulse.js";
+import { CARD, KIND, fmtDay, nf, tiles } from "../lib/pulse.js";
 import { ARCHIVE_IDS, LIVE_URL, MAIN_URL } from "../lib/receipts.js";
 import receiptsClient from "../lib/receipts.client.js?raw";
 import WhatsNewDay from "./WhatsNewDay.astro";
@@ -27,6 +27,16 @@ const recent = days.slice(0, SHOWN), earlier = days.slice(SHOWN);
 const c = pulse.counts;
 const nRes = days.reduce((n, d) => n + d.research.length, 0);
 const nCor = days.reduce((n, d) => n + d.corrections.length, 0);
+/* OUTCOME CHIPS (15 November 2026). The five outcomes were computed, counted and shown on every row from the start, but could not be
+   filtered on: the chips filtered the day CARD by its type (a search card or a correction card), while an outcome belongs to a ROW
+   inside a card. These chips therefore filter rows, exactly as the word box already does, and then hide any group, card or day left
+   empty. "Partly" and "Blocked" appear only where an archive has any, so a log without them keeps three chips, not five. */
+const OUTCOME_CHIPS = [
+  ["found", KIND.found.glyph, "found something", KIND.found.note],
+  ["nil", KIND.nil.glyph, "found nothing", KIND.nil.note],
+  ["partial", KIND.partial.glyph, "partly read", KIND.partial.note],
+  ["blocked", KIND.blocked.glyph, "blocked", KIND.blocked.note],
+];
 const oldest = pulse.entries[pulse.entries.length - 1] || { iso: pulse.latest || new Date().toISOString().slice(0, 10), exact: false };
 const part = (iso, o) => new Date(iso + "T00:00:00Z").toLocaleDateString("en-GB", { ...o, timeZone: "UTC" });
 const week = pulse.week;
@@ -35,7 +45,10 @@ const week = pulse.week;
     <span><b>{nf(pulse.entries.length)}</b> entries since {part(oldest.iso, { day: "numeric", month: "long" })}</span>
     <button type="button" class="wn-chip on" data-k="all">All</button>
     <button type="button" class="wn-chip research" data-k="research" title={CARD.research.note}><i aria-hidden="true">{CARD.research.glyph}</i> {nf(nRes)} searches</button>
-    {nCor > 0 && <button type="button" class="wn-chip corrected" data-k="corrected" title={CARD.corrected.note}><i aria-hidden="true">{CARD.corrected.glyph}</i> {nf(nCor)} corrected</button>}
+    {OUTCOME_CHIPS.filter(([k]) => (pulse.total[k] || 0) > 0).map(([k, glyph, label, note]) => (
+      <button type="button" class={`wn-chip o-${k}`} data-k={`o:${k}`} title={note}><i aria-hidden="true">{glyph}</i> {nf(pulse.total[k])} {label}</button>
+    ))}
+{nCor > 0 && <button type="button" class="wn-chip corrected" data-k="corrected" title={CARD.corrected.note}><i aria-hidden="true">{CARD.corrected.glyph}</i> {nf(nCor)} corrected</button>}
     <label class="wn-find"><span class="wn-sr">Filter the list by a word</span><input type="search" id="wn-q" placeholder={tries ? "Filter: " + tries : "Filter by a word"} autocomplete="off" /></label>
   </p>
 
@@ -166,6 +179,16 @@ const week = pulse.week;
   .wn-rs.nil{background:var(--accent-wash,rgba(31,92,107,.1));border-color:var(--accent)}
   .wn-rs.partial{background:rgba(185,138,62,.14);border-color:rgba(185,138,62,.55)}
   .wn-rs.blocked{background:rgba(192,57,43,.12);border-color:rgba(192,57,43,.5)}
+  /* the outcome chips take their colour from the row pill they filter to, so the chip and the pill read as one thing.
+     Colour is never the only signal: each chip carries its glyph and its words, as the pills do. */
+  .wn-chip.o-found{color:#1a7a46;border-color:rgba(31,157,85,.55)}
+  .wn-chip.o-found.on{background:rgba(31,157,85,.14);border-color:rgba(31,157,85,.75);color:#146036}
+  .wn-chip.o-nil{color:var(--accent);border-color:var(--accent)}
+  .wn-chip.o-nil.on{background:var(--accent-wash,rgba(31,92,107,.1))}
+  .wn-chip.o-partial{color:#8a5a12;border-color:rgba(185,138,62,.6)}
+  .wn-chip.o-partial.on{background:rgba(185,138,62,.16)}
+  .wn-chip.o-blocked{color:#a5342a;border-color:rgba(192,57,43,.55)}
+  .wn-chip.o-blocked.on{background:rgba(192,57,43,.13)}
   .wn-rn{font-size:12.5px;color:var(--ink-2);text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
   .wn-more{margin:0;border-top:1px solid var(--rule)}
   .wn-more>summary{cursor:pointer;padding:7px 0;font-size:13px;color:var(--accent)}
@@ -179,6 +202,11 @@ const week = pulse.week;
     .wn-chip.research,.wn-chip2.research{color:#7fcf9f;border-color:#3f8f63}
     .wn-chip.research.on{background:rgba(127,207,159,.12)}
     .wn-chip.corrected,.wn-chip2.corrected{color:#e6bd7c;border-color:#9a7430}
+    .wn-chip.o-found{color:#7fcf9f;border-color:#3f8f63}
+    .wn-chip.o-found.on{background:rgba(127,207,159,.12);color:#9fdfb7}
+    .wn-chip.o-partial{color:#e6bd7c;border-color:#9a7430}
+    .wn-chip.o-blocked{color:#eb9a92;border-color:#8f3f3a}
+    .wn-chip.o-blocked.on{background:rgba(235,154,146,.12)}
   }
   @media (prefers-reduced-motion:reduce){.wn-item{transition:none}.wn-item:hover{transform:none}}
   @media (max-width:640px){
@@ -197,24 +225,41 @@ const week = pulse.week;
 </style>
 <script is:inline>
   (function(){
-    var type="all", q=document.getElementById("wn-q"), out=document.getElementById("wn-count"), older=document.getElementById("wn-older2");
+    var type="all", outcome="", q=document.getElementById("wn-q"), out=document.getElementById("wn-count"), older=document.getElementById("wn-older2");
     var items=[].slice.call(document.querySelectorAll(".wn-item")), days=[].slice.call(document.querySelectorAll(".wn-day")), chips=[].slice.call(document.querySelectorAll(".wn-chip"));
+    var allRows=document.querySelectorAll(".wn-row").length;
     function run(){
-      var w=(q.value||"").trim().toLowerCase(), n=0;
+      var w=(q.value||"").trim().toLowerCase(), n=0, rowsOn=0;
       items.forEach(function(li){
+        /* an outcome belongs to a row, so a card survives only while it still has one: a correction card has no rows and is hidden outright */
         var ok=(type==="all"||li.getAttribute("data-type")===type)&&(!w||li.getAttribute("data-q").indexOf(w)>-1);
+        if(ok&&outcome&&li.getAttribute("data-type")!=="research")ok=false;
         li.hidden=!ok;
-        if(ok){n++;
+        if(ok){
           var det=li.querySelector(".wn-rday");
-          if(det){[].slice.call(det.querySelectorAll(".wn-row")).forEach(function(r){r.hidden=!!w&&r.getAttribute("data-q").indexOf(w)<0}); if(w)[].slice.call(det.querySelectorAll("details")).concat([det]).forEach(function(x){x.open=true}); [].slice.call(det.querySelectorAll(".wn-grp")).forEach(function(g){g.hidden=!g.querySelector(".wn-row:not([hidden])")});}
+          if(det){
+            var rows=[].slice.call(det.querySelectorAll(".wn-row"));
+            rows.forEach(function(r){
+              var byWord=!w||r.getAttribute("data-q").indexOf(w)>-1;
+              var byOut=!outcome||r.getAttribute("data-o")===outcome;
+              r.hidden=!(byWord&&byOut); if(byWord&&byOut)rowsOn++;
+            });
+            if(outcome&&!rows.some(function(r){return !r.hidden})){li.hidden=true; return;}
+            if(w||outcome)[].slice.call(det.querySelectorAll("details")).concat([det]).forEach(function(x){x.open=true});
+            [].slice.call(det.querySelectorAll(".wn-grp")).forEach(function(g){g.hidden=!g.querySelector(".wn-row:not([hidden])")});
+          } else if(outcome){ li.hidden=true; return; }
+          n++;
         }
       });
       days.forEach(function(d){d.hidden=!d.querySelector(".wn-item:not([hidden])")});
-      var on=type!=="all"||w; if(older&&on)older.open=true;
-      out.textContent=on?(n+" of "+items.length+" cards"):"";
+      var on=type!=="all"||w||outcome; if(older&&on)older.open=true;
+      /* with an outcome chosen the honest figure is entries, not cards: the cards are only what holds them */
+      out.textContent=on?(outcome?(rowsOn+" of "+allRows+" entries"):(n+" of "+items.length+" cards")):"";
     }
     chips.forEach(function(b){b.addEventListener("click",function(){
-      type=b.getAttribute("data-k"); chips.forEach(function(x){x.classList.toggle("on",x===b)}); run();
+      var k=b.getAttribute("data-k");
+      if(k.indexOf("o:")===0){outcome=k.slice(2); type="research";} else {outcome=""; type=k;}
+      chips.forEach(function(x){x.classList.toggle("on",x===b)}); run();
     })});
     if(q)q.addEventListener("input",run);
     if(location.hash&&location.hash.indexOf("#d")===0){var t=document.getElementById(location.hash.slice(1)); if(t){var det=t.querySelector(".wn-rday"); if(det)det.open=true; var o=t.closest("#wn-older2"); if(o)o.open=true;}}
