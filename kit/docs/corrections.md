@@ -43,3 +43,5 @@ const names = nameIndex(autolinkIndex, { avoid: livingNames });                 
 ```
 
 `placeFlags` is `python3 kit/tools/placeflags.py --snapshot era-snapshot.json --places place-rows.json --alias flag-places.json --countries flag-countries.json --out place-flags.json`, run in the archive's build; `flagUrlFor` maps a flag file name to the address the archive serves it at (the kit's art is in `kit/data/flags/`). Without the props nothing changes. The era flag is only as wide as the era snapshot: a place the snapshot does not assess in that year gets today's flag only, never a guess.
+
+**Serve the flags as files, not data URIs.** Vite inlines a small SVG as a `data:` URI once per use, so a page with hundreds of place links grows by hundreds of KB (Falco 1.6 -> 2.1 MB, D'Arcy 174 -> 250 KB, Blazevic +77 KB). Build `flagUrl` from `import.meta.glob("<path to kit/data/flags>/*.svg", { eager: true, query: "?no-inline", import: "default" })`: the flags are emitted once as `/_astro/<name>.svg` and every link points at the file (Falco 2.1 -> 1.59 MB, D'Arcy 250 -> 190 KB, Blazevic +12 KB). Check the built page has no `data:image/svg` in it.
