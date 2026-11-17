@@ -20,6 +20,8 @@ so they cannot quietly drift apart.
 | `kit/lib/pulse.js`, `kit/components/PulseRibbon.astro`, `SearchPop.astro`, `WhatsNew.astro` | `node_modules` (imported) | **What's new, the numbers and the search box**: the header ribbon (sparkle, chart, magnifier), the instant search pop-up and `/whats-new/`, computed at build time from the archive's own logs. See **[kit/docs/whats-new.md](kit/docs/whats-new.md)**; gates `kit/tools/pulse_logic.mjs` and `checkpulse.py`. |
 | `kit/lib/receipts.js`, `kit/lib/receipts.client.js`, `kit/tools/check_row_pages.py` | `node_modules` (imported) | **What's new: in the Atlas, and the pages updated** (optional, off until an archive wires it): under each search row, whether the Record Atlas has it (In the Atlas / Sent, going live / Not sent yet / Nothing to send) and which of the archive's own pages the finding went into; a view-time refresh; a gate that new found rows name a built page or say `logOnly`. See **[kit/docs/whats-new-receipts.md](kit/docs/whats-new-receipts.md)**; tests `kit/tools/receipts_logic.mjs`, `check_row_pages_selftest.py`. |
 
+| `kit/styles/measure.css` | `node_modules` (imported in the layout) | **The reading measure**: running text is never wider than `--st-measure` (72ch). One import beside `print.css`; tables, cards, maps and `.scroll` blocks are untouched. |
+
 CSS is **not** copied. Each archive's stylesheet is its own; the kit only
 checks that the blocks it needs are present (`.ev-documented`, `.ladder`,
 `.ring`, `--ev-inferred`) and says so when one is missing. (The ring now carries its own CSS in the component; the older `.ring` block in an archive's styles.css does nothing and may be deleted, but `sync.py` still looks for the marker, so remove it from `CSS_MARKERS` in the same step.)
