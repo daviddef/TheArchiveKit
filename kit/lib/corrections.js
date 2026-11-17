@@ -43,7 +43,7 @@ export function byDateDesc(rows, whenOf = (r) => r && r.when) {
    <a> the archive already linked (a path with /person/, /people/ or /who/ is a person; /place/ or /places/ is a place), a date is a date written
    in the text. A work date (2020 or later: "read on 16 November 2026") is when the correction was made, not what it is about, and is left out. */
 const MON = "(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:t(?:ember)?)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)";
-const DATE = new RegExp("\\b(?:\\d{1,2}\\s+" + MON + "\\.?\\s+\\d{4}|" + MON + "\\.?\\s+\\d{1,2},?\\s+\\d{4}|" + MON + "\\.?\\s+\\d{4})\\b|\\b(1[0-9]{3}|20[01][0-9])\\b", "g");
+const DATE = new RegExp("\\b(?:1[0-9]{3}|20[01][0-9])\\s*[–-]\\s*(?:1[0-9]{3}|20[01][0-9])\\b|\\b(?:\\d{1,2}\\s+" + MON + "\\.?\\s+\\d{4}|" + MON + "\\.?\\s+\\d{1,2},?\\s+\\d{4}|" + MON + "\\.?\\s+\\d{4})\\b|\\b(1[0-9]{3}|20[01][0-9])\\b", "g");
 const textOf = (h) => String(h || "").replace(/<[^>]*>/g, " ").replace(/&amp;/g, "&").replace(/&[a-z]+;/g, " ").replace(/\s+/g, " ").trim();
 /* what a date is the date OF, from the words just before it: "death" (died, buried, burial, d.), "birth" (born, baptised, christened, b.), "marriage"
    (married, wedding). The nearest of these words in the clause wins; none, none. */
@@ -87,7 +87,7 @@ export function factsOf(...htmls) {
       if (y >= 2020 || y < 1000) continue;
       /* a year inside a range ("1764–1791") is the years of a book, not of an event */
       const inRange = /\d\s*[–-]\s*$/.test(plain.slice(Math.max(0, m.index - 3), m.index)) || /^\s*[–-]\s*\d/.test(plain.slice(m.index + t.length, m.index + t.length + 3));
-      const k = t.toLowerCase(), kind = inRange ? "" : kindBefore(plain.slice(Math.max(0, m.index - 60), m.index));
+      const k = t.toLowerCase(), kind = inRange || /[–-]/.test(t) ? "" : kindBefore(plain.slice(Math.max(0, m.index - 60), m.index));
       const had = dates.get(k);
       if (!had) dates.set(k, { text: t, kind }); else if (!had.kind && kind) had.kind = kind;
     }

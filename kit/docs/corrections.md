@@ -12,6 +12,9 @@ Changed 17 Nov 2026 after David's five questions on the Defranceski page; it app
 
 | long paragraphs; people with no link; where are the sources? (18 Nov) | Each entry opens with a strip of **People, Places, Sources, Dates** read out of the sentences the archive already wrote: a person or place is the link the archive already made (`/person/`, `/places/`), a source is a record link (`lk-rec`) or any address off the site, a date is a date in the text (the work date, 2020 or later, is left out); a date wears a mark from the word just before it: † died or buried, ✶ born or baptised, ⚭ married (a heuristic: the word must lead straight to the date, and the years of a book or a range such as 1764–1791 get no mark, so a few events go unmarked rather than wrongly marked). Chips are links where there is a page. Nothing is invented: if the text names a FamilySearch image without linking it, there is no Source chip, and the fix is the archive writing the record link into the correction (`[words](rec:fs-<ark>)` or a URL). `facts={false}` turns the strip off. |
 
+| a book named in the prose ("The Svetvinčenat baptism book 1764–1791") is not a link | `lib/booklinks.js`: `bookIndex(rows)` takes the archive's own catalogue of register books (`{parish, label, href}`), and `linkBooks(html, index)` (the Corrections `books` prop) links a phrase "<parish> <baptism / burial / death / marriage> book <years>" to its volume, **only** when the catalogue answers it: same parish, same kind (baptism = a Births volume, burial or death = Deaths, marriage = Marriages), years inside the volume's years. No match, or two different volumes, leaves the words as written. A linked book also becomes a Source chip. |
+| "the husband of 1762–64": why not name him? | The strip also reads the entry's footer ("Corrected in place: the roster notes of …"), so the people the correction touches are named and linked even when the sentence says only "the husband". Putting the name in the sentence itself is the archive's wording. |
+
 ## What an archive does (about ten lines in its own `corrections` page)
 
 ```astro
@@ -23,4 +26,5 @@ const ids = corrIdMap(c.rows);              // c.rows in FILE order, the same li
 
 The `ids` must come from the SAME rows `buildPulse` gets (`corrections: c`), in file order; otherwise the anchors do not match and the card falls back to the top of the page.
 Putting a `for` on each correction row is the archive's work, from its own data: who the correction is about, one page per person, the archive's own pages only.
+Defranceski's catalogue is `parishbooks.json`: `bookIndex(pb.list.flatMap((p) => p.books.map((b) => ({ parish: p.parish, label: b, href: ark(p.parish, b) }))))`, with `href` the volume's FamilySearch image (`https://www.familysearch.org/ark:/61903/` + the `ark` in `pb.links`), passed as `books={…}`; a volume with no `href` is left out.
 `node kit/tools/corrections_logic.mjs` holds the anchors, the order and the card links to cases.

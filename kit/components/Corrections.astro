@@ -32,17 +32,23 @@
  *           lib/corrections.js corrIdMap, so /whats-new/ can link to this entry), kind, sev, was, now, how, why, by, where, whereLabel,
  *           extra, superseded:{label, href, note}}]
  *
+ *   books: an optional catalogue of the archive's register books (lib/booklinks.js bookIndex); a book named in the prose ("the Svetvinčenat baptism
+ *   book 1764–1791") is linked to its volume when the catalogue holds it.
+ *
  *   NEWEST FIRST: the component sorts by `when` itself (sort="date", the default; sort="given" keeps the archive's own order). A date it
  *   cannot read goes after the dated rows. Within a day the archive's own order stands.
  */
 import { byDateDesc, factsOf } from "../lib/corrections.js";
-const { rows: given = [], u = (p) => p, major = "major", sort = "date", facts = true,
+import { linkBooks } from "../lib/booklinks.js";
+const { rows: given = [], u = (p) => p, major = "major", sort = "date", facts = true, books = null,
         kindLabel = "About", sevLabel = "Show",
         /* how/why mean different things in different archives (how it was caught,
            the source, the lesson), so the fold's label is neutral by default and
            an archive can name its own. */
         moreLabel = "How and why" } = Astro.props;
-const rows = sort === "given" ? given : byDateDesc(given, (r) => r.when);
+/* a register book named in the prose is linked to the book when the archive's catalogue (`books`, from bookIndex in lib/booklinks.js) holds it */
+const lk = (h) => (books && h ? linkBooks(h, books) : h);
+const rows = (sort === "given" ? given : byDateDesc(given, (r) => r.when)).map((r) => (books ? { ...r, was: lk(r.was), now: lk(r.now), how: lk(r.how), why: lk(r.why) } : r));
 /* One heading per day, not one date repeated on every entry: Lerena has 184
    entries over 27 days. Rows are grouped only while consecutive, so the
    archive's own order is kept; rows with no date (Mazza's) form one group with no
@@ -127,7 +133,7 @@ const ext = (h) => /^(https?:)?\/\//.test(String(h || ""));
             </div>
           ) : null}
           {r.kind && isTitle(r.kind) ? <p class="cx-title">{r.kind}</p> : null}
-          {(() => { const f = facts ? factsOf(r.was, r.now) : null; return f && (f.people.length || f.places.length || f.dates.length || f.sources.length) ? (
+          {(() => { const f = facts ? factsOf(r.was, r.now, r.how, r.why, r.extra) : null; return f && (f.people.length || f.places.length || f.dates.length || f.sources.length) ? (
             <dl class="cx-facts">
               {f.people.length ? <div><dt>People</dt><dd>{f.people.map((x) => <a class="cx-chip" href={href(x.href)}>{x.name}</a>)}</dd></div> : null}
               {f.places.length ? <div><dt>Places</dt><dd>{f.places.map((x) => <a class="cx-chip pl" href={href(x.href)}>{x.name}</a>)}</dd></div> : null}
