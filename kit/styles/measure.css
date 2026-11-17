@@ -1,29 +1,28 @@
-/* The reading measure: one line length for running text in every archive.
+/* One text width for every archive: running text fills the page frame, level with the header.
 
-   David, 18 November 2026, after the archives were measured at 1280px: the same kind of page read at
-   anything from 730 to 1,180 px across the eight, and a paragraph on a wide page ran past 130 characters
-   a line. Each archive's stylesheet capped its own prose differently (or not at all), so a reader moving
-   between archives, or between two pages of one, got a different page each time.
+   David, 18 November 2026. The audit crawl found the same kind of page reading anywhere from 730 to 1,180 px
+   across the eight archives: each archive's stylesheet capped its prose differently (a paragraph at 80ch, a
+   lede at 46rem, a list at 54rem, a "dek" at 743px), so the left and right edges of the text moved from page
+   to page. A first version of this file narrowed everything to 72ch; David looked at it and said the text
+   should go across the width of the header instead. This is that.
 
-   The rule: running text (paragraphs, lists, definition lists, quotations, captions) is never wider than
-   --st-measure, 72ch by default, about 650px. It is an upper bound only, so a card, a table, a figure, a
-   map or a scrolling block is exactly as wide as it was. The text sits at the left of the page frame, as
-   the lead paragraph under every title already did.
+   The rule: a paragraph, list, definition list, quotation, `.prose`, `.dek`, `.lede` or `.sub` is as wide as
+   the frame it sits in (the archive's `.wrap`, 1080px in all eight), and no narrower, whatever an older rule
+   in the archive's own stylesheet says. Tables, cards, grids, maps, figures, captions and navigation keep
+   their own widths, so a card's text is the card's width, as before. Headings are not touched.
 
-   - NOT narrowed: anything inside a table, `.scroll`, `.bleed`, the site header, footer or any nav, a
-     component whose class holds "card" or "grid" (it sizes its own text), `[data-measure="wide"]`
-     (an author's deliberate exception), and an element that sets its own narrower max-width.
-   - An archive that wants a different measure sets --st-measure on :root; it should not override the
-     selector. The frame itself (`.wrap`, --maxw) is the archive's: 1080px in all eight.
+   - NOT widened: anything inside a table, `.scroll`, `.bleed`, the site header, footer or any nav, a
+     component whose class holds "card" or "grid", or `[data-measure="wide"]`.
+   - An archive that really wants a reading column sets --st-measure on :root (for example 72ch). Nothing
+     does today.
    - Screen only. Print already removes every limit (print.css).
 
    Imported once, in the archive's layout, beside print.css:
-       import "@daviddef/archive-kit/styles/measure.css";
-   Checked by measuring the median text-block width of built pages at 1280px (the 18 Nov 2026 audit crawl). */
-:root { --st-measure: 72ch; }
+       import "@daviddef/archive-kit/styles/measure.css"; */
+:root { --st-measure: none; }
 
 @media screen {
-  main :is(p, ul, ol, dl, blockquote, figcaption):not(
+  main :is(p, ul, ol, dl, blockquote, .prose, .dek, .lede, .sub):not(
     table *, .scroll *, .bleed *, nav *, header *, footer *, [class*="card"] *, [class*="grid"] *, [data-measure="wide"] *
   ) { max-width: var(--st-measure); }
 }
