@@ -37,3 +37,42 @@ export function byDateDesc(rows, whenOf = (r) => r && r.when) {
   keyed.sort((a, b) => (a.iso === b.iso ? a.i - b.i : !a.iso ? 1 : !b.iso ? -1 : a.iso < b.iso ? 1 : -1));
   return keyed.map((k) => k.r);
 }
+
+/* WHO, WHERE and WHEN a correction is about, read out of the sentences the archive has already written (its rendered HTML), so a long paragraph
+   opens with the people, the places and the dates in it, as links and chips, before the prose. Nothing is invented: a person or a place is an
+   <a> the archive already linked (a path with /person/, /people/ or /who/ is a person; /place/ or /places/ is a place), a date is a date written
+   in the text. A work date (2020 or later: "read on 16 November 2026") is when the correction was made, not what it is about, and is left out. */
+const MON = "(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:t(?:ember)?)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)";
+const DATE = new RegExp("\\b(?:\\d{1,2}\\s+" + MON + "\\.?\\s+\\d{4}|" + MON + "\\.?\\s+\\d{1,2},?\\s+\\d{4}|" + MON + "\\.?\\s+\\d{4})\\b|\\b(1[0-9]{3}|20[01][0-9])\\b", "g");
+const textOf = (h) => String(h || "").replace(/<[^>]*>/g, " ").replace(/&amp;/g, "&").replace(/&[a-z]+;/g, " ").replace(/\s+/g, " ").trim();
+export function factsOf(...htmls) {
+  const people = new Map(), places = new Map(), dates = new Map(), sources = new Map();
+  for (const h of htmls) {
+    const html = String(h || "");
+    for (const m of html.matchAll(/<a\b([^>]*)>([\s\S]*?)<\/a>/g)) {
+      const attrs = m[1], hm = /\bhref="([^"]*)"/.exec(attrs); if (!hm) continue;
+      const full = hm[1], href = full.split("#")[0], name = textOf(m[2]);
+      /* a link to the record the correction rests on: a record link the archive drew (class lk-rec, as the linking standard marks it) or any address
+         off the site (a FamilySearch image, an archive's catalogue). Its label is the link's own title (\"FamilySearch image 3:1:...\"), else its words. */
+      if (/\blk-rec\b/.test(attrs) || /^https?:\/\//.test(full)) {
+        const t = (/\btitle="([^"]*)"/.exec(attrs) || [])[1] || name;
+        if (t && full && !sources.has(full)) sources.set(full, t.length > 70 ? t.slice(0, 68) + "…" : t);
+        continue;
+      }
+      if (!name || name.length > 90) continue;
+      if (/\/(person|people|who)\/[^/]+/.test(href)) { if (!people.has(href)) people.set(href, name); }
+      else if (/\/places?\/[^/]+/.test(href)) { if (!places.has(href)) places.set(href, name); }
+    }
+    /* dates are read from the text outside the links' own addresses; a date inside a link's words is still a date */
+    for (const m of textOf(html).matchAll(DATE)) {
+      const t = m[0].trim(), y = +(t.match(/\d{4}/) || [0])[0];
+      if (y >= 2020 || y < 1000) continue;
+      const k = t.toLowerCase(); if (!dates.has(k)) dates.set(k, t);
+    }
+  }
+  /* a bare year that is already inside a longer date shown ("1858" beside "1 February 1858") is the same date: show the longer */
+  const list = [...dates.values()];
+  const long = list.filter((d) => /\D/.test(d.replace(/\d{4}/, "")) && d.length > 4);
+  const shown = list.filter((d) => !(/^\d{4}$/.test(d) && long.some((l) => l.includes(d))));
+  return { sources: [...sources].map(([href, name]) => ({ href, name })), people: [...people].map(([href, name]) => ({ href, name })), places: [...places].map(([href, name]) => ({ href, name })), dates: shown.slice(0, 8) };
+}

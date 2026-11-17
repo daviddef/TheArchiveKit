@@ -1,6 +1,6 @@
 // node kit/tools/corrections_logic.mjs : what the Corrections page and /whats-new/ must agree on (lib/corrections.js): one stable anchor per correction
 // row, the same on both sides, and the page's newest-first order. Cases are written from the shapes the archives keep corrections in.
-import { corrIdMap, byDateDesc } from "../lib/corrections.js";
+import { corrIdMap, byDateDesc, factsOf } from "../lib/corrections.js";
 import { buildPulse } from "../lib/pulse.js";
 let bad = 0;
 const ok = (label, cond, detail) => { if (!cond) { bad++; console.log("  FAIL  " + label + (detail ? "\n         " + detail : "")); } else console.log("  ok    " + label); };
@@ -37,4 +37,13 @@ ok("a What's new card links to its own entry", c0 && c0.href === "/corrections/#
 ok("the card names who it is about (own pages only, once each)", c0 && c0.people.list.length === 1 && c0.people.list[0][1] === "Anna Bakar");
 ok("a correction with no `for` names nobody", p.days[0].corrections.find((e) => e.head === "Another").people.list.length === 0);
 ok("the header panel's card links the same anchor", p.cards.some((c) => c.type === "corrected" && c.href === "/corrections/#" + m.get(cor[0])));
+
+/* who, where, when and which record: read out of the archive's own rendered sentences, nothing invented */
+const f = factsOf('<p>The weddings are of <strong>1 February 1858</strong> (the bride is <a href="/person/maria-voinich/">Maria Voinić</a>), on <a href="/places/medulin/">the Medulin page</a>; <a class="lk-rec" href="https://www.familysearch.org/ark:/61903/3:1:3QSQ-G99X-G4G6" title="FamilySearch image 3:1:3QSQ-G99X-G4G6"><code>3:1:3QSQ</code></a>; born 1828 and 1831, read on 16 November 2026.</p>');
+ok("a linked person is a person chip", f.people.length === 1 && f.people[0].name === "Maria Voinić" && f.people[0].href === "/person/maria-voinich/");
+ok("a linked place is a place chip", f.places.length === 1 && f.places[0].href === "/places/medulin/");
+ok("a record link is a source, labelled by its title", f.sources.length === 1 && f.sources[0].name === "FamilySearch image 3:1:3QSQ-G99X-G4G6");
+ok("dates: the full date, the bare years, not the work date", f.dates.join("|") === "1 February 1858|1828|1831", f.dates.join("|"));
+ok("a year inside a longer date is not shown twice", !f.dates.includes("1858"));
+ok("no links, no names: nothing is invented", factsOf("<p>a sentence with no links</p>").people.length === 0 && factsOf("").sources.length === 0);
 if (bad) { console.log(bad + " failed"); process.exit(1); } console.log("all passed");

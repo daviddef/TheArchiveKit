@@ -10,6 +10,8 @@ Changed 17 Nov 2026 after David's five questions on the Defranceski page; it app
 | the date of a long day gets lost | One heading per day (a day is now ONE group, because the rows are sorted), and the heading stays at the top while its entries scroll under it. An archive with a fixed header sets `--cx-top` to its height. |
 | who is this about? | A row can carry `for: [["/people/slug/", "Name"], ...]` (the same list a search row uses: the archive's own pages for the people, never a person it does not publish). The page shows "About Name" on the entry (map it to `about:`), and the What's new card shows it under the headline. The kit does not guess a name: a row with no `for` names nobody, and the card says nothing. |
 
+| long paragraphs; people with no link; where are the sources? (18 Nov) | Each entry opens with a strip of **People, Places, Sources, Dates** read out of the sentences the archive already wrote: a person or place is the link the archive already made (`/person/`, `/places/`), a source is a record link (`lk-rec`) or any address off the site, a date is a date in the text (the work date, 2020 or later, is left out). Chips are links where there is a page. Nothing is invented: if the text names a FamilySearch image without linking it, there is no Source chip, and the fix is the archive writing the record link into the correction (`[words](rec:fs-<ark>)` or a URL). `facts={false}` turns the strip off. |
+
 ## What an archive does (about ten lines in its own `corrections` page)
 
 ```astro
