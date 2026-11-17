@@ -18,7 +18,7 @@ const py = (code, input) => execFileSync("python3", ["-I", "-c", code], { input:
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "receipts-"));
 const copy = (name, edits) => {
   const d = path.join(tmp, name); fs.mkdirSync(d); fs.writeFileSync(path.join(d, "package.json"), '{"type":"module"}');
-  for (const f of ["receipts.js", "pulse.js", "receipts.client.js"]) {
+  for (const f of ["receipts.js", "pulse.js", "receipts.client.js", "corrections.js", "when.js"]) {
     let s = fs.readFileSync(path.join(lib, f), "utf8");
     for (const [from, to] of edits[f] || []) { if (!s.includes(from)) throw new Error("fault line not found in " + f + ": " + from); s = s.replace(from, to); }
     fs.writeFileSync(path.join(d, f), s);

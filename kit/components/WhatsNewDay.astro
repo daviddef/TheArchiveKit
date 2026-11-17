@@ -41,7 +41,10 @@ const isExt = (e) => !!e.ext;
     {d.corrections.map((e) => (
       <li class="wn-item" data-type="corrected" data-q={e.head.toLowerCase()}>
         <span class="wn-chip2 corrected"><i aria-hidden="true">{CARD.corrected.glyph}</i> {CARD.corrected.label}</span>
-        <a class="wn-head" href={u(e.href)}>{e.head}<span class="wn-go" aria-hidden="true"> →</span></a>
+        <a class="wn-head" href={u(e.href)} title="Open this correction">{e.head}<span class="wn-go" aria-hidden="true"> →</span></a>
+        {e.people.list.length > 0 && (
+          <span class="wn-about">About {e.people.list.map(([h, n], i) => <>{i > 0 && ", "}<a href={u(h)}>{n}</a></>)}</span>
+        )}
       </li>
     ))}
     {d.research.length > 0 && (

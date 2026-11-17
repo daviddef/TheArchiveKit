@@ -97,20 +97,27 @@ ok("dayAfter: month, year and leap-day ends", real.dayAfter("2026-11-30") === "2
 const src = fs.readFileSync(libPath, "utf8");
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "pulse-"));
 /* pulse.js imports ./receipts.js (12 November 2026): the copies need it beside them, as an ES module */
-fs.copyFileSync(path.join(here, "..", "lib", "receipts.js"), path.join(tmp, "receipts.js")); fs.writeFileSync(path.join(tmp, "package.json"), '{"type":"module"}');
+fs.copyFileSync(path.join(here, "..", "lib", "receipts.js"), path.join(tmp, "receipts.js")); fs.copyFileSync(path.join(here, "..", "lib", "corrections.js"), path.join(tmp, "corrections.js")); fs.copyFileSync(path.join(here, "..", "lib", "when.js"), path.join(tmp, "when.js")); fs.writeFileSync(path.join(tmp, "package.json"), '{"type":"module"}');
 const BREAK = [
   ["future-date", "&& w.iso <= tomorrow", ""],
   ["one-day-ahead-kept", "const tomorrow = dayAfter(today);", "const tomorrow = today;"],
   ["two-days-ahead-dropped", "const tomorrow = dayAfter(today);", "const tomorrow = dayAfter(dayAfter(today));"],
   ["today-override", "const today = o.today ||", "const today = "],
-  ["record-year-is-not-a-date", "if (!m) return null;\n  const mo = MON", "if (!m) return { iso: t.slice(0,4)+'-01-01', exact: false };\n  const mo = MON"],
+  ["record-year-is-not-a-date", "if (!m) return null;\n  const mo = MON", "if (!m) return { iso: t.slice(0,4)+'-01-01', exact: false };\n  const mo = MON", "when"],
   ["iso-and-note", '!("_note" in r)', "true"],
   ["source-name-link-group", "/^https?:\\/\\//i.test(x.trim())", "true"],
   ["tiles-hide-zero", ".filter(([n]) => n > 0)", ""],
 ];
-for (const [id, from, to] of BREAK) {
-  if (!src.includes(from)) { ok("fault " + id + ": the line to break is still in the library", false, from); continue; }
-  const f = path.join(tmp, id + ".mjs"); fs.writeFileSync(f, src.replace(from, to));
+for (const [id, from, to, where] of BREAK) {
+  /* a rule that lives in lib/when.js (the date reading, shared with the corrections page) is broken there, in a copy of the folder */
+  const text = where === "when" ? fs.readFileSync(path.join(here, "..", "lib", "when.js"), "utf8") : src;
+  if (!text.includes(from)) { ok("fault " + id + ": the line to break is still in the library", false, from); continue; }
+  let f = path.join(tmp, id + ".mjs");
+  if (where === "when") {
+    const dir = path.join(tmp, id); fs.mkdirSync(dir); fs.writeFileSync(path.join(dir, "package.json"), '{"type":"module"}');
+    for (const n2 of ["receipts.js", "corrections.js"]) fs.copyFileSync(path.join(here, "..", "lib", n2), path.join(dir, n2));
+    fs.writeFileSync(path.join(dir, "when.js"), text.replace(from, to)); f = path.join(dir, "pulse.js"); fs.writeFileSync(f, src);
+  } else fs.writeFileSync(f, src.replace(from, to));
   const lib = await import(pathToFileURL(f).href);
   ok("fault " + id + ": the broken copy is caught", (await failing(lib)).includes(id));
 }
