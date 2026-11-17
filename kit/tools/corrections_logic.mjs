@@ -1,6 +1,6 @@
 // node kit/tools/corrections_logic.mjs : what the Corrections page and /whats-new/ must agree on (lib/corrections.js): one stable anchor per correction
 // row, the same on both sides, and the page's newest-first order. Cases are written from the shapes the archives keep corrections in.
-import { corrIdMap, byDateDesc, factsOf } from "../lib/corrections.js";
+import { corrIdMap, byDateDesc, factsOf, kindBefore } from "../lib/corrections.js";
 import { buildPulse } from "../lib/pulse.js";
 let bad = 0;
 const ok = (label, cond, detail) => { if (!cond) { bad++; console.log("  FAIL  " + label + (detail ? "\n         " + detail : "")); } else console.log("  ok    " + label); };
@@ -43,7 +43,14 @@ const f = factsOf('<p>The weddings are of <strong>1 February 1858</strong> (the 
 ok("a linked person is a person chip", f.people.length === 1 && f.people[0].name === "Maria Voinić" && f.people[0].href === "/person/maria-voinich/");
 ok("a linked place is a place chip", f.places.length === 1 && f.places[0].href === "/places/medulin/");
 ok("a record link is a source, labelled by its title", f.sources.length === 1 && f.sources[0].name === "FamilySearch image 3:1:3QSQ-G99X-G4G6");
-ok("dates: the full date, the bare years, not the work date", f.dates.join("|") === "1 February 1858|1828|1831", f.dates.join("|"));
-ok("a year inside a longer date is not shown twice", !f.dates.includes("1858"));
+ok("dates: the full date, the bare years, not the work date", f.dates.map((d) => d.text).join("|") === "1 February 1858|1828|1831", f.dates.map((d) => d.text).join("|"));
+ok("a year inside a longer date is not shown twice", !f.dates.some((d) => d.text === "1858"));
+ok("died / buried is a death, born / baptised a birth, married a marriage", kindBefore("who died on ") === "death" && kindBefore("was buried at Pula on ") === "death" && kindBefore("born ") === "birth" && kindBefore("baptised at Omiš on ") === "birth" && kindBefore("they married in ") === "marriage");
+ok("danger of death is not a death", kindBefore("the twin was baptised in danger of death on ") === "birth");
+ok("a baptism BOOK is not a birth", kindBefore("the baptism book of ") === "" && factsOf("<p>the baptism book 1764–1791</p>").dates.every((d) => !d.kind));
+ok("the nearest word wins", kindBefore("baptised on 3 May and died ") === "death");
+ok("no word, no mark; a word in an earlier clause does not count", kindBefore("the entry of ") === "" && kindBefore("she died. The entry of ") === "");
+const g = factsOf("<p>She was born in 1828, and died in January 1800; the book of 1803.</p>");
+ok("dates carry what they are the date of", g.dates.find((d) => d.text === "1828").kind === "birth" && g.dates.find((d) => d.text === "January 1800").kind === "death" && g.dates.find((d) => d.text === "1803").kind === "");
 ok("no links, no names: nothing is invented", factsOf("<p>a sentence with no links</p>").people.length === 0 && factsOf("").sources.length === 0);
 if (bad) { console.log(bad + " failed"); process.exit(1); } console.log("all passed");

@@ -76,6 +76,8 @@ const href = (h) => !h ? "" : (/^(https?:)?\/\//.test(h) || h.startsWith("mailto
    whole headline of the correction there. A sentence in a bordered chip is a
    box of capitals; past this length it is set as the entry's title instead. */
 const isTitle = (k) => String(k || "").length > 48;
+/* the genealogist's marks: a cross for a death or burial, a star for a birth or baptism, rings for a marriage */
+const MARK = { death: ["†", "died"], birth: ["✶", "born"], marriage: ["⚭", "married"] };
 const ext = (h) => /^(https?:)?\/\//.test(String(h || ""));
 
 ---
@@ -130,7 +132,7 @@ const ext = (h) => /^(https?:)?\/\//.test(String(h || ""));
               {f.people.length ? <div><dt>People</dt><dd>{f.people.map((x) => <a class="cx-chip" href={href(x.href)}>{x.name}</a>)}</dd></div> : null}
               {f.places.length ? <div><dt>Places</dt><dd>{f.places.map((x) => <a class="cx-chip pl" href={href(x.href)}>{x.name}</a>)}</dd></div> : null}
               {f.sources.length ? <div><dt>Sources</dt><dd>{f.sources.map((x) => <a class="cx-chip src" href={href(x.href)} rel="noopener">{x.name} ↗</a>)}</dd></div> : null}
-              {f.dates.length ? <div><dt>Dates</dt><dd>{f.dates.map((x) => <span class="cx-chip dt">{x}</span>)}</dd></div> : null}
+              {f.dates.length ? <div><dt>Dates</dt><dd>{f.dates.map((x) => <span class={"cx-chip dt" + (x.kind ? " " + x.kind : "")} title={MARK[x.kind] ? MARK[x.kind][1] : undefined}>{MARK[x.kind] ? <><i aria-hidden="true">{MARK[x.kind][0]}</i><span class="cx-sr">{MARK[x.kind][1]} </span></> : null}{x.text}</span>)}</dd></div> : null}
             </dl>
           ) : null; })()}
           {r.superseded ? (
@@ -291,6 +293,8 @@ const ext = (h) => /^(https?:)?\/\//.test(String(h || ""));
   a.cx-chip { color:var(--accent,#963); border-color:var(--accent,#963); }
   a.cx-chip:hover { background:var(--accent-wash,rgba(185,138,62,.12)); }
   .cx-chip.dt { font-variant-numeric:tabular-nums; }
+  .cx-chip.dt i { font-style:normal; margin-right:.3rem; color:var(--accent,#963); }
+  .cx-sr { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
   .cx-about { font-size:.95rem; font-weight:600; color:var(--ink-2,inherit); }
   .cx-about a { color:var(--accent,#963); text-decoration:none; }
   .cx-about a:hover { text-decoration:underline; }

@@ -45,6 +45,22 @@ export function byDateDesc(rows, whenOf = (r) => r && r.when) {
 const MON = "(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:t(?:ember)?)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)";
 const DATE = new RegExp("\\b(?:\\d{1,2}\\s+" + MON + "\\.?\\s+\\d{4}|" + MON + "\\.?\\s+\\d{1,2},?\\s+\\d{4}|" + MON + "\\.?\\s+\\d{4})\\b|\\b(1[0-9]{3}|20[01][0-9])\\b", "g");
 const textOf = (h) => String(h || "").replace(/<[^>]*>/g, " ").replace(/&amp;/g, "&").replace(/&[a-z]+;/g, " ").replace(/\s+/g, " ").trim();
+/* what a date is the date OF, from the words just before it: "death" (died, buried, burial, d.), "birth" (born, baptised, christened, b.), "marriage"
+   (married, wedding). The nearest of these words in the clause wins; none, none. */
+const KINDS = [["death", /\b(?:died|dies|buried|burial|burials|d\.)(?=\W|$)/gi], ["birth", /\b(?:born|birth|births|baptis\w*|baptiz\w*|christen\w*|b\.)(?=\W|$)/gi], ["marriage", /\b(?:married|marriage|marriages|wedding|weddings)(?=\W|$)/gi]];
+export function kindBefore(before) {
+  const w = String(before || "").split(/[;()]|\.\s/).pop();
+  let best = "", at = -1;
+  for (const [kind, re] of KINDS) {
+    for (const m of w.matchAll(re)) {
+      /* the word must lead straight to the date: not 28+ characters back, and not across "book", "register", "entries" (a baptism BOOK of 1764 is not a birth) */
+      const tail = w.slice(m.index + m[0].length);
+      if (tail.length > 28 || /\b(?:book|books|register|registers|entries|entry|index|volume|records?|rows?)\b/i.test(tail)) continue;
+      if (m.index > at) { at = m.index; best = kind; }
+    }
+  }
+  return best;
+}
 export function factsOf(...htmls) {
   const people = new Map(), places = new Map(), dates = new Map(), sources = new Map();
   for (const h of htmls) {
@@ -63,16 +79,22 @@ export function factsOf(...htmls) {
       if (/\/(person|people|who)\/[^/]+/.test(href)) { if (!people.has(href)) people.set(href, name); }
       else if (/\/places?\/[^/]+/.test(href)) { if (!places.has(href)) places.set(href, name); }
     }
-    /* dates are read from the text outside the links' own addresses; a date inside a link's words is still a date */
-    for (const m of textOf(html).matchAll(DATE)) {
+    /* dates are read from the text; the word just before one says what it is a date OF (died / born / married), so the chip can wear the
+       genealogist's mark for it. Only the clause the date is in is looked at (up to the last ; . or bracket before it), and the nearest word wins. */
+    const plain = textOf(html);
+    for (const m of plain.matchAll(DATE)) {
       const t = m[0].trim(), y = +(t.match(/\d{4}/) || [0])[0];
       if (y >= 2020 || y < 1000) continue;
-      const k = t.toLowerCase(); if (!dates.has(k)) dates.set(k, t);
+      /* a year inside a range ("1764–1791") is the years of a book, not of an event */
+      const inRange = /\d\s*[–-]\s*$/.test(plain.slice(Math.max(0, m.index - 3), m.index)) || /^\s*[–-]\s*\d/.test(plain.slice(m.index + t.length, m.index + t.length + 3));
+      const k = t.toLowerCase(), kind = inRange ? "" : kindBefore(plain.slice(Math.max(0, m.index - 60), m.index));
+      const had = dates.get(k);
+      if (!had) dates.set(k, { text: t, kind }); else if (!had.kind && kind) had.kind = kind;
     }
   }
   /* a bare year that is already inside a longer date shown ("1858" beside "1 February 1858") is the same date: show the longer */
   const list = [...dates.values()];
-  const long = list.filter((d) => /\D/.test(d.replace(/\d{4}/, "")) && d.length > 4);
-  const shown = list.filter((d) => !(/^\d{4}$/.test(d) && long.some((l) => l.includes(d))));
+  const long = list.filter((d) => d.text.length > 4);
+  const shown = list.filter((d) => !(/^\d{4}$/.test(d.text) && long.some((l) => l.text.includes(d.text))));
   return { sources: [...sources].map(([href, name]) => ({ href, name })), people: [...people].map(([href, name]) => ({ href, name })), places: [...places].map(([href, name]) => ({ href, name })), dates: shown.slice(0, 8) };
 }
