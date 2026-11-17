@@ -117,4 +117,9 @@ ok("a lone first name is not a name", !ln("Anna was here").includes("lk-name"));
 ok("a name inside a link, a heading or code is left alone", !linkNames('<a href="/x/">Anna Bakar</a>', nidx).includes("lk-name") && !linkNames("<h3>Anna Bakar</h3>", nidx).includes("lk-name"));
 ok("a name inside a longer word is not linked", !ln("Anna Bakarovic").includes("lk-name"));
 ok("a shared name linked in the prose is a shared chip", (() => { const f = factsOf(ln("Giovanni Defranceschi")); return f.people.length === 1 && f.people[0].shared === true; })());
+
+/* "dead" before a date is a death ("born 1934, dead October 1955"); "dead" anywhere else is not */
+ok("'dead' straight before a date is a death", kindBefore("born 1934, dead ") === "death" && kindBefore("dead in ") === "death" && kindBefore("dead on ") === "death");
+ok("'dead' elsewhere is no mark", kindBefore("the dead man's letter of ") === "" && kindBefore("he was left for dead; the entry of ") === "");
+ok("a quoted index entry gets a birth and a death mark", (() => { const f = factsOf("<p>index entry 'born 1934, dead October 1955'</p>"); return f.dates.find((d) => d.text === "1934").kind === "birth" && f.dates.find((d) => d.text === "October 1955").kind === "death"; })());
 if (bad) { console.log(bad + " failed"); process.exit(1); } console.log("all passed");

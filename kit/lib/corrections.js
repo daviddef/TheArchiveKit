@@ -47,7 +47,7 @@ const DATE = new RegExp("\\b(?:1[0-9]{3}|20[01][0-9])\\s*[–-]\\s*(?:1[0-9]{3}|
 const textOf = (h) => String(h || "").replace(/<[^>]*>/g, " ").replace(/&amp;/g, "&").replace(/&[a-z]+;/g, " ").replace(/\s+/g, " ").trim();
 /* what a date is the date OF, from the words just before it: "death" (died, buried, burial, d.), "birth" (born, baptised, christened, b.), "marriage"
    (married, wedding). The nearest of these words in the clause wins; none, none. */
-const KINDS = [["death", /\b(?:died|dies|buried|burial|burials|d\.)(?=\W|$)/gi], ["birth", /\b(?:born|birth|births|baptis\w*|baptiz\w*|christen\w*|b\.)(?=\W|$)/gi], ["marriage", /\b(?:married|marriage|marriages|wedding|weddings)(?=\W|$)/gi]];
+const KINDS = [["death", /\b(?:died|dies|buried|burial|burials|dead|d\.)(?=\W|$)/gi], ["birth", /\b(?:born|birth|births|baptis\w*|baptiz\w*|christen\w*|b\.)(?=\W|$)/gi], ["marriage", /\b(?:married|marriage|marriages|wedding|weddings)(?=\W|$)/gi]];
 export function kindBefore(before) {
   const w = String(before || "").split(/[;()]|\.\s/).pop();
   let best = "", at = -1;
@@ -55,6 +55,8 @@ export function kindBefore(before) {
     for (const m of w.matchAll(re)) {
       /* the word must lead straight to the date: not 28+ characters back, and not across "book", "register", "entries" (a baptism BOOK of 1764 is not a birth) */
       const tail = w.slice(m.index + m[0].length);
+      /* "dead" is a death only straight before its date ("born 1934, dead October 1955", "dead in 1955"), never in "the dead man's letter" */
+      if (/^dead$/i.test(m[0]) && !/^\s*(?:(?:in|on)\s+)?$/i.test(tail)) continue;
       if (tail.length > 28 || /\b(?:book|books|register|registers|entries|entry|index|volume|records?|rows?)\b/i.test(tail)) continue;
       if (m.index > at) { at = m.index; best = kind; }
     }
