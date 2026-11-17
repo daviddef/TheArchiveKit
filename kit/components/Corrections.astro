@@ -28,15 +28,21 @@
  * the same axis and one control cannot carry both. Past seven options the
  * control becomes a select, because 39 buttons is a wall, not a filter.
  *
- *   rows  [{when, who (HTML, so it can link), kind, sev, was, now, how, why, by, where, whereLabel,
+ *   rows  [{when, who (HTML, so it can link), about ([["/path/", "Name"], ...]: WHO the correction is about), id (the anchor, from
+ *           lib/corrections.js corrIdMap, so /whats-new/ can link to this entry), kind, sev, was, now, how, why, by, where, whereLabel,
  *           extra, superseded:{label, href, note}}]
+ *
+ *   NEWEST FIRST: the component sorts by `when` itself (sort="date", the default; sort="given" keeps the archive's own order). A date it
+ *   cannot read goes after the dated rows. Within a day the archive's own order stands.
  */
-const { rows = [], u = (p) => p, major = "major",
+import { byDateDesc } from "../lib/corrections.js";
+const { rows: given = [], u = (p) => p, major = "major", sort = "date",
         kindLabel = "About", sevLabel = "Show",
         /* how/why mean different things in different archives (how it was caught,
            the source, the lesson), so the fold's label is neutral by default and
            an archive can name its own. */
         moreLabel = "How and why" } = Astro.props;
+const rows = sort === "given" ? given : byDateDesc(given, (r) => r.when);
 /* One heading per day, not one date repeated on every entry: Lerena has 184
    entries over 27 days. Rows are grouped only while consecutive, so the
    archive's own order is kept; rows with no date (Mazza's) form one group with no
@@ -107,9 +113,12 @@ const ext = (h) => /^(https?:)?\/\//.test(String(h || ""));
       ) : null}
       {d.rows.map((r) => (
         <section class="cx-e" data-sev={r.sev || ""} data-kind={r.kind || ""} id={r.id || undefined}>
-          {(r.who || r.sev || (r.kind && !isTitle(r.kind))) ? (
+          {(r.who || r.sev || (r.kind && !isTitle(r.kind)) || (r.about && r.about.length)) ? (
             <div class="cx-h">
               {r.who ? <strong class="cx-who" set:html={r.who} /> : null}
+              {r.about && r.about.length ? (
+                <span class="cx-about">About {r.about.map(([h, n], i) => <>{i > 0 && ", "}<a href={href(h)}>{n}</a></>)}</span>
+              ) : null}
               {r.kind && !isTitle(r.kind) ? <span class={"chip " + (r.sev === major ? "dis" : "")}>{r.kind}</span> : null}
               {!r.kind && r.sev ? <span class={"chip " + (r.sev === major ? "dis" : "")}>{r.sev}</span> : null}
               {r.kind && r.sev === major ? <span class="chip doc">material</span> : null}
@@ -199,6 +208,17 @@ const ext = (h) => /^(https?:)?\/\//.test(String(h || ""));
       });
       apply();
     });
+    /* A link from /whats-new/ lands on one entry. If a filter is hiding it, clear the filters first; then bring it to the top. */
+    const goHash = () => {
+      const id = decodeURIComponent((location.hash || "").slice(1));
+      if (!id) return;
+      const t = document.getElementById(id);
+      if (!t || !box.contains(t) || !t.classList.contains("cx-e")) return;
+      if (t.hidden && clear) clear.click();
+      t.scrollIntoView({ block: "start" });
+    };
+    addEventListener("hashchange", goHash);
+    if (location.hash) requestAnimationFrame(goHash);
     /* One control for the folded notes: opening 184 of them one at a time is not
        a reading mode. */
     const all = box.querySelector(".cx-all");
@@ -242,14 +262,23 @@ const ext = (h) => /^(https?:)?\/\//.test(String(h || ""));
      the reading column is not. */
   .cx-d { max-width:72ch; margin-top:2.6rem; }
   .cx-date { display:flex; align-items:baseline; justify-content:space-between; gap:1rem;
-    margin:0 0 .2rem; padding-bottom:.45rem; border-bottom:2px solid var(--rule,#ddd);
-    font-size:1.05rem; font-weight:600; }
+    margin:0 0 .2rem; padding:.55rem 0 .45rem; border-bottom:2px solid var(--rule,#ddd);
+    font-size:1.05rem; font-weight:600;
+    /* the date stays at the top while its day's entries scroll under it, so a long day never loses its date. An archive with a fixed
+       header sets --cx-top to the header's height. */
+    position:sticky; top:var(--cx-top,0px); z-index:2; background:var(--ground,#fff); }
   .cx-n { font-weight:400; color:var(--ink-3,#888); }
 
   .cx-e { padding:1.25rem 0 1.15rem; font-size:.94em; }
   .cx-e + .cx-e { border-top:1px solid var(--rule,#ddd); }
   .cx-h { display:flex; align-items:baseline; gap:.5rem; flex-wrap:wrap; margin-bottom:.7rem; }
   .cx-who { font-size:.95rem; }
+  .cx-about { font-size:.95rem; font-weight:600; color:var(--ink-2,inherit); }
+  .cx-about a { color:var(--accent,#963); text-decoration:none; }
+  .cx-about a:hover { text-decoration:underline; }
+  /* the entry a link from /whats-new/ points at */
+  .cx-e { scroll-margin-top:4.2rem; }
+  .cx-e:target { background:var(--accent-wash,rgba(185,138,62,.12)); box-shadow:-.9rem 0 0 var(--accent-wash,rgba(185,138,62,.12)), .9rem 0 0 var(--accent-wash,rgba(185,138,62,.12)); border-radius:2px; }
   .cx-title { margin:0 0 .9rem; font-size:1.02rem; font-weight:600; line-height:1.4; color:var(--ink,inherit); }
   .cx-h + .cx-title { margin-top:-.2rem; }
 

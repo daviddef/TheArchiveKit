@@ -25,6 +25,7 @@
  */
 import fs from "node:fs";
 import path from "node:path";
+import { byDateDesc } from "../lib/corrections.js";
 
 const root = (() => {
   const i = process.argv.indexOf("--root");
@@ -41,8 +42,8 @@ function compute(file, props, want) {
     /* the components it draws WITH are not needed: nothing here renders */
     .replace(/^\s*import .*$/gm, "")
     .replace(/Astro\.props/g, "__props");
-  const fn = new Function("__props", `${body}\n return { ${want.join(", ")} };`);
-  return fn(props);
+  const fn = new Function("__props", "byDateDesc", `${body}\n return { ${want.join(", ")} };`);
+  return fn(props, byDateDesc);
 }
 
 const CASES = [

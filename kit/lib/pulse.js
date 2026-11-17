@@ -17,6 +17,10 @@
 import { rowkey, stateOf } from "./receipts.js";
 
 /* the card kinds of the timeline (Record Atlas's vocabulary): a day's searches fold into ONE research card, each correction is its own */
+import { corrIdMap } from "./corrections.js";
+import { parseWhen } from "./when.js";
+export { parseWhen };
+
 export const CARD = {
   research: { label: "Research", glyph: "⚑", note: "registers and sources read that day, with what each gave" },
   corrected: { label: "Corrected", glyph: "✓", note: "an earlier claim was withdrawn or fixed" },
@@ -43,26 +47,6 @@ const outcomeOf = (word, map) => {
   if (/^(no |not there|nothing)/.test(w)) return "nil";
   return null;
 };
-
-const MON = { jan: 0, feb: 1, mar: 2, apr: 3, may: 4, jun: 5, jul: 6, aug: 7, sep: 8, oct: 9, nov: 10, dec: 11 };
-
-/* "2026-11-11", "2026-11", "11 Nov 2026", "5 October 2026", "Sept 2026" (a month alone: day 1, exact false); anything else (a bare record
-   year, a sentence) is not a date the work was done on, and returns null */
-export function parseWhen(s) {
-  const t = String(s == null ? "" : s).trim();
-  let m = /^(\d{4})-(\d{2})(?:-(\d{2}))?(?:$|[T\s])/.exec(t);
-  if (m) {
-    const mo = +m[2];
-    if (mo < 1 || mo > 12) return null;
-    return { iso: `${m[1]}-${m[2]}-${m[3] || "01"}`, exact: !!m[3] };
-  }
-  m = /^(?:(\d{1,2})\s+)?([A-Za-z]{3,})\.?\s+(\d{4})$/.exec(t);
-  if (!m) return null;
-  const mo = MON[m[2].slice(0, 3).toLowerCase()];
-  if (mo === undefined) return null;
-  const day = m[1] ? +m[1] : 1;
-  return { iso: `${m[3]}-${String(mo + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`, exact: !!m[1] };
-}
 
 /* the calendar day after an ISO day ("2026-11-12" → "2026-11-13"), by UTC arithmetic: no locale, no local time zone, and month and year ends roll over */
 export const dayAfter = (iso) => new Date(Date.parse(iso + "T00:00:00Z") + 864e5).toISOString().slice(0, 10);
@@ -185,11 +169,14 @@ export function buildPulse(o = {}) {
       key, atlas: rc ? stateOf(key, rc.live, rc.main) : null, updated: updatedOf(r), people: peopleOf(r),
     });
   });
+  /* each correction links to ITS OWN entry on the corrections page (the anchor lib/corrections.js makes from the row), and names who it is about
+     when the row says (`for`, the same ["/path/", "Name"] list a search row uses: the archive's own pages for the people, never one it does not publish) */
+  const cids = corrIdMap(cor);
   cor.forEach((r, i) => {
     const w = parseWhen(first(r, F.cwhen));
     const what = first(r, F.cwhat);
     if (!okDate(w) || !what) return;
-    entries.push({ iso: w.iso, exact: w.exact, kind: "corrected", order: 100000 + i, head: clip(what, 160), title: clip(what, 160), more: "", src: "", provider: "", ext: "", story: "", href: corHref, walked: false, place: "", pages: "", key: "", atlas: null, updated: { pages: [], logOnly: false }, people: { list: [], nobody: false } });
+    entries.push({ iso: w.iso, exact: w.exact, kind: "corrected", order: 100000 + i, head: clip(what, 160), title: clip(what, 160), more: "", src: "", provider: "", ext: "", story: "", href: corHref.replace(/#.*$/, "") + "#" + cids.get(r), walked: false, place: "", pages: "", key: "", atlas: null, updated: { pages: [], logOnly: false }, people: peopleOf(r) });
   });
   /* newest first; within a day, the later row of the log first */
   entries.sort((a, b) => (a.iso < b.iso ? 1 : a.iso > b.iso ? -1 : b.order - a.order));
