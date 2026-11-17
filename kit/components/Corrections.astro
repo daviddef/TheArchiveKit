@@ -40,15 +40,31 @@
  */
 import { byDateDesc, factsOf } from "../lib/corrections.js";
 import { linkBooks } from "../lib/booklinks.js";
-const { rows: given = [], u = (p) => p, major = "major", sort = "date", facts = true, books = null,
+import { linkPlaces } from "../lib/placelinks.js";
+import { linkNames } from "../lib/namelinks.js";
+const { rows: given = [], u = (p) => p, major = "major", sort = "date", facts = true, books = null, places = null, names = null,
         kindLabel = "About", sevLabel = "Show",
         /* how/why mean different things in different archives (how it was caught,
            the source, the lesson), so the fold's label is neutral by default and
            an archive can name its own. */
         moreLabel = "How and why" } = Astro.props;
-/* a register book named in the prose is linked to the book when the archive's catalogue (`books`, from bookIndex in lib/booklinks.js) holds it */
-const lk = (h) => (books && h ? linkBooks(h, books) : h);
-const rows = (sort === "given" ? given : byDateDesc(given, (r) => r.when)).map((r) => (books ? { ...r, was: lk(r.was), now: lk(r.now), how: lk(r.how), why: lk(r.why) } : r));
+/* a register book named in the prose is linked to the book when the archive's catalogue (`books`, from bookIndex in lib/booklinks.js) holds it; a
+   place is linked to its page, with its flag (`places`, from placeIndex in lib/placelinks.js); a person's name is linked to the person, or to the list
+   where several bear it (`names`, from nameIndex in lib/namelinks.js). Each is linked the first time it is named in an entry, across the entry's fields. */
+const FIELDS = ["was", "now", "how", "why"];
+const linked = (r) => {
+  if (!books && !places && !names) return r;
+  const seenP = new Set(), seenN = new Set(), out = { ...r };
+  for (const k of FIELDS) {
+    let h = r[k]; if (!h) continue;
+    if (names) h = linkNames(h, names, { seen: seenN });
+    if (places) h = linkPlaces(h, places, { seen: seenP });
+    if (books) h = linkBooks(h, books);
+    out[k] = h;
+  }
+  return out;
+};
+const rows = (sort === "given" ? given : byDateDesc(given, (r) => r.when)).map(linked);
 /* One heading per day, not one date repeated on every entry: Lerena has 184
    entries over 27 days. Rows are grouped only while consecutive, so the
    archive's own order is kept; rows with no date (Mazza's) form one group with no
@@ -135,8 +151,8 @@ const ext = (h) => /^(https?:)?\/\//.test(String(h || ""));
           {r.kind && isTitle(r.kind) ? <p class="cx-title">{r.kind}</p> : null}
           {(() => { const f = facts ? factsOf(r.was, r.now, r.how, r.why, r.extra) : null; return f && (f.people.length || f.places.length || f.dates.length || f.sources.length) ? (
             <dl class="cx-facts">
-              {f.people.length ? <div><dt>People</dt><dd>{f.people.map((x) => <a class="cx-chip" href={href(x.href)}>{x.name}</a>)}</dd></div> : null}
-              {f.places.length ? <div><dt>Places</dt><dd>{f.places.map((x) => <a class="cx-chip pl" href={href(x.href)}>{x.name}</a>)}</dd></div> : null}
+              {f.people.length ? <div><dt>People</dt><dd>{f.people.map((x) => <a class={"cx-chip" + (x.shared ? " shared" : "")} href={href(x.href)} title={x.shared ? "Several people share this name: opens the list" : undefined}>{x.name}{x.shared ? <i aria-hidden="true"> ⋯</i> : null}</a>)}</dd></div> : null}
+              {f.places.length ? <div><dt>Places</dt><dd>{f.places.map((x) => <a class="cx-chip pl" href={href(x.href)} title={x.title || undefined}>{x.flags.map((src) => <img class="pl-flag" src={src} alt="" width="18" height="12" />)}{x.name}</a>)}</dd></div> : null}
               {f.sources.length ? <div><dt>Sources</dt><dd>{f.sources.map((x) => <a class="cx-chip src" href={href(x.href)} rel="noopener">{x.name} ↗</a>)}</dd></div> : null}
               {f.dates.length ? <div><dt>Dates</dt><dd>{f.dates.map((x) => <span class={"cx-chip dt" + (x.kind ? " " + x.kind : "")} title={MARK[x.kind] ? MARK[x.kind][1] : undefined}>{MARK[x.kind] ? <><i aria-hidden="true">{MARK[x.kind][0]}</i><span class="cx-sr">{MARK[x.kind][1]} </span></> : null}{x.text}</span>)}</dd></div> : null}
             </dl>
@@ -299,6 +315,11 @@ const ext = (h) => /^(https?:)?\/\//.test(String(h || ""));
   a.cx-chip { color:var(--accent,#963); border-color:var(--accent,#963); }
   a.cx-chip:hover { background:var(--accent-wash,rgba(185,138,62,.12)); }
   .cx-chip.dt { font-variant-numeric:tabular-nums; }
+  /* a place's flag, in the chip and in the running text; a shared name's dots say "a list of people" */
+  .pl-flag { height:.8em; width:auto; margin-right:.3em; vertical-align:-.04em; border:1px solid var(--rule,#ccc); border-radius:1px; }
+  .cx-chip.pl { display:inline-flex; align-items:center; }
+  .cx-chip.shared i { font-style:normal; opacity:.7; }
+  a.lk-shared { text-decoration-style:dotted; }
   .cx-chip.dt i { font-style:normal; margin-right:.3rem; color:var(--accent,#963); }
   .cx-sr { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
   .cx-about { font-size:.95rem; font-weight:600; color:var(--ink-2,inherit); }

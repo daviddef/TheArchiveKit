@@ -2,6 +2,8 @@
 // row, the same on both sides, and the page's newest-first order. Cases are written from the shapes the archives keep corrections in.
 import { corrIdMap, byDateDesc, factsOf, kindBefore } from "../lib/corrections.js";
 import { bookIndex, linkBooks, bookKind, bookYears } from "../lib/booklinks.js";
+import { placeIndex, linkPlaces, yearAround, flagsFor } from "../lib/placelinks.js";
+import { nameIndex, linkNames } from "../lib/namelinks.js";
 import { buildPulse } from "../lib/pulse.js";
 let bad = 0;
 const ok = (label, cond, detail) => { if (!cond) { bad++; console.log("  FAIL  " + label + (detail ? "\n         " + detail : "")); } else console.log("  ok    " + label); };
@@ -79,4 +81,40 @@ ok("the parish written without its diacritic still matches", lb("the Svetvincena
 ok("text already in a link or code is left alone", !linkBooks('<a href="/x/">the Svetvinčenat baptism book 1764–1791</a>', idx).includes("lk-book") && !linkBooks("<code>Svetvinčenat baptism book 1764–1791</code>", idx).includes("lk-book"));
 ok("no catalogue, no change", linkBooks("<p>the Svetvinčenat baptism book 1764–1791</p>", bookIndex([])) === "<p>the Svetvinčenat baptism book 1764–1791</p>");
 ok("a linked book is a Source chip on the entry", factsOf(lb("the Svetvinčenat baptism book 1764–1791")).sources.length === 1);
+
+/* a place named in the prose is linked to its page, with the flag that flew over it in the sentence's year */
+const table = { Crikvenica: { today: { svg: "croatia-flags--era-1990.svg", label: "Croatia" }, eras: [[1867, 1918, "austria-flags--era-1867.svg", "Austria–Hungary"], [1951, 1986, "croatia-flags--era-1946.svg", "Yugoslavia"]] }, "Gračišće": { today: { svg: "croatia-flags--era-1990.svg", label: "Croatia" }, eras: [] } };
+const pidx = placeIndex([{ name: "Crikvenica", href: "/places/crikvenica/" }, { name: "Gračišće", aliases: ["Galignano"], href: "/places/gracisce/" }, { name: "Rab", href: "/places/rab/" }, { name: "Po", href: "/places/po/" }], table, (f) => "/flags/" + f);
+const lp = (t, seen) => linkPlaces("<p>" + t + "</p>", pidx, seen ? { seen } : {});
+ok("a place links to its page", lp("born at Crikvenica").includes('<a class="lk-place" href="/places/crikvenica/"'));
+ok("a year in the sentence picks that year's flag, and today's where another country's", (() => { const h = lp("He was baptised at Crikvenica in 1894."); return h.includes("austria-flags--era-1867.svg") && h.includes("croatia-flags--era-1990.svg") && h.includes("Austria–Hungary then; Croatia today"); })());
+ok("an era flag of today's country shows once", (() => { const t2 = { X: { today: { svg: "croatia-flags--era-1990.svg", label: "Croatia" }, eras: [[1991, 2030, "croatia-flags--era-1990.svg", "Croatia"]] } }; const i = placeIndex([{ name: "Xyz", href: "/places/x/", flagKey: "X" }], t2, (f) => f); return (linkPlaces("<p>Xyz in 2000.</p>", i).match(/<img/g) || []).length === 1; })());
+ok("no year in the sentence: today's flag only", (() => { const h = lp("born at Crikvenica"); return h.includes("croatia-flags--era-1990.svg") && !h.includes("austria-flags"); })());
+ok("two different years in the sentence: no era is claimed", !lp("Crikvenica in 1894 and again in 1905.").includes("austria-flags"));
+ok("the same year twice is one year", lp("Crikvenica in 1894, married 1894.").includes("austria-flags--era-1867.svg"));
+ok("a work date (2020 or later) is not the event's year", lp("Crikvenica; read on 16 November 2026 (born in 1894).") !== "" && lp("Crikvenica in 1894 (checked 2026).").includes("austria-flags"));
+ok("a year in another sentence is not this one's", !lp("Born at Crikvenica. He died in 1894.").includes("austria-flags"));
+ok("a year with no era flag in the table: link, today's flag only", (() => { const h = lp("Crikvenica in 1840."); return h.includes("lk-place") && !h.includes("austria-flags") && h.includes("croatia-flags"); })());
+ok("an old spelling links to the page of the place", lp("born at Galignano").includes('href="/places/gracisce/"'));
+ok("only the first mention in an entry is linked", (() => { const seen = new Set(); const h = lp("Crikvenica and again Crikvenica", seen); return (h.match(/<a /g) || []).length === 1; })());
+ok("a place already linked is left alone, and so is code", !linkPlaces('<a href="/x/">Crikvenica</a>', pidx).includes("lk-place") && !linkPlaces("<code>Crikvenica</code>", pidx).includes("lk-place"));
+ok("a place is written with a capital, and a short name is not read", !lp("a boat to rab").includes("lk-place") && !lp("the Po valley").includes("lk-place") && lp("on Rab").includes("/places/rab/"));
+ok("a place inside a longer word is not linked", !lp("Crikvenicanski").includes("lk-place"));
+ok("a place with no flag in the table is linked and has no flag", (() => { const h = lp("on Rab"); return h.includes("lk-place") && !h.includes("<img"); })());
+ok("no index, no change", linkPlaces("<p>Crikvenica</p>", placeIndex([], {}, null)) === "<p>Crikvenica</p>");
+ok("yearAround reads one year only", yearAround("Born at X in 1894.", 8, 1) === 1894 && yearAround("X 1894 and 1900", 0, 1) === 0);
+ok("a linked place is a Place chip with its flags", (() => { const f = factsOf(lp("Crikvenica in 1894")); return f.places.length === 1 && f.places[0].flags.length === 2 && f.places[0].name === "Crikvenica"; })());
+
+/* a person's name is linked to the person, or, where several bear it, to the list of them */
+const nidx = nameIndex({ people: [{ name: "Anna Bakar", aliases: ["Bakar Anna"], url: "/people/anna-bakar/" }, { name: "Maria Rossi", url: "/people/maria-rossi/" }], ambiguous: [{ name: "Giovanni Defranceschi", url: "/people/?q=Giovanni%20Defranceschi" }] }, { avoid: ["Maria Rossi Bianchi"] });
+const ln = (t, seen) => linkNames("<p>" + t + "</p>", nidx, seen ? { seen } : {});
+ok("a name borne by one person links to that person", ln("Anna Bakar was baptised").includes('<a class="lk-name" href="/people/anna-bakar/" data-autolink="person">Anna Bakar</a>'));
+ok("a name several people bear links to the list, marked shared", (() => { const h = ln("Giovanni Defranceschi died"); return h.includes("lk-shared") && h.includes("/people/?q=Giovanni%20Defranceschi") && h.includes("Several people share this name"); })());
+ok("an alias links to the same person", ln("Bakar Anna").includes("/people/anna-bakar/"));
+ok("a person is linked once per entry across fields", (() => { const seen = new Set(); return (ln("Anna Bakar", seen) + ln("Anna Bakar again", seen)).match(/<a /g).length === 1; })());
+ok("a name that overlaps a living or held-out name is not linked", !ln("Maria Rossi Bianchi was here").includes("lk-name"));
+ok("a lone first name is not a name", !ln("Anna was here").includes("lk-name"));
+ok("a name inside a link, a heading or code is left alone", !linkNames('<a href="/x/">Anna Bakar</a>', nidx).includes("lk-name") && !linkNames("<h3>Anna Bakar</h3>", nidx).includes("lk-name"));
+ok("a name inside a longer word is not linked", !ln("Anna Bakarovic").includes("lk-name"));
+ok("a shared name linked in the prose is a shared chip", (() => { const f = factsOf(ln("Giovanni Defranceschi")); return f.people.length === 1 && f.people[0].shared === true; })());
 if (bad) { console.log(bad + " failed"); process.exit(1); } console.log("all passed");

@@ -15,6 +15,9 @@ Changed 17 Nov 2026 after David's five questions on the Defranceski page; it app
 | a book named in the prose ("The Svetvinčenat baptism book 1764–1791") is not a link | `lib/booklinks.js`: `bookIndex(rows)` takes the archive's own catalogue of register books (`{parish, label, href}`), and `linkBooks(html, index)` (the Corrections `books` prop) links a phrase "<parish> <baptism / burial / death / marriage> book <years>" to its volume, **only** when the catalogue answers it: same parish, same kind (baptism = a Births volume, burial or death = Deaths, marriage = Marriages), years inside the volume's years. No match, or two different volumes, leaves the words as written. A linked book also becomes a Source chip. |
 | "the husband of 1762–64": why not name him? | The strip also reads the entry's footer ("Corrected in place: the roster notes of …"), so the people the correction touches are named and linked even when the sentence says only "the husband". Putting the name in the sentence itself is the archive's wording. |
 
+| places named in the prose (Crikvenica) have no link and no flag | `lib/placelinks.js`: `placeIndex(rows, flags, flagUrl)` takes the archive's places that have a page (`{name, aliases, href}`; aliases are the old spellings, so Galignano goes to Gračišće) and the flag table `kit/tools/placeflags.py` writes from the archive's era snapshot and the kit's regime table. `linkPlaces` links the FIRST mention in an entry and draws the flag of the state that held the place in the year the sentence names, plus today's where it is another country's. One year in the sentence or none: two different years claim nothing, and a year of 2020 or later (the day the correction was made) is not read. Where the era table is silent, the link has today's flag only; no page, no link. The Places chip carries the same flags. |
+| a name shared by several people is not linked | `lib/namelinks.js`: `nameIndex(idx)` reads the SAME index the archive builds for `tools/autolink.py` (`people`, `ambiguous`), so no second list. A name of one person links to them; a name several bear links to the archive's list of them (class `lk-shared`, "Several people share this name"), never to one of them. Names that overlap a living or held-out name (`avoid`) are not linked. The People chip shows `⋯` for a shared name. |
+
 ## What an archive does (about ten lines in its own `corrections` page)
 
 ```astro
@@ -28,3 +31,15 @@ The `ids` must come from the SAME rows `buildPulse` gets (`corrections: c`), in 
 Putting a `for` on each correction row is the archive's work, from its own data: who the correction is about, one page per person, the archive's own pages only.
 Defranceski's catalogue is `parishbooks.json`: `bookIndex(pb.list.flatMap((p) => p.books.map((b) => ({ parish: p.parish, label: b, href: ark(p.parish, b) }))))`, with `href` the volume's FamilySearch image (`https://www.familysearch.org/ark:/61903/` + the `ark` in `pb.links`), passed as `books={…}`; a volume with no `href` is left out.
 `node kit/tools/corrections_logic.mjs` holds the anchors, the order and the card links to cases.
+
+### Places and shared names (opt in with two props)
+
+```astro
+import { placeIndex } from "@daviddef/archive-kit/lib/placelinks.js";
+import { nameIndex } from "@daviddef/archive-kit/lib/namelinks.js";
+const places = placeIndex(placeRows, placeFlags, (svg) => flagUrlFor(svg));   // placeRows: [{name, aliases, href}] of the places with a page
+const names = nameIndex(autolinkIndex, { avoid: livingNames });                 // the file autolink.py already reads
+<Corrections places={places} names={names} books={books} rows={...} />
+```
+
+`placeFlags` is `python3 kit/tools/placeflags.py --snapshot era-snapshot.json --places place-rows.json --alias flag-places.json --countries flag-countries.json --out place-flags.json`, run in the archive's build; `flagUrlFor` maps a flag file name to the address the archive serves it at (the kit's art is in `kit/data/flags/`). Without the props nothing changes. The era flag is only as wide as the era snapshot: a place the snapshot does not assess in that year gets today's flag only, never a guess.

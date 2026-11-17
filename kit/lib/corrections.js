@@ -76,8 +76,13 @@ export function factsOf(...htmls) {
         continue;
       }
       if (!name || name.length > 90) continue;
-      if (/\/(person|people|who)\/[^/]+/.test(href)) { if (!people.has(href)) people.set(href, name); }
-      else if (/\/places?\/[^/]+/.test(href)) { if (!places.has(href)) places.set(href, name); }
+      /* a name that several people bear (class lk-shared, the autolinker's and namelinks.js's) is marked, so the chip says it opens a list */
+      if (/\/(person|people|who)\/[^/]+/.test(href)) { if (!people.has(href)) people.set(href, { name, shared: /\blk-shared\b/.test(attrs) }); }
+      else if (/\/places?\/[^/]+/.test(href)) {
+        /* the flags the place link carries (placelinks.js draws them inside the link), so the chip can show the same flags */
+        const flags = [...m[2].matchAll(/<img\b[^>]*\bsrc="([^"]*)"/g)].map((x) => x[1]), title = (/\btitle="([^"]*)"/.exec(attrs) || [])[1] || "";
+        if (!places.has(href)) places.set(href, { name, flags, title });
+      }
     }
     /* dates are read from the text; the word just before one says what it is a date OF (died / born / married), so the chip can wear the
        genealogist's mark for it. Only the clause the date is in is looked at (up to the last ; . or bracket before it), and the nearest word wins. */
@@ -96,5 +101,5 @@ export function factsOf(...htmls) {
   const list = [...dates.values()];
   const long = list.filter((d) => d.text.length > 4);
   const shown = list.filter((d) => !(/^\d{4}$/.test(d.text) && long.some((l) => l.text.includes(d.text))));
-  return { sources: [...sources].map(([href, name]) => ({ href, name })), people: [...people].map(([href, name]) => ({ href, name })), places: [...places].map(([href, name]) => ({ href, name })), dates: shown.slice(0, 8) };
+  return { sources: [...sources].map(([href, name]) => ({ href, name })), people: [...people].map(([href, v]) => ({ href, name: v.name, shared: v.shared })), places: [...places].map(([href, v]) => ({ href, name: v.name, flags: v.flags, title: v.title })), dates: shown.slice(0, 8) };
 }
