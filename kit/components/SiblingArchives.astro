@@ -29,11 +29,13 @@
 import ring from "../data/archives.json";
 import { whoami } from "../lib/ring.js";
 import { ringCards, cardLabel as label } from "../lib/ringcards.js";
+import ExternalLinks from "./ExternalLinks.astro";
 
 const here = (import.meta.env.BASE_URL || "/").replace(/\/$/, "");
 const mine = whoami(here);
 const { others, tail } = ringCards(ring, mine);
 ---
+<ExternalLinks />
 <section class="ring" aria-label="The other family archives" data-archives={others.length}>
   <h2 class="rr-label">The other archives</h2>
   <div class="rr-row">

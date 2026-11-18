@@ -1,0 +1,20 @@
+---
+/* Links that leave this site open in a new tab (kit/lib/externallinks.js says which).
+ *
+ * One small inline script, on every page: it marks every <a href> to another host target="_blank" rel="noopener" when the page loads, and again at the
+ * moment of a click (so a link drawn later by a script is covered too). Links to the same host are never marked. It makes no request and keeps nothing.
+ *
+ * WHERE IT RUNS. SiblingArchives.astro renders this component, and every archive's layout already renders SiblingArchives in the foot of each page, so
+ * an archive gets the behaviour with a kit pin bump and no edit to its own layout. */
+import { opensElsewhere } from "../lib/externallinks.js";
+const src = opensElsewhere.toString();
+const js =
+  "(function(){var opensElsewhere=" + src + ";" +
+  "function mark(a){if(!opensElsewhere(a.href,location.href,a.getAttribute('target'),a.hasAttribute('download')))return;" +
+  "a.setAttribute('target','_blank');var r=(a.getAttribute('rel')||'').split(/\\s+/).filter(Boolean);" +
+  "if(r.indexOf('noopener')<0)r.push('noopener');a.setAttribute('rel',r.join(' '));}" +
+  "[].forEach.call(document.querySelectorAll('a[href]'),mark);" +
+  "document.addEventListener('click',function(e){var a=e.target&&e.target.closest?e.target.closest('a[href]'):null;if(a)mark(a);},true);" +
+  "})();";
+---
+<script is:inline set:html={js}></script>
