@@ -79,7 +79,7 @@
   "components/Trees.astro": "2031d11e78f69e5ab5339e6b8907fe2f49c55a05108e3648e9c737aeb39ad8de",
   "components/VisitCount.astro": "76971084a79fa44cc812c522081d3c04dba6b87cb17f862ea819e22d4f5505d0",
   "components/WaysIn.astro": "12eec69d667c5b6d227daddea567d5e0aa96d6c1d2e749fe9f5ab3587de3fc32",
-  "components/WhatsNew.astro": "8fd8f7b3280c48a10f1049f8a4fd02e9c0c9c573f0e67789f3d25177d4a743d0",
+  "components/WhatsNew.astro": "328af06812e362c0c16184c85cc749e835237e3fd44cdf87df9b55101cf2b2f4",
   "components/WhatsNewDay.astro": "3adf23fe78b28fa53498aa213d65900cf20f96e949862f6bf491c8d0ef10de26",
   "components/WorkList.astro": "262712d7c2c5394d81598ec6fb06c1429a13f6f56f46388c3cdfbef3a0f83867",
   "data/archives.json": "45b7b94da42df6742c60a939b2388cbb77cb366946172486cc8181f1a5b37c8d",
