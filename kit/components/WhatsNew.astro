@@ -134,7 +134,7 @@ const week = pulse.week;
   .wn-asof{margin:-14px 0 18px;font-family:var(--sans);font-size:12.5px;color:var(--ink-3)}
   .wn-asof[hidden]{display:none}
   /* the second line under a row: the Atlas state, then the pages the finding went into */
-  .wn-rx{grid-column:1/-1;min-width:0;display:flex;flex-wrap:wrap;align-items:center;gap:4px 14px;margin:1px 0 2px;font-size:12.5px;color:var(--ink-3)}
+  .wn-rx{flex:1 1 16rem;min-width:0;display:flex;flex-wrap:wrap;align-items:center;gap:4px 14px;margin:1px 0 2px;font-size:12.5px;color:var(--ink-3)}
   .wn-rx:empty{display:none}
   .wn-ax{display:inline-flex;flex-wrap:wrap;align-items:center;gap:2px 8px}
   .wn-ax[hidden]{display:none}
@@ -165,9 +165,10 @@ const week = pulse.week;
   .wn-grp>summary b{font-weight:700;color:var(--ink)}
   .wn-gs{font-size:12.5px;color:var(--ink-3)}
   .wn-rows{padding:0 0 6px 1em}
-  .wn-row{display:grid;grid-template-columns:minmax(0,1fr) 10.5rem 5.5rem;gap:2px 12px;align-items:baseline;padding:6px 0;border-top:1px solid var(--rule);font-size:14px;font-family:var(--sans)}
+  .wn-row{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:baseline;padding:6px 0;border-top:1px solid var(--rule);font-size:14px;font-family:var(--sans)}
   .wn-rows>.wn-row:first-child{border-top:0}
-  .wn-rt{min-width:0;overflow-wrap:anywhere}
+  .wn-rt{flex:1 1 100%;min-width:0;overflow-wrap:anywhere}
+  .wn-rc{flex:none}
   .wn-rt a.wn-ta{font-family:var(--sans);font-size:14px;font-weight:600;line-height:1.4;color:var(--accent);text-decoration:none}
   .wn-rt a.wn-ta:hover{text-decoration:underline}
   .wn-ext{font-weight:400;font-size:12px}
@@ -192,7 +193,8 @@ const week = pulse.week;
   .wn-chip.o-partial.on{background:rgba(185,138,62,.16)}
   .wn-chip.o-blocked{color:#a5342a;border-color:rgba(192,57,43,.55)}
   .wn-chip.o-blocked.on{background:rgba(192,57,43,.13)}
-  .wn-rn{font-size:12.5px;color:var(--ink-2);text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .wn-rn{flex:none;font-size:12.5px;color:var(--ink-2);font-variant-numeric:tabular-nums;white-space:nowrap}
+  .wn-rn:empty{display:none}
   .wn-more{margin:0;border-top:1px solid var(--rule)}
   .wn-more>summary{cursor:pointer;padding:7px 0;font-size:13px;color:var(--accent)}
   .wn-grp[hidden]{display:none}
@@ -220,9 +222,6 @@ const week = pulse.week;
     .wn-when em{margin:0}
     .wn-item{flex-direction:column;gap:8px}
     .wn-item .wn-chip2{margin-top:0}
-    .wn-row{grid-template-columns:minmax(0,1fr) auto}
-    .wn-rc{grid-column:1}
-    .wn-rn{grid-column:2;grid-row:2}
     .wn-find{margin-left:0;width:100%}.wn-find input{width:100%}
   }
 </style>
