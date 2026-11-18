@@ -84,12 +84,13 @@ SECTIONS = [("family", "Family"), ("record", "What the record says"), ("sources"
             ("namesakes", "Others of the same name"), ("media", "Photographs and papers"), ("notes", "Notes and corrections"),
             # the shared optional sections of a page in story mode (ruled 4 November 2026, spec section 2a)
             ("story", "The story"), ("lore", "What the family says, and what the record holds"),
-            ("world", "What was happening around them"), ("where", "Where they lived, and what is still missing")]
+            ("world", "What was happening around them"), ("where", "Where they lived, and what is still missing"),
+            ("looked", "Where we have looked")]
 HEADINGS = [h for _, h in SECTIONS]
 HEAD_OF = dict(SECTIONS)
 # the order of the h2s, by mode (the twin of lib/person.js ORDER_BY_MODE and REQUIRED_BY_MODE; checkperson_logic.mjs holds them equal)
 ORDER_BY_MODE = {"chart": ["family", "record", "sources", "namesakes", "media", "notes"],
-                 "story": ["record", "story", "media", "lore", "sources", "world", "where", "namesakes", "notes"]}
+                 "story": ["record", "story", "media", "lore", "sources", "world", "where", "looked", "namesakes", "notes"]}
 REQUIRED_BY_MODE = {"chart": ["family", "record", "sources"], "story": ["record", "story", "sources"]}
 REQUIRED = [HEAD_OF[k] for k in REQUIRED_BY_MODE["chart"]]
 FAMILY_ONLY = {"family"}
@@ -291,6 +292,27 @@ def audit_page(root, rel_url, living_urls, sitemap, require_jsonld, known_urls=N
                 want = dict(SECTIONS).get(sec.attrs.get("id"))
                 if h is not None and want and h.content() != want:
                     out.append(("sections", "FAIL", f"#{sec.attrs.get('id')} is headed '{h.content()}', not '{want}'"))
+        # WHERE WE HAVE LOOKED (#looked, spec 2a): «looked and found nothing» is only drawn where every spelling was covered, a
+        # nil that was not covered says so, and a match by tag says it is for the name at the place, not for this person alone
+        for sec in find(art, "section"):
+            if sec.attrs.get("id") != "looked" or "psec" not in sec.cls() or living:
+                continue
+            for li in find(sec, "li", "plk-row"):
+                c = li.attrs.get("data-cls")
+                if c == "nil" and li.attrs.get("data-covered") != "1":
+                    out.append(("looked", "FAIL", "#looked draws «Looked, nothing found» on a row whose spellings were not all covered (data-covered is not 1)"))
+                if c != "nil" and any("plk-chip-nil" in x.cls() for x in find(li, "span")):
+                    out.append(("looked", "FAIL", "#looked draws a nothing chip on a row that is not a covered nil"))
+                if c == "nilx" and not any("plk-nilnote" in x.cls() for x in find(li, "p")):
+                    out.append(("looked", "FAIL", "#looked has a nil that was not covered and does not say which spelling was missed (or that the spellings are not recorded)"))
+                if c not in ("found", "partial", "nil", "nilx", "blocked", "notyet"):
+                    out.append(("looked", "FAIL", f"#looked row has no outcome class: {c!r}"))
+            box = next(find(sec, "div", "plk"), None)
+            if box is None:
+                if any(n.content() for n in sec.kids if not (n.tag.startswith("h") and len(n.tag) == 2)):
+                    out.append(("looked", "FAIL", "#looked is drawn but is not the PersonLooked block"))
+            elif box.attrs.get("data-by-tag") == "1" and "not for this person alone" not in box.content():
+                out.append(("looked", "FAIL", "#looked matches by tag and does not say it is for the name at the place, not for this person alone"))
     else:
         odd = [h for h in h2s if h not in HEADINGS]
         if odd:
