@@ -26,7 +26,7 @@ def expect(name, cond, detail=""):
             print("        " + detail.replace("\n", "\n        "))
 
 
-def archive(rows, cfg, pages=("/imotski/", "/story/"), corrections=None):
+def archive(rows, cfg, pages=("/imotski/", "/story/"), corrections=None, html=None):
     d = tempfile.mkdtemp(prefix="rowpages-")
     os.makedirs(os.path.join(d, "src", "data"))
     os.makedirs(os.path.join(d, "docs"))
@@ -38,7 +38,7 @@ def archive(rows, cfg, pages=("/imotski/", "/story/"), corrections=None):
     for p in ("/",) + tuple(pages):
         q = os.path.join(d, "dist", p.strip("/"))
         os.makedirs(q, exist_ok=True)
-        open(os.path.join(q, "index.html"), "w").write("<html></html>")
+        open(os.path.join(q, "index.html"), "w", encoding="utf-8").write((html or {}).get(p, "<html></html>"))
     return d
 
 
@@ -167,6 +167,64 @@ expect("a malformed peopleFrom fails loudly", rc == 1 and "peopleFrom" in out, o
 d = archive({"sets": [], "searched": [{"_note": "to the reader"}, bad]}, FROM)
 rc, out = run(d)
 expect("{searched: []} is read and the _note row skipped", rc == 1 and "row 1" in out, out)
+
+
+# 12b. DEEP LINKS (22 November 2026): from deepFrom an ev entry must reach the passage: an anchor that exists, or a phrase that occurs once; a long page needs one or the other
+DF = {"from": "2026-11-12", "deepFrom": "2026-11-14", "deepMinKb": 1}
+FILL = "<p>filler text of the page.</p>" * 80
+PAGE = ("<html><head><title>head words</title><style>.x{}</style></head><body><h2 id=\"sec-a\">Section A</h2>" + FILL +
+        "<p>The Scopliaco of the certificate is <b>Škopljak</b> in Gračišće municipality.</p><p>Fish &amp; chips at the market.</p>"
+        "<p>Twice said.</p><div>Twice said.</div><p>across</p><p>blocks</p><script>var hidden='only in script';</script></body></html>")
+HT = {"/imotski/": PAGE}
+drow = {"when": "2026-11-14", "src": "S", "what": "w", "outcome": "found", "nobody": True, "key": "d-1"}
+def deep(ev, cfg=DF, **kw):
+    return run(archive([dict(drow, ev=ev, **kw)], cfg, html=HT))
+rc, out = deep([["/imotski/", "Imotski"]])
+expect("deep: a bare link to a page over deepMinKb fails and names the size", rc == 1 and "d-1" in out and "KB" in out and "changed passage" in out, out)
+rc, out = deep([["/story/", "Story"]])
+expect("deep: a bare link to a small page passes", rc == 0, out)
+rc, out = deep([["/imotski/#sec-a", "Imotski"]])
+expect("deep: an anchor that exists passes on a long page", rc == 0 and "deep links checked" in out, out)
+rc, out = deep([["/imotski/#nope", "Imotski"]])
+expect("deep: an anchor that is not in the page fails", rc == 1 and "#nope" in out, out)
+rc, out = deep([["/story/#nope", "Story"]])
+expect("deep: a missing anchor fails even on a small page", rc == 1 and "#nope" in out, out)
+rc, out = deep([["/imotski/", "Imotski", "Škopljak in Gračišće"]])
+expect("deep: a phrase in the page text (inline tags and accents) passes", rc == 0, out)
+rc, out = deep([["/imotski/", "Imotski", "SCOPLIACO   of the CERTIFICATE"]])
+expect("deep: matching ignores case and spacing, as the browser does", rc == 0, out)
+rc, out = deep([["/imotski/", "Imotski", "Fish & chips"]])
+expect("deep: an entity in the page matches the phrase as read (&amp; = &)", rc == 0, out)
+rc, out = deep([["/imotski/", "Imotski", "Scopliaco of the Gologorica certificate"]])
+expect("deep: a phrase that is not in the page fails", rc == 1 and "not in the page" in out, out)
+rc, out = deep([["/imotski/", "Imotski", "Twice said."]])
+expect("deep: a phrase that occurs twice fails (the link would land on the first)", rc == 1 and "occurs 2 times" in out, out)
+rc, out = deep([["/imotski/", "Imotski", "across blocks"]])
+expect("deep: a phrase cannot run across two blocks (a text fragment cannot either)", rc == 1 and "not in the page" in out, out)
+rc, out = deep([["/imotski/", "Imotski", "only in script"]])
+expect("deep: text only in a script is not the reader's text", rc == 1, out)
+rc, out = deep([["/imotski/", "Imotski", "head words"]])
+expect("deep: text in <head> (the title) is not found either", rc == 1, out)
+for ph in ("ab", "**Škopljak** in", "[Škopljak](/x/) in Gračišće", "x" * 121, 5):
+    rc, out = deep([["/imotski/", "Imotski", ph]])
+    expect("deep: an unusable phrase fails: %r" % (ph if not isinstance(ph, str) else ph[:20]), rc == 1, out)
+rc, out = deep([["/story/", "Story"], ["/imotski/", "Imotski"]])
+expect("deep: every ev entry is held to it, not only the first (a bare long page second fails)", rc == 1 and "KB" in out, out)
+rc, out = deep([["/imotski/", "Imotski", "Škopljak in Gračišće"], ["/imotski/#sec-a", "Imotski again"]])
+expect("deep: two deep links to one page pass", rc == 0, out)
+d = archive([dict(drow, when="2026-11-13", ev=[["/imotski/", "Imotski"]])], DF, html=HT); rc, out = run(d)
+expect("deep: a row before deepFrom is not asked for it", rc == 0, out)
+d = archive([dict(drow, ev=[["/imotski/", "Imotski"]])], {"from": "2026-11-12"}, html=HT); rc, out = run(d)
+expect("deep: without deepFrom the rule is off", rc == 0 and "deep links" not in out, out)
+d = archive([dict(drow, ev=[["/imotski/", "Imotski"]], logOnly=True)], DF, html=HT); rc, out = run(d)
+expect("deep: logOnly rows have no pages to deepen", rc == 0, out)
+d = archive([dict(drow, outcome="nothing", ev=[["/imotski/", "Imotski"]])], DF, html=HT); rc, out = run(d)
+expect("deep: a nil row is not asked for it", rc == 0, out)
+d = archive([dict(drow, ev=[["/imotski/", "Imotski"]])], dict(DF, deepMinKb=100), html=HT); rc, out = run(d)
+expect("deep: the default-size threshold leaves a 3 KB page bare", rc == 0, out)
+for bad_c in (dict(DF, deepFrom="2026-11-01"), dict(DF, deepFrom="soon"), dict(DF, deepMinKb="big"), dict(DF, deepMinKb=-1), dict(DF, deepMinKb=True)):
+    d = archive([drow], bad_c, html=HT); rc, out = run(d)
+    expect("deep: a malformed config fails loudly: %s" % json.dumps({k: v for k, v in bad_c.items() if k.startswith("deep")}), rc == 1 and "deep" in out, out)
 
 # 13. corrections: a where that is not a built page is a warning, never a failure
 cor = [{"when": "13 Nov 2026", "what": "x", "where": "the /imotski/ page"}, {"when": "13 Nov 2026", "what": "y", "where": "/gone/ and /story/"},
