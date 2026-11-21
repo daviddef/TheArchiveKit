@@ -58,13 +58,28 @@ export const clip = (s, n) => {
   const c = s.slice(0, n), k = c.lastIndexOf(" ");
   return c.slice(0, k > n * 0.6 ? k : n).replace(/[,;:(—\-\s]+$/, "") + "…";
 };
-/* the pages a finding went into: the row's `ev` entries ["/path/", "label"], once each, in order; `logOnly` = the row says the finding stays in the log */
+/* A DEEP LINK (22 November 2026): the row's `ev` entry may be ["/path/", "label", "a phrase from the page"]. The path may carry an anchor
+   ("/page/#id"); the phrase, when given, is added as a TEXT FRAGMENT (#:~:text=...), which a browser scrolls to and highlights on any page, with no id in
+   the page. Browsers without text fragments open the page at the anchor (or the top), so the link never breaks. The phrase is plain text as the reader
+   sees it (no markup), 3 to 120 characters; anything else is left off. Encoded as the spec asks: encodeURIComponent plus "-", which text= uses as a separator. */
+export const fragmentPhrase = (p) => {
+  const t = clean(p);
+  return t.length >= 3 && t.length <= 120 ? t : "";
+};
+export const deepHref = (path, phrase) => {
+  const ph = fragmentPhrase(phrase);
+  if (!ph || path.includes(":~:")) return path;
+  return path + (path.includes("#") ? "" : "#") + ":~:text=" + encodeURIComponent(ph).replace(/-/g, "%2D");
+};
+/* the pages a finding went into: the row's `ev` entries ["/path/", "label", "phrase"?], once each, in order; `logOnly` = the row says the finding stays in the log */
 const updatedOf = (r) => {
   const seen = new Set(), pages = [];
   for (const e of Array.isArray(r.ev) ? r.ev : []) {
-    if (!Array.isArray(e) || typeof e[0] !== "string" || !e[0].startsWith("/") || e[0].startsWith("//") || seen.has(e[0])) continue;
-    seen.add(e[0]);
-    pages.push([e[0], clean(e[1]) || e[0]]);
+    if (!Array.isArray(e) || typeof e[0] !== "string" || !e[0].startsWith("/") || e[0].startsWith("//")) continue;
+    const href = deepHref(e[0], e[2]);
+    if (seen.has(href)) continue;
+    seen.add(href);
+    pages.push([href, clean(e[1]) || e[0]]);
   }
   return { pages, logOnly: r.logOnly === true };
 };
@@ -161,8 +176,8 @@ export function buildPulse(o = {}) {
       src: clip(first(r, F.src), 110),
       provider: providerOf(first(r, F.src)),
       ext: extUrl(r, F.url),
-      story: ev ? ev[0] : "",
-      href: ev ? ev[0] : logHref,
+      story: ev ? deepHref(ev[0], ev[2]) : "",
+      href: ev ? deepHref(ev[0], ev[2]) : logHref,
       walked: r.walked === true,
       place: place.length > 0 && place.length <= 32 && !/[·;]/.test(place) ? place.trim() : "",
       pages: pages.length > 0 && pages.length <= 24 ? pages.trim() : "",

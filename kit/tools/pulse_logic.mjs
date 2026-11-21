@@ -52,6 +52,16 @@ const CASES = [
       && p.entries.find((e) => e.src.startsWith("Antenati — Nati")).ext === ""
       && p.entries.find((e) => e.provider === "FamilySearch full text").ext.startsWith("https://www.familysearch.org/")
       && p.entries.find((e) => e.src.startsWith("Antenati — Ling")).title.startsWith("Antenati — Linguaglossa"); } },
+  /* DEEP LINKS (22 November 2026): an ev entry's third item is a phrase from the page, sent as a text fragment so the link lands on the change, not the top of the page */
+  { id: "deep-link-phrase", searched: [
+      { src: "A", what: "w", when: "2026-11-10", outcome: "found", ev: [["/gologorica-line/", "Gologorica", "Škopljak, in Gračišće - 27 houses & 174"], ["/places/#vodnjan", "Vodnjan", "Domenica Manzin"], ["/places/", "Places", "ab"], ["/x/", "X", ""], ["/y/", "Y"]] },
+      { src: "B", what: "w2", when: "2026-11-10", outcome: "found", ev: [["/p/", "P", "one phrase"], ["/p/", "P again", "another phrase"], ["/p/", "P dupe", "one phrase"]] }],
+    want: (p) => {
+      const a = p.entries.find((e) => e.src === "A"), b = p.entries.find((e) => e.src === "B");
+      const enc = "%C5%A0kopljak%2C%20in%20Gra%C4%8Di%C5%A1%C4%87e%20%2D%2027%20houses%20%26%20174";
+      return a.story === "/gologorica-line/#:~:text=" + enc && a.href === a.story
+        && JSON.stringify(a.updated.pages.map((x) => x[0])) === JSON.stringify(["/gologorica-line/#:~:text=" + enc, "/places/#vodnjan:~:text=Domenica%20Manzin", "/places/", "/x/", "/y/"])
+        && b.updated.pages.length === 2 && b.story === "/p/#:~:text=one%20phrase"; } },
   { id: "empty", searched: undefined, want: (p) => p.entries.length === 0 && p.days.length === 0 && p.latest === "" && p.cards.length === 0 },
 ];
 const TILES = (lib) => lib.tiles({ counts: { people: 0, sources: 5, logged: 3, walked: 0, corrections: 0, done: 2, open: 1 } }).map((t) => t[1]).join(",");
@@ -106,6 +116,7 @@ const BREAK = [
   ["record-year-is-not-a-date", "if (!m) return null;\n  const mo = MON", "if (!m) return { iso: t.slice(0,4)+'-01-01', exact: false };\n  const mo = MON", "when"],
   ["iso-and-note", '!("_note" in r)', "true"],
   ["source-name-link-group", "/^https?:\\/\\//i.test(x.trim())", "true"],
+  ["deep-link-phrase", 'return t.length >= 3 && t.length <= 120 ? t : "";', 'return "";'],
   ["tiles-hide-zero", ".filter(([n]) => n > 0)", ""],
 ];
 for (const [id, from, to, where] of BREAK) {

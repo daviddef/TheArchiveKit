@@ -109,6 +109,26 @@ Rules: only a person the archive already publishes can be listed (the gate requi
 `nobody` never together. No names go to the Record Atlas (it takes the row's key, never its text). The gate is off until the archive sets `"peopleFrom": "YYYY-MM-DD"` in `docs/row-pages.json`; from that day every found row,
 `logOnly` or not, must carry one or the other. Old rows are not backfilled. The component shows the line whether or not the receipts are wired.
 
+## Deep links: the link goes to the change, not the top of the page (`ev` third item, `deepFrom`; 22 November 2026)
+
+A What's new row used to link to the page, and on a 1.6 MB page that is the top of nothing in particular (David: "why does this link not take me directly to the change?"; of 1,907 page links in
+the Defranceschi log only 147 carried an anchor, in the other five archives none did). An `ev` entry is now `[path, label, phrase?]`:
+
+    "ev": [["/gologorica-line/#skopljak-scopliaco", "Gologorica: the loose certificate"],      an anchor: the id is in the page (add `<span id="...">` to the passage)
+           ["/liznjan/", "Ližnjan", "Fusca Lazarich nata 30 aprilis"]]                         a phrase: the words as the reader sees them, once on the page
+
+`lib/pulse.js` (`deepHref`) turns the phrase into a **text fragment** (`/liznjan/#:~:text=Fusca%20Lazarich%20nata%2030%20aprilis`; after an anchor: `#id:~:text=...`), which a browser scrolls to and
+highlights with no id in the page. A browser without text fragments opens the page at the anchor or the top: the link never breaks, it just is not exact. The title link and the Updated chip both carry it.
+
+`check_row_pages.py`, from `"deepFrom": "YYYY-MM-DD"` in `docs/row-pages.json` (on or after `from`; absent = off; `"deepMinKb"`, default 100): every ev entry of a found row from that day must
+
+* have an anchor that is an `id`/`name` in the built page, if it names one;
+* have a phrase (3 to 120 characters, no `*` `_` `` ` `` or markdown link) that occurs **exactly once** in the page's visible text (case and spacing as the browser matches; no script, style or head text; one block at a time,
+  as a text fragment cannot cross two paragraphs). Twice fails, because the link lands on the first;
+* have one or the other if the page is larger than `deepMinKb` of HTML. A small page may stay bare.
+
+Old rows are not backfilled by the gate; an archive may add anchors or phrases to old rows when it chooses (a row's `key` is stored, so editing `ev` does not change the Atlas key).
+
 Advisory only: a correction dated from the same day whose `where` names a path that is not a built page is a **warning**, not a failure.
 
 Without `--dist` only the shape of the paths is checked, and it says so.
