@@ -32,7 +32,7 @@ the register to hold still.
 import argparse, io, json, os, re, sys
 
 ARCHIVES = ["Falco Family", "Defranceski Family", "Booyzen Family", "D'Arcy Family",
-            "Blazevic Family", "Mazza Family", "Lerena Family"]
+            "Blazevic Family", "Mazza Family", "Lerena Family", "Luwinski Family"]
 WORDS = {"no": 0, "none": 0, "one": 1, "two": 2, "three": 3, "four": 4, "five": 5,
          "six": 6, "seven": 7, "eight": 8, "nine": 9, "ten": 10, "eleven": 11,
          "twelve": 12, "all seven": 7, "all five": 5, "all six": 6, "all four": 4}
