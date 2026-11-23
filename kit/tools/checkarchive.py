@@ -31,6 +31,7 @@ Usage:  python3 checkarchive.py [--dist site/dist] [--base /TheX] [--strict]
 Exit 1 on any failure, so it can gate a deploy.
 """
 import os, re, sys, json, html, argparse, collections
+from urllib.parse import unquote
 import os.path as _p, sys as _sys
 _sys.path.insert(0, _p.dirname(_p.abspath(__file__)))
 import outdir as _outdir  # ARCHIVE_OUT beats --dist; see kit/tools/outdir.py
@@ -151,6 +152,7 @@ def main():
            for u, s in pages.items()}
 
     def exists(path):
+        path = unquote(path)    # Astro writes an accent in a slug percent-encoded; the folder in dist carries the accent itself
         p = path.rstrip("/") or "/"
         if p in pages:
             return True
@@ -195,7 +197,7 @@ def main():
         for href in re.findall(r'<[a-zA-Z][^>]*?\shref="([^"]*)"', body):
             if not href or href[0] in "#?" or not href.startswith("/"):
                 continue
-            p = href.partition("#")[0].partition("?")[0]
+            p = unquote(href.partition("#")[0].partition("?")[0])
             if base:
                 if not (p == base or p.startswith(base + "/")):
                     continue
@@ -264,7 +266,7 @@ def main():
             path, _, frag = href.partition("#")
             if "=" in frag:
                 frag = ""      # «#hourglass&p=<id>»: a view and a person for the Roots & Routes page to open, state and not a section id
-            path = path.partition("?")[0]          # /register/?q=X is a real page
+            path = unquote(path.partition("?")[0])   # /register/?q=X is a real page; an encoded accent names the folder that carries it
             if not path:
                 continue
             if base and not path.startswith(base + "/") and path.rstrip("/") != base:
