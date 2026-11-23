@@ -59,7 +59,7 @@ A page can draw the family as a **chart** (the table above, `data-mode="chart"`,
 | `#story` | The story | the life on a timeline: where they came from, birth, life, death, what they left behind, then the notes about the record itself, last and quiet |
 | `#lore` | What the family says, and what the record holds | the family's own claims, one row each, set beside the archive's reading and what would settle it |
 | `#world` | What was happening around them | events the Record Atlas dates at the places they lived, in the years they were there |
-| `#where` | Where they lived, and what is still missing | the Roots & Routes profile and views, and the registers and archives the Atlas lists for each place |
+| `#where` | Where they lived, and what is still missing | the tree profile and views (the panel "Their place in the tree"), and the registers and archives the Atlas lists for each place |
 | `#looked` | Where we have looked | the searches made for the person's surname at the places they lived, what each gave back, and the volumes the Atlas lists there that nobody has opened for the name (added 5 November 2026; below) |
 
 The order in story mode is **What the record says, The story, Photographs and papers, What the family says…, Where this comes from, What was happening around them, Where they lived…, Where we have looked, Others of the same name, Notes and corrections**. The route (flags, places, eras) is the lead of the record section; the photographs stand beside the story. The order is held in `ORDER_BY_MODE` (`lib/person.js`) and in `checkperson.py`, and `checkperson_logic.mjs` fails if they differ.
