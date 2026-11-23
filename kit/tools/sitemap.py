@@ -9,6 +9,7 @@ skips anything that noindexes itself, so the sitemap can never disagree with
 the privacy rule the pages already state.
 """
 import os, re, sys, json, datetime, subprocess, functools, argparse
+from urllib.parse import unquote
 import os.path as _p, sys as _sys
 _sys.path.insert(0, _p.dirname(_p.abspath(__file__)))
 import outdir as _outdir  # ARCHIVE_OUT beats --dist; see kit/tools/outdir.py
@@ -63,7 +64,10 @@ for dp, _, fns in os.walk(dist):
         # 1,010 name pages canonicalised to a person page and still listed (16 Oct
         # 2026, found by the cloud audit). Compared without the trailing slash.
         m = CANON.search(html[:6000])
-        if m and m.group(1).rstrip("/") != url.rstrip("/"):
+        # Both sides are decoded: a page whose slug has an accent is a directory in dist under its own name, and Astro
+        # writes the canonical of that page percent-encoded (/people/alfia-cannav%C3%B2/), so comparing them as written
+        # called every such page "not the original" and left it out of the sitemap.
+        if m and unquote(m.group(1)).rstrip("/") != unquote(url).rstrip("/"):
             canonicalised += 1
             continue
         urls.append((url, path))

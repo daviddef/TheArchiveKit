@@ -28,7 +28,7 @@ Each takes `book` and the archive's `u` helper and reads the page's own path; no
 
 ## Gates
 - `node kit/tools/book_logic.mjs`: the order and placement rules, held to `kit/data/book-cases.json`, with planted faults.
-- `python3 kit/tools/checkbook.py --dist dist --book src/data/book.json`: reads the BUILT site. Fails on a page nobody placed, a chapter or opener with no built page, a path in the book twice, a missing or wrong running head, a Previous/Next (in the head or the foot) that differs from the book's order, a redirect stub whose target is not built, and an empty build. `checkbook_selftest.py` plants a fault for each.
+- `python3 kit/tools/checkbook.py --dist dist --book src/data/book.json`: reads the BUILT site. Fails on a page nobody placed, a chapter or opener with no built page, a path in the book twice, a missing or wrong running head, a Previous/Next (in the head or the foot) that differs from the book's order, a redirect stub whose target is not built, and an empty build. A stub target is read as a browser reads it: Astro writes the redirect to a slug with an accent percent-encoded (`/people/alfia-cannav%C3%B2/`) while the page is built under the accent, so the target is percent-decoded before it is looked up (fragment and query first); an archive needs no special-case stub for such a slug. `checkbook_selftest.py` plants a fault for each. `sitemap.py` (the canonical) and `menu_inventory.py` (a redirect it follows) decode the same way; `redirect_slugs_selftest.py` holds them to it.
 Wire `checkbook.py` into the archive's build chain after the build. A page that is not in the book fails the build.
 
 ## Rules for the writing

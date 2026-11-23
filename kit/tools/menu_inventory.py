@@ -21,6 +21,7 @@ old URL that no longer answers (no page, no redirect stub) is listed.
 Only the text under <main> (or the page wrapper) is read; the header, menu and footer are not part of a page.
 """
 import hashlib, html, json, os, re, sys
+from urllib.parse import unquote
 from html.parser import HTMLParser
 
 # THE PAGES THAT ARE IN SCOPE: the ones whose place in the menu changes, plus the ones that point at them.
@@ -202,7 +203,7 @@ def resolve(dist, url, hops=0):
     p = read_page(f)
     if p["redirect"] and hops < 4:
         t = p["redirect"]
-        t = re.sub(r"^https?://[^/]+", "", t).split("#")[0]
+        t = unquote(re.sub(r"^https?://[^/]+", "", t).split("#")[0].split("?")[0])   # Astro writes an accent in a slug percent-encoded
         ok, fin, kind = resolve(dist, t if t.startswith("/") else "/" + t, hops + 1)
         return ok, fin, "redirect"
     return True, url, "page"
