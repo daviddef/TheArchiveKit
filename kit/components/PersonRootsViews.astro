@@ -1,9 +1,16 @@
 ---
-/* Roots & Routes, on the person's own page. The views are not redrawn here: each tab opens the one Roots & Routes page,
-   focused on this person, in a frame (/roots/view.html#<view>&p=<id>&embed=1), so the page and the person's chart are
-   always the same code. A frame is made only when its tab is first opened, so the 2 MB viewer is not fetched by a reader
-   who never looks. The link underneath opens the full page on the same person. */
-const { pid, u = (p) => p, roots = "/roots/", views = [
+/* Their place in the tree, on the person's own page.
+
+   NAME. Called "Roots & Routes" until 23 November 2026, when the archives' Roots & Routes
+   page was retired into the Tree Canvas; the viewer file keeps its address, /roots/view.html, because the Tree Canvas and this
+   panel read it.
+
+   The views are not redrawn here: each tab opens the one viewer, focused on this person, in a frame
+   (/roots/view.html#<view>&p=<id>&embed=1), so the viewer and the person's chart are always the same code. A frame is made only
+   when its tab is first opened, so the 2 MB viewer is not fetched by a reader who never looks.
+   `openHref`: where an "Open the full tree" link under the tabs should go. There is no default and no link without it: the page it
+   used to open (/roots/) is gone from every archive. */
+const { pid, u = (p) => p, roots = "/roots/", openHref = "", views = [
   ["hourglass", "Hourglass", "Their parents above, their descendants below."],
   ["fan", "Fan", "Their ancestors as rings, father's side on the left, mother's on the right; dashed gaps are parents still to find."],
   ["close", "Close family", "Their ancestors, descendants, siblings, aunts, uncles and cousins, by surname and birth year."],
@@ -14,11 +21,11 @@ const { pid, u = (p) => p, roots = "/roots/", views = [
 ] } = Astro.props;
 ---
 <div class="rp">
-  <p class="rp-why">From Roots &amp; Routes and the Record Atlas: who ruled each place, the route in order, what was happening around them, and where to look next.</p>
+  <p class="rp-why">From this archive's tree and the Record Atlas: who ruled each place, the route in order, what was happening around them, and where to look next.</p>
   <div class="rp-frame" data-src={u(`${roots}view.html#profile&p=${pid}&embed=1`)} data-pid={pid}></div>
 
-<div class="rv" role="group" aria-label="Roots & Routes">
-  <h3 class="rv-h">In Roots &amp; Routes</h3>
+<div class="rv" role="group" aria-label="Their place in the tree">
+  <h3 class="rv-h">Their place in the tree</h3>
   <div class="rv-tabs" role="tablist">
     {views.map(([k, t], i) => (
       <button type="button" role="tab" class="rv-tab" id={`rvt-${k}`} aria-selected={i === 0 ? "true" : "false"} aria-controls={`rvp-${k}`} data-v={k}>{t}</button>
@@ -30,7 +37,7 @@ const { pid, u = (p) => p, roots = "/roots/", views = [
       <div class="rv-frame" data-src={u(`${roots}view.html#${k}&p=${pid}&embed=1`)}></div>
     </div>
   ))}
-  <p class="rv-open"><a href={u(`${roots}#hourglass&p=${pid}`)}>Open Roots &amp; Routes on this person →</a></p>
+  {openHref && <p class="rv-open"><a href={u(openHref)}>Open the full tree →</a></p>}
 </div>
 </div>
 
@@ -58,7 +65,7 @@ const { pid, u = (p) => p, roots = "/roots/", views = [
       if (!f || f.querySelector("iframe")) return;
       const i = document.createElement("iframe");
       i.src = f.dataset.src || "";
-      i.title = "Roots & Routes view";
+      i.title = "Tree view";
       f.appendChild(i);
     };
     const show = (t: HTMLButtonElement) => {
