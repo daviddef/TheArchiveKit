@@ -38,6 +38,12 @@ Every archive's lines of descent are one drawing, `BranchRivers`, fed by one `li
 people on it, and counted, noted pens for the people who are on none. The contract, the words the reader sees, and the
 gate (`kit/tools/checklines.py`, with the `package.json` line to wire it): **[kit/docs/lines.md](kit/docs/lines.md)**.
 
+## A build leaves git clean
+
+`kit/tools/cleantree.py` runs after `npm run build` and fails when the build rewrote a file git tracks (read only; `--allow
+GLOB` for the exception, `--root`). What it reports, what it never touches, and how to wire it:
+**[kit/docs/cleantree.md](kit/docs/cleantree.md)**.
+
 ## Using it
 
     python3 sync.py --check     # say what has drifted, change nothing
