@@ -6,7 +6,7 @@
    A row it cannot place (the key is not in the deployed file) keeps the pill the page was built with: "Sent, going live" and "Not sent yet" cannot be told
    apart from here, so they are never redrawn, never downgraded and never invented. (Until 23 November 2026 it also read a second address, the Atlas's source
    repository, to tell "going live" from "not sent"; that address is gone from the page.) THIS FILE IS INLINED INTO EVERY PAGE AS WRITTEN: no address but
-   the Atlas's own may be written in it, not even in a comment (receipts_logic.mjs and checkpages_nogithub.py check the built page).
+   the Atlas's own may be written in it, not even in a comment (kit/tools/receipts_logic.mjs and checkarchive.py check the source and the built page).
    It then updates the day tallies and the status line. If anything fails (offline, no CORS header, a file missing, bad JSON) it does nothing: the build-time states stay.
    Plain ES5 on purpose: it is inlined as written. Reads data-* of #wn-asof: data-archive, data-live (the deployed receipts' address), data-asof (the build day, as the page prints it). */
 var wnReceipts = (function () {
