@@ -3,7 +3,9 @@
 //   1. rowkey: the spec's three test vectors, and Python's json.dumps(..., sort_keys=True, separators=(",", ":"), ensure_ascii=False) on more rows
 //   2. stateOf: every state, and "cannot tell" when a file could not be read
 //   3. loadReceipts: any failure is null and never throws; a hung fetch times out
-//   4. the view-time script's copy of stateOf answers identically to lib/receipts.js, over a grid of receipts
+//   4. the view-time script's copy of stateOf answers identically to lib/receipts.js stateOf(key, live, null), over a grid of receipts; it fetches ONLY the Atlas's
+//      deployed receipts, upgrades a row to in-atlas / nothing-to-send and never touches a row it cannot place (going live, not sent); and no address on GitHub
+//      is written anywhere the Kit puts markup or script into a page (the built-page rule is checkarchive.py's "nogithub", exercised in section 7)
 //   5. buildPulse: key / atlas / updated on entries, the "N of M in the Atlas" tally, and "no receipts = as before"
 //   6. check_row_pages.py reads dates and outcome words exactly as pulse.js does
 import fs from "fs"; import os from "os"; import path from "path"; import { execFileSync } from "child_process"; import { fileURLToPath, pathToFileURL } from "url";
@@ -86,34 +88,68 @@ console.warn = w0;
 const GRID_FILES = [null, { v: 1, rows: {} }, { rows: [] }, "x", file({ a: [], b: [["volume:1", "/p/1/"]], c: [["volume:2", "/p/2/"], ["source:s", "/s/"], ["bad", 5]], d: [["x", "https://evil.example/"]] }), file({ a: [["volume:1", "/p/9/"]], b: [], e: [["volume:3", "//host/x"]] }), file({ c: [] })];
 const equivalence = (client) => {
   const diffs = [];
-  for (const l of GRID_FILES) for (const m of GRID_FILES) for (const k of ["a", "b", "c", "d", "e", "zz", "__proto__", "constructor"]) {
-    const x = R.stateOf(k, l, m), y = client.stateOf(k, l, m);
-    if (!same(x, y)) diffs.push(`${k} ${JSON.stringify(l)?.slice(0, 40)} ${JSON.stringify(m)?.slice(0, 40)}: ${JSON.stringify(x)} vs ${JSON.stringify(y)}`);
+  for (const l of GRID_FILES) for (const k of ["a", "b", "c", "d", "e", "zz", "__proto__", "constructor"]) {
+    const x = R.stateOf(k, l, null), y = client.stateOf(k, l);   // the page can read the deployed file only: main is null for the library too
+    if (!same(x, y)) diffs.push(`${k} ${JSON.stringify(l)?.slice(0, 40)}: ${JSON.stringify(x)} vs ${JSON.stringify(y)}`);
   }
   return diffs;
 };
 const realClient = clientOf(lib);
 const diffs = equivalence(realClient);
-ok("view-time script: stateOf answers identically to lib/receipts.js over " + GRID_FILES.length ** 2 * 8 + " cases", diffs.length === 0, diffs.slice(0, 3).join("\n         "));
+ok("view-time script: stateOf answers identically to lib/receipts.js over " + GRID_FILES.length * 8 + " cases", diffs.length === 0, diffs.slice(0, 3).join("\n         "));
 ok("view-time script: atlasHref identical", ["/a/", "//x", "https://recordatlas.org/q/", "https://evil.example/", "javascript:1", "", null, 5, " /sp/ ", "/has space/"].every((h) => realClient.atlasHref(h) === R.atlasHref(h)));
 ok("view-time script does nothing, and does not throw, without a page", (() => { try { realClient.run(); return true; } catch (e) { return false; } })());
 
 /* the page script when the Atlas cannot be reached (the CORS header is not deployed yet; offline; 404; bad JSON): it must change nothing and throw nothing */
 {
-  const bar = { hidden: true, text: "built", getAttribute: (a) => ({ "data-live": "https://recordatlas.org/x.json", "data-main": "https://raw.githubusercontent.com/x.json" })[a], setAttribute() { bar.fresh = true; }, querySelector: () => ({ set textContent(v) { bar.text = v; } }) };
+  const bar = { hidden: true, text: "built", getAttribute: (a) => ({ "data-live": "https://recordatlas.org/x.json", "data-asof": "12 Nov 2026" })[a], setAttribute() { bar.fresh = true; }, querySelector: () => ({ set textContent(v) { bar.text = v; } }) };
   let touched = 0; const g = globalThis, saved = { document: g.document, fetch: g.fetch };
   g.document = { getElementById: () => bar, querySelectorAll: () => { touched++; return []; } };
   const modes = { "a network/CORS failure (fetch rejects)": async () => { throw new TypeError("Failed to fetch"); }, "HTTP 404": async () => resp({}, false), "not a receipt": async () => resp({ hello: 1 }), "invalid JSON": async () => ({ ok: true, json: async () => { throw new SyntaxError("x"); } }), "hangs forever": () => new Promise(() => {}) };
+  const fetched = [];
   let thrown = null; const rej = (e) => { thrown = e; }; process.on("unhandledRejection", rej);
   for (const [name, f] of Object.entries(modes)) {
-    g.fetch = f; touched = 0; bar.hidden = true; bar.text = "built"; bar.fresh = false;
+    g.fetch = (u, o) => { fetched.push(u); return f(u, o); }; touched = 0; bar.hidden = true; bar.text = "built"; bar.fresh = false;
     const c = new Function(fs.readFileSync(path.join(lib, "receipts.client.js"), "utf8") + "\n;return wnReceipts;")(); // auto-runs with the stub document
     await new Promise((r) => setTimeout(r, name === "hangs forever" ? 50 : 30));
     ok("view-time script, " + name + ": nothing changes, nothing thrown", touched === 0 && bar.hidden === true && bar.text === "built" && !bar.fresh && thrown === null);
   }
+  ok("view-time script asks for the Atlas's deployed receipts and for nothing else (one address per page open, none on GitHub)", fetched.length === Object.keys(modes).length && fetched.every((u) => u === "https://recordatlas.org/x.json"), JSON.stringify(fetched));
+  /* a page the Atlas answers: a row in the deployed file is upgraded, a row it cannot place (going live, not sent) is left exactly as built, the status line says what was checked */
+  {
+    const node = (attrs = {}) => { const o = { attrs, children: [], hidden: true, className: "", title: "", textContent: "", painted: 0,
+      get firstChild() { return this.children[0] || null; }, removeChild(c) { this.children.splice(this.children.indexOf(c), 1); },
+      appendChild(c) { this.children.push(c); return c; }, setAttribute(k, v) { this.attrs[k] = v; }, getAttribute(k) { return this.attrs[k]; },
+      querySelector: () => null, querySelectorAll: () => [] }; return o; };
+    const bar2 = node({ "data-live": "https://recordatlas.org/x.json", "data-asof": "12 Nov 2026" }); const txt = node(); bar2.querySelector = () => txt;
+    const boxes = { k1: node({ "data-key": "k1", "data-state": "not-sent" }), k2: node({ "data-key": "k2", "data-state": "going-live" }), k3: node({ "data-key": "k3", "data-state": "not-sent" }), k4: node({ "data-key": "k4", "data-state": "going-live" }) };
+    for (const b of Object.values(boxes)) b.children.push(node());
+    const day = node(); day.querySelectorAll = () => Object.values(boxes); day.querySelector = () => ({ set textContent(v) { day.tally = v; } });
+    g.document = { getElementById: () => bar2, createElement: () => node(), createTextNode: (t) => ({ t }), querySelectorAll: (q) => (q === ".wn-day" ? [day] : Object.values(boxes)) };
+    const asked = []; g.fetch = async (u) => { asked.push(u); return resp(LIVE); };
+    new Function(fs.readFileSync(path.join(lib, "receipts.client.js"), "utf8") + "\n;return wnReceipts;")();
+    await new Promise((r) => setTimeout(r, 40));
+    const st = (b) => b.attrs["data-state"];
+    ok("view-time script: k1 (deployed with marks) becomes in-atlas, k4 (deployed, empty list) nothing-to-send", st(boxes.k1) === "in-atlas" && st(boxes.k4) === "nothing-to-send", Object.values(boxes).map(st).join());
+    ok("view-time script: k2 and k3 (not in the deployed file) keep the state they were built with: going-live is never downgraded, not-sent never invented", st(boxes.k2) === "going-live" && st(boxes.k3) === "not-sent" && boxes.k2.children.length === 1 && boxes.k3.children.length === 1);
+    ok("view-time script: the tally counts what is on the page (1 of 3 in the Atlas)", day.tally === " · 1 of 3 in the Atlas", String(day.tally));
+    ok("view-time script: the status line says the live Atlas was checked and that other rows are as built", /checked just now/.test(txt.textContent) && /not yet live are as of 12 Nov 2026/.test(txt.textContent) && bar2.hidden === false, txt.textContent);
+    ok("view-time script: one request, to recordatlas.org", asked.length === 1 && asked[0].startsWith("https://recordatlas.org/"), JSON.stringify(asked));
+  }
   process.off("unhandledRejection", rej); g.document = saved.document; g.fetch = saved.fetch;
   if (saved.document === undefined) delete g.document;
 }
+
+/* NO ADDRESS ON GITHUB WHERE THE KIT WRITES INTO A PAGE (23 November 2026). Everything below the frontmatter of a component, every inline client script and every
+   stylesheet reaches the reader; the frontmatter and lib/receipts.js (the BUILD-time read) do not. */
+const kitRoot = path.join(here, "..");
+const emitted = [];
+for (const f of fs.readdirSync(path.join(kitRoot, "components"))) { const t = fs.readFileSync(path.join(kitRoot, "components", f), "utf8"); const parts = t.split(/^---\s*$/m); emitted.push([`components/${f}`, f.endsWith(".astro") && parts.length >= 3 ? parts.slice(2).join("---") : t]); }
+for (const f of fs.readdirSync(lib)) if (/\.client\.js$/.test(f)) emitted.push([`lib/${f}`, fs.readFileSync(path.join(lib, f), "utf8")]);
+for (const f of fs.readdirSync(path.join(kitRoot, "styles"))) emitted.push([`styles/${f}`, fs.readFileSync(path.join(kitRoot, "styles", f), "utf8")]);
+const GH = /github\.com|githubusercontent\.com/i;
+ok("no address on GitHub in any component template, inline client script or stylesheet of the Kit (" + emitted.length + " files)", emitted.every(([, t]) => !GH.test(t)), emitted.filter(([, t]) => GH.test(t)).map(([f]) => f).join(", "));
+ok("WhatsNew.astro writes no data-main and does not import MAIN_URL", (() => { const t = fs.readFileSync(path.join(kitRoot, "components", "WhatsNew.astro"), "utf8"); return !/data-main|MAIN_URL|mainUrl/.test(t.split(/^---\s*$/m).slice(2).join("---")) && !/import[^\n]*MAIN_URL/.test(t); })());
 
 /* ---- 5. buildPulse ---- */
 const P = await import(pathToFileURL(path.join(lib, "pulse.js")).href);
@@ -150,6 +186,20 @@ const kindOf = (k) => (k === "found" ? "found" : k ? "other" : null);
 ok("check_row_pages.outcome_of equals pulse.js outcomeOf on " + WORDS.length + " words (found / other / left out), with and without an outcomeMap",
   same(pyOut.o0.map(kindOf), jsKind().map(kindOf)) && same(pyOut.o.map(kindOf), jsKind({ done: "found" }).map(kindOf)), JSON.stringify(pyOut.o0) + "\n" + JSON.stringify(jsKind()));
 
+/* ---- 7. checkarchive.py "nogithub": the built page ---- */
+{
+  const OLD_BAR = '<p class="wn-asof" id="wn-asof" hidden data-archive="falco" data-live="https://recordatlas.org/research-receipts/falco.json" data-main="https://raw.githubusercontent.com/daviddef/TheMap/main/site/public/research-receipts/falco.json"><span></span></p>';
+  const NEW_BAR = '<p class="wn-asof" id="wn-asof" hidden data-archive="falco" data-live="https://recordatlas.org/research-receipts/falco.json" data-asof="12 Nov 2026"><span></span></p>';
+  const SCRIPT = (extra) => "<script>var wnReceipts = (function () { var ORIGIN = \"https://recordatlas.org\";" + extra + " })();</script>";
+  const hits = JSON.parse(py("import sys,json\nsys.path.insert(0,%r)\nimport checkarchive as c\nd=json.load(sys.stdin)\nprint(json.dumps([c.kit_github(x) for x in d]))".replace("%r", JSON.stringify(here)),
+    [OLD_BAR, NEW_BAR + SCRIPT(""), NEW_BAR + SCRIPT(' fetch("https://github.com/daviddef/TheMap/raw/main/x.json");'), '<p>Notes: <a href="https://github.com/daviddef/TheFalco/blob/main/notes/x.md">the note</a></p><script>var other=1</script>', '<p>mirror at raw.githubusercontent.com/a/b.json</p>']));
+  ok("checkarchive nogithub: the old status line (data-main on raw.githubusercontent.com) is flagged", hits[0].length > 0 && hits[0].some((h) => h.includes("raw.githubusercontent.com")), JSON.stringify(hits[0]));
+  ok("checkarchive nogithub: the new status line and script are clean", hits[1].length === 0, JSON.stringify(hits[1]));
+  ok("checkarchive nogithub: a github.com address inside the Atlas refresh script is flagged", hits[2].length > 0, JSON.stringify(hits[2]));
+  ok("checkarchive nogithub: an archive's own prose link to its repository is not this gate's business", hits[3].length === 0, JSON.stringify(hits[3]));
+  ok("checkarchive nogithub: raw.githubusercontent.com anywhere on a page is flagged", hits[4].length > 0, JSON.stringify(hits[4]));
+}
+
 /* ---- the rules shown to bite ---- */
 const FAULTS = [
   ["rowkey: keys not sorted", { "receipts.js": [['Object.keys(v).sort()', 'Object.keys(v)']] }, async (dir) => { const m = await load(dir); return !VECTORS.every(([r, k]) => m.rowkey(r) === k); }],
@@ -157,7 +207,8 @@ const FAULTS = [
   ["stateOf: a missing file read as 'not sent'", { "receipts.js": [['if (L && M) return done("not-sent");', 'return done("not-sent");']] }, async (dir) => { const m = await load(dir); return m.stateOf("k3", LIVE, null) !== null; }],
   ["stateOf: main read before the deployed file", { "receipts.js": [['if (L && has(L, key)) {', 'if (false) {']] }, async (dir) => { const m = await load(dir); return m.stateOf("k1", LIVE, MAIN).state !== "in-atlas"; }],
   ["stateOf: an empty list read as a mark", { "receipts.js": [['return m.length ? done("in-atlas", L[key]) : done("nothing-to-send");', 'return done("in-atlas", L[key]);']] }, async (dir) => { const m = await load(dir); return m.stateOf("k4", LIVE, MAIN).state !== "nothing-to-send"; }],
-  ["the script's copy diverges (going-live read as in-atlas)", { "receipts.client.js": [['done("going-live", M[key])', 'done("in-atlas", M[key])']] }, async (dir) => equivalence(clientOf(dir)).length > 0],
+  ["the script's copy diverges (an empty list read as in-atlas)", { "receipts.client.js": [['return marksOf(L[key]).length ? done("in-atlas", L[key]) : done("nothing-to-send");', 'return done("in-atlas", L[key]);']] }, async (dir) => equivalence(clientOf(dir)).length > 0],
+  ["the script's copy invents 'not sent' for a row the deployed file does not hold", { "receipts.client.js": [['    return null;\n  }\n\n  function getJSON', '    return done("not-sent");\n  }\n\n  function getJSON']] }, async (dir) => equivalence(clientOf(dir)).length > 0],
   ["the script's copy trusts any href", { "receipts.client.js": [['if (t.indexOf(ORIGIN + "/") === 0', 'if (true']] }, async (dir) => equivalence(clientOf(dir)).length > 0],
   ["pulse: nothing-to-send rows counted in the tally", { "pulse.js": [['const makes = n.in + n.going + n.notSent;', 'const makes = n.in + n.going + n.notSent + n.nothing;']] }, async (dir) => { const m = await load(dir, "pulse.js"); const x = m.buildPulse({ searched: ROWS, receipts: rc, today: "2026-11-12" }); return x.days.find((q) => q.iso === "2026-11-12").atlasTally !== " · 1 of 4 in the Atlas" || x.days.find((q) => q.iso === "2026-11-11").atlasTally !== ""; }],
   ["pulse: logOnly taken from any truthy value", { "pulse.js": [['logOnly: r.logOnly === true', 'logOnly: !!r.logOnly']] }, async (dir) => { const m = await load(dir, "pulse.js"); return m.buildPulse({ searched: [{ when: "2026-11-12", outcome: "found", logOnly: "no" }], today: "2026-11-12" }).entries[0].updated.logOnly === true; }],

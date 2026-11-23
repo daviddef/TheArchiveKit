@@ -10,7 +10,7 @@ Under each search row on an archive's `/whats-new/`, one compact line with two p
 
 1. **The Atlas state**, a small pill that says it in words (and in its outline, dashed or dotted, so colour is never the only signal):
    - **In the Atlas**: the row's receipt is in the Atlas's *deployed* receipts, with a link **"see it in the Atlas"** to the first Atlas page of the row's marks (the others, one link per page, under "and N more pages"). The receipts' hrefs are page paths (`/place/<place>/`, `/archive/<provider>/`, `/my-research/`), **no anchors**: the link reaches the page, not the volume's own row, and says so in its tooltip; it is not a deep-link claim.
-   - **Sent, going live**: the receipt is in the Atlas repo's `main` but not yet deployed (the Atlas deploy takes 13 to 65 minutes).
+   - **Sent, going live**: the receipt is in the Atlas repo's `main` but not yet deployed (the Atlas deploy takes 13 to 65 minutes). **Only the build can say this** (see "No address on GitHub in the page", below): the page's refresh cannot tell it from "Not sent yet", so it leaves this pill as built until the row is deployed, then changes it to "In the Atlas".
    - **Not sent yet**: no receipt anywhere. The Atlas's publisher runs on a GitHub Actions cron (`17 */2 * * *`), but GitHub
      deprioritises scheduled workflows and drops ticks: measured over 28.3 hours on 13-14 November 2026 it delivered **4 runs where a
      two-hour cadence predicts 14** (gaps of 7.6, 5.0, 8.1 and 7.6 hours, none firing near `:17`). So a row can honestly read "Not sent
@@ -22,9 +22,13 @@ Under each search row on an archive's `/whats-new/`, one compact line with two p
 The day card's tally says "8 of 9 in the Atlas": of the rows that make a mark, those that are live. "Nothing to send" rows are not counted; a row whose state is
 unknown is in neither figure; "going live" rows are counted in the 9 but not the 8.
 
-The page says **"Record Atlas status as of 12 Nov 2026, when this page was built."** (the build-time snapshot). A small inline script then asks the Atlas again when the
-page is opened, redraws the pills and tallies, and says **"Record Atlas status: checked just now."** If anything fails (offline, no CORS header, a missing file, bad JSON) it does
-nothing and the build-time states stay. **Until the Atlas Worker with `Access-Control-Allow-Origin: *` on `/research-receipts/*` is deployed, the live fetch fails in every browser, so the page shows the build-time states "as of <date>" and never says "checked just now"**; `raw.githubusercontent.com` already allows any origin, but the refresh needs both files. `tools/receipts_logic.mjs` runs the script against a failing, a 404, a non-receipt, a broken-JSON and a never-answering fetch and asserts it changes and throws nothing.
+The page says **"Record Atlas status as of 12 Nov 2026, when this page was built."** (the build-time snapshot). A small inline script then asks the Atlas's **deployed** receipts again when the
+page is opened (one request, to `recordatlas.org`), changes a row to **In the Atlas** or **Nothing to send** when the deployed file now says so, redraws the tallies, and says **"Record Atlas status: what is live in the Atlas, checked just now; rows not yet live are as of 12 Nov 2026, when this page was built."** A row the deployed file does not hold keeps the pill it was built with (**Sent, going live** or **Not sent yet**): the refresh only ever upgrades, never downgrades, never invents. If anything fails (offline, no CORS header, a missing file, bad JSON) it does nothing and the build-time states stay. The Atlas Worker sends `Access-Control-Allow-Origin: *` on `/research-receipts/*` (checked 23 Nov 2026). `tools/receipts_logic.mjs` runs the script against a failing, a 404, a non-receipt, a broken-JSON and a never-answering fetch and asserts it changes and throws nothing, and against an answering Atlas to see which rows it changes.
+
+### No address on GitHub in the page (23 November 2026)
+
+Until 23 November the page carried a second, hidden address, `data-main="https://raw.githubusercontent.com/daviddef/TheMap/main/..."`, on the status line, and the script fetched it to tell "Sent, going live" from "Not sent yet". David: no links to GitHub on public pages; a hidden one still reaches github.com from the reader's browser. It is gone: `data-main`, the `mainUrl` prop and the script's second fetch are removed. The page now carries `data-live` (the deployed receipts, on `recordatlas.org`) and `data-asof` (the build day). What the reader sees differently: a row that was "Not sent yet" when the page was built, and has been sent since, no longer turns into "Sent, going live" when the page is opened; it stays as built until the Atlas has deployed it, then turns to "In the Atlas"; "Sent, going live" and "Not sent yet" are the **build's** word (as of the date the page prints) and change on the page only when the Atlas has deployed the row ("In the Atlas"). All four states stay, with the same meanings. The **build** still reads the Atlas repo's `main` (`loadReceipts`, server side, never written to a page) so the build-time "going live" stays true as of the build; if that read fails, a row the deployed file does not hold has no state in that build (`null`, "a file that is down is not a no"), as before.
+The gate: `checkarchive.py` (`npm run check:kit` in each archive) fails on any `raw.githubusercontent.com` on a built page and on any `github.com` inside the Kit's own markup (the status line and the refresh script); `receipts_logic.mjs` fails on a github address anywhere a Kit component template, inline client script or stylesheet writes into a page. An archive's own prose may still cite its repository: that is its own page list, not this gate.
 
 ## Where the states come from
 
@@ -32,7 +36,7 @@ One file per archive, written by the Atlas importer and committed by the Atlas p
 
 ```
 https://recordatlas.org/research-receipts/<archive>.json                                          (deployed: "live")
-https://raw.githubusercontent.com/daviddef/TheMap/main/site/public/research-receipts/<archive>.json  (the Atlas repo's main)
+https://raw.githubusercontent.com/daviddef/TheMap/main/site/public/research-receipts/<archive>.json  (the Atlas repo's main; read by the BUILD only, never by the page)
 { "v": 1, "exported": "2026-11-12",
   "rows": { "e7c29e4b77d3": [["volume:9R28-C6V", "/place/…#…"], ["source:familysearch", "/…"]],
             "afb2db3a6e3a": [] } }
@@ -54,7 +58,7 @@ and *both files were read*, **not-sent**; in neither and one file could not be r
 | piece | file |
 |---|---|
 | row key, `loadReceipts`, `stateOf` | `lib/receipts.js` |
-| the view-time script (an inlined ES5 copy of `stateOf`) | `lib/receipts.client.js` |
+| the view-time script (an inlined ES5 copy of `stateOf(key, live, null)`: the deployed file only) | `lib/receipts.client.js` |
 | `key`, `atlas`, `updated` on each entry; `receipts` option; the day tally; `pulse.atlas` | `lib/pulse.js` |
 | the two lines, the pill, the tally | `components/WhatsNewDay.astro`, `components/WhatsNew.astro` |
 | the gate | `tools/check_row_pages.py` (selftest `check_row_pages_selftest.py`) |
@@ -65,7 +69,7 @@ nothing else changes. Each search entry carries `key`, `atlas` (`{ state, href, 
 (`{ in, going, notSent, nothing, makes }`) and `atlasTally` (`" · 8 of 9 in the Atlas"` or `""`).
 
 `<WhatsNew atlasId="defranceschi" />`: with `atlasId` (or when the pulse carries receipts; then `atlasId` is required) the page draws the two lines; without both it is drawn exactly as before. `atlasId` is also what the
-view-time refresh uses to find the two files. `liveUrl` / `mainUrl` override the addresses (a demo with sample receipts does; no archive should).
+view-time refresh uses to find the two files. `liveUrl` overrides the deployed receipts' address (a demo with sample receipts does; no archive should). There is no `mainUrl` any more.
 
 `loadReceipts(id, { fetch, timeout, now })` runs at build time, with a timeout of 8 seconds per file, and **never throws and never fails a build**: any failure gives `null` (or `null` for the one file that failed).
 A build with the Atlas unreachable simply has no build-time Atlas line, and the view-time refresh can still fill them in.
