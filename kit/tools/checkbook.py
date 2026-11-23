@@ -9,7 +9,8 @@ WHAT IT REFUSES (kit/lib/book.js holds the rules; this file reads the BUILT page
   twice      the same path in book.json more than once, or two parts with one id, or a part with no chapters
   head       a built page without the running head, or whose head names a different part, position, reference, Previous or Next than the book
   foot       a built page whose Previous / Next differ from the book's order (an inherited page must link back instead)
-  stub       a redirect stub (a tiny page that only sends the reader on) whose target is not built; stubs are otherwise set aside
+  stub       a redirect stub (a tiny page that only sends the reader on) whose target is not built (a percent-encoded target, as Astro writes
+             one for a slug with an accent, is decoded first); stubs are otherwise set aside
   empty      nothing built, or a book with fewer than two parts: a check that examined nothing has not passed
 
 A page that is outside the book on purpose is listed in book.json "outside", so a page nobody placed fails the build.
@@ -20,6 +21,7 @@ import re
 import sys
 import json
 import argparse
+from urllib.parse import unquote
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 
@@ -102,6 +104,14 @@ def stub_target(html):
     return u.group(1) if u else ""
 
 
+def decode_path(t):
+    """A redirect target as a file path: fragment and query off FIRST (a literal %23 or %3F in a slug is a character of the
+    name, not the start of a fragment), then percent-decoding. Astro writes the target of a redirect to a slug that is not
+    plain ASCII percent-encoded (/people/alfia-cannav%C3%B2/); the built page sits in dist under the unencoded name, so
+    the target is looked up as the reader's browser would resolve it."""
+    return unquote(str(t).split("#")[0].split("?")[0])
+
+
 def attr(html, name):
     m = re.search(r'data-book-%s="([^"]*)"' % name, html)
     return m.group(1) if m else None
@@ -129,6 +139,7 @@ def check(book, dist):
     for url, t in sorted(stubs.items()):
         if re.match(r"^[a-z][a-z0-9+.-]*:|^//", t, re.I):
             continue  # an absolute address (another site): out of this check's reach
+        t = decode_path(t)
         tp = norm(t) if t.startswith("/") else norm(os.path.normpath(os.path.join(url, t)).replace(os.sep, "/"))
         if tp not in pages and tp not in stubs and not os.path.exists(os.path.join(dist, tp.strip("/"))):
             fails.append("stub: %s redirects to %s, which is not built" % (url, tp))
