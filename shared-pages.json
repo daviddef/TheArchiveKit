@@ -14,6 +14,9 @@
         "Falco",
         "Defranceski",
         "D'Arcy"
+      ],
+      "onNot": [
+        "Luwinski"
       ]
     },
     {
@@ -25,62 +28,75 @@
       "note": "Metrics, timeline, ranked chart, couples, families — one component, one order.",
       "component": "Marriages",
       "using": 7,
-      "drawingTheirOwn": []
+      "drawingTheirOwn": [],
+      "onNot": [
+        "Luwinski"
+      ]
     },
     {
       "key": "method",
       "route": "/method/",
-      "on": 7,
+      "on": 8,
       "state": "aligned",
       "tier": 0,
       "note": "The five-word evidence ladder, shared since before this session.",
       "component": "Evidence",
       "using": 7,
-      "drawingTheirOwn": []
+      "drawingTheirOwn": [],
+      "onNot": []
     },
     {
       "key": "worklist",
       "route": "/worklist/",
-      "on": 7,
+      "on": 8,
       "state": "aligned",
       "tier": 0,
       "note": "One component, and now two gates behind it.",
       "component": "WorkList",
       "using": 7,
-      "drawingTheirOwn": []
+      "drawingTheirOwn": [],
+      "onNot": []
     },
     {
       "key": "trees",
       "route": "/trees/",
-      "on": 7,
+      "on": 6,
       "state": "aligned",
       "tier": 0,
       "note": "Shared.",
       "component": "Trees",
       "using": 7,
-      "drawingTheirOwn": []
+      "drawingTheirOwn": [],
+      "onNot": [
+        "Defranceschi",
+        "Luwinski"
+      ]
     },
     {
       "key": "atlas",
       "route": "/atlas/",
-      "on": 6,
+      "on": 7,
       "state": "aligned",
       "tier": 0,
       "note": "Shared Atlas on all six that have it.",
       "component": "Atlas",
       "using": 6,
-      "drawingTheirOwn": []
+      "drawingTheirOwn": [],
+      "onNot": [
+        "Defranceschi"
+      ]
     },
     {
       "key": "bloodline",
       "route": "/bloodline/",
-      "on": 7,
+      "on": 8,
       "state": "aligned",
       "tier": 1,
       "note": "All seven on the shared chart.",
       "component": "Bloodline",
       "using": 7,
-      "drawingTheirOwn": []
+      "drawingTheirOwn": [],
+      "onNot": []
     },
     {
       "key": "people",
@@ -91,7 +107,10 @@
       "note": "All seven on the shared FilterTable, each keeping its own columns, facets and prose. Falco went 378 lines to 280, Blazevic 182 to 80, Booyzen 141 to 57. Nothing was surrendered to standardise: the Blazevic spelling fold is a prop (joannis still finds 118 Ivans), Falco's five booleans are still one row of mutually exclusive buttons, and the links gained trailing slashes - 9,750 redirects removed on the Falco page alone. The last two each had one control doing two jobs. D'Arcy put 'Direct line' in the same chip row as the surnames, so a reader could not ask for the Sneyds who are ancestors; they are separate facets now. Lerena's standing - connected, excluded, unplaced - was sortable but not askable, and it is the argument that page makes.",
       "component": "FilterTable",
       "using": 7,
-      "drawingTheirOwn": []
+      "drawingTheirOwn": [],
+      "onNot": [
+        "Falco"
+      ]
     },
     {
       "key": "who",
@@ -102,7 +121,10 @@
       "note": "All seven on the shared EveryName. The two that looked like a different page were not: Defranceschi and D'Arcy both keep ONE ENTRY PER NAME, keyed by a name-slug - 1,118 entries for 1,118 distinct names, 169 for 169 - and both called each entry a PERSON in their prose, which is the merge this estate says everywhere else that it does not do. Two men called Giovanni Defranceschi have one entry, and it is an entry for the name. WHAT n COUNTS DIFFERS AND DECIDES WHAT MAY BE SAID: bearers on Booyzen, Blazevic, Mazza and Lerena, records on Falco and D'Arcy, mentions on Defranceschi. The 'held by more than one person' reading is offered only where the number supports it; elsewhere the page says plainly that the count is not a count of people. Falco was already declaring this correctly and nobody else was. D'Arcy keeps what makes its page its own - the witnesses, constables and surgeons it had nowhere else to put - and its line of record text is a column.",
       "component": "EveryName",
       "using": 7,
-      "drawingTheirOwn": []
+      "drawingTheirOwn": [],
+      "onNot": [
+        "Luwinski"
+      ]
     },
     {
       "key": "register",
@@ -113,12 +135,15 @@
       "note": "**Seven of seven on the shared Register** — Falco 12,038, Booyzen 7,620, Lerena 278 entries, Mazza 226 records, Defranceschi 1,508, Blazevic 1,466, D'Arcy 854. Mazza's was seven tables with seven sets of headings and **no search anywhere on the page**; its cell labels travel with the cells, so act 186 still says Act. Lerena's was the nearest thing to a straight fork in the estate and 230 of its 278 entries are unplaced, which is now a filter and is the argument that archive makes. **THIS ROW SAID «Mazza and Lerena have none» AND WAS MARKED ALIGNED ON THE STRENGTH OF IT. Both keep one**: Mazza assembles its register out of seven data files so it cannot fall behind the reading, Lerena builds one from people.json with a status on every row. Caught by `readacross.py`, which is why that tool now exists. SIZE IS LEGITIMATE AND STAYS; the shape is what is shared. Two archives had already built a filter for how a record is known — D'Arcy's record/tree/above-a-graft and Defranceschi's in-the-archive/same-name-not-joined/lead — and all five carried the field; it is the «Known from» facet now, with the vocabularies kept apart. Booyzen's content-visibility and debounce are in the shared table, per block of 200 rows. Moving D'Arcy found a fault: it read the source SENTENCE rather than the kind FIELD, and 21 medieval records were shown to readers as somebody's family tree on the page whose stated purpose is telling those apart. Booyzen's page went 4,045 KB to 3,148.",
       "component": "Register",
       "using": 7,
-      "drawingTheirOwn": []
+      "drawingTheirOwn": [],
+      "onNot": [
+        "Falco"
+      ]
     },
     {
       "key": "searched",
       "route": "/searched/",
-      "on": 7,
+      "on": 8,
       "state": "partial",
       "tier": 1,
       "note": "**Five of seven on the shared Searched** — Defranceschi, D'Arcy, Blazevic, Mazza and now **Falco, which turned its 273 lines of prose into rows after the block was written onto its own work list**. That is the mechanism working: the row named the shape, the archive that owned the research did it. One model, four spellings. **The outcome words stay the archive's**: hit/yield/nothing/found/pending, yield/null/empty/blocked, +partly, done/outstanding/not-yet/superseded — those are different judgements about what a search DID, not synonyms. Tags survived, which needed a multi-value facet (a row carries several and a reader clicks one). D'Arcy keeps the thing no one else records: whether a null had a control that could have disproved it. **Falco and Lerena have no searched.json** — Falco's page is prose, which is also why its work list could not be counted. BOOYZEN IS BLOCKED TOO, and differently: it holds its page as data - 104 dated session write-ups - but with NO OUTCOME FIELD on any of them, and the shared register turns on exactly that. Writing outcome words from outside would be inventing findings. All three blocks are now on their own archives' work lists.",
@@ -127,23 +152,25 @@
       "drawingTheirOwn": [
         "Booyzen",
         "Lerena"
-      ]
+      ],
+      "onNot": []
     },
     {
       "key": "corrections",
       "route": "/corrections/",
-      "on": 7,
+      "on": 8,
       "state": "aligned",
       "tier": 1,
       "note": "All seven on the shared Corrections, each keeping its own page title and its own words. NOT A TABLE: the first attempt put «what was said» and «what is true» in four columns and it was unreadable, because these are sentences. TWO FILTER DIMENSIONS, because the archives ask different things - Falco and Defranceschi by severity, Booyzen by CAUSE, Mazza by what the correction is about in 39 kinds while also grading each one. Past seven options the control becomes a select. Both conversions found stale numbers typed into prose: Mazza said 'three of the twenty-seven' over 102 rows, D'Arcy said 'the eight above' and invited a ninth over 32. Those are computed now. D'Arcy's 'five of the seven are the same failure' was NOT touched beyond saying first seven - it is a judgement about shared causes, and re-deriving it over 32 errors is that archive's to do.",
       "component": "Corrections",
       "using": 7,
-      "drawingTheirOwn": []
+      "drawingTheirOwn": [],
+      "onNot": []
     },
     {
       "key": "open-questions",
       "route": "/open-questions/",
-      "on": 7,
+      "on": 8,
       "state": "partial",
       "tier": 1,
       "note": "****Three of seven on the shared Questions**, and that is the ceiling until the others extract theirs. **Falco cleared its own block** after the row was written onto its work list - it turned 162 lines of prose into rows, as it did for /searched/. (The note said two for a day after that stopped being true, and readacross did not catch it because the sentence was not phrased in the estate's «N of seven on the shared X» idiom - which is the only phrasing the claim-check reads, on purpose, since every wider pattern tried produced almost nothing but false positives.)** Only Defranceschi (q/status/known/needed) and D'Arcy (q/state/rank/settles/tried) hold questions as DATA; **Falco, Booyzen, Blazevic, Lerena and Mazza write them as prose**, so they cannot adopt this until somebody turns them into rows — research work belonging to each archive, not something to guess from outside. The shape is: the question, what is known, what has been tried, and **the specific record that would answer it**. That last field is what makes it a queue rather than a list of regrets. D'Arcy also ages a question and marks anything past thirty days. Written onto the five archives' own work lists on 16 September 2026, so the block is visible to the sessions that can clear it and not only in this register.",
@@ -154,7 +181,8 @@
         "Blazevic",
         "Mazza",
         "Lerena"
-      ]
+      ],
+      "onNot": []
     },
     {
       "key": "direct-line",
@@ -165,7 +193,10 @@
       "note": "All seven on the shared Spine, and the point of it is the mark on the joint that cannot bear weight. Four archives had that argument in prose beside a row that said nothing: Booyzen's seventh generation, Mazza's four unsourced, Defranceschi's first. Lerena's chain is deliberately unmarked and that now means something. The spine carries a household, a Latin form, a trade, sources and an archive's own plate renderer, so Defranceschi lost nothing moving onto it.",
       "component": "Spine",
       "using": 7,
-      "drawingTheirOwn": []
+      "drawingTheirOwn": [],
+      "onNot": [
+        "Luwinski"
+      ]
     },
     {
       "key": "places",
@@ -176,12 +207,15 @@
       "note": "All seven on the shared register. A kind - farm, village, church, hospital, cemetery - is now its own column and filter, because a cemetery holding four people is not the evidence a farm holding four is. Four archives keep a second, local table beside it (Falco's record locations, Blazevic's how-far-wrong, Mazza's export-vs-map spellings) and those stay.",
       "component": "Places",
       "using": 7,
-      "drawingTheirOwn": []
+      "drawingTheirOwn": [],
+      "onNot": [
+        "Luwinski"
+      ]
     },
     {
       "key": "sources",
       "route": "/sources/",
-      "on": 7,
+      "on": 8,
       "state": "partial",
       "tier": 2,
       "note": "Two of seven hold sources as DATA - Falco and Defranceschi. The other five write them inline: Booyzen 674 lines (the largest in the estate), Lerena 205, D'Arcy 168, Blazevic 129, Mazza 70. Nothing about the content need change; the shape is what blocks it. On those five archives' work lists since 16 September 2026.",
@@ -195,7 +229,8 @@
         "Blazevic",
         "Mazza",
         "Lerena"
-      ]
+      ],
+      "onNot": []
     },
     {
       "key": "name",
@@ -211,29 +246,34 @@
         "D'Arcy",
         "Blazevic",
         "Mazza"
+      ],
+      "onNot": [
+        "Luwinski"
       ]
     },
     {
       "key": "timeline",
       "route": "/timeline/",
-      "on": 7,
+      "on": 8,
       "state": "aligned",
       "tier": 2,
       "note": "All seven on the shared chronology. The chart above it stays each archive's - sovereignty lanes, political bands and Falco's read-coverage band each say something the others cannot - but the dated events, their grouping, their filter and the source beside each row are now one shape.",
       "component": "Timeline",
       "using": 7,
-      "drawingTheirOwn": []
+      "drawingTheirOwn": [],
+      "onNot": []
     },
     {
       "key": "changes",
       "route": "/changes/",
-      "on": 6,
+      "on": 8,
       "state": "aligned",
       "tier": 2,
       "note": "All six that keep one are on the shared feed. Mazza has no such page. Booyzen sets withdrawals beside findings on the day they happened and that arrangement was kept for all six; the strikethrough table stays on /corrections/.",
       "component": "Changes",
       "using": 6,
-      "drawingTheirOwn": []
+      "drawingTheirOwn": [],
+      "onNot": []
     },
     {
       "key": "households",
@@ -246,6 +286,11 @@
       "using": 4,
       "drawingTheirOwn": [
         "Falco"
+      ],
+      "onNot": [
+        "Blažević",
+        "Lerena",
+        "Luwinski"
       ]
     },
     {
@@ -259,7 +304,13 @@
       "drawingTheirOwn": [
         "Mazza"
       ],
-      "component": "Documents"
+      "component": "Documents",
+      "onNot": [
+        "Defranceschi",
+        "Blažević",
+        "Lerena",
+        "Luwinski"
+      ]
     },
     {
       "key": "gallery",
@@ -272,7 +323,13 @@
       "drawingTheirOwn": [
         "D'Arcy"
       ],
-      "component": "Gallery"
+      "component": "Gallery",
+      "onNot": [
+        "Blažević",
+        "Lerena",
+        "Luwinski",
+        "Mazza"
+      ]
     },
     {
       "key": "graves",
@@ -285,7 +342,14 @@
       "drawingTheirOwn": [
         "Falco"
       ],
-      "component": "Graves"
+      "component": "Graves",
+      "onNot": [
+        "Blažević",
+        "Booyzen",
+        "Lerena",
+        "Luwinski",
+        "Mazza"
+      ]
     },
     {
       "key": "namesakes",
@@ -299,6 +363,13 @@
         "Falco",
         "Defranceski",
         "Booyzen"
+      ],
+      "onNot": [
+        "Blažević",
+        "D'Arcy",
+        "Lerena",
+        "Luwinski",
+        "Mazza"
       ]
     },
     {
@@ -312,7 +383,8 @@
       "drawingTheirOwn": [
         "Luwinski"
       ],
-      "note": "**On five of eight: Blazevic, Booyzen, D'Arcy, Defranceski, Lerena. Not on Falco, Mazza or Luwinski, and it was never registered here, so nothing counted the gap.** It spread by copying (Defranceski 9 Sep, Booyzen 13 Sep, D'Arcy and Lerena 10 Sep from the Defranceski audit, Blazevic 9 Oct) and the component was lifted afterwards. Three other pages ask the same question under another name and are folded into it by `evidence-menu.json`: **Photograph these** (Blazevic, Defranceski, Lerena: the kit's own Shotlist header says it is «what somebody standing in the right place should photograph»), **The Letters** (Booyzen) and **Letters out** (Luwinski, which alone has a chase schedule worth keeping). Falco and Mazza had asks that existed and were not on the site: **both now have an Errands page (9 October 2026)**: Mazza `5a04330` (five asks at four doors, from a drafted Scilla request and work-list rows 9, 59 and 158) and Falco `5c8951bf` (five asks at three doors, from questions and rows 20 and 21). *An earlier version of this note said Falco's notes named the Arienzo liber IX register as an ask to the museum; that came from a 13 September note that row 100 (27 September) superseded, and it is not on the page.* **9 Oct 2026, Booyzen: The Letters folded into `/errands/#sent`** (`241adb4`), `/letters/` redirects, and the fold exposed a stale hand-written count on the page it joined. Luwinski's `Letters out` is now the only separate sent-letters page left. **9 Oct 2026, Lerena:** gaps («What we cannot close») folded into `/open-questions/#may-never-close` in the same commit; Defranceski's `/gaps/` is the only one left, so it is no longer a shared page. **Status 9 Oct 2026, evening: all eight archives now have /errands/.** Seven draw it with the kit's component; Luwinski's is its Letters out page whole (the per-recipient chase schedule is not modelled by the kit's Errands row, so it stays bespoke until `chase` is added)."
+      "note": "**On five of eight: Blazevic, Booyzen, D'Arcy, Defranceski, Lerena. Not on Falco, Mazza or Luwinski, and it was never registered here, so nothing counted the gap.** It spread by copying (Defranceski 9 Sep, Booyzen 13 Sep, D'Arcy and Lerena 10 Sep from the Defranceski audit, Blazevic 9 Oct) and the component was lifted afterwards. Three other pages ask the same question under another name and are folded into it by `evidence-menu.json`: **Photograph these** (Blazevic, Defranceski, Lerena: the kit's own Shotlist header says it is «what somebody standing in the right place should photograph»), **The Letters** (Booyzen) and **Letters out** (Luwinski, which alone has a chase schedule worth keeping). Falco and Mazza had asks that existed and were not on the site: **both now have an Errands page (9 October 2026)**: Mazza `5a04330` (five asks at four doors, from a drafted Scilla request and work-list rows 9, 59 and 158) and Falco `5c8951bf` (five asks at three doors, from questions and rows 20 and 21). *An earlier version of this note said Falco's notes named the Arienzo liber IX register as an ask to the museum; that came from a 13 September note that row 100 (27 September) superseded, and it is not on the page.* **9 Oct 2026, Booyzen: The Letters folded into `/errands/#sent`** (`241adb4`), `/letters/` redirects, and the fold exposed a stale hand-written count on the page it joined. Luwinski's `Letters out` is now the only separate sent-letters page left. **9 Oct 2026, Lerena:** gaps («What we cannot close») folded into `/open-questions/#may-never-close` in the same commit; Defranceski's `/gaps/` is the only one left, so it is no longer a shared page. **Status 9 Oct 2026, evening: all eight archives now have /errands/.** Seven draw it with the kit's component; Luwinski's is its Letters out page whole (the per-recipient chase schedule is not modelled by the kit's Errands row, so it stays bespoke until `chase` is added).",
+      "onNot": []
     },
     {
       "key": "privacy",
@@ -323,7 +395,126 @@
       "note": "What a reader's browser loads from elsewhere (GoatCounter's count, Google Fonts, and on the map pages Leaflet from cdnjs and Esri and OpenTopoMap tiles) and that there is no account, form or advertising. One component, nothing written by an archive; the GoatCounter site is read from archives.json. Keep it true: an archive that starts loading something new says so here in the same commit.",
       "component": "Privacy",
       "using": 8,
+      "drawingTheirOwn": [],
+      "onNot": []
+    },
+    {
+      "key": "story",
+      "route": "/story/",
+      "tier": 3,
+      "state": "local",
+      "component": null,
+      "on": 8,
+      "onNot": [],
+      "note": "Added to the register 23 Nov 2026 from the live sitemaps (presence only; whether it shares a component was not checked). The story: the archive's long read; each archive writes its own.",
+      "using": 0,
+      "drawingTheirOwn": []
+    },
+    {
+      "key": "whats-new",
+      "route": "/whats-new/",
+      "tier": 3,
+      "state": "local",
+      "component": null,
+      "on": 8,
+      "onNot": [],
+      "note": "Added to the register 23 Nov 2026 from the live sitemaps (presence only; whether it shares a component was not checked). What's new: shared Kit component (WhatsNew), fed by the archive's own search log.",
+      "using": 0,
+      "drawingTheirOwn": []
+    },
+    {
+      "key": "search",
+      "route": "/search/",
+      "tier": 3,
+      "state": "local",
+      "component": null,
+      "on": 7,
+      "onNot": [
+        "Falco"
+      ],
+      "note": "Added to the register 23 Nov 2026 from the live sitemaps (presence only; whether it shares a component was not checked). Search page; the index rows follow the kit's search contract.",
+      "using": 0,
+      "drawingTheirOwn": []
+    },
+    {
+      "key": "contents",
+      "route": "/contents/",
+      "tier": 3,
+      "state": "local",
+      "component": null,
+      "on": 8,
+      "onNot": [],
+      "note": "Added to the register 23 Nov 2026 from the live sitemaps (presence only; whether it shares a component was not checked). The contents page.",
+      "using": 0,
+      "drawingTheirOwn": []
+    },
+    {
+      "key": "lines",
+      "route": "/lines/",
+      "tier": 3,
+      "state": "local",
+      "component": null,
+      "on": 8,
+      "onNot": [],
+      "note": "Added to the register 23 Nov 2026 from the live sitemaps (presence only; whether it shares a component was not checked). The lines of descent (BranchRivers, one lines.json per archive; kit/docs/lines.md).",
+      "using": 0,
+      "drawingTheirOwn": []
+    },
+    {
+      "key": "tree",
+      "route": "/tree/",
+      "tier": 3,
+      "state": "local",
+      "component": null,
+      "on": 7,
+      "onNot": [
+        "Falco"
+      ],
+      "note": "Added to the register 23 Nov 2026 from the live sitemaps (presence only; whether it shares a component was not checked). The direct line drawn as a tree.",
+      "using": 0,
+      "drawingTheirOwn": []
+    },
+    {
+      "key": "research",
+      "route": "/research/",
+      "tier": 3,
+      "state": "local",
+      "component": null,
+      "on": 8,
+      "onNot": [],
+      "note": "Added to the register 23 Nov 2026 from the live sitemaps (presence only; whether it shares a component was not checked). The Research hub (kit/docs/research-menu.md); its two group pages /research/to-do/ and /research/sources-and-method/ exist on all eight.",
+      "using": 0,
+      "drawingTheirOwn": []
+    },
+    {
+      "key": "families",
+      "route": "/families/",
+      "tier": 3,
+      "state": "local",
+      "component": null,
+      "on": 7,
+      "onNot": [
+        "Defranceschi"
+      ],
+      "note": "Added to the register 23 Nov 2026 from the live sitemaps (presence only; whether it shares a component was not checked). The families hub: every surname page, so the menu can name only a few.",
+      "using": 0,
+      "drawingTheirOwn": []
+    },
+    {
+      "key": "dna",
+      "route": "/dna/",
+      "tier": 3,
+      "state": "local",
+      "component": null,
+      "on": 6,
+      "onNot": [
+        "Blažević",
+        "Mazza"
+      ],
+      "note": "Added to the register 23 Nov 2026 from the live sitemaps (presence only; whether it shares a component was not checked). DNA results, where the archive holds any.",
+      "using": 0,
       "drawingTheirOwn": []
     }
-  ]
+  ],
+  "measured": "23 Nov 2026: `on` and `onNot` are counted from the eight archives' live sitemaps (hand pages only; the people, who, person and found families are not counted). `using` and `drawingTheirOwn` are NOT re-measured: they were last derived by kit/tools/readacross.py on 7 archives and are stale until it is re-run on fresh checkouts of all eight."
 }
