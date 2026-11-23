@@ -23,6 +23,9 @@ worst failures were invisible from the source.
                whitespace between two adjacent spans
   titles       a page shipped with no <title> and was unfindable
   images       an <img src> pointed at nothing
+  nogithub     the Kit's What's new wrote a hidden raw.githubusercontent.com address into
+               every /whats-new/ page (data-main, read by an inline script), so a page of
+               a site that shows no link to GitHub still reached github.com
 
 Usage:  python3 checkarchive.py [--dist site/dist] [--base /TheX] [--strict]
 Exit 1 on any failure, so it can gate a deploy.
@@ -70,6 +73,28 @@ def load(dist):
             url = "/" + rel[:-len("index.html")] if rel.endswith("index.html") else "/" + rel
             out[url.rstrip("/") or "/"] = open(p, encoding="utf-8", errors="replace").read()
     return out
+
+
+# THE KIT WRITES NO ADDRESS ON GITHUB INTO A PAGE (David, 23 November 2026: no links to GitHub on public pages; a hidden one in the HTML still
+# reaches github.com from the reader's browser). Two rules, both about what the KIT's components emit, not about an archive's own prose
+# (an archive's notes may still cite its repository; that is the archive's page list, not this gate):
+#   1. raw.githubusercontent.com appears on no built page at all (the Kit's What's new was the only writer; nothing else has a reason to);
+#   2. github.com appears in none of the Kit's own markup: the What's new status line (#wn-asof, with its data-* addresses) and the inline
+#      script of the Atlas refresh (it defines wnReceipts), where the old data-main and the script's fetch lived.
+KIT_FRAGMENTS = (
+    re.compile(r"<p\b[^>]*\bid=\"wn-asof\"[^>]*>", re.I),
+    re.compile(r"<script\b[^>]*>(?:(?!</script>).)*?\bwnReceipts\b.*?</script>", re.S | re.I),
+)
+GITHUB = re.compile(r"github\.com|githubusercontent\.com", re.I)
+
+
+def kit_github(src):
+    """The addresses on GitHub that the Kit's own markup carries on this page (empty = clean)."""
+    hits = [m.group(0) for m in re.finditer(r"raw\.githubusercontent\.com[^\"'<>\s]{0,80}", src, re.I)]
+    for rx in KIT_FRAGMENTS:
+        for m in rx.finditer(src):
+            hits += [h.group(0) for h in re.finditer(r"[^\s\"'<>(]{0,30}(?:github\.com|githubusercontent\.com)[^\s\"'<>)]{0,60}", m.group(0), re.I)]
+    return sorted(set(hits))
 
 
 def text_of(src):
@@ -401,6 +426,12 @@ def main():
         m = re.search(r"<title[^>]*>(.*?)</title>", src, re.S | re.I)
         if not m or not m.group(1).strip():
             F("titles", url, "no <title>")
+
+    # ---- nothing on GitHub in the Kit's own markup --------------------------
+    for url, src in pages.items():
+        hits = kit_github(src)
+        if hits:
+            F("nogithub", url, "the Kit's markup reaches github.com (" + hits[0] + (f" and {len(hits) - 1} more" if len(hits) > 1 else "") + "): the What's new refresh reads the Atlas's deployed receipts only")
 
     # ---- sitemap -----------------------------------------------------------
     sm = os.path.join(a.dist, "sitemap.xml")

@@ -7,16 +7,16 @@
    The newest 25 days are open; the rest sit under «Earlier». The badges and the word box filter in the browser.
    The archive's page wraps this in its own layout (title, eyebrow, dek, noautolink) and passes `pulse`; see kit/docs/whats-new.md.
    RECEIPTS (12 November 2026; kit/docs/whats-new-receipts.md): with `atlasId` (the archive's id in the Atlas's research-receipts) each search row gets a
-   second line, the Atlas state and the pages the finding went into, the day tallies say «N of M in the Atlas», and a small script asks the Atlas
-   again when the page is opened. Without it the page is drawn exactly as before.
+   second line, the Atlas state and the pages the finding went into, the day tallies say «N of M in the Atlas», and a small script asks the Atlas's deployed
+   receipts again when the page is opened (it upgrades a row to "In the Atlas"; it never reaches github.com). Without it the page is drawn exactly as before.
    props: pulse (buildPulse), logHref ("/searched/"), correctionsHref ("/corrections/"), askHref (a page for "know something we do not?", or none),
-          tries (the example words of the filter box), atlasId (REQUIRED to wire it, one of blazevic booyzen darcy defranceschi falco lerena luwinski mazza; none = not wired, drawn as before), liveUrl / mainUrl (the two receipt addresses; only a demo overrides them) */
+          tries (the example words of the filter box), atlasId (REQUIRED to wire it, one of blazevic booyzen darcy defranceschi falco lerena luwinski mazza; none = not wired, drawn as before), liveUrl (the deployed receipts' address; only a demo overrides it. There is no second address: the page carries no github.com address, 23 November 2026) */
 import { u } from "../lib/url.js";
 import { CARD, KIND, fmtDay, nf, tiles } from "../lib/pulse.js";
-import { ARCHIVE_IDS, LIVE_URL, MAIN_URL } from "../lib/receipts.js";
+import { ARCHIVE_IDS, LIVE_URL } from "../lib/receipts.js";
 import receiptsClient from "../lib/receipts.client.js?raw";
 import WhatsNewDay from "./WhatsNewDay.astro";
-const { pulse, logHref = "/searched/", correctionsHref = "/corrections/", askHref = "", tries = "", atlasId = "", liveUrl = "", mainUrl = "" } = Astro.props;
+const { pulse, logHref = "/searched/", correctionsHref = "/corrections/", askHref = "", tries = "", atlasId = "", liveUrl = "" } = Astro.props;
 const wired = !!atlasId || !!pulse.atlas;
 /* atlasId is REQUIRED once the page is wired (receipts in the pulse, or any atlasId) and must be one of the Atlas's ids: a typo here would silently read no receipts */
 if (wired && !ARCHIVE_IDS.includes(atlasId)) throw new Error(`WhatsNew: atlasId must be one of ${ARCHIVE_IDS.join(", ")} (got "${atlasId}"). Defranceski is "defranceschi".`);
@@ -60,7 +60,7 @@ const week = pulse.week;
     <p class="wn-week">In the seven days to {fmtDay(pulse.latest)}: <b>{week.found}</b> {week.found === 1 ? "search" : "searches"} found something, <b>{week.nil}</b> found nothing, <b>{week.corrected}</b> {week.corrected === 1 ? "claim" : "claims"} corrected.</p>
   </section>
   {wired && (
-    <p class="wn-asof" id="wn-asof" hidden={!pulse.atlas} data-archive={atlasId || undefined} data-live={atlasId ? liveUrl || LIVE_URL(atlasId) : undefined} data-main={atlasId ? mainUrl || MAIN_URL(atlasId) : undefined}>
+    <p class="wn-asof" id="wn-asof" hidden={!pulse.atlas} data-archive={atlasId || undefined} data-live={atlasId ? liveUrl || LIVE_URL(atlasId) : undefined} data-asof={pulse.atlas ? asOf : undefined}>
       <span class="wn-asof-t">{pulse.atlas ? `Record Atlas status as of ${asOf}, when this page was built.` : ""}</span>
     </p>
   )}

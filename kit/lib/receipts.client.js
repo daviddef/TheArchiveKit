@@ -1,9 +1,14 @@
 /* THE VIEW-TIME REFRESH of the Atlas lines on /whats-new/ (inlined by WhatsNew.astro, like bloodline.client.js, so there is one copy).
-   The page is built with the Atlas states as they were at build time ("as of <date>"). When it is opened, this asks the Atlas again:
-   the deployed receipts and the Atlas repo's main, works out each row's state with the SAME logic as lib/receipts.js stateOf (a copy, because this
-   runs in the reader's browser; kit/tools/receipts_logic.mjs holds the two to identical answers), updates the pills and the day tallies, and says
-   "checked just now". If anything fails (offline, no CORS header yet, a file missing, bad JSON) it does nothing: the build-time states stay.
-   Plain ES5 on purpose: it is inlined as written. Reads data-* of #wn-asof: data-archive, data-live, data-main (the two addresses). */
+   The page is built with the Atlas states as they were at build time ("as of <date>"). When it is opened, this asks the Atlas's DEPLOYED receipts again
+   (the one address in data-live, on recordatlas.org) and works out each row's state with the SAME logic as lib/receipts.js stateOf(key, live, null)
+   (a copy, because this runs in the reader's browser; kit/tools/receipts_logic.mjs holds the two to identical answers). It can say two things only:
+   "in the Atlas" (the key is in the deployed file with marks) and "nothing to send" (the key is there with an empty list), and it only ever paints those.
+   A row it cannot place (the key is not in the deployed file) keeps the pill the page was built with: "Sent, going live" and "Not sent yet" cannot be told
+   apart from here, so they are never redrawn, never downgraded and never invented. (Until 23 November 2026 it also read a second address, the Atlas's source
+   repository, to tell "going live" from "not sent"; that address is gone from the page.) THIS FILE IS INLINED INTO EVERY PAGE AS WRITTEN: no address but
+   the Atlas's own may be written in it, not even in a comment (kit/tools/receipts_logic.mjs and checkarchive.py check the source and the built page).
+   It then updates the day tallies and the status line. If anything fails (offline, no CORS header, a file missing, bad JSON) it does nothing: the build-time states stay.
+   Plain ES5 on purpose: it is inlined as written. Reads data-* of #wn-asof: data-archive, data-live (the deployed receipts' address), data-asof (the build day, as the page prints it). */
 var wnReceipts = (function () {
   var ORIGIN = "https://recordatlas.org";
   var LABEL = { "in-atlas": "In the Atlas", "going-live": "Sent, going live", "not-sent": "Not sent yet", "nothing-to-send": "Nothing to send" };
@@ -30,13 +35,11 @@ var wnReceipts = (function () {
     for (var i = 0; i < list.length; i++) { var m = list[i]; if (Array.isArray(m) && typeof m[0] === "string" && atlasHref(m[1])) out.push([m[0], atlasHref(m[1])]); }
     return out;
   }
-  /* the same as stateOf in lib/receipts.js */
-  function stateOf(key, live, main) {
-    var L = hasRows(live) ? live.rows : null, M = hasRows(main) ? main.rows : null;
-    function done(state, list) { var marks = state === "nothing-to-send" || state === "not-sent" ? [] : marksOf(list); return { state: state, href: marks.length ? marks[0][1] : "", marks: marks }; }
+  /* the same as stateOf(key, live, null) in lib/receipts.js: only what the deployed file can say */
+  function stateOf(key, live) {
+    var L = hasRows(live) ? live.rows : null;
+    function done(state, list) { var marks = state === "nothing-to-send" ? [] : marksOf(list); return { state: state, href: marks.length ? marks[0][1] : "", marks: marks }; }
     if (L && has(L, key)) { return marksOf(L[key]).length ? done("in-atlas", L[key]) : done("nothing-to-send"); }
-    if (M && has(M, key)) { return marksOf(M[key]).length ? done("going-live", M[key]) : done("nothing-to-send"); }
-    if (L && M) return done("not-sent");
     return null;
   }
 
@@ -98,24 +101,23 @@ var wnReceipts = (function () {
     try {
       var bar = document.getElementById("wn-asof");
       if (!bar) return;
-      var live = bar.getAttribute("data-live"), main = bar.getAttribute("data-main");
-      if (!live || !main) return;
-      Promise.all([getJSON(live, 8000), getJSON(main, 8000)]).then(function (got) {
+      var live = bar.getAttribute("data-live");
+      if (!live) return;
+      getJSON(live, 8000).then(function (got) {
         try {
-          if (!got[0] && !got[1]) return;
-          var boxes = document.querySelectorAll(".wn-ax[data-key]"), changed = 0;
+          if (!got) return;
+          var boxes = document.querySelectorAll(".wn-ax[data-key]");
           for (var i = 0; i < boxes.length; i++) {
-            var s = stateOf(boxes[i].getAttribute("data-key"), got[0], got[1]);
-            if (s) { paint(boxes[i], s); changed++; }
+            var s = stateOf(boxes[i].getAttribute("data-key"), got);
+            if (s) paint(boxes[i], s);
           }
           var days = document.querySelectorAll(".wn-day");
           for (var j = 0; j < days.length; j++) tally(days[j]);
-          if (got[0] && got[1]) {
-            var txt = bar.querySelector(".wn-asof-t");
-            if (txt) txt.textContent = "Record Atlas status: checked just now.";
-            bar.hidden = false;
-            bar.setAttribute("data-fresh", "1");
-          }
+          var txt = bar.querySelector(".wn-asof-t");
+          var asof = bar.getAttribute("data-asof");
+          if (txt) txt.textContent = "Record Atlas status: what is live in the Atlas, checked just now" + (asof ? "; rows not yet live are as of " + asof + ", when this page was built." : ".");
+          bar.hidden = false;
+          bar.setAttribute("data-fresh", "1");
         } catch (e) { /* the build-time states stay */ }
       });
     } catch (e) { /* the build-time states stay */ }
