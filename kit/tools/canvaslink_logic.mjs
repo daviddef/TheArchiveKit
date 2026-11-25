@@ -6,7 +6,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const kit = path.join(here, "..");
-const { canvasHref: f, SLUG } = await import(pathToFileURL(path.join(kit, "lib", "canvaslink.js")).href);
+const { canvasHref: f, SLUG, wallNote: wn, CUT_FOR_DEPTH } = await import(pathToFileURL(path.join(kit, "lib", "canvaslink.js")).href);
 const keys = JSON.parse(fs.readFileSync(path.join(kit, "data", "archives.json"), "utf8")).archives.map((a) => a.key);
 let n = 0, bad = 0;
 const eq = (label, got, want) => { n++; if (got !== want) { bad++; console.log(`  FAIL  ${label}: got ${got}, want ${want}`); } };
@@ -37,6 +37,16 @@ eq("the component opens in a new tab safely", /target="_blank" rel="noopener"/.t
 const anc = fs.readFileSync(path.join(kit, "components", "AncChart.astro"), "utf8");
 eq("AncChart draws by default", /draw = true/.test(anc), true);
 eq("AncChart can leave the picture out", /\{draw && \(\s*<div class="ac-scroll">/.test(anc), true);
+
+/* a branch cut for depth must not talk about a chart the page does not draw */
+const cut = `${CUT_FOR_DEPTH} Above **George** this branch is recorded 17 generations further back.`;
+eq("the chart drawn: the note is untouched", wn(cut, true), cut);
+eq("the default is drawn", wn(cut), cut);
+eq("no chart drawn: the sentence says what is true of the page", wn(cut, false), "This page follows the line no further here. Above **George** this branch is recorded 17 generations further back.");
+eq("no chart drawn: any other note is untouched", wn("Civil registration is closed here.", false), "Civil registration is closed here.");
+eq("no chart drawn: a note that only mentions the sentence later is untouched", wn(`Note. ${CUT_FOR_DEPTH}`, false), `Note. ${CUT_FOR_DEPTH}`);
+eq("a missing note stays missing", wn(undefined, false), undefined);
+eq("AncChart says the note through wallNote", /md\(wallNote\(w\.note, draw\)\)/.test(anc), true);
 
 console.log(bad ? `${bad} of ${n} FAILED` : `canvaslink: ${n} checks ok`);
 process.exit(bad ? 1 : 0);
