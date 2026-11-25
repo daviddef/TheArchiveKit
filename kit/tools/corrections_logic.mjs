@@ -1,6 +1,6 @@
 // node kit/tools/corrections_logic.mjs : what the Corrections page and /whats-new/ must agree on (lib/corrections.js): one stable anchor per correction
 // row, the same on both sides, and the page's newest-first order. Cases are written from the shapes the archives keep corrections in.
-import { corrIdMap, byDateDesc, factsOf, kindBefore } from "../lib/corrections.js";
+import { corrIdMap, byDateDesc, factsOf, kindBefore, toneOf, cardOf, heartbeat, kindFilterable, longDate, TONE_ORDER } from "../lib/corrections.js";
 import { bookIndex, linkBooks, bookKind, bookYears } from "../lib/booklinks.js";
 import { placeIndex, linkPlaces, yearAround, flagsFor } from "../lib/placelinks.js";
 import { nameIndex, linkNames } from "../lib/namelinks.js";
@@ -122,4 +122,27 @@ ok("a shared name linked in the prose is a shared chip", (() => { const f = fact
 ok("'dead' straight before a date is a death", kindBefore("born 1934, dead ") === "death" && kindBefore("dead in ") === "death" && kindBefore("dead on ") === "death");
 ok("'dead' elsewhere is no mark", kindBefore("the dead man's letter of ") === "" && kindBefore("he was left for dead; the entry of ") === "");
 ok("a quoted index entry gets a birth and a death mark", (() => { const f = factsOf("<p>index entry 'born 1934, dead October 1955'</p>"); return f.dates.find((d) => d.text === "1934").kind === "birth" && f.dates.find((d) => d.text === "October 1955").kind === "death"; })());
+
+/* the ledger view: a colour only for a real severity, a card from the archive's own sentences, a heartbeat of the days */
+ok("severity words get their tone, any case", toneOf("Serious") === "serious" && toneOf("MAJOR") === "major" && toneOf("moderate") === "moderate" && toneOf("Minor") === "minor");
+ok("a status is not a severity: resolved, documented, Process, Not ours are 'other'", ["resolved", "documented", "Process", "Not ours", "candidate", "addition", ""].every((v) => toneOf(v) === "other") && toneOf(undefined) === "other");
+ok("the archive's own gravest word is at least 'serious'", toneOf("withdrawn", "withdrawn") === "serious" && toneOf("withdrawn") === "other");
+ok("every tone is one the page draws", ["major", "serious", "moderate", "minor", "other"].every((t) => TONE_ORDER.includes(t)));
+const card = cardOf({ was: "<p>That CEMLA lived at <a href=\"/x/\">cemla.org</a></p>", now: "<strong><em>THE ARK WAS THE WRONG ONE, and both rows carried it.</em></strong> That ark is the confirmation." });
+ok("the title is the claim that was retracted, without markup", card.title === "That CEMLA lived at cemla.org", card.title);
+ok("the verdict is the loud opening of the answer", card.verdict === "THE ARK WAS THE WRONG ONE, and both rows carried it.", card.verdict);
+ok("no loud opening: the first sentence of the answer", cardOf({ was: "That a thing", now: "<p>It is a different thing. More follows here.</p>" }).verdict === "It is a different thing.");
+ok("an archive that keeps the headline in kind: that is the title", cardOf({ kind: "A reading of the plate that the whole index had copied without checking", was: "x y z", now: "It said so." }).title.startsWith("A reading of the plate"));
+ok("a short category in kind is not the title", cardOf({ kind: "Birth year", was: "That he was born 1833", now: "Born 1836." }).title === "That he was born 1833");
+ok("no claim: the answer's first sentence is the title and the verdict is not repeated", (() => { const c = cardOf({ now: "She was born in Cordoba. Later notes follow." }); return c.title === "She was born in Cordoba." && c.verdict === ""; })());
+ok("a long title is cut at a word", cardOf({ was: "word ".repeat(80), now: "x" }).title.length <= 160 && cardOf({ was: "word ".repeat(80), now: "x" }).title.endsWith("…"));
+ok("a row with nothing yields empty strings, not an error", (() => { const c = cardOf({}); return c.title === "" && c.verdict === ""; })());
+const hb = heartbeat([{ when: "8 Nov 2026", sev: "serious" }, { when: "8 Nov 2026", sev: "minor" }, { when: "10 Nov 2026", sev: "resolved" }, { when: "Sept 2026" }, { when: "" }]);
+ok("a heartbeat runs first to last day, one bar a day, gaps included", hb && hb.bars.length === 3 && hb.from === "2026-11-08" && hb.to === "2026-11-10" && hb.bars[1].n === 0, JSON.stringify(hb));
+ok("each bar counts by tone; a month alone is no day", hb && hb.bars[0].tones.serious === 1 && hb.bars[0].tones.minor === 1 && hb.bars[2].tones.other === 1 && hb.bars.reduce((a, b) => a + b.n, 0) === 3);
+ok("fewer than two dated days: no heartbeat", heartbeat([{ when: "8 Nov 2026" }, { when: "8 Nov 2026" }]) === null && heartbeat([{ when: "1814" }, { when: "" }]) === null && heartbeat([]) === null);
+ok("a long span is bucketed, not drawn as hundreds of bars", (() => { const h = heartbeat([{ when: "2025-01-01" }, { when: "2026-11-01" }], undefined, "major", undefined, 120); return h.bars.length <= 120 && h.size > 1 && h.bars.reduce((a, b) => a + b.n, 0) === 2; })());
+ok("entities come back as characters in a title", cardOf({ was: "<p>That Aguilar&#39;s row said &quot;andaluz&quot; &amp; more&#x27;</p>", now: "x" }).title === "That Aguilar's row said \"andaluz\" & more'");
+ok("a date reads out in words", longDate("2026-11-08") === "8 November 2026" && longDate("") === "");
+ok("a kind filter only where kind is a short category", kindFilterable([{ kind: "Birth year" }, { kind: "Birth date" }, { kind: "Birth year" }]) && !kindFilterable([{ kind: "x".repeat(80) }, { kind: "y".repeat(90) }]) && !kindFilterable([{}, {}]) && !kindFilterable([{ kind: "Same" }, { kind: "Same" }]));
 if (bad) { console.log(bad + " failed"); process.exit(1); } console.log("all passed");

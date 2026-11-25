@@ -45,3 +45,20 @@ const names = nameIndex(autolinkIndex, { avoid: livingNames });                 
 `placeFlags` is `python3 kit/tools/placeflags.py --snapshot era-snapshot.json --places place-rows.json --alias flag-places.json --countries flag-countries.json --out place-flags.json`, run in the archive's build; `flagUrlFor` maps a flag file name to the address the archive serves it at (the kit's art is in `kit/data/flags/`). Without the props nothing changes. The era flag is only as wide as the era snapshot: a place the snapshot does not assess in that year gets today's flag only, never a guess.
 
 **Serve the flags as files, not data URIs.** Vite inlines a small SVG as a `data:` URI once per use, so a page with hundreds of place links grows by hundreds of KB (Falco 1.6 -> 2.1 MB, D'Arcy 174 -> 250 KB, Blazevic +77 KB). Build `flagUrl` from `import.meta.glob("<path to kit/data/flags>/*.svg", { eager: true, query: "?no-inline", import: "default" })`: the flags are emitted once as `/_astro/<name>.svg` and every link points at the file (Falco 2.1 -> 1.59 MB, D'Arcy 250 -> 190 KB, Blazevic +12 KB). Check the built page has no `data:image/svg` in it.
+
+## The ledger view (26 November 2026): cards, a reading pane, a heartbeat, search
+
+David, on the Lerena page: "really ugly, width's still not right, overwhelming amount of text, not fun, needs better integration, linking, colour, searchability". The page was one long stack of full paragraphs (Lerena 87,000 px; Falco 427 entries, 157,000 words) in a 70-character column that left the right half of a wide screen empty. Nothing about what an archive passes in changed; the component draws it differently.
+
+| what | how |
+|---|---|
+| a card per correction | title = the claim retracted (`was`), or the headline in `kind` where an archive keeps one there (Falco, Defranceschi, Blažević); verdict = the loud opening of `now`, else its first sentence; then the grade, the short kind, and who it is about. `cardOf` in `lib/corrections.js`; every word is the archive's own, none is written by the kit |
+| the reading pane | wide screens (1000px and up): the open entry beside the list, sticky, with Newer / Older and "Copy a link". Narrow: the entry opens under its card. Without script: every entry stays open as before |
+| was beside now | two boxes ("What was published", "What is true"), how it was caught under them (the `moreLabel` prop names that box: "How and why" by default), then the People / Places / Sources / Dates strip |
+| the heartbeat | one bar a day first to last (a bar is a week or more where the span passes 120 days), stacked by grade; a click reads only those days. Not drawn when fewer than two exact days are dated (Mazza's rows carry no day). `heartbeat` |
+| colour | only major, serious, moderate and minor are colours (`toneOf`); every other grade word (Falco's resolved, new, finding; Mazza's documented, probable) is "other", so a status is never painted as a danger. The archive's own word is still the label |
+| search and filters | one box over every word of every entry, accents folded; the grade (chips up to seven, else a select), the kind (only where it is a short category on 60% or more of the rows: `kindFilterable`; Falco's 415 headlines are not a filter), and "About anyone" from the rows' `about` list |
+| the address | filters in the query (`?q=serena&sev=serious`, also `who` and `day`), the open entry in the hash (`#c-...`), so /whats-new/ links still land on their entry, and a view can be sent. If a link's entry is hidden by a filter, the filters clear first |
+| removed | "Open every note" (the pane shows the whole entry) and the folded `<details>`. An archive's own contents list of days above the component (Lerena had one) is now redundant: the heartbeat is that list |
+
+Not done here, and a good next step: place chips with flags in the filters, "Corrections about this person" on person and place pages, and the entry text out of the page into a file fetched on demand (Falco's page is 1.7 MB).
