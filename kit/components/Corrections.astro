@@ -201,7 +201,9 @@ const ext = (h) => /^(https?:)?\/\//.test(String(h || ""));
             const iso = byIso(r.when);
             return (
           <section class={"cx-e t-" + tone} data-sev={r.sev || ""} data-kind={r.kind || ""} data-day={iso} data-who={(r.about || []).map((a) => a[0]).join(" ")} id={r.id || undefined}>
-            <div class="cx-card">
+            {/* data-no-autolink: the build's name linker links a name's FIRST mention in each section. The card comes first, so without this
+                it took the link, and the full entry (what the reading pane shows) was left with plain names. */}
+            <div class="cx-card" data-no-autolink>
               <p class="cx-ct">{card.title}</p>
               {card.verdict ? <p class="cx-cv">{card.verdict}</p> : null}
               <p class="cx-cm">
