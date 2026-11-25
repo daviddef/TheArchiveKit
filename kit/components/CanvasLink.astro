@@ -1,0 +1,39 @@
+---
+/* OPEN THIS ARCHIVE ON THE TREE CANVAS: the one button, the same on every archive's "Our line, drawn" page (25 November 2026).
+   The chart on /tree/ is a fixed picture of one line; the canvas (Record Atlas) draws the same people on demand and goes
+   further (the whole archive, parents and cousins added a click at a time, the places on a map, the archive beside your own
+   file). This sends the reader there, on the person the page is about when it is given one.
+     archive   the archive's key (kit/data/archives.json): defranceski, booyzen, luwinski, lerena, falco, blazevic, darcy, mazza
+     person    optional: the slug of one person's page; the canvas puts them on and selects them. Only a person in the
+               canvas's own data works: it matches the page address in the archive's /roots/view.html tree, which leaves
+               out some living people (the link then opens the archive on its search screen and puts nobody on). Check
+               the slug there before you pass it. A visitor whose saved canvas already holds that person keeps their own.
+     lede      optional: the sentence under the heading
+   An unknown key stops the build: a button that opens the wrong archive is worse than no button. */
+import arch from "../data/archives.json";
+import { canvasHref } from "../lib/canvaslink.js";
+const { archive, person = null,
+        lede = "The canvas draws the same people on demand: add parents, children and cousins a click at a time, see where each one lived on a map, and set this archive beside your own tree." } = Astro.props;
+const keys = arch.archives.map((a) => a.key);
+const href = canvasHref(archive, person, keys);
+if (!href) throw new Error(`CanvasLink: "${archive}" is not an archive key (${keys.join(", ")})`);
+---
+<aside class="cv-link" aria-label="Open this archive on the Tree Canvas">
+  <div class="cv-t">
+    <div class="cv-h">Draw it your own way</div>
+    <p>{lede}</p>
+  </div>
+  <a class="cv-go" href={href} target="_blank" rel="noopener">Open on the Tree Canvas <span aria-hidden="true">↗</span></a>
+</aside>
+<style>
+  .cv-link { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 24px; margin: 6px 0 26px; padding: 14px 18px;
+             border: 1px solid var(--rule, #dcd6cc); border-left: 3px solid var(--accent, #8a5a3b); border-radius: 3px;
+             background: var(--panel-2, transparent); }
+  .cv-t { flex: 1 1 320px; min-width: 0; }
+  .cv-h { font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase; opacity: .65; margin-bottom: 4px; font-weight: 600; }
+  .cv-t p { margin: 0; font-size: 14.5px; line-height: 1.55; max-width: 62ch; }
+  .cv-go { flex: 0 0 auto; display: inline-block; padding: 9px 16px; border-radius: 999px; background: var(--accent, #8a5a3b);
+           color: var(--bg, #fff); text-decoration: none; font-weight: 600; font-size: 14px; white-space: nowrap; }
+  .cv-go:hover, .cv-go:focus-visible { text-decoration: underline; }
+  .cv-go:focus-visible { outline: 2px solid var(--accent, #8a5a3b); outline-offset: 2px; }
+</style>

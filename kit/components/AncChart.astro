@@ -38,6 +38,9 @@
    still gets the drawing. */
 import arch from "../data/archives.json";
 import { md } from "../lib/md.js";
+/* `draw` — TRUE by default. False leaves the picture out and keeps the lists: the archives that send the reader to the Tree
+   Canvas for the picture (25 November 2026) still say, on their own page, where each branch ends and why. The layout is still
+   worked out, because the walls, the second marriages and the folds are read off it. */
 /* `lists` — the walls, the second marriages and the folds, rendered under the
    drawing. TRUE by default, because an archive that has not written them
    should still get them said. Booyzen passes false: it had written all three
@@ -46,7 +49,7 @@ import { md } from "../lib/md.js";
    file — the page is where the archive tells its story, so the prose stays
    where it is. A shared component earns its place by drawing the picture,
    not by overwriting the writing. */
-const { root, personHref = () => null, lists = true } = Astro.props;
+const { root, personHref = () => null, lists = true, draw = true } = Astro.props;
 const A = Object.fromEntries(arch.archives.map(a => [a.key, a]));
 
 /* Lay the ancestor chart out by computing every box's position first, so an
@@ -137,6 +140,7 @@ const CONF = { doc: "var(--accent)", lore: "var(--ochre)", living: "var(--ink-3)
                open: "var(--ochre)" };
 const GENLAB = ["Self", "Gen 1", "Gen 2", "Gen 3", "Gen 4", "Gen 5", "Gen 6", "Gen 7", "Gen 8"];
 ---
+{draw && (
 <div class="ac-scroll">
   <div class="ac" style={`width:${W}px;height:${H + 26}px`}>
     {Array.from({ length: maxGen + 1 }, (_, g) => (
@@ -179,6 +183,7 @@ const GENLAB = ["Self", "Gen 1", "Gen 2", "Gen 3", "Gen 4", "Gen 5", "Gen 6", "G
     ))}
   </div>
 </div>
+)}
 
 {lists && walls.length > 0 && (
 <div class="ac-walls">
