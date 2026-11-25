@@ -25,7 +25,10 @@
  */
 import fs from "node:fs";
 import path from "node:path";
-import { byDateDesc } from "../lib/corrections.js";
+import * as corrections from "../lib/corrections.js";
+import { parseWhen } from "../lib/when.js";
+/* every helper a component imports for its frontmatter (the Corrections page uses several of lib/corrections.js before it draws) */
+const helpers = { ...corrections, parseWhen };
 
 const root = (() => {
   const i = process.argv.indexOf("--root");
@@ -42,8 +45,8 @@ function compute(file, props, want) {
     /* the components it draws WITH are not needed: nothing here renders */
     .replace(/^\s*import .*$/gm, "")
     .replace(/Astro\.props/g, "__props");
-  const fn = new Function("__props", "byDateDesc", `${body}\n return { ${want.join(", ")} };`);
-  return fn(props, byDateDesc);
+  const fn = new Function("__props", ...Object.keys(helpers), `${body}\n return { ${want.join(", ")} };`);
+  return fn(props, ...Object.values(helpers));
 }
 
 const CASES = [

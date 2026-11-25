@@ -44,7 +44,13 @@ export function byDateDesc(rows, whenOf = (r) => r && r.when) {
    in the text. A work date (2020 or later: "read on 16 November 2026") is when the correction was made, not what it is about, and is left out. */
 const MON = "(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:t(?:ember)?)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)";
 const DATE = new RegExp("\\b(?:1[0-9]{3}|20[01][0-9])\\s*[–-]\\s*(?:1[0-9]{3}|20[01][0-9])\\b|\\b(?:\\d{1,2}\\s+" + MON + "\\.?\\s+\\d{4}|" + MON + "\\.?\\s+\\d{1,2},?\\s+\\d{4}|" + MON + "\\.?\\s+\\d{4})\\b|\\b(1[0-9]{3}|20[01][0-9])\\b", "g");
-const textOf = (h) => String(h || "").replace(/<[^>]*>/g, " ").replace(/&amp;/g, "&").replace(/&[a-z]+;/g, " ").replace(/\s+/g, " ").trim();
+/* the words of a rendered sentence: tags gone, the entities a markdown helper writes (&#39; &quot; &amp; &lt; &gt; &nbsp;, numeric and hex) turned back into the characters */
+const ENT = { amp: "&", quot: '"', apos: "'", lt: "<", gt: ">", nbsp: " " };
+const textOf = (h) => String(h || "").replace(/<[^>]*>/g, " ")
+  .replace(/&#x([0-9a-f]+);/gi, (m, x) => String.fromCodePoint(parseInt(x, 16)))
+  .replace(/&#(\d+);/g, (m, d) => String.fromCodePoint(+d))
+  .replace(/&([a-z]+);/gi, (m, n) => (ENT[n.toLowerCase()] !== undefined ? ENT[n.toLowerCase()] : " "))
+  .replace(/\s+/g, " ").trim();
 /* what a date is the date OF, from the words just before it: "death" (died, buried, burial, d.), "birth" (born, baptised, christened, b.), "marriage"
    (married, wedding). The nearest of these words in the clause wins; none, none. */
 const KINDS = [["death", /\b(?:died|dies|buried|burial|burials|dead|d\.)(?=\W|$)/gi], ["birth", /\b(?:born|birth|births|baptis\w*|baptiz\w*|christen\w*|b\.)(?=\W|$)/gi], ["marriage", /\b(?:married|marriage|marriages|wedding|weddings)(?=\W|$)/gi]];
@@ -104,4 +110,75 @@ export function factsOf(...htmls) {
   const long = list.filter((d) => d.text.length > 4);
   const shown = list.filter((d) => !(/^\d{4}$/.test(d.text) && long.some((l) => l.text.includes(d.text))));
   return { sources: [...sources].map(([href, name]) => ({ href, name })), people: [...people].map(([href, v]) => ({ href, name: v.name, shared: v.shared })), places: [...places].map(([href, v]) => ({ href, name: v.name, flags: v.flags, title: v.title })), dates: shown.slice(0, 8) };
+}
+
+/* ---- the ledger view (26 November 2026): one card per correction, a reading pane, a heartbeat of the days ----
+   Pure functions, so they run in the build and in node kit/tools/corrections_logic.mjs. */
+
+/* A correction's grade is each archive's own word (Lerena: serious / minor; Falco: twelve words from major to resolved; Mazza: documented,
+   probable...). Only the four that really are a severity get a colour of their own; every other word is "other", one neutral colour, so a status
+   is never painted as a danger. `major` is the archive's own name for its gravest grade (the Corrections prop), kept as "serious" when no
+   other rule has placed it. */
+const TONES = { major: "major", serious: "serious", material: "serious", moderate: "moderate", minor: "minor", slip: "minor" };
+export const TONE_ORDER = ["major", "serious", "moderate", "minor", "other"];
+export const TONE_LABEL = { major: "Major", serious: "Serious", moderate: "Moderate", minor: "Minor", other: "Other" };
+export function toneOf(sev, major = "major") {
+  const k = String(sev == null ? "" : sev).trim().toLowerCase();
+  if (!k) return "other";
+  if (TONES[k]) return TONES[k];
+  return k === String(major).trim().toLowerCase() ? "serious" : "other";
+}
+
+const clip = (s, n) => (s.length > n ? s.slice(0, n - 1).replace(/\s+\S*$/, "") + "…" : s);
+const firstSentence = (s) => { const m = /^.+?[.!?](?=\s|$)/.exec(s); return m ? m[0] : s; };
+/* what a card says, from the sentences the archive already wrote (rendered HTML):
+   title    the claim that was retracted (`was`), or, where an archive puts the whole headline in `kind` (Falco, Defranceschi, Blažević), that;
+            where there is no `was`, the first sentence of the answer
+   verdict  the answer in a line: the loud opening of `now` (the archive sets it in <strong>) if it has one, else its first sentence.
+            Empty when it would only repeat the title. Nothing is written by the kit: every word is the archive's. */
+export function cardOf(r, longKind = 48) {
+  const kind = String(r && r.kind || "").trim();
+  const wasT = textOf(r && r.was), nowT = textOf(r && r.now);
+  const loud = /^\s*(?:<p>\s*)?<(strong|b)>\s*(?:<(?:em|i)>)?([\s\S]*?)(?:<\/(?:em|i)>)?\s*<\/\1>/i.exec(String((r && r.now) || ""));
+  const loudT = loud ? textOf(loud[2]) : "";
+  let title, verdict;
+  if (kind.length > longKind) title = clip(kind, 160);
+  else if (wasT) title = clip(wasT, 160);
+  else title = clip(firstSentence(nowT), 160);
+  verdict = loudT.length >= 12 ? loudT : firstSentence(nowT);
+  verdict = clip(verdict, 190);
+  if (!nowT || verdict === title || title.startsWith(verdict.replace(/…$/, "")) || (!wasT && kind.length <= longKind)) verdict = "";
+  return { title, verdict };
+}
+
+const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+export const longDate = (iso) => { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || ""); return m ? `${+m[3]} ${MONTHS[+m[2] - 1]} ${m[1]}` : ""; };
+const dayNum = (iso) => Math.round(Date.UTC(+iso.slice(0, 4), +iso.slice(5, 7) - 1, +iso.slice(8, 10)) / 864e5);
+const dayIso = (n) => new Date(n * 864e5).toISOString().slice(0, 10);
+
+/* The days the corrections were caught, first to last, one bar each (a bar is a week or more where the span is over `max` days), each with how
+   many, by tone. Only exact days count: a month alone ("Sept 2026") is not a day. Null when fewer than two different days are dated: a
+   heartbeat of one beat says nothing. */
+export function heartbeat(rows, whenOf = (r) => r && r.when, majorOf = "major", sevOf = (r) => r && r.sev, max = 120) {
+  const pts = [];
+  for (const r of rows || []) { const w = parseWhen(whenOf(r)); if (w && w.exact) pts.push({ n: dayNum(w.iso), tone: toneOf(sevOf(r), majorOf) }); }
+  if (new Set(pts.map((p) => p.n)).size < 2) return null;
+  const lo = Math.min(...pts.map((p) => p.n)), hi = Math.max(...pts.map((p) => p.n));
+  const size = Math.max(1, Math.ceil((hi - lo + 1) / max));
+  const bars = [];
+  for (let s = lo; s <= hi; s += size) {
+    const e = Math.min(hi, s + size - 1), tones = {}; let n = 0;
+    for (const p of pts) if (p.n >= s && p.n <= e) { tones[p.tone] = (tones[p.tone] || 0) + 1; n++; }
+    bars.push({ from: dayIso(s), to: dayIso(e), n, tones });
+  }
+  return { bars, from: dayIso(lo), to: dayIso(hi), size, peak: Math.max(...bars.map((b) => b.n)) };
+}
+
+/* the kinds worth a filter: a short category on most rows ("Birth year"; 60% or more), not a headline sentence on each (Falco puts the whole headline in
+   `kind`, and 415 distinct headlines are not a filter). */
+export function kindFilterable(rows, longKind = 48) {
+  const ks = (rows || []).map((r) => String(r.kind || "").trim()).filter(Boolean);
+  if (!ks.length) return false;
+  const short = ks.filter((k) => k.length <= longKind).length;
+  return short / ks.length >= 0.6 && new Set(ks).size > 1 && new Set(ks).size <= 200;
 }

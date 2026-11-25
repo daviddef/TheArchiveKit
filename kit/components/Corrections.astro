@@ -7,6 +7,15 @@
  * positional arrays, Blazevic record/tree. Every one of them means WHAT WAS
  * PUBLISHED and WHAT IS TRUE, plus how it was caught and when.
  *
+ * THE LEDGER VIEW (26 November 2026, after David: "overwhelming amount of text, not fun, needs better integration, linking, colour, searchability").
+ * A page of 185 to 427 entries of paragraphs was 87,000 pixels of reading. Now each correction is a CARD (the claim that was retracted, the answer
+ * in a line, its grade in colour, who it is about); the whole entry (was beside now, how it was caught, the people, places, sources and dates) opens in a
+ * READING PANE beside the list on a wide screen, under its card on a narrow one. A HEARTBEAT strip (one bar a day, stacked by grade) shows when the
+ * archive caught its own mistakes, and a click on a bar reads only that day. SEARCH covers every word of every entry (accents folded); the grade, the
+ * kind and "about a person" narrow it; the address keeps the filters (?q=serena&sev=serious) and the open entry (#c-...), so a view can be sent.
+ * Without script every entry stays open under its card, as before. Nothing is written by the kit: the card's words are the archive's own
+ * (lib/corrections.js cardOf). Only major / serious / moderate / minor are coloured (toneOf); any other grade word an archive uses is "other".
+ *
  * NOT A TABLE, deliberately. The first version of this put the pair in four
  * columns and it was unreadable: these are sentences, sometimes paragraphs, and
  * a correction that cannot be read is not a correction. The shape promoted here
@@ -38,12 +47,13 @@
  *   NEWEST FIRST: the component sorts by `when` itself (sort="date", the default; sort="given" keeps the archive's own order). A date it
  *   cannot read goes after the dated rows. Within a day the archive's own order stands.
  */
-import { byDateDesc, factsOf } from "../lib/corrections.js";
+import { byDateDesc, factsOf, toneOf, cardOf, heartbeat, kindFilterable, longDate, TONE_ORDER, TONE_LABEL } from "../lib/corrections.js";
+import { parseWhen } from "../lib/when.js";
 import { linkBooks } from "../lib/booklinks.js";
 import { linkPlaces } from "../lib/placelinks.js";
 import { linkNames } from "../lib/namelinks.js";
 const { rows: given = [], u = (p) => p, major = "major", sort = "date", facts = true, books = null, places = null, names = null,
-        kindLabel = "About", sevLabel = "Show",
+        kindLabel = "Kind", sevLabel = "Show",
         /* how/why mean different things in different archives (how it was caught,
            the source, the lesson), so the fold's label is neutral by default and
            an archive can name its own. */
@@ -82,13 +92,29 @@ const tally = (k) => {
   return [...m.entries()].sort((a, b) => b[1] - a[1] || String(a[0]).localeCompare(String(b[0])));
 };
 const sevs = tally("sev");
-const kinds = tally("kind");
+/* A kind is a filter only where it is a short category on most rows (Mazza's "Birth year"); where an archive puts the whole headline in `kind`
+   (Falco, Defranceschi, Blažević) it is the card's title instead, and 400 headlines are not a filter. */
+const kinds = kindFilterable(rows) ? tally("kind") : [];
 /* One control only where there is something to choose between, and only where
    the chip is not already saying it on every row. */
+/* the grades in order of gravity (major, serious, moderate, minor, then the archive's other words), not of how many there are */
+const sevsByGravity = [...sevs].sort((a, b) => TONE_ORDER.indexOf(toneOf(a[0], major)) - TONE_ORDER.indexOf(toneOf(b[0], major)) || b[1] - a[1]);
 const groups = [
-  ...(sevs.length > 1 ? [{ key: "sev", label: sevLabel, opts: sevs }] : []),
+  ...(sevs.length > 1 ? [{ key: "sev", label: sevLabel, opts: sevsByGravity }] : []),
   ...(kinds.length > 1 ? [{ key: "kind", label: kindLabel, opts: kinds }] : []),
 ];
+/* the people the corrections are about (the archive's own `about` links), for one "About anyone" control */
+const whoMap = new Map();
+for (const r of rows) for (const [h, n] of r.about || []) { const w = whoMap.get(h) || { name: n, n: 0 }; w.n++; whoMap.set(h, w); }
+const whoOpts = [...whoMap].sort((a, b) => b[1].n - a[1].n || String(a[1].name).localeCompare(String(b[1].name)));
+const beat = heartbeat(rows, (r) => r.when, major);
+const toneN = {}; for (const r of rows) { const t = toneOf(r.sev, major); toneN[t] = (toneN[t] || 0) + 1; }
+const tones = TONE_ORDER.filter((t) => toneN[t]);
+/* the grade word, as the archive wrote it, with a capital */
+/* a date written 2026-11-04 (Falco) is read out in words, like the others; anything else is the archive's own text */
+const say = (w) => (/^\d{4}-\d{2}-\d{2}$/.test(String(w || "")) ? longDate(w) : w);
+const byIso = (w) => { const p = parseWhen(w); return p && p.exact ? p.iso : ""; };
+const cap = (v) => { const s = String(v || ""); return s ? s[0].toUpperCase() + s.slice(1) : s; };
 /* u() prefixes the archive's base path, which is right for an internal path and
    wrong for everything else: running an external URL through it produced links
    like /TheDefranceski/https://www.myheritage.com/ — 254 of them, caught by the
@@ -104,265 +130,430 @@ const ext = (h) => /^(https?:)?\/\//.test(String(h || ""));
 
 ---
 <div class="cx">
-  {groups.map((g) => (
-    <div class="cx-bar" data-key={g.key}>
-      <span class="cx-lab">{g.label}</span>
-      {g.opts.length > 7 ? (
-        <select class="cx-sel" aria-label={g.label}>
-          <option value="">All {rows.length}</option>
-          {g.opts.map(([v, n]) => <option value={v}>{v} ({n})</option>)}
-        </select>
-      ) : (
-        <>
-          <button type="button" class="cx-opt on" data-v="">All <span class="mono">{rows.length}</span></button>
-          {g.opts.map(([v, n]) => (
-            <button type="button" class="cx-opt" data-v={v}>{v} <span class="mono">{n}</span></button>
-          ))}
-        </>
-      )}
-    </div>
-  ))}
-
-  {rows.some((r) => r.how || r.why) ? (
-    <div class="cx-tools"><button type="button" class="cx-all" hidden>Open every note</button></div>
-  ) : null}
-  <p class="cx-meta small" hidden><span class="cx-count"></span>
-    <button type="button" class="cx-clear">Show all</button></p>
-
-  {days.map((d) => (
-    <div class="cx-d">
-      {d.when ? (
-        <h3 class="cx-date"><span>{d.when}</span>
-          <span class="cx-n small">{d.rows.length} {d.rows.length === 1 ? "entry" : "entries"}</span></h3>
-      ) : null}
-      {d.rows.map((r) => (
-        <section class="cx-e" data-sev={r.sev || ""} data-kind={r.kind || ""} id={r.id || undefined}>
-          {(r.who || r.sev || (r.kind && !isTitle(r.kind)) || (r.about && r.about.length)) ? (
-            <div class="cx-h">
-              {r.who ? <strong class="cx-who" set:html={r.who} /> : null}
-              {r.about && r.about.length ? (
-                <span class="cx-about">About {r.about.map(([h, n], i) => <>{i > 0 && ", "}<a href={href(h)}>{n}</a></>)}</span>
-              ) : null}
-              {r.kind && !isTitle(r.kind) ? <span class={"chip " + (r.sev === major ? "dis" : "")}>{r.kind}</span> : null}
-              {!r.kind && r.sev ? <span class={"chip " + (r.sev === major ? "dis" : "")}>{r.sev}</span> : null}
-              {r.kind && r.sev === major ? <span class="chip doc">material</span> : null}
+  {beat ? (
+    <section class="cx-beat" aria-label="When the corrections were caught">
+      <h3 class="cx-beath"><span>The archive's heartbeat</span>
+        <span class="cx-beatn">{beat.size > 1 ? `One bar a ${beat.size === 7 ? "week" : beat.size + " days"}.` : "One bar a day."} <span class="cx-jsonly">Click one to read only those.</span></span></h3>
+      <div class="cx-bars">
+        {beat.bars.map((b) => (
+          <div class={"cx-bd" + (b.n ? "" : " empty")} data-from={b.n ? b.from : undefined} data-to={b.n ? b.to : undefined}
+               title={`${longDate(b.from)}${b.to !== b.from ? " to " + longDate(b.to) : ""}: ${b.n ? b.n + (b.n === 1 ? " correction" : " corrections") : "none"}`}>
+            <div class="cx-bst">
+              {[...TONE_ORDER].reverse().filter((t) => b.tones[t]).map((t) => <i class={"cx-seg t-" + t} style={`height:${(b.tones[t] / (beat.peak * 1.05)) * 100}%`}></i>)}
             </div>
-          ) : null}
-          {r.kind && isTitle(r.kind) ? <p class="cx-title">{r.kind}</p> : null}
-          {(() => { const f = facts ? factsOf(r.was, r.now, r.how, r.why, r.extra) : null; return f && (f.people.length || f.places.length || f.dates.length || f.sources.length) ? (
-            <dl class="cx-facts">
-              {f.people.length ? <div><dt>People</dt><dd>{f.people.map((x) => <a class={"cx-chip" + (x.shared ? " shared" : "")} href={href(x.href)} title={x.shared ? "Several people share this name: opens the list" : undefined}>{x.name}{x.shared ? <i aria-hidden="true"> ⋯</i> : null}</a>)}</dd></div> : null}
-              {f.places.length ? <div><dt>Places</dt><dd>{f.places.map((x) => <a class="cx-chip pl" href={href(x.href)} title={x.title || undefined}>{x.flags.map((src) => <img class="pl-flag" src={src} alt="" width="18" height="12" />)}{x.name}</a>)}</dd></div> : null}
-              {f.sources.length ? <div><dt>Sources</dt><dd>{f.sources.map((x) => <a class="cx-chip src" href={href(x.href)} rel="noopener">{x.name} ↗</a>)}</dd></div> : null}
-              {f.dates.length ? <div><dt>Dates</dt><dd>{f.dates.map((x) => <span class={"cx-chip dt" + (x.kind ? " " + x.kind : "")} title={MARK[x.kind] ? MARK[x.kind][1] : undefined}>{MARK[x.kind] ? <><i aria-hidden="true">{MARK[x.kind][0]}</i><span class="cx-sr">{MARK[x.kind][1]} </span></> : null}{x.text}</span>)}</dd></div> : null}
-            </dl>
-          ) : null; })()}
-          {r.superseded ? (
-            <p class="cx-sup"><span class="cx-t">superseded</span>
-              <span class="cx-b">{r.superseded.note ? <Fragment set:html={r.superseded.note} /> : null}
-              {r.superseded.href
-                ? <a href={href(r.superseded.href)}>{r.superseded.label} →</a>
-                : <span>{r.superseded.label}</span>}</span></p>
-          ) : null}
-          {r.was ? <div class="cx-was"><span class="cx-t">was</span><div class="cx-b"><Fragment set:html={r.was} /></div></div> : null}
-          {r.now ? <div class="cx-now"><span class="cx-t">now</span><div class="cx-b"><Fragment set:html={r.now} /></div></div> : null}
-          {(r.how || r.why) ? (
-            <details class="cx-more">
-              <summary>{moreLabel}</summary>
-              {r.how ? <div class="cx-how"><Fragment set:html={r.how} /></div> : null}
-              {r.why ? <div class="cx-why"><Fragment set:html={r.why} /></div> : null}
-            </details>
-          ) : null}
-          {(r.by || r.where || r.extra) ? (
-            <p class="small cx-foot">
-              {r.by ? <span class="dim">Caught by {r.by}.</span> : null}
-              {r.where ? <> {r.by ? " · " : ""}<a href={href(r.where)} rel={ext(r.where) ? "noopener" : null}>{r.whereLabel || "Where it lives now →"}</a></> : null}
-              {r.extra ? <Fragment set:html={r.extra} /> : null}
-            </p>
-          ) : null}
-        </section>
+          </div>
+        ))}
+      </div>
+      <div class="cx-axis"><span>{longDate(beat.from)}</span><span>{longDate(beat.to)}</span></div>
+      {tones.length > 1 ? (
+        <ul class="cx-leg">{tones.map((t) => <li class={"t-" + t}><i></i>{TONE_LABEL[t]} <span class="mono">{toneN[t]}</span></li>)}</ul>
+      ) : null}
+    </section>
+  ) : null}
+
+  <div class="cx-top" hidden>
+    <div class="cx-tools">
+      <label class="cx-search"><span class="cx-sr">Search these corrections</span>
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input type="search" class="cx-q" placeholder="Search: a name, a place, a word, a film number" autocomplete="off" />
+      </label>
+      {groups.map((g) => (
+        <div class="cx-bar" data-key={g.key}>
+          {g.opts.length > 7 ? (
+            <select class="cx-sel" aria-label={g.label}>
+              <option value="">{g.label}: all</option>
+              {g.opts.map(([v, n]) => <option value={v}>{v} ({n})</option>)}
+            </select>
+          ) : (
+            <>
+              <span class="cx-lab">{g.label}</span>
+              {g.opts.map(([v, n]) => (
+                <button type="button" class={"cx-opt t-" + (g.key === "sev" ? toneOf(v, major) : "other")} data-v={v} aria-pressed="false"><i></i>{cap(v)} <span class="mono">{n}</span></button>
+              ))}
+            </>
+          )}
+        </div>
       ))}
+      {whoOpts.length > 1 ? (
+        <select class="cx-who-sel" aria-label="About a person">
+          <option value="">About anyone</option>
+          {whoOpts.map(([h, w]) => <option value={h}>{w.name}{w.n > 1 ? ` (${w.n})` : ""}</option>)}
+        </select>
+      ) : null}
     </div>
-  ))}
-  <p class="cx-none small" hidden>Nothing at that level.</p>
+    <p class="cx-meta small"><span class="cx-count"></span>
+      <button type="button" class="cx-clear" hidden>Clear filters</button>
+      <button type="button" class="cx-rand">Show me one at random</button></p>
+  </div>
+
+  <div class="cx-split">
+    <div class="cx-list">
+      {days.map((d) => (
+        <div class="cx-d">
+          {d.when ? (
+            <h3 class="cx-date"><span>{say(d.when)}</span>
+              <span class="cx-n small">{d.rows.length} {d.rows.length === 1 ? "entry" : "entries"}</span></h3>
+          ) : null}
+          {d.rows.map((r) => {
+            const tone = toneOf(r.sev, major);
+            const card = cardOf(r);
+            const f = facts ? factsOf(r.was, r.now, r.how, r.why, r.extra) : null;
+            const iso = byIso(r.when);
+            return (
+          <section class={"cx-e t-" + tone} data-sev={r.sev || ""} data-kind={r.kind || ""} data-day={iso} data-who={(r.about || []).map((a) => a[0]).join(" ")} id={r.id || undefined}>
+            <div class="cx-card">
+              <p class="cx-ct">{card.title}</p>
+              {card.verdict ? <p class="cx-cv">{card.verdict}</p> : null}
+              <p class="cx-cm">
+                {r.sev ? <span class={"cx-sev t-" + tone}>{cap(r.sev)}</span> : null}
+                {r.kind && !isTitle(r.kind) ? <span class="cx-kd">{r.kind}</span> : null}
+                {(r.about || []).slice(0, 2).map(([h, n]) => <span class="cx-who-c">{n}</span>)}
+                {(r.about || []).length > 2 ? <span class="cx-more-n">+{r.about.length - 2}</span> : null}
+              </p>
+            </div>
+            <div class="cx-full">
+              <div class="cx-fh">
+                <span class={"cx-stamp t-" + tone}>{r.sev ? cap(r.sev) : "Corrected"}</span>
+                {r.when ? <span class="cx-when">Caught {say(r.when)}</span> : null}
+                {r.kind && r.sev === major ? <span class="chip doc">material</span> : null}
+              </div>
+              {(r.who || (r.about && r.about.length)) ? (
+                <div class="cx-h">
+                  {r.who ? <strong class="cx-who" set:html={r.who} /> : null}
+                  {r.about && r.about.length ? (
+                    <span class="cx-about">About {r.about.map(([h, n], i) => <>{i > 0 && ", "}<a href={href(h)}>{n}</a></>)}</span>
+                  ) : null}
+                </div>
+              ) : null}
+              {r.kind && isTitle(r.kind) ? <p class="cx-title">{r.kind}</p> : null}
+              {r.kind && !isTitle(r.kind) ? <p class="cx-kline"><span class="chip">{r.kind}</span></p> : null}
+              {r.superseded ? (
+                <p class="cx-sup"><span class="cx-t">superseded</span>
+                  <span class="cx-b">{r.superseded.note ? <Fragment set:html={r.superseded.note} /> : null}
+                  {r.superseded.href
+                    ? <a href={href(r.superseded.href)}>{r.superseded.label} →</a>
+                    : <span>{r.superseded.label}</span>}</span></p>
+              ) : null}
+              {(r.was || r.now) ? (
+                <div class={"cx-cmp" + (r.was && r.now ? "" : " one")}>
+                  {r.was ? <div class="cx-was"><span class="cx-t">What was published</span><div class="cx-b"><Fragment set:html={r.was} /></div></div> : null}
+                  {r.now ? <div class="cx-now"><span class="cx-t">What is true</span><div class="cx-b"><Fragment set:html={r.now} /></div></div> : null}
+                </div>
+              ) : null}
+              {f && (f.people.length || f.places.length || f.dates.length || f.sources.length) ? (
+                <dl class="cx-facts">
+                  {f.people.length ? <div><dt>People</dt><dd>{f.people.map((x) => <a class={"cx-chip" + (x.shared ? " shared" : "")} href={href(x.href)} title={x.shared ? "Several people share this name: opens the list" : undefined}>{x.name}{x.shared ? <i aria-hidden="true"> ⋯</i> : null}</a>)}</dd></div> : null}
+                  {f.places.length ? <div><dt>Places</dt><dd>{f.places.map((x) => <a class="cx-chip pl" href={href(x.href)} title={x.title || undefined}>{x.flags.map((src) => <img class="pl-flag" src={src} alt="" width="18" height="12" />)}{x.name}</a>)}</dd></div> : null}
+                  {f.sources.length ? <div><dt>Sources</dt><dd>{f.sources.map((x) => <a class="cx-chip src" href={href(x.href)} rel="noopener">{x.name} ↗</a>)}</dd></div> : null}
+                  {f.dates.length ? <div><dt>Dates</dt><dd>{f.dates.map((x) => <span class={"cx-chip dt" + (x.kind ? " " + x.kind : "")} title={MARK[x.kind] ? MARK[x.kind][1] : undefined}>{MARK[x.kind] ? <><i aria-hidden="true">{MARK[x.kind][0]}</i><span class="cx-sr">{MARK[x.kind][1]} </span></> : null}{x.text}</span>)}</dd></div> : null}
+                </dl>
+              ) : null}
+              {(r.how || r.why) ? (
+                <div class="cx-lesson">
+                  <span class="cx-t">{moreLabel}</span>
+                  {r.how ? <div class="cx-how"><Fragment set:html={r.how} /></div> : null}
+                  {r.why ? <div class="cx-why"><Fragment set:html={r.why} /></div> : null}
+                </div>
+              ) : null}
+              {(r.by || r.where || r.extra) ? (
+                <p class="small cx-foot">
+                  {r.by ? <span class="dim">Caught by {r.by}.</span> : null}
+                  {r.where ? <> {r.by ? " · " : ""}<a href={href(r.where)} rel={ext(r.where) ? "noopener" : null}>{r.whereLabel || "Where it lives now →"}</a></> : null}
+                  {r.extra ? <Fragment set:html={r.extra} /> : null}
+                </p>
+              ) : null}
+            </div>
+          </section>
+            );
+          })}
+        </div>
+      ))}
+      <p class="cx-none small" hidden>Nothing matches that. Try fewer words, or clear the filters: a name is often written two ways in these entries.</p>
+    </div>
+    <aside class="cx-pane" aria-live="polite" hidden></aside>
+  </div>
 </div>
 
 <script>
   document.querySelectorAll(".cx").forEach((box) => {
     const entries = [...box.querySelectorAll(".cx-e")];
+    if (!entries.length) return;
+    box.classList.add("cx-js");
+    const top = box.querySelector(".cx-top"); if (top) top.hidden = false;
     const dayBoxes = [...box.querySelectorAll(".cx-d")];
     const none = box.querySelector(".cx-none");
-    const meta = box.querySelector(".cx-meta");
+    const pane = box.querySelector(".cx-pane");
     const count = box.querySelector(".cx-count");
-    /* The two controls narrow together rather than replacing one another: a
-       reader asking for the birth-date corrections that are only probable is
-       asking one question, not two. Each bar clears only its own key. */
-    const picked = {};
+    const clearBtn = box.querySelector(".cx-clear");
+    const qEl = box.querySelector(".cx-q");
+    const whoEl = box.querySelector(".cx-who-sel");
+    const bars = [...box.querySelectorAll(".cx-bd[data-from]")];
+    const wide = matchMedia("(min-width: 1000px)");
+    const norm = (s) => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+    const hay = new Map(entries.map((e) => [e, norm(e.textContent || "")]));
+    entries.forEach((e, i) => { if (!e.id) e.id = "cx-" + (i + 1); });
+    const st = { q: "", sev: new Set(), kind: new Set(), who: "", day: "", id: "" };
+
+    /* ---- the address: filters in the query, the entry in the hash (so a link from /whats-new/ still lands on its entry) ---- */
+    const readUrl = () => {
+      const p = new URLSearchParams(location.search);
+      st.q = p.get("q") || ""; st.who = p.get("who") || ""; st.day = p.get("day") || "";
+      (p.get("sev") || "").split("|").filter(Boolean).forEach((v) => st.sev.add(v));
+      (p.get("kind") || "").split("|").filter(Boolean).forEach((v) => st.kind.add(v));
+      if (qEl) qEl.value = st.q; if (whoEl) whoEl.value = st.who;
+    };
+    const writeUrl = () => {
+      const p = new URLSearchParams();
+      if (st.q) p.set("q", st.q); if (st.who) p.set("who", st.who); if (st.day) p.set("day", st.day);
+      if (st.sev.size) p.set("sev", [...st.sev].join("|")); if (st.kind.size) p.set("kind", [...st.kind].join("|"));
+      const qs = p.toString();
+      try { history.replaceState(null, "", location.pathname + (qs ? "?" + qs : "") + (st.id ? "#" + st.id : "")); } catch (e) {}
+    };
+
+    const ok = (e) => {
+      if (st.sev.size && !st.sev.has(e.dataset.sev || "")) return false;
+      if (st.kind.size && !st.kind.has(e.dataset.kind || "")) return false;
+      if (st.who && !(" " + (e.dataset.who || "") + " ").includes(" " + st.who + " ")) return false;
+      if (st.day) { const [a, b] = st.day.split("|"); const d = e.dataset.day || ""; if (!d || d < a || d > b) return false; }
+      if (st.q) { const h = hay.get(e); for (const w of norm(st.q).split(/\s+/).filter(Boolean)) if (!h.includes(w)) return false; }
+      return true;
+    };
+    const visible = () => entries.filter((e) => !e.hidden);
+    const active = () => !!(st.q || st.sev.size || st.kind.size || st.who || st.day);
+
+    /* ---- the reading pane (wide) or the entry opened in place (narrow) ---- */
+    const current = () => entries.find((e) => e.id === st.id) || null;
+    const paint = () => {
+      const cur = current();
+      entries.forEach((e) => {
+        const on = e === cur, card = e.querySelector(".cx-card");
+        e.classList.toggle("is-sel", on);
+        e.classList.toggle("is-open", on && !wide.matches);
+        if (card) { card.setAttribute("aria-expanded", String(on)); if (on) card.setAttribute("aria-current", "true"); else card.removeAttribute("aria-current"); }
+      });
+      box.classList.toggle("cx-wide", wide.matches);
+      if (!pane) return;
+      pane.hidden = !wide.matches || !cur;
+      if (wide.matches && cur) {
+        const vis = visible(), k = vis.indexOf(cur);
+        pane.innerHTML = '<div class="cx-pn"><button type="button" data-nav="-1"' + (k <= 0 ? " disabled" : "") + '>← Newer</button>' +
+          '<button type="button" data-nav="1"' + (k >= vis.length - 1 ? " disabled" : "") + '>Older →</button>' +
+          '<button type="button" class="cx-copy">Copy a link to this</button></div>' + cur.querySelector(".cx-full").innerHTML;
+        pane.scrollTop = 0;
+      } else pane.innerHTML = "";
+    };
+    const select = (e, opts = {}) => {
+      st.id = e ? e.id : "";
+      paint(); writeUrl();
+      if (e && opts.scroll) e.scrollIntoView({ block: wide.matches ? "nearest" : "start", behavior: "smooth" });
+    };
+
     const apply = () => {
       let shown = 0;
-      for (const e of entries) {
-        let ok = true;
-        for (const k in picked) {
-          if (picked[k] && (e.dataset[k] || "") !== picked[k]) { ok = false; break; }
-        }
-        e.hidden = !ok;
-        if (ok) shown++;
-      }
-      /* A day whose entries are all filtered out must not leave its heading
-         standing over nothing. */
+      for (const e of entries) { e.hidden = !ok(e); if (!e.hidden) shown++; }
       for (const d of dayBoxes) d.hidden = !d.querySelector(".cx-e:not([hidden])");
       if (none) none.hidden = shown > 0;
-      const active = Object.values(picked).some(Boolean);
-      if (meta) {
-        meta.hidden = !active;
-        if (count) count.textContent = "Showing " + shown + " of " + entries.length;
-      }
+      if (count) count.textContent = active() ? "Showing " + shown + " of " + entries.length : "All " + entries.length + ", newest first";
+      if (clearBtn) clearBtn.hidden = !active();
+      box.querySelectorAll(".cx-opt").forEach((b) => { const k = b.closest(".cx-bar").dataset.key; b.setAttribute("aria-pressed", String(st[k].has(b.dataset.v))); });
+      box.querySelectorAll(".cx-sel").forEach((s) => { const k = s.closest(".cx-bar").dataset.key; s.value = st[k].size ? [...st[k]][0] : ""; });
+      bars.forEach((b) => b.classList.toggle("on", st.day === b.dataset.from + "|" + b.dataset.to));
+      /* keep the open entry if it is still shown; on a wide screen open the first shown one; on a narrow one close it */
+      let cur = current();
+      if (!cur || cur.hidden) cur = wide.matches ? (visible()[0] || null) : null;
+      st.id = cur ? cur.id : "";
+      paint(); writeUrl();
     };
+
+    /* ---- controls ---- */
+    if (qEl) qEl.addEventListener("input", () => { st.q = qEl.value.trim(); st.id = ""; apply(); });
+    if (whoEl) whoEl.addEventListener("change", () => { st.who = whoEl.value; st.id = ""; apply(); });
     box.querySelectorAll(".cx-bar").forEach((bar) => {
       const key = bar.dataset.key;
-      bar.querySelectorAll(".cx-opt").forEach((b) => {
-        b.addEventListener("click", () => {
-          bar.querySelectorAll(".cx-opt").forEach((x) => x.classList.remove("on"));
-          b.classList.add("on");
-          picked[key] = b.dataset.v || "";
-          apply();
-        });
-      });
+      bar.querySelectorAll(".cx-opt").forEach((b) => b.addEventListener("click", () => {
+        st[key].has(b.dataset.v) ? st[key].delete(b.dataset.v) : st[key].add(b.dataset.v); st.id = ""; apply();
+      }));
       const sel = bar.querySelector(".cx-sel");
-      if (sel) sel.addEventListener("change", () => { picked[key] = sel.value || ""; apply(); });
+      if (sel) sel.addEventListener("change", () => { st[key].clear(); if (sel.value) st[key].add(sel.value); st.id = ""; apply(); });
     });
-    const clear = box.querySelector(".cx-clear");
-    if (clear) clear.addEventListener("click", () => {
-      for (const k in picked) picked[k] = "";
-      box.querySelectorAll(".cx-bar").forEach((bar) => {
-        bar.querySelectorAll(".cx-opt").forEach((x) => x.classList.toggle("on", !x.dataset.v));
-        const sel = bar.querySelector(".cx-sel"); if (sel) sel.value = "";
-      });
-      apply();
+    bars.forEach((b) => {
+      const go = () => { const v = b.dataset.from + "|" + b.dataset.to; st.day = st.day === v ? "" : v; st.id = ""; apply(); };
+      b.setAttribute("role", "button"); b.tabIndex = 0;
+      b.addEventListener("click", go);
+      b.addEventListener("keydown", (ev) => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); go(); } });
     });
-    /* A link from /whats-new/ lands on one entry. If a filter is hiding it, clear the filters first; then bring it to the top. */
+    const clearAll = () => { st.q = ""; st.who = ""; st.day = ""; st.sev.clear(); st.kind.clear(); if (qEl) qEl.value = ""; if (whoEl) whoEl.value = ""; st.id = ""; apply(); };
+    if (clearBtn) clearBtn.addEventListener("click", clearAll);
+    const rand = box.querySelector(".cx-rand");
+    if (rand) rand.addEventListener("click", () => { const v = visible(); if (v.length) select(v[Math.floor(Math.random() * v.length)], { scroll: true }); });
+    entries.forEach((e) => {
+      const card = e.querySelector(".cx-card"); if (!card) return;
+      card.setAttribute("role", "button"); card.tabIndex = 0;
+      const toggle = () => { if (!wide.matches && st.id === e.id) select(null); else select(e); };
+      card.addEventListener("click", toggle);
+      card.addEventListener("keydown", (ev) => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); toggle(); } });
+    });
+    if (pane) pane.addEventListener("click", (ev) => {
+      const t = ev.target.closest("button"); if (!t) return;
+      if (t.dataset.nav) { const vis = visible(), k = vis.indexOf(current()) + Number(t.dataset.nav); if (vis[k]) select(vis[k], { scroll: true }); }
+      else if (t.classList.contains("cx-copy")) { try { navigator.clipboard.writeText(location.href); t.textContent = "Link copied"; } catch (e) { t.textContent = "Copy the address bar"; } }
+    });
+
+    /* A link from /whats-new/ lands on one entry. If a filter is hiding it, clear the filters first, then open it. */
     const goHash = () => {
       const id = decodeURIComponent((location.hash || "").slice(1));
-      if (!id) return;
-      const t = document.getElementById(id);
-      if (!t || !box.contains(t) || !t.classList.contains("cx-e")) return;
-      if (t.hidden && clear) clear.click();
-      t.scrollIntoView({ block: "start" });
+      const t = id && document.getElementById(id);
+      if (!t || !box.contains(t) || !t.classList.contains("cx-e")) return false;
+      if (t.hidden) clearAll();
+      st.id = t.id; paint(); writeUrl();
+      requestAnimationFrame(() => t.scrollIntoView({ block: "start" }));
+      return true;
     };
+    wide.addEventListener("change", () => { const c = current(); if (!c && wide.matches) { const v = visible()[0]; if (v) st.id = v.id; } paint(); });
     addEventListener("hashchange", goHash);
-    if (location.hash) requestAnimationFrame(goHash);
-    /* One control for the folded notes: opening 184 of them one at a time is not
-       a reading mode. */
-    const all = box.querySelector(".cx-all");
-    const folds = [...box.querySelectorAll(".cx-more")];
-    if (all && folds.length) {
-      all.hidden = false;
-      all.addEventListener("click", () => {
-        const open = folds.some((f) => !f.open);
-        folds.forEach((f) => { f.open = open; });
-        all.textContent = open ? "Fold the notes" : (all.dataset.label || "Open every note");
-      });
-      all.dataset.label = all.textContent;
-    }
-  });
-  /* A folded note is not printed by every browser; open them for the print. */
-  window.addEventListener("beforeprint", () => {
-    document.querySelectorAll(".cx-more").forEach((f) => { f.open = true; });
+    readUrl(); apply();
+    if (location.hash) goHash();
   });
 </script>
 
 <style is:global>
-  .cx-bar { display:flex; flex-wrap:wrap; gap:.4rem; align-items:center; margin:1rem 0 .5rem; }
-  .cx-lab { font-size:11px; font-weight:600; letter-spacing:.11em; text-transform:uppercase;
-    color:var(--ink-3,#888); margin-right:.35rem; }
-  .cx-opt { font:inherit; font-size:.78rem; padding:.22rem .6rem; cursor:pointer;
-    color:var(--ink-2,inherit); background:transparent; border:1px solid var(--rule,#ccc);
-    border-radius:2px; display:inline-flex; gap:.4rem; align-items:baseline; }
-  .cx-opt.on { color:var(--accent,#963); border-color:var(--accent,#963);
-    background:var(--accent-wash,transparent); font-weight:600; }
-  .cx-sel { font:inherit; font-size:.8rem; padding:.22rem .45rem; border:1px solid var(--rule,#ccc);
-    border-radius:2px; background:var(--ground,#fff); color:inherit; max-width:34ch; }
-  .cx-tools { margin:.2rem 0 0; }
-  .cx-all, .cx-clear { font:inherit; font-size:.78rem; background:none; border:0; padding:0;
-    color:var(--accent,#963); cursor:pointer; text-decoration:underline; text-underline-offset:3px; }
-  .cx-meta[hidden], .cx-d[hidden], .cx-e[hidden] { display:none; }
-  .cx-meta { margin:.6rem 0 0; color:var(--ink-3,#888); display:flex; gap:.8rem; align-items:baseline; }
+  /* The tones: a colour only for a real severity (major, serious, moderate, minor); every other word an archive grades with is "other". Mid-luminance, so
+     they hold on the light and the dark ground; text beside them stays in the archive's own ink. */
+  .cx { --cx-major:#d6453d; --cx-serious:#df7a3a; --cx-moderate:#c99a1c; --cx-minor:#6f93b8; --cx-other:#8d96a3; --cx-truth:#2f9e6b;
+        --cx-fill:color-mix(in srgb, var(--ink,#222) 5%, var(--ground,#fff)); --cx-rule:var(--rule,#d9d4ca); }
+  .t-major { --c:var(--cx-major); } .t-serious { --c:var(--cx-serious); } .t-moderate { --c:var(--cx-moderate); }
+  .t-minor { --c:var(--cx-minor); } .t-other { --c:var(--cx-other); }
 
-  /* One day = one block. The measure is held near 70 characters: these are
-     sentences, sometimes paragraphs, and at 130 characters a line the eye
-     loses its place on the return sweep. The page can be as wide as it likes;
-     the reading column is not. */
-  .cx-d { max-width:72ch; margin-top:2.6rem; }
-  .cx-date { display:flex; align-items:baseline; justify-content:space-between; gap:1rem;
-    margin:0 0 .2rem; padding:.55rem 0 .45rem; border-bottom:2px solid var(--rule,#ddd);
-    font-size:1.05rem; font-weight:600;
-    /* the date stays at the top while its day's entries scroll under it, so a long day never loses its date. An archive with a fixed
-       header sets --cx-top to the header's height. */
+  /* the heartbeat: one bar per day the corrections were caught, stacked by tone */
+  .cx-beat { margin:0 0 1.2rem; padding:.85rem 1rem .7rem; border:1px solid var(--cx-rule); border-radius:10px; background:var(--cx-fill); }
+  .cx-beath { margin:0 0 .6rem; display:flex; justify-content:space-between; gap:1rem; flex-wrap:wrap; font-size:11px; font-weight:600;
+    letter-spacing:.11em; text-transform:uppercase; color:var(--ink-3,#888); }
+  .cx-beatn { font-weight:400; letter-spacing:0; text-transform:none; }
+  .cx:not(.cx-js) .cx-jsonly { display:none; }
+  .cx-bars { display:flex; align-items:flex-end; gap:3px; height:72px; }
+  .cx-bd { flex:1; min-width:3px; height:100%; display:flex; align-items:flex-end; border-radius:3px 3px 0 0; }
+  .cx-bd[role="button"] { cursor:pointer; }
+  .cx-bd.on { outline:2px solid var(--accent,#963); outline-offset:1px; }
+  .cx-bd:focus-visible { outline:2px solid var(--accent,#963); outline-offset:1px; }
+  .cx-bd[role="button"]:hover .cx-seg { filter:brightness(1.18); }
+  .cx-bst { width:100%; height:100%; display:flex; flex-direction:column; justify-content:flex-end; border-radius:3px 3px 0 0; overflow:hidden; }
+  .cx-bd.empty .cx-bst::after { content:""; height:2px; background:var(--cx-rule); }
+  .cx-seg { display:block; width:100%; background:var(--c); }
+  .cx-axis { display:flex; justify-content:space-between; margin-top:.35rem; font-size:11px; color:var(--ink-3,#888); }
+  .cx-leg { list-style:none; margin:.55rem 0 0; padding:0; display:flex; flex-wrap:wrap; gap:.3rem 1rem; font-size:.78rem; color:var(--ink-2,inherit); }
+  .cx-leg i, .cx-opt i { display:inline-block; width:.62rem; height:.62rem; border-radius:50%; background:var(--c); margin-right:.35rem; }
+
+  /* the tools: search, the grade, the kind, who it is about */
+  .cx-tools { display:flex; flex-wrap:wrap; gap:.55rem; align-items:center; }
+  .cx-search { position:relative; flex:1 1 100%; min-width:200px; }
+  .cx-search svg { position:absolute; left:.75rem; top:50%; transform:translateY(-50%); color:var(--ink-3,#888); pointer-events:none; }
+  .cx-q { width:100%; font:inherit; font-size:.95rem; padding:.6rem .8rem .6rem 2.3rem; border:1px solid var(--cx-rule); border-radius:8px;
+    background:var(--ground,#fff); color:inherit; }
+  .cx-q:focus-visible, .cx-sel:focus-visible, .cx-who-sel:focus-visible { outline:2px solid var(--accent,#963); outline-offset:1px; }
+  .cx-bar { display:flex; flex-wrap:wrap; gap:.4rem; align-items:center; }
+  .cx-lab { font-size:11px; font-weight:600; letter-spacing:.11em; text-transform:uppercase; color:var(--ink-3,#888); margin-right:.2rem; }
+  .cx-opt { font:inherit; font-size:.82rem; padding:.34rem .7rem; cursor:pointer; color:var(--ink-2,inherit); background:var(--ground,#fff);
+    border:1px solid var(--cx-rule); border-radius:999px; display:inline-flex; align-items:center; gap:.1rem; }
+  .cx-opt .mono { margin-left:.3rem; color:var(--ink-3,#888); }
+  .cx-opt[aria-pressed="true"] { background:var(--c); border-color:var(--c); color:#fff; font-weight:600; }
+  .cx-opt[aria-pressed="true"] i { background:#fff; } .cx-opt[aria-pressed="true"] .mono { color:#fff; opacity:.85; }
+  .cx-sel, .cx-who-sel { font:inherit; font-size:.85rem; padding:.4rem .5rem; border:1px solid var(--cx-rule); border-radius:999px;
+    background:var(--ground,#fff); color:inherit; max-width:min(34ch,100%); }
+  .cx-meta { margin:.7rem 0 0; color:var(--ink-3,#888); display:flex; gap:.9rem; align-items:baseline; flex-wrap:wrap; }
+  .cx-clear, .cx-rand, .cx-copy { font:inherit; font-size:.8rem; background:none; border:0; padding:0; color:var(--accent,#963); cursor:pointer;
+    text-decoration:underline; text-underline-offset:3px; }
+  .cx-top[hidden], .cx-meta[hidden], .cx-d[hidden], .cx-e[hidden], .cx-none[hidden], .cx-clear[hidden], .cx-pane[hidden] { display:none; }
+
+  /* the list: one card per correction. Without script every entry stays open under its card, as the old page did. */
+  .cx-split { margin-top:1rem; }
+  .cx-d { margin-top:1.6rem; }
+  .cx-date { display:flex; align-items:baseline; justify-content:space-between; gap:1rem; margin:0 0 .5rem; padding:.45rem .1rem .4rem;
+    border-bottom:1px solid var(--cx-rule); font-size:.78rem; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-2,inherit);
     position:sticky; top:var(--cx-top,0px); z-index:2; background:var(--ground,#fff); }
-  .cx-n { font-weight:400; color:var(--ink-3,#888); }
+  .cx-n { font-weight:400; color:var(--ink-3,#888); letter-spacing:0; text-transform:none; }
+  .cx-e { scroll-margin-top:calc(var(--cx-top,0px) + 4.5rem); margin:0 0 .6rem; border:1px solid var(--cx-rule); border-left:5px solid var(--c,var(--cx-other));
+    border-radius:10px; background:var(--cx-fill); }
+  .cx-card { padding:.75rem .95rem .8rem; }
+  .cx-ct { margin:0; font-size:1.02rem; line-height:1.35; font-weight:600; color:var(--ink,inherit); overflow-wrap:anywhere; }
+  .cx-cv { margin:.3rem 0 0; font-size:.88rem; line-height:1.45; color:var(--ink-2,inherit); overflow-wrap:anywhere; }
+  .cx-cm { margin:.55rem 0 0; display:flex; flex-wrap:wrap; gap:.35rem .5rem; align-items:center; font-size:11px; font-weight:600; letter-spacing:.06em;
+    text-transform:uppercase; color:var(--ink-3,#888); }
+  .cx-sev { color:var(--c); display:inline-flex; align-items:center; gap:.35rem; }
+  .cx-sev::before { content:""; width:.55rem; height:.55rem; border-radius:50%; background:var(--c); }
+  .cx-kd { padding:.05rem .5rem; border:1px solid var(--cx-rule); border-radius:999px; }
+  .cx-who-c { padding:.05rem .55rem; border-radius:999px; text-transform:none; letter-spacing:0; font-size:.78rem; background:var(--accent-wash,rgba(185,138,62,.14)); color:var(--accent,#963); }
+  .cx-more-n { text-transform:none; letter-spacing:0; }
+  .cx-full { padding:0 1.1rem 1.1rem; }
 
-  .cx-e { padding:1.25rem 0 1.15rem; font-size:.94em; }
-  .cx-e + .cx-e { border-top:1px solid var(--rule,#ddd); }
-  .cx-h { display:flex; align-items:baseline; gap:.5rem; flex-wrap:wrap; margin-bottom:.7rem; }
+  /* what an entry says, in full: the claim and the truth side by side, how it was caught under them */
+  .cx-fh { display:flex; flex-wrap:wrap; align-items:center; gap:.6rem; margin:.2rem 0 .9rem; font-size:11px; font-weight:600; letter-spacing:.07em;
+    text-transform:uppercase; color:var(--ink-3,#888); }
+  .cx-stamp { border:2px solid var(--c); color:var(--c); padding:.05rem .55rem; border-radius:4px; transform:rotate(-2deg); letter-spacing:.12em; }
+  .cx-h { display:flex; align-items:baseline; gap:.5rem; flex-wrap:wrap; margin-bottom:.6rem; }
   .cx-who { font-size:.95rem; }
-  /* who, where and when, lifted out of the paragraph: one line each, chips that are links where the archive has a page */
-  .cx-facts { display:grid; gap:.35rem; margin:0 0 1rem; padding:0; }
-  .cx-facts > div { display:grid; grid-template-columns:3.6rem minmax(0,1fr); column-gap:1rem; align-items:baseline; }
+  .cx-about { font-size:.95rem; font-weight:600; color:var(--ink-2,inherit); }
+  .cx-about a { color:var(--accent,#963); text-decoration:none; } .cx-about a:hover { text-decoration:underline; }
+  .cx-title { margin:0 0 .9rem; font-size:1.05rem; font-weight:600; line-height:1.4; }
+  .cx-kline { margin:0 0 .8rem; }
+  .cx-cmp { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:.9rem; margin:0 0 1rem; align-items:start; }
+  .cx-cmp.one { grid-template-columns:minmax(0,1fr); }
+  .cx-was, .cx-now { border-radius:10px; padding:.85rem 1rem 1rem; line-height:1.55; }
+  .cx-was { background:color-mix(in srgb, var(--cx-major) 11%, var(--ground,#fff)); color:var(--ink-2,inherit); }
+  .cx-now { background:color-mix(in srgb, var(--cx-truth) 13%, var(--ground,#fff)); color:var(--ink,inherit); box-shadow:inset 0 0 0 1px color-mix(in srgb, var(--cx-truth) 35%, transparent); }
+  .cx-t { display:block; font-size:11px; font-weight:700; letter-spacing:.11em; text-transform:uppercase; margin:0 0 .4rem; color:var(--ink-3,#888); }
+  .cx-was .cx-t { color:color-mix(in srgb, var(--cx-major) 75%, var(--ink,#222)); }
+  .cx-now .cx-t { color:color-mix(in srgb, var(--cx-truth) 78%, var(--ink,#222)); }
+  .cx-b > :first-child { margin-top:0; } .cx-b > :last-child { margin-bottom:0; } .cx-b p { margin:0 0 .7rem; }
+  .cx-b { overflow-wrap:anywhere; }
+  .cx-now strong { font-weight:650; }
+  .cx-sup { color:var(--ink-3,#888); margin:0 0 .9rem; }
+  .cx-lesson { margin:0 0 1rem; padding:.8rem 1rem .9rem; border:1px dashed var(--cx-rule); border-radius:10px; }
+  .cx-lesson .cx-t { color:var(--accent,#963); }
+  .cx-how, .cx-why { color:var(--ink-2,inherit); line-height:1.6; overflow-wrap:anywhere; } .cx-why { margin-top:.6rem; }
+  .cx-how p, .cx-why p { margin:0 0 .6rem; } .cx-how > :last-child, .cx-why > :last-child { margin-bottom:0; }
+  .cx-foot { margin:.6rem 0 0; color:var(--ink-3,#888); }
+  /* who, where and when, lifted out of the paragraphs */
+  .cx-facts { display:grid; gap:.4rem; margin:0 0 1rem; padding:0; }
+  .cx-facts > div { display:grid; grid-template-columns:4.2rem minmax(0,1fr); column-gap:.8rem; align-items:baseline; }
   .cx-facts dt { font-size:11px; font-weight:600; letter-spacing:.11em; text-transform:uppercase; color:var(--ink-3,#888); }
   .cx-facts dd { margin:0; display:flex; flex-wrap:wrap; gap:.3rem .4rem; }
-  .cx-chip { font-size:.8rem; line-height:1.3; padding:.12rem .55rem; border:1px solid var(--rule,#ccc); border-radius:999px;
-    color:var(--ink-2,inherit); text-decoration:none; background:transparent; }
-  a.cx-chip { color:var(--accent,#963); border-color:var(--accent,#963); }
-  a.cx-chip:hover { background:var(--accent-wash,rgba(185,138,62,.12)); }
-  .cx-chip.dt { font-variant-numeric:tabular-nums; }
-  /* a place's flag, in the chip and in the running text; a shared name's dots say "a list of people" */
-  .pl-flag { height:.8em; width:auto; margin-right:.3em; vertical-align:-.04em; border:1px solid var(--rule,#ccc); border-radius:1px; }
-  .cx-chip.pl { display:inline-flex; align-items:center; }
-  .cx-chip.shared i { font-style:normal; opacity:.7; }
-  a.lk-shared { text-decoration-style:dotted; }
-  .cx-chip.dt i { font-style:normal; margin-right:.3rem; color:var(--accent,#963); }
+  .cx-chip { font-size:.8rem; line-height:1.3; padding:.12rem .55rem; border:1px solid var(--cx-rule); border-radius:999px; color:var(--ink-2,inherit); text-decoration:none; background:transparent; }
+  a.cx-chip { color:var(--accent,#963); border-color:var(--accent,#963); } a.cx-chip:hover { background:var(--accent-wash,rgba(185,138,62,.12)); }
+  .cx-chip.dt { font-variant-numeric:tabular-nums; } .cx-chip.dt i { font-style:normal; margin-right:.3rem; color:var(--accent,#963); }
+  .pl-flag { height:.8em; width:auto; margin-right:.3em; vertical-align:-.04em; border:1px solid var(--cx-rule); border-radius:1px; }
+  .cx-chip.pl { display:inline-flex; align-items:center; } .cx-chip.shared i { font-style:normal; opacity:.7; } a.lk-shared { text-decoration-style:dotted; }
   .cx-sr { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
-  .cx-about { font-size:.95rem; font-weight:600; color:var(--ink-2,inherit); }
-  .cx-about a { color:var(--accent,#963); text-decoration:none; }
-  .cx-about a:hover { text-decoration:underline; }
-  /* the entry a link from /whats-new/ points at */
-  .cx-e { scroll-margin-top:4.2rem; }
-  .cx-e:target { background:var(--accent-wash,rgba(185,138,62,.12)); box-shadow:-.9rem 0 0 var(--accent-wash,rgba(185,138,62,.12)), .9rem 0 0 var(--accent-wash,rgba(185,138,62,.12)); border-radius:2px; }
-  .cx-title { margin:0 0 .9rem; font-size:1.02rem; font-weight:600; line-height:1.4; color:var(--ink,inherit); }
-  .cx-h + .cx-title { margin-top:-.2rem; }
 
-  /* WAS and NOW are a pair, so they share a grid: a narrow label column and a
-     text column, the same on every entry, with air between the two. */
-  .cx-was, .cx-now, .cx-sup { display:grid; grid-template-columns:3.6rem minmax(0,1fr); column-gap:1rem; }
-  .cx-was { color:var(--ink-3,#777); margin:0 0 .9rem; line-height:1.55; font-size:.95em; }
-  .cx-now { color:var(--ink,inherit); line-height:1.6; }
-  .cx-sup { color:var(--ink-3,#888); margin:0 0 .9rem; }
-  .cx-t { font-size:11px; font-weight:600; letter-spacing:.11em; text-transform:uppercase;
-    color:var(--ink-3,#888); padding-top:.5em; }
-  .cx-now .cx-t { color:var(--accent,#963); }
-  .cx-b > :first-child { margin-top:0; }
-  .cx-b > :last-child { margin-bottom:0; }
-  .cx-b p { margin:0 0 .7rem; }
-  /* The truth was set in bold for the whole paragraph, which left nothing to
-     emphasise and made a 1,200-character answer a block of black. Plain weight;
-     the archive's own <strong> inside it still stands out. */
-  .cx-now strong { font-weight:650; }
+  /* with script: only the card shows in the list; the entry opens in the reading pane (wide) or under its card (narrow) */
+  .cx-js .cx-card { cursor:pointer; border-radius:8px; }
+  .cx-js .cx-card:hover { background:color-mix(in srgb, var(--ink,#222) 4%, transparent); }
+  .cx-js .cx-card:focus-visible { outline:2px solid var(--accent,#963); outline-offset:-2px; }
+  .cx-js .cx-full { display:none; }
+  .cx-js .cx-e.is-open .cx-full { display:block; }
+  .cx-js .cx-e.is-sel { background:var(--accent-wash,rgba(185,138,62,.14)); border-color:var(--accent,#963); border-left-color:var(--c,var(--cx-other)); box-shadow:0 0 0 1px var(--accent,#963); }
+  .cx-js .cx-e.is-sel .cx-full { cursor:default; }
+  .cx-pane { background:var(--ground,#fff); border:1px solid var(--cx-rule); border-radius:14px; padding:1.1rem 1.5rem 1.4rem; }
+  .cx-pane .cx-full { display:block; padding:0; }
+  .cx-pn { display:flex; gap:.5rem; align-items:center; margin:0 0 .8rem; }
+  .cx-pn button[data-nav] { font:inherit; font-size:.8rem; font-weight:600; padding:.3rem .7rem; border:1px solid var(--cx-rule); border-radius:8px; background:var(--cx-fill); color:var(--ink-2,inherit); cursor:pointer; }
+  .cx-pn button[disabled] { opacity:.35; cursor:default; }
+  .cx-pn .cx-copy { margin-left:auto; }
 
-  .cx-more { margin:.9rem 0 0 4.6rem; font-size:.95em; }
-  .cx-more > summary { cursor:pointer; color:var(--ink-3,#888); font-size:11px; font-weight:600;
-    letter-spacing:.11em; text-transform:uppercase; list-style:none; width:max-content; }
-  .cx-more > summary::-webkit-details-marker { display:none; }
-  .cx-more > summary::before { content:"+"; display:inline-block; width:1.1em; font-weight:400; }
-  .cx-more[open] > summary::before { content:"\2212"; }
-  .cx-more > summary:hover { color:var(--accent,#963); }
-  .cx-how, .cx-why { margin:.7rem 0 0; color:var(--ink-2,inherit); line-height:1.6; }
-  .cx-how p, .cx-why p { margin:0 0 .6rem; }
-  .cx-foot { margin:.9rem 0 0 4.6rem; color:var(--ink-3,#888); }
-
+  /* wide: the list beside the reading pane, using the whole width the screen has, not the page's reading column */
+  @media (min-width:1000px) {
+    .cx-js { width:min(1480px, calc(100vw - 48px)); margin-left:calc(50% - min(740px, calc(50vw - 24px))); }
+    .cx-js .cx-split { display:grid; grid-template-columns:minmax(340px,440px) minmax(0,1fr); gap:1.6rem; align-items:start; }
+    .cx-js .cx-list { min-width:0; }
+    .cx-js .cx-pane { position:sticky; top:calc(var(--cx-top,0px) + .8rem); max-height:calc(100vh - var(--cx-top,0px) - 1.6rem); overflow:auto; }
+  }
   @media (max-width:560px) {
-    .cx-was, .cx-now, .cx-sup, .cx-facts > div { grid-template-columns:1fr; row-gap:.15rem; }
-    .cx-t { padding-top:0; }
-    .cx-more, .cx-foot { margin-left:0; }
-    .cx-d { margin-top:2rem; }
+    .cx-cmp { grid-template-columns:minmax(0,1fr); }
+    .cx-facts > div { grid-template-columns:minmax(0,1fr); row-gap:.15rem; }
+    .cx-full { padding:0 .8rem .9rem; }
+  }
+  @media print {
+    .cx-top, .cx-beat, .cx-pane { display:none; }
+    .cx-js .cx-full { display:block; }
+    .cx-e { break-inside:avoid; }
   }
 </style>
