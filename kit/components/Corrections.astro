@@ -201,7 +201,9 @@ const ext = (h) => /^(https?:)?\/\//.test(String(h || ""));
             const iso = byIso(r.when);
             return (
           <section class={"cx-e t-" + tone} data-sev={r.sev || ""} data-kind={r.kind || ""} data-day={iso} data-who={(r.about || []).map((a) => a[0]).join(" ")} id={r.id || undefined}>
-            <div class="cx-card">
+            {/* data-no-autolink: the build's name linker links a name's FIRST mention in each section. The card comes first, so without this
+                it took the link, and the full entry (what the reading pane shows) was left with plain names. */}
+            <div class="cx-card" data-no-autolink>
               <p class="cx-ct">{card.title}</p>
               {card.verdict ? <p class="cx-cv">{card.verdict}</p> : null}
               <p class="cx-cm">
@@ -292,7 +294,9 @@ const ext = (h) => /^(https?:)?\/\//.test(String(h || ""));
     const norm = (s) => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
     const hay = new Map(entries.map((e) => [e, norm(e.textContent || "")]));
     entries.forEach((e, i) => { if (!e.id) e.id = "cx-" + (i + 1); });
-    const st = { q: "", sev: new Set(), kind: new Set(), who: "", day: "", id: "" };
+    /* `id` is the entry showing; `linked` says the reader (or a link) chose it. Only a chosen entry goes into the address: the one a wide
+       screen opens by itself does not, so the plain page keeps its plain address. */
+    const st = { q: "", sev: new Set(), kind: new Set(), who: "", day: "", id: "", linked: false };
 
     /* ---- the address: filters in the query, the entry in the hash (so a link from /whats-new/ still lands on its entry) ---- */
     const readUrl = () => {
@@ -307,7 +311,7 @@ const ext = (h) => /^(https?:)?\/\//.test(String(h || ""));
       if (st.q) p.set("q", st.q); if (st.who) p.set("who", st.who); if (st.day) p.set("day", st.day);
       if (st.sev.size) p.set("sev", [...st.sev].join("|")); if (st.kind.size) p.set("kind", [...st.kind].join("|"));
       const qs = p.toString();
-      try { history.replaceState(null, "", location.pathname + (qs ? "?" + qs : "") + (st.id ? "#" + st.id : "")); } catch (e) {}
+      try { history.replaceState(null, "", location.pathname + (qs ? "?" + qs : "") + (st.linked && st.id ? "#" + st.id : "")); } catch (e) {}
     };
 
     const ok = (e) => {
@@ -343,7 +347,7 @@ const ext = (h) => /^(https?:)?\/\//.test(String(h || ""));
       } else pane.innerHTML = "";
     };
     const select = (e, opts = {}) => {
-      st.id = e ? e.id : "";
+      st.id = e ? e.id : ""; st.linked = !!e;
       paint(); writeUrl();
       if (e && opts.scroll) e.scrollIntoView({ block: wide.matches ? "nearest" : "start", behavior: "smooth" });
     };
@@ -360,7 +364,7 @@ const ext = (h) => /^(https?:)?\/\//.test(String(h || ""));
       bars.forEach((b) => b.classList.toggle("on", st.day === b.dataset.from + "|" + b.dataset.to));
       /* keep the open entry if it is still shown; on a wide screen open the first shown one; on a narrow one close it */
       let cur = current();
-      if (!cur || cur.hidden) cur = wide.matches ? (visible()[0] || null) : null;
+      if (!cur || cur.hidden) { cur = wide.matches ? (visible()[0] || null) : null; st.linked = false; }
       st.id = cur ? cur.id : "";
       paint(); writeUrl();
     };
@@ -396,23 +400,31 @@ const ext = (h) => /^(https?:)?\/\//.test(String(h || ""));
     if (pane) pane.addEventListener("click", (ev) => {
       const t = ev.target.closest("button"); if (!t) return;
       if (t.dataset.nav) { const vis = visible(), k = vis.indexOf(current()) + Number(t.dataset.nav); if (vis[k]) select(vis[k], { scroll: true }); }
-      else if (t.classList.contains("cx-copy")) { try { navigator.clipboard.writeText(location.href); t.textContent = "Link copied"; } catch (e) { t.textContent = "Copy the address bar"; } }
+      else if (t.classList.contains("cx-copy")) { st.linked = true; writeUrl();   /* the address then names this entry, whether or not it could be copied */
+        try { navigator.clipboard.writeText(location.href); t.textContent = "Link copied"; } catch (e) { t.textContent = "Copy the address bar"; } }
     });
 
     /* A link from /whats-new/ lands on one entry. If a filter is hiding it, clear the filters first, then open it. */
-    const goHash = () => {
-      const id = decodeURIComponent((location.hash || "").slice(1));
-      const t = id && document.getElementById(id);
-      if (!t || !box.contains(t) || !t.classList.contains("cx-e")) return false;
+    const asked = () => { let id = ""; try { id = decodeURIComponent((location.hash || "").slice(1)); } catch (e) {}
+      const t = id && document.getElementById(id); return t && box.contains(t) && t.classList.contains("cx-e") ? t : null; };
+    const goHash = (t = asked()) => {
+      if (!t) return false;
       if (t.hidden) clearAll();
-      st.id = t.id; paint(); writeUrl();
+      st.id = t.id; st.linked = true; paint(); writeUrl();
       requestAnimationFrame(() => t.scrollIntoView({ block: "start" }));
       return true;
     };
     wide.addEventListener("change", () => { const c = current(); if (!c && wide.matches) { const v = visible()[0]; if (v) st.id = v.id; } paint(); });
-    addEventListener("hashchange", goHash);
-    readUrl(); apply();
-    if (location.hash) goHash();
+    addEventListener("hashchange", () => goHash());
+    /* the sticky pane and day headings sit below the site's own header: measured, unless the page has set --cx-top itself */
+    if (!getComputedStyle(box).getPropertyValue("--cx-top").trim()) {
+      const head = [...document.querySelectorAll("body > header, header.site")].find((h) => ["sticky", "fixed"].includes(getComputedStyle(h).position));
+      if (head) { const set = () => box.style.setProperty("--cx-top", Math.floor(head.getBoundingClientRect().height) + "px"); set(); addEventListener("resize", set); }
+    }
+    /* the entry the address asks for is read BEFORE the first apply(), which rewrites the address */
+    const first = asked();
+    readUrl(); if (first) { st.id = first.id; st.linked = true; } apply();
+    if (first) goHash(first);
   });
 </script>
 
