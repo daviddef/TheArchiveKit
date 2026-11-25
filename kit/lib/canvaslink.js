@@ -18,3 +18,14 @@ export function canvasHref(archive, slug, keys) {
   if (typeof slug === "string" && SLUG.test(slug)) q.set("p", slug);
   return `${CANVAS}?${q.toString()}`;
 }
+
+/* The one sentence ahnen.js writes on a branch it cut for depth ("The chart stops here to stay readable.") is about a drawing.
+   On a page that does not draw the chart (AncChart draw={false}) there is no chart to stop, and the sentence would say
+   something false; say what is true of the page instead. Any other note is returned unchanged, and so is every note
+   when the chart is drawn. */
+export const CUT_FOR_DEPTH = "The chart stops here to stay readable.";
+export const CUT_FOR_DEPTH_NO_CHART = "This page follows the line no further here.";
+export function wallNote(note, draw = true) {
+  if (draw || typeof note !== "string") return note;
+  return note.startsWith(CUT_FOR_DEPTH) ? CUT_FOR_DEPTH_NO_CHART + note.slice(CUT_FOR_DEPTH.length) : note;
+}

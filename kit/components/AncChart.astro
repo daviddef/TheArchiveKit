@@ -38,9 +38,11 @@
    still gets the drawing. */
 import arch from "../data/archives.json";
 import { md } from "../lib/md.js";
+import { wallNote } from "../lib/canvaslink.js";
 /* `draw` — TRUE by default. False leaves the picture out and keeps the lists: the archives that send the reader to the Tree
    Canvas for the picture (25 November 2026) still say, on their own page, where each branch ends and why. The layout is still
-   worked out, because the walls, the second marriages and the folds are read off it. */
+   worked out, because the walls, the second marriages and the folds are read off it. A branch cut for depth then says "This page
+   follows the line no further here." (wallNote), not "The chart stops here to stay readable.", because there is no chart. */
 /* `lists` — the walls, the second marriages and the folds, rendered under the
    drawing. TRUE by default, because an archive that has not written them
    should still get them said. Booyzen passes false: it had written all three
@@ -196,7 +198,7 @@ const GENLAB = ["Self", "Gen 1", "Gen 2", "Gen 3", "Gen 4", "Gen 5", "Gen 6", "G
     <div class="ac-wrow" style={`--k:${kindOf(w)[1]}`}>
       <div class="ac-wk">{w.label}<span class="ac-wkind">{kindOf(w)[0]}</span></div>
       <div class="ac-wn">
-        <span set:html={md(w.note)}></span>
+        <span set:html={md(wallNote(w.note, draw))}></span>
         {w.arch && A[w.arch] && (
           <a class="ac-go" href={`${A[w.arch].url}search/?q=${encodeURIComponent(w.q)}`}>
             Search {A[w.arch].name} for {w.q} →
