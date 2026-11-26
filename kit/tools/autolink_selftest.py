@@ -613,6 +613,24 @@ case("an index with no resolve rule links every Nell Orrin to the search address
 shutil.rmtree(t2, ignore_errors=True)
 shutil.rmtree(t, ignore_errors=True)
 
+# ------------------------------------------------------------------------------------------------ every mention, where an element asks
+print("data-autolink-every")
+_two = "<section><p>Marta Arena came. Marta Arena left.</p><p>Marta Arena again.</p></section>"
+got, out = linked_texts(_two)
+case("without data-autolink-every only the first mention of the section is linked", got == ["Marta Arena"], got)
+got, out = linked_texts(_two.replace("<section>", "<section><div data-autolink-every>").replace("</section>", "</div></section>"))
+case("inside data-autolink-every every mention is linked", got == ["Marta Arena"] * 3, got)
+got, out = linked_texts('<section><div data-autolink-every><p>Marta Arena.</p></div><p>Marta Arena.</p></section>')
+case("outside it, after it, the section already has the link: no second one", got == ["Marta Arena"], got)
+got, out = linked_texts('<section><p>Marta Arena.</p><div data-autolink-every><p>Marta Arena. Marta Arena.</p></div><p>Marta Arena.</p></section>')
+case("a first mention before it stays linked once outside, and every one inside is linked", got == ["Marta Arena"] * 3, got)
+got, out = linked_texts('<section><div data-autolink-every><p>Marta Arena Hollis. Marta Arena.</p><p data-no-autolink>Marta Arena.</p><h3>Marta Arena</h3></div></section>')
+case("the living rule, data-no-autolink and headings hold inside data-autolink-every", got == ["Marta Arena"] and "Marta Arena Hollis." in out, got)
+again, sc = al.autolink_html(out, _IDX_L, "main")
+case("a second run over a data-autolink-every block changes nothing", again == out and not sc.inserts, len(sc.inserts))
+_left = al.scan_html('<main><section><div data-autolink-every><p><a href="/people/marta-arena/">Marta Arena</a> and Marta Arena</p></div></section></main>', _IDX_L)
+case("a plain mention beside a linked one inside it is counted (what the gate reads)", len(_left.inserts) == 1, len(_left.inserts))
+
 # ------------------------------------------------------------------------------------------------ counts only
 print("counts only")
 leak = [n for n in sorted(NAMES | SLUGS) if any(n.lower() in o.lower() for o in ALL_OUTPUT)]

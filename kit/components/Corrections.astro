@@ -136,7 +136,7 @@ const ext = (h) => /^(https?:)?\/\//.test(String(h || ""));
         <span class="cx-beatn">{beat.size > 1 ? `One bar a ${beat.size === 7 ? "week" : beat.size + " days"}.` : "One bar a day."} <span class="cx-jsonly">Click one to read only those.</span></span></h3>
       <div class="cx-bars">
         {beat.bars.map((b) => (
-          <div class={"cx-bd" + (b.n ? "" : " empty")} data-from={b.n ? b.from : undefined} data-to={b.n ? b.to : undefined}
+          <div class={"cx-bd" + (b.n ? "" : " cx-nil")} data-from={b.n ? b.from : undefined} data-to={b.n ? b.to : undefined}
                title={`${longDate(b.from)}${b.to !== b.from ? " to " + longDate(b.to) : ""}: ${b.n ? b.n + (b.n === 1 ? " correction" : " corrections") : "none"}`}>
             <div class="cx-bst">
               {[...TONE_ORDER].reverse().filter((t) => b.tones[t]).map((t) => <i class={"cx-seg t-" + t} style={`height:${(b.tones[t] / (beat.peak * 1.05)) * 100}%`}></i>)}
@@ -203,17 +203,19 @@ const ext = (h) => /^(https?:)?\/\//.test(String(h || ""));
           <section class={"cx-e t-" + tone} data-sev={r.sev || ""} data-kind={r.kind || ""} data-day={iso} data-who={(r.about || []).map((a) => a[0]).join(" ")} id={r.id || undefined}>
             {/* data-no-autolink: the build's name linker links a name's FIRST mention in each section. The card comes first, so without this
                 it took the link, and the full entry (what the reading pane shows) was left with plain names. */}
+            {/* Spans, not paragraphs: the card is a preview of the entry below it, so the linking standard's passage counts (a passage is a
+                p, li, dd or blockquote) read the full entry once and not the preview as well. */}
             <div class="cx-card" data-no-autolink>
-              <p class="cx-ct">{card.title}</p>
-              {card.verdict ? <p class="cx-cv">{card.verdict}</p> : null}
-              <p class="cx-cm">
+              <span class="cx-ct">{card.title}</span>
+              {card.verdict ? <span class="cx-cv">{card.verdict}</span> : null}
+              <span class="cx-cm">
                 {r.sev ? <span class={"cx-sev t-" + tone}>{cap(r.sev)}</span> : null}
                 {r.kind && !isTitle(r.kind) ? <span class="cx-kd">{r.kind}</span> : null}
                 {(r.about || []).slice(0, 2).map(([h, n]) => <span class="cx-who-c">{n}</span>)}
                 {(r.about || []).length > 2 ? <span class="cx-more-n">+{r.about.length - 2}</span> : null}
-              </p>
+              </span>
             </div>
-            <div class="cx-full">
+            <div class="cx-full" data-autolink-every>
               <div class="cx-fh">
                 <span class={"cx-stamp t-" + tone}>{r.sev ? cap(r.sev) : "Corrected"}</span>
                 {r.when ? <span class="cx-when">Caught {say(r.when)}</span> : null}
@@ -442,14 +444,15 @@ const ext = (h) => /^(https?:)?\/\//.test(String(h || ""));
     letter-spacing:.11em; text-transform:uppercase; color:var(--ink-3,#888); }
   .cx-beatn { font-weight:400; letter-spacing:0; text-transform:none; }
   .cx:not(.cx-js) .cx-jsonly { display:none; }
-  .cx-bars { display:flex; align-items:flex-end; gap:3px; height:72px; }
-  .cx-bd { flex:1; min-width:3px; height:100%; display:flex; align-items:flex-end; border-radius:3px 3px 0 0; }
+  /* up to 120 bars: the bars and the gaps shrink to the screen. "cx-nil", not "empty": an archive's own .empty pads its blank states. */
+  .cx-bars { display:flex; align-items:flex-end; gap:clamp(1px,.35vw,3px); height:72px; }
+  .cx-bd { flex:1; min-width:0; height:100%; display:flex; align-items:flex-end; border-radius:3px 3px 0 0; }
   .cx-bd[role="button"] { cursor:pointer; }
   .cx-bd.on { outline:2px solid var(--accent,#963); outline-offset:1px; }
   .cx-bd:focus-visible { outline:2px solid var(--accent,#963); outline-offset:1px; }
   .cx-bd[role="button"]:hover .cx-seg { filter:brightness(1.18); }
   .cx-bst { width:100%; height:100%; display:flex; flex-direction:column; justify-content:flex-end; border-radius:3px 3px 0 0; overflow:hidden; }
-  .cx-bd.empty .cx-bst::after { content:""; height:2px; background:var(--cx-rule); }
+  .cx-bd.cx-nil .cx-bst::after { content:""; height:2px; background:var(--cx-rule); }
   .cx-seg { display:block; width:100%; background:var(--c); }
   .cx-axis { display:flex; justify-content:space-between; margin-top:.35rem; font-size:11px; color:var(--ink-3,#888); }
   .cx-leg { list-style:none; margin:.55rem 0 0; padding:0; display:flex; flex-wrap:wrap; gap:.3rem 1rem; font-size:.78rem; color:var(--ink-2,inherit); }
@@ -462,7 +465,7 @@ const ext = (h) => /^(https?:)?\/\//.test(String(h || ""));
   .cx-q { width:100%; font:inherit; font-size:.95rem; padding:.6rem .8rem .6rem 2.3rem; border:1px solid var(--cx-rule); border-radius:8px;
     background:var(--ground,#fff); color:inherit; }
   .cx-q:focus-visible, .cx-sel:focus-visible, .cx-who-sel:focus-visible { outline:2px solid var(--accent,#963); outline-offset:1px; }
-  .cx-bar { display:flex; flex-wrap:wrap; gap:.4rem; align-items:center; }
+  .cx-bar { display:flex; flex-wrap:wrap; gap:.4rem; align-items:center; min-width:0; max-width:100%; }   /* a long option must not widen the page on a phone */
   .cx-lab { font-size:11px; font-weight:600; letter-spacing:.11em; text-transform:uppercase; color:var(--ink-3,#888); margin-right:.2rem; }
   .cx-opt { font:inherit; font-size:.82rem; padding:.34rem .7rem; cursor:pointer; color:var(--ink-2,inherit); background:var(--ground,#fff);
     border:1px solid var(--cx-rule); border-radius:999px; display:inline-flex; align-items:center; gap:.1rem; }
@@ -486,8 +489,8 @@ const ext = (h) => /^(https?:)?\/\//.test(String(h || ""));
   .cx-e { scroll-margin-top:calc(var(--cx-top,0px) + 4.5rem); margin:0 0 .6rem; border:1px solid var(--cx-rule); border-left:5px solid var(--c,var(--cx-other));
     border-radius:10px; background:var(--cx-fill); }
   .cx-card { padding:.75rem .95rem .8rem; }
-  .cx-ct { margin:0; font-size:1.02rem; line-height:1.35; font-weight:600; color:var(--ink,inherit); overflow-wrap:anywhere; }
-  .cx-cv { margin:.3rem 0 0; font-size:.88rem; line-height:1.45; color:var(--ink-2,inherit); overflow-wrap:anywhere; }
+  .cx-ct { display:block; margin:0; font-size:1.02rem; line-height:1.35; font-weight:600; color:var(--ink,inherit); overflow-wrap:anywhere; }
+  .cx-cv { display:block; margin:.3rem 0 0; font-size:.88rem; line-height:1.45; color:var(--ink-2,inherit); overflow-wrap:anywhere; }
   .cx-cm { margin:.55rem 0 0; display:flex; flex-wrap:wrap; gap:.35rem .5rem; align-items:center; font-size:11px; font-weight:600; letter-spacing:.06em;
     text-transform:uppercase; color:var(--ink-3,#888); }
   .cx-sev { color:var(--c); display:inline-flex; align-items:center; gap:.35rem; }
