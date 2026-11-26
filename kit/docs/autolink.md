@@ -216,8 +216,10 @@ A check that examined nothing has not passed: both tools refuse rather than prin
 
 ## Known limits (state them, do not discover them)
 
-- The first mention per section is linked; the count measures that, not the share of all mentions. An archive that wants every mention
-  linked on a page must say so in a new option; none has asked.
+- The first mention per section is linked; the count measures that, not the share of all mentions. Where a block should have every
+  mention linked, its element carries `data-autolink-every` (the Corrections component puts it on each full entry): the pass then links
+  every mention inside it, and `checklinks.py` counts any of them left plain. The living rule, the skipped elements and
+  `data-no-autolink` hold inside it as everywhere else.
 - A name that is a real person on one page and a different person of the same name on another is the archive's `ambiguous` list to settle;
   the only context the tool uses is the `resolve` rules and the people named in the same section. A shared name with no relative beside it stays
   a (marked) search link.

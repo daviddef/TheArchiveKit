@@ -36,6 +36,9 @@ text and changing nothing else: not one other byte moves (a tolerant tokenizer f
     that has (or sits under one that has) data-no-autolink;
   - the FIRST mention of a person in each section (the text between <h2>/<h3> boundaries and <section> elements; a page
     with none is one section); a person already linked in that section by any link to the same address is not linked again;
+  - except inside an element that has data-autolink-every, where EVERY mention is linked (a correction's full entry: a short
+    block a reader opens by itself, where a plain second mention reads as a name the archive could not link). The living rule,
+    the skipped elements and data-no-autolink hold there too;
   - longest name first, then the alias; whole words only (Arena is not found in Arenaria, nor in Arena-Rossi, nor in d'Arena);
   - a word written in capitals matches ("Given FAMILY"), the text stays as written;
   - idempotent: a second run changes nothing. --check changes nothing and exits 1 if a run would.
@@ -72,6 +75,7 @@ VOID = {"area", "base", "br", "col", "embed", "hr", "img", "input", "link", "met
 SECTION_TAGS = {"h2", "h3", "section"}
 BLOCK_TAGS = {"p", "li", "dd", "dt", "tr", "blockquote", "figcaption", "caption", "summary"}   # a near rule reads one of these at a time
 SHARED_CLASS = "lk-shared"
+EVERY_ATTR = "data-autolink-every"   # inside an element that has it, every mention is linked, not only the section's first
 DEFAULT_NEAR_WINDOW = 120          # text characters either side of a shared name in which its relative must stand (0: the whole section)
 DEFAULT_LABELS = {"shared": "Several people share this name: opens the list"}
 
@@ -490,10 +494,10 @@ def scan_html(html, idx, scope="main", window=None):
     sc.window = idx.near_window if window is None else window
     tpos = 0                   # characters of text seen so far in scope (tags excluded): the measure of "beside" for a near rule
     scope = scope.lower()
-    stack = []                 # [name, is_skip, is_scope]
-    n_scope = n_skip = 0
+    stack = []                 # [name, is_skip, is_scope, is_every]
+    n_scope = n_skip = n_every = 0
     section = 0
-    texts = []                 # (raw_start, raw_end, section, text position) of text in eligible places
+    texts = []                 # (raw_start, raw_end, section, text position, block, every mention?) of text in eligible places
     linked = set()             # (section, normalized href) of every <a href> in scope
     cur_auto = None
     pos, L = 0, len(html)
@@ -501,13 +505,14 @@ def scan_html(html, idx, scope="main", window=None):
     nblock = 0
 
     def pop_to(k):
-        nonlocal n_scope, n_skip
+        nonlocal n_scope, n_skip, n_every
         while bstack and bstack[-1][0] >= k:
             bstack.pop()
         while len(stack) > k:
-            nm, sk, sp = stack.pop()
+            nm, sk, sp, ev = stack.pop()
             n_skip -= 1 if sk else 0
             n_scope -= 1 if sp else 0
+            n_every -= 1 if ev else 0
 
     while pos < L:
         m = TOKEN.search(html, pos)
@@ -515,7 +520,7 @@ def scan_html(html, idx, scope="main", window=None):
         if end_text > pos:
             if n_scope:
                 if n_skip == 0:
-                    texts.append((pos, end_text, section, tpos, bstack[-1][1] if bstack else 0))
+                    texts.append((pos, end_text, section, tpos, bstack[-1][1] if bstack else 0, n_every > 0))
                 tpos += end_text - pos
                 if cur_auto is not None:
                     cur_auto["raw"].append(html[pos:end_text])
@@ -564,32 +569,34 @@ def scan_html(html, idx, scope="main", window=None):
         if nm in VOID or selfclose:
             continue
         is_skip = nm in SKIP_TAGS or "data-no-autolink" in attrs
-        stack.append([nm, is_skip, nm == scope])
+        is_every = EVERY_ATTR in attrs
+        stack.append([nm, is_skip, nm == scope, is_every])
         if nm in BLOCK_TAGS and n_scope:
             nblock += 1
             bstack.append((len(stack) - 1, nblock))
         n_skip += 1 if is_skip else 0
         n_scope += 1 if nm == scope else 0
+        n_every += 1 if is_every else 0
     sc.sections = section
     # second pass: who is named in each section (a plain mention of a single-bearer person, or any link that is not a near link), so
     # that a name several people bear can be decided by a relative named beside it, before or after it
     found = []
-    for (a, b, sec, tp, blk) in texts:
+    for (a, b, sec, tp, blk, every) in texts:
         ms, blocked = find_matches(html[a:b], idx)
         sc.living_blocked += blocked
-        found.append((a, sec, tp, blk, ms))
+        found.append((a, sec, tp, blk, every, ms))
         for (ms_, _me, e) in ms:
             if e.kind == "person":
                 sc.evidence.setdefault((sec, blk), []).append((tp + ms_, e.url))
-    # third pass: the first plain mention of each person in each section
-    for (a, sec, tp, blk, ms) in found:
+    # third pass: the first plain mention of each person in each section, and every one inside data-autolink-every
+    for (a, sec, tp, blk, every, ms) in found:
         for (ms_, me_, e) in ms:
             sc.mentions += 1
             kind, url = e.kind, e.url
             if kind == "ambiguous":
                 kind, url = decide(e, sc.named(sec, blk, tp + ms_))
             key = (sec, url)
-            if key in linked:
+            if key in linked and not every:
                 sc.covered += 1
                 continue
             linked.add(key)
